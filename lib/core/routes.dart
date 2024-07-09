@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:sway_events/core/constants/l10n.dart';
 import 'package:sway_events/core/utils/error/error_not_found.dart';
-import 'package:sway_events/core/widgets/navbar.dart';
+import 'package:sway_events/core/widgets/navbar_no_appbar.dart';
 import 'package:sway_events/features/discovery/discovery.dart';
 import 'package:sway_events/features/search/search.dart';
 
@@ -72,7 +72,7 @@ final GoRouter router = GoRouter(
               ),
             ],
           ),*/
-          ScaffoldWithNavBar(child: child),
+          ScaffoldWithNavBarWithoutAppBar(child: child),
           breakpoints: const [
             Breakpoint(start: 0, end: 450, name: MOBILE),
             Breakpoint(start: 451, end: 800, name: TABLET),
@@ -110,7 +110,7 @@ List<RouteBase> getRoutes() {
 // Return the current route name
 String routeName() {
   final route = routes.firstWhere(
-    (route) => route['path'] == router.routerDelegate.currentConfiguration?.fullPath,
+    (route) => route['path'] == router.routerDelegate.currentConfiguration.fullPath,
     orElse: () => routes.first,
   );
   return route['name'] as String;
@@ -119,7 +119,7 @@ String routeName() {
 // Return the index of the current screen
 int selectedIndex() {
   final route = routes.firstWhere(
-    (route) => route['path'] == router.routerDelegate.currentConfiguration?.fullPath,
+    (route) => route['path'] == router.routerDelegate.currentConfiguration.fullPath,
     orElse: () => routes.first,
   );
   return route['index'] as int;

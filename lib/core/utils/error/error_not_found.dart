@@ -1,6 +1,6 @@
-import 'package:sway_events/core/constants/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sway_events/core/constants/l10n.dart';
 
 class NotFoundError extends StatelessWidget {
   const NotFoundError(this.error, {super.key});
@@ -8,10 +8,10 @@ class NotFoundError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+    final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
     return Scaffold(
-      key: _scaffoldKey,
+      key: scaffoldKey,
       backgroundColor: Colors.red,
       body: Center(
         child: Column(
@@ -30,7 +30,7 @@ class NotFoundError extends StatelessWidget {
                 side: const BorderSide(color: Colors.white, width: 1.5),
               ),
               child: Text(context.loc.routesNameHome),
-            )
+            ),
           ],
         ),
       ),

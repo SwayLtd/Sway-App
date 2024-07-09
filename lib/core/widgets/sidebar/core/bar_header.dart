@@ -1,5 +1,5 @@
-import 'package:sway_events/core/widgets/sidebar/side_navigation.dart';
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/widgets/sidebar/side_navigation.dart';
 
 /// Represents the header widget which is rendered on the screen
 ///

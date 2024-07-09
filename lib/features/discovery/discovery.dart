@@ -9,8 +9,6 @@ class DiscoveryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("DiscoveryScreen build started");
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Discovery"),
@@ -48,17 +46,13 @@ class DiscoveryScreen extends StatelessWidget {
         future: EventService().getEvents(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            print("Loading events...");
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            print("Error loading events: ${snapshot.error}");
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            print("No events found");
-            return Center(child: Text('No events found'));
+            return const Center(child: Text('No events found'));
           } else {
             final events = snapshot.data ?? [];
-            print("Events loaded: ${events.length}");
             return ListView(
               children: events.map((event) => EventCard(event: event)).toList(),
             );

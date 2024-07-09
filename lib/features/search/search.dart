@@ -14,7 +14,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final EventService _eventService = EventService();
   List<Event> _searchResults = [];
 
-  void _performSearch(String query) async {
+  Future<void> _performSearch(String query) async {
     final results = await _eventService.searchEvents(query);
     setState(() {
       _searchResults = results;
@@ -30,7 +30,7 @@ class _SearchScreenState extends State<SearchScreen> {
           decoration: InputDecoration(
             hintText: 'Search events or organizers',
             suffixIcon: IconButton(
-              icon: Icon(Icons.clear),
+              icon: const Icon(Icons.clear),
               onPressed: () {
                 _searchController.clear();
                 setState(() {
@@ -43,13 +43,13 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.map),
+            icon: const Icon(Icons.map),
             onPressed: () {
               // Map search action
             },
           ),
           IconButton(
-            icon: Icon(Icons.filter_list),
+            icon: const Icon(Icons.filter_list),
             onPressed: () {
               // Filter action
             },

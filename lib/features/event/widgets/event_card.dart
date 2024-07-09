@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:sway_events/core/widgets/genre_chip.dart';
+import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
@@ -10,7 +13,7 @@ class EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DateTime eventDateTime = DateTime.parse(event.dateTime);
+    final DateTime eventDateTime = DateTime.parse(event.dateTime);
 
     return GestureDetector(
       onTap: () {
@@ -35,11 +38,10 @@ class EventCard extends StatelessWidget {
                     topLeft: Radius.circular(15),
                     topRight: Radius.circular(15),
                   ),
-                  child: Image.network(
-                    event.imageUrl,
+                  child: ImageWithErrorHandler(
+                    imageUrl: event.imageUrl,
                     width: double.infinity,
                     height: 200,
-                    fit: BoxFit.cover,
                   ),
                 ),
                 Positioned(
@@ -79,7 +81,8 @@ class EventCard extends StatelessWidget {
                 children: [
                   Text(
                     event.title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold,),
                   ),
                   const SizedBox(height: 5),
                   Row(
@@ -88,28 +91,35 @@ class EventCard extends StatelessWidget {
                       FutureBuilder(
                         future: VenueService().getVenueById(event.venue),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Text(
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Text(
                               'Loading...',
-                              style: const TextStyle(fontSize: 14, color: Colors.grey),
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.grey,),
                             );
-                          } else if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-                            return Text(
+                          } else if (snapshot.hasError ||
+                              !snapshot.hasData ||
+                              snapshot.data == null) {
+                            return const Text(
                               'Location not found',
-                              style: const TextStyle(fontSize: 14, color: Colors.grey),
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.grey,),
                             );
                           } else {
                             final venue = snapshot.data!;
                             return Text(
                               venue.name,
-                              style: const TextStyle(fontSize: 14, color: Colors.grey),
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.grey,),
                             );
                           }
                         },
                       ),
                       Text(
                         event.distance,
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        style:
+                            const TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -122,28 +132,35 @@ class EventCard extends StatelessWidget {
                           children: [
                             TextSpan(
                               text: _formatEventDate(eventDateTime),
-                              style: const TextStyle(fontSize: 14, color: Colors.red),
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.red,),
                             ),
                             const TextSpan(
                               text: ' | ',
-                              style: TextStyle(fontSize: 14, color: Colors.black),
+                              style:
+                                  TextStyle(fontSize: 14, color: Colors.black),
                             ),
                             TextSpan(
                               text: _formatEventTime(eventDateTime),
-                              style: const TextStyle(fontSize: 14, color: Colors.red),
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.red,),
                             ),
                           ],
                         ),
                       ),
                       Text(
                         event.price,
-                        style: const TextStyle(fontSize: 14, color: Colors.black),
+                        style:
+                            const TextStyle(fontSize: 14, color: Colors.black),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  Row(
-                    children: _buildGenreChips(event.genres, context),
+                  Wrap(
+                    spacing: 8.0,
+                    children: event.genres.map((genreId) {
+                      return GenreChip(genreId: genreId);
+                    }).toList(),
                   ),
                 ],
               ),
@@ -156,12 +173,16 @@ class EventCard extends StatelessWidget {
 
   String _formatEventDate(DateTime dateTime) {
     final now = DateTime.now();
-    if (dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day) {
+    if (dateTime.year == now.year &&
+        dateTime.month == now.month &&
+        dateTime.day == now.day) {
       return 'Today';
-    } else if (dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day + 1) {
+    } else if (dateTime.year == now.year &&
+        dateTime.month == now.month &&
+        dateTime.day == now.day + 1) {
       return 'Tomorrow';
     } else {
-      return '${_getWeekdayName(dateTime.weekday)} ${dateTime.day}/${dateTime.month}';
+      return DateFormat.yMMMMEEEEd().format(dateTime); // Format readable by humans
     }
   }
 
@@ -169,50 +190,5 @@ class EventCard extends StatelessWidget {
     final hour = dateTime.hour.toString().padLeft(2, '0');
     final minute = dateTime.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
-  }
-
-  String _getWeekdayName(int weekday) {
-    switch (weekday) {
-      case DateTime.monday:
-        return 'Monday';
-      case DateTime.tuesday:
-        return 'Tuesday';
-      case DateTime.wednesday:
-        return 'Wednesday';
-      case DateTime.thursday:
-        return 'Thursday';
-      case DateTime.friday:
-        return 'Friday';
-      case DateTime.saturday:
-        return 'Saturday';
-      case DateTime.sunday:
-        return 'Sunday';
-      default:
-        return '';
-    }
-  }
-
-  List<Widget> _buildGenreChips(List<String> genres, BuildContext context) {
-    List<Widget> chips = [];
-    double totalWidth = 0;
-    double maxWidth = MediaQuery.of(context).size.width - 60; // Adjust according to card padding
-
-    for (int i = 0; i < genres.length; i++) {
-      final textPainter = TextPainter(
-        text: TextSpan(text: genres[i], style: const TextStyle(fontSize: 12)),
-        maxLines: 1,
-        textDirection: TextDirection.ltr,
-      )..layout();
-
-      totalWidth += textPainter.width + 20; // 20 for padding and margin
-
-      if (totalWidth > maxWidth) {
-        chips.add(Chip(label: Text('+${genres.length - i}')));
-        break;
-      } else {
-        chips.add(Chip(label: Text(genres[i])));
-      }
-    }
-    return chips;
   }
 }

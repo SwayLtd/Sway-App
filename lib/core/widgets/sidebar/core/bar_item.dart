@@ -1,5 +1,5 @@
-import 'package:sway_events/core/widgets/sidebar/side_navigation.dart';
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/widgets/sidebar/side_navigation.dart';
 
 /// This widget uses information obtained from [SideNavigationBarItem]
 /// to generate the widget which provides an [onTap] callback while

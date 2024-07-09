@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:sway_events/core/constants/l10n.dart';
 import 'package:sway_events/core/routes.dart';
 
-class ScaffoldWithNavBar extends StatefulWidget {
-  const ScaffoldWithNavBar({super.key, required this.child});
+class ScaffoldWithNavBarWithoutAppBar extends StatefulWidget {
+  const ScaffoldWithNavBarWithoutAppBar({super.key, required this.child});
   final Widget child;
 
   @override
-  State<ScaffoldWithNavBar> createState() => _ScaffoldWithNavBarState();
+  State<ScaffoldWithNavBarWithoutAppBar> createState() => _ScaffoldWithNavBarWithoutAppBarState();
 }
 
-class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
+class _ScaffoldWithNavBarWithoutAppBarState extends State<ScaffoldWithNavBarWithoutAppBar> {
   int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(debugLabel: 'navbar');
 
@@ -45,32 +45,6 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     return Scaffold(
       key: _scaffoldKey,
       body: widget.child,
-      appBar: AppBar(
-        title: Text(routeName()),
-        centerTitle: true, // Center the title in the AppBar
-        actions: <Widget>[
-          InkWell(
-            borderRadius: BorderRadius.circular(30),
-            onTap: () {
-              // Access user settings screen
-              setState(() {
-                onTap(context, 4);
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.only(
-                left: 7.5,
-                right: 7.5,
-              ), // Add some margin to the edges of the avatar
-              child: const CircleAvatar(
-                backgroundImage: NetworkImage(
-                  'https://avatars.githubusercontent.com/u/21986104', // TODO: Get user avatar
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: selectedIndex() >= items.length
             ? Theme.of(context).disabledColor

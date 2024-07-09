@@ -1,0 +1,123 @@
+[
+    {
+      "id": "1",
+      "name": "Techno",
+      "description": "A genre of electronic dance music characterized by a repetitive four on the floor beat.",
+      "bpmRange": "120-135 BPM"
+    },
+    {
+      "id": "2",
+      "name": "Hard Techno",
+      "description": "A subgenre of techno music with a faster tempo and harder, darker sounds.",
+      "bpmRange": "140-160 BPM"
+    },
+    {
+      "id": "3",
+      "name": "House",
+      "description": "A genre of electronic dance music characterized by a repetitive four on the floor beat and a tempo of 120-130 BPM.",
+      "bpmRange": "120-130 BPM"
+    },
+    {
+      "id": "4",
+      "name": "Minimal Techno",
+      "description": "A subgenre of techno music characterized by minimalistic elements and repetitive beats.",
+      "bpmRange": "125-135 BPM"
+    },
+    {
+      "id": "5",
+      "name": "Industrial",
+      "description": "A genre of electronic music that draws on harsh, transgressive or provocative sounds and themes.",
+      "bpmRange": "110-150 BPM"
+    },
+    {
+      "id": "6",
+      "name": "Acid",
+      "description": "A subgenre of house music that developed from the mid-1980s onwards, defined by its 'acid' sound, typically produced by the Roland TB-303.",
+      "bpmRange": "120-130 BPM"
+    },
+    {
+      "id": "7",
+      "name": "Deep Techno",
+      "description": "A subgenre of techno music characterized by deep basslines and atmospheric sounds.",
+      "bpmRange": "120-130 BPM"
+    },
+    {
+      "id": "8",
+      "name": "Melodic Techno",
+      "description": "A subgenre of techno music characterized by melodic elements and emotional undertones.",
+      "bpmRange": "120-130 BPM"
+    },
+    {
+      "id": "9",
+      "name": "Trance",
+      "description": "A genre of electronic dance music that developed during the early 1990s, characterized by a tempo of between 125 and 150 BPM, repeating melodic phrases, and a musical form that distinctly builds up and down throughout a track.",
+      "bpmRange": "125-150 BPM"
+    },
+    {
+      "id": "10",
+      "name": "Drum and Bass",
+      "description": "A genre of electronic music characterized by fast breakbeats (typically 160-180 BPM) with heavy bass and sub-bass lines.",
+      "bpmRange": "160-180 BPM"
+    },
+    {
+      "id": "11",
+      "name": "Dubstep",
+      "description": "A genre of electronic dance music characterized by sparse, syncopated rhythmic patterns with prominent sub-bass frequencies.",
+      "bpmRange": "140-150 BPM"
+    },
+    {
+      "id": "12",
+      "name": "Electro",
+      "description": "A genre of electronic music and early hip hop directly influenced by the use of the Roland TR-808 drum machines, and funk.",
+      "bpmRange": "120-140 BPM"
+    },
+    {
+      "id": "13",
+      "name": "Hardcore",
+      "description": "A genre of electronic dance music characterized by a very fast tempo (typically 160-200 BPM) and the rhythm is often distorted and overdriven.",
+      "bpmRange": "160-200 BPM"
+    },
+    {
+      "id": "14",
+      "name": "Progressive House",
+      "description": "A subgenre of house music that developed in the 1990s, characterized by a progressive structure and layers of synths and melodies.",
+      "bpmRange": "120-130 BPM"
+    },
+    {
+      "id": "15",
+      "name": "Ambient",
+      "description": "A genre of music that puts an emphasis on tone and atmosphere over traditional musical structure or rhythm.",
+      "bpmRange": "60-80 BPM"
+    },
+    {
+      "id": "16",
+      "name": "Tech House",
+      "description": "A subgenre of house music that combines elements of techno and house.",
+      "bpmRange": "120-130 BPM"
+    },
+    {
+      "id": "17",
+      "name": "Psytrance",
+      "description": "A genre of electronic dance music characterized by arrangements of synthetic rhythms and complex layered melodies created by high tempo riffs.",
+      "bpmRange": "140-150 BPM"
+    },
+    {
+      "id": "18",
+      "name": "Breakbeat",
+      "description": "A broad style of electronic or dance-oriented music characterized by the use of breaks.",
+      "bpmRange": "130-140 BPM"
+    },
+    {
+      "id": "19",
+      "name": "Future Bass",
+      "description": "A genre of electronic dance music characterized by wobbly synths, pitched vocal chops, and a lot of sidechain.",
+      "bpmRange": "140-150 BPM"
+    },
+    {
+      "id": "20",
+      "name": "Synthwave",
+      "description": "A genre of electronic music influenced by 1980s music and films.",
+      "bpmRange": "80-120 BPM"
+    }
+  ]
+  

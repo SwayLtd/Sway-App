@@ -6,7 +6,7 @@ import 'package:sway_events/features/venue/models/venue_model.dart';
 
 class VenueService {
   Future<List<Venue>> getVenues() async {
-    final String response = await rootBundle.loadString('assets/venues.json');
+    final String response = await rootBundle.loadString('assets/databases/venues.json');
     final List<dynamic> venueJson = json.decode(response) as List<dynamic>;
     return venueJson.map((json) => Venue.fromJson(json as Map<String, dynamic>)).toList();
   }

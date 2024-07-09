@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/widgets/genre_chip.dart';
+import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/artist/services/artist_service.dart';
 import 'package:sway_events/features/event/event.dart';
@@ -23,11 +25,11 @@ class ArtistScreen extends StatelessWidget {
         future: ArtistService().getArtistById(artistId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data == null) {
-            return Center(child: Text('Artist not found'));
+            return const Center(child: Text('Artist not found'));
           } else {
             final artist = snapshot.data!;
             return SingleChildScrollView(
@@ -39,11 +41,10 @@ class ArtistScreen extends StatelessWidget {
                     Center(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(15),
-                        child: Image.network(
-                          artist.imageUrl,
+                        child: ImageWithErrorHandler(
+                          imageUrl: artist.imageUrl,
                           width: 200,
                           height: 200,
-                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
@@ -72,9 +73,9 @@ class ArtistScreen extends StatelessWidget {
                         future: EventService().getEventById(eventId),
                         builder: (context, eventSnapshot) {
                           if (eventSnapshot.connectionState == ConnectionState.waiting) {
-                            return CircularProgressIndicator();
+                            return const CircularProgressIndicator();
                           } else if (eventSnapshot.hasError || !eventSnapshot.hasData || eventSnapshot.data == null) {
-                            return SizedBox.shrink(); // handle event not found case
+                            return const SizedBox.shrink(); // handle event not found case
                           } else {
                             final event = eventSnapshot.data!;
                             return ListTile(
@@ -92,7 +93,7 @@ class ArtistScreen extends StatelessWidget {
                           }
                         },
                       );
-                    }).toList(),
+                    }),
                     const SizedBox(height: 20),
                     const Text(
                       "ABOUT",
@@ -108,7 +109,7 @@ class ArtistScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8.0,
-                      children: artist.genres.map((genre) => Chip(label: Text(genre))).toList(),
+                      children: artist.genres.map((genreId) => GenreChip(genreId: genreId)).toList(),
                     ),
                     const SizedBox(height: 20),
                     const Text(
@@ -131,9 +132,9 @@ class ArtistScreen extends StatelessWidget {
                             future: ArtistService().getArtistById(similarArtistId),
                             builder: (context, similarArtistSnapshot) {
                               if (similarArtistSnapshot.connectionState == ConnectionState.waiting) {
-                                return CircularProgressIndicator();
+                                return const CircularProgressIndicator();
                               } else if (similarArtistSnapshot.hasError || !similarArtistSnapshot.hasData || similarArtistSnapshot.data == null) {
-                                return SizedBox.shrink(); // handle artist not found case
+                                return const SizedBox.shrink(); // handle artist not found case
                               } else {
                                 final similarArtist = similarArtistSnapshot.data!;
                                 return GestureDetector(
@@ -151,11 +152,10 @@ class ArtistScreen extends StatelessWidget {
                                       children: [
                                         ClipRRect(
                                           borderRadius: BorderRadius.circular(10),
-                                          child: Image.network(
-                                            similarArtist.imageUrl,
+                                          child: ImageWithErrorHandler(
+                                            imageUrl: similarArtist.imageUrl,
                                             width: 100,
                                             height: 100,
-                                            fit: BoxFit.cover,
                                           ),
                                         ),
                                         const SizedBox(height: 5),
@@ -181,7 +181,7 @@ class ArtistScreen extends StatelessWidget {
   }
 
   Widget _buildLinksRow(Map<String, String> links) {
-    List<Widget> icons = [];
+    final List<Widget> icons = [];
     links.forEach((platform, url) {
       IconData iconData;
       switch (platform) {
@@ -200,7 +200,9 @@ class ArtistScreen extends StatelessWidget {
       icons.add(
         IconButton(
           icon: Icon(iconData),
-          onPressed: null,
+          onPressed: () {
+            // Open link action
+          },
         ),
       );
     });
@@ -216,11 +218,11 @@ class ArtistScreen extends StatelessWidget {
         future: VenueService().getVenues(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
+            return const CircularProgressIndicator();
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else if (!snapshot.hasData || snapshot.data == null) {
-            return Text('No venues found');
+            return const Text('No venues found');
           } else {
             final venues = snapshot.data!;
             final residentVenues = venues.where((venue) => venue.residentArtists.contains(artistId)).toList();

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/utils/date_utils.dart';
 import 'package:sway_events/features/artist/artist.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/artist/services/artist_service.dart';
-import 'package:sway_events/features/event/services/event_service.dart';
+import 'package:sway_events/core/widgets/genre_chip.dart';
+import 'package:sway_events/core/widgets/image_with_error_handler.dart';
+import 'package:sway_events/core/widgets/info_card.dart';
+import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
@@ -18,6 +21,8 @@ class EventScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final DateTime eventDateTime = DateTime.parse(event.dateTime);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(event.title),
@@ -45,11 +50,10 @@ class EventScreen extends StatelessWidget {
               Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(15),
-                  child: Image.network(
-                    event.imageUrl,
+                  child: ImageWithErrorHandler(
+                    imageUrl: event.imageUrl,
                     width: double.infinity,
                     height: 200,
-                    fit: BoxFit.cover,
                   ),
                 ),
               ),
@@ -59,14 +63,14 @@ class EventScreen extends StatelessWidget {
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              _buildInfoCard(context, "Date", event.dateTime),
+              InfoCard(title: "Date", content: formatEventDate(eventDateTime)),
               FutureBuilder<Venue?>(
                 future: VenueService().getVenueById(event.venue),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildInfoCard(context, "Location", "Loading...");
+                    return const InfoCard(title: "Location", content: 'Loading...');
                   } else if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-                    return _buildInfoCard(context, "Location", "Unknown");
+                    return const InfoCard(title: "Location", content: 'Location not found');
                   } else {
                     final venue = snapshot.data!;
                     return GestureDetector(
@@ -78,12 +82,12 @@ class EventScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: _buildInfoCard(context, "Location", venue.name),
+                      child: InfoCard(title: "Location", content: venue.name),
                     );
                   }
                 },
               ),
-              _buildInfoCard(context, "Price", event.price),
+              InfoCard(title: "Price", content: event.price),
               const SizedBox(height: 20),
               const Text(
                 "DESCRIPTION",
@@ -110,11 +114,11 @@ class EventScreen extends StatelessWidget {
                       }),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return CircularProgressIndicator();
+                          return const CircularProgressIndicator();
                         } else if (snapshot.hasError) {
                           return Text('Error: ${snapshot.error}');
                         } else if (!snapshot.hasData) {
-                          return Text('Artist not found');
+                          return const Text('Artist not found');
                         } else {
                           final artist = snapshot.data!;
                           return GestureDetector(
@@ -132,11 +136,10 @@ class EventScreen extends StatelessWidget {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
-                                    child: Image.network(
-                                      artist.imageUrl,
+                                    child: ImageWithErrorHandler(
+                                      imageUrl: artist.imageUrl,
                                       width: 100,
                                       height: 100,
-                                      fit: BoxFit.cover,
                                     ),
                                   ),
                                   const SizedBox(height: 5),
@@ -163,23 +166,26 @@ class EventScreen extends StatelessWidget {
                     future: OrganizerService().getOrganizerById(organizerId),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                        return const CircularProgressIndicator();
                       } else if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-                        return SizedBox.shrink(); // handle organizer not found case
+                        return const SizedBox.shrink();
                       } else {
                         final organizer = snapshot.data!;
                         return ListTile(
                           title: Text(organizer.name),
-                          subtitle: Text(
-                            "${organizer.followers} followers\n${organizer.upcomingEvents.length} upcoming events",
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("${organizer.followers} followers"),
+                              Text("${organizer.upcomingEvents.length} upcoming events"),
+                            ],
                           ),
                           leading: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: Image.network(
-                              organizer.imageUrl,
+                            child: ImageWithErrorHandler(
+                              imageUrl: organizer.imageUrl,
                               width: 50,
                               height: 50,
-                              fit: BoxFit.cover,
                             ),
                           ),
                           trailing: ElevatedButton(
@@ -210,7 +216,7 @@ class EventScreen extends StatelessWidget {
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8.0,
-                children: event.genres.map((genre) => Chip(label: Text(genre))).toList(),
+                children: event.genres.map((genreId) => GenreChip(genreId: genreId)).toList(),
               ),
               const SizedBox(height: 20),
               const Text(
@@ -218,28 +224,38 @@ class EventScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              FutureBuilder<Venue?>(
-                future: VenueService().getVenueById(event.venue),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildInfoCard(context, "Location", "Loading...");
-                  } else if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-                    return _buildInfoCard(context, "Location", "Unknown");
-                  } else {
-                    final venue = snapshot.data!;
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => VenueScreen(venueId: venue.id),
-                          ),
-                        );
-                      },
-                      child: _buildInfoCard(context, "Location", venue.name),
-                    );
-                  }
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => VenueScreen(venueId: event.venue),
+                    ),
+                  );
                 },
+                child: FutureBuilder<Venue?>(
+                  future: VenueService().getVenueById(event.venue),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const InfoCard(title: "Location", content: 'Loading...');
+                    } else if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+                      return const InfoCard(title: "Location", content: 'Location not found');
+                    } else {
+                      final venue = snapshot.data!;
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VenueScreen(venueId: venue.id),
+                            ),
+                          );
+                        },
+                        child: InfoCard(title: "Location", content: venue.name),
+                      );
+                    }
+                  },
+                ),
               ),
             ],
           ),
@@ -253,30 +269,6 @@ class EventScreen extends StatelessWidget {
         icon: const Icon(Icons.shopping_cart),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
-  }
-
-  Widget _buildInfoCard(BuildContext context, String title, String content) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 5),
-      child: ListTile(
-        title: Text(title),
-        subtitle: GestureDetector(
-          onTap: title == "Location"
-              ? () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => VenueScreen(venueId: content),
-                    ),
-                  );
-                }
-              : null,
-          child: Text(content),
-        ),
-      ),
     );
   }
 }

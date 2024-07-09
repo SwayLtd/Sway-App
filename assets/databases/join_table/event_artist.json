@@ -1,0 +1,9 @@
+[
+    { "event_id": "1", "artist_id": "1" },
+    { "event_id": "1", "artist_id": "2" },
+    { "event_id": "1", "artist_id": "3" },
+    { "event_id": "2", "artist_id": "4" },
+    { "event_id": "2", "artist_id": "5" },
+    { "event_id": "2", "artist_id": "6" }
+  ]
+  

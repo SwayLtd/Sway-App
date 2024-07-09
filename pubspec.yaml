@@ -59,9 +59,10 @@ flutter:
 
   assets:
     - assets/
-    - assets/events.json
-    - assets/artists.json
-    - assets/organizers.json
-    - assets/venues.json
+    - assets/databases/events.json
+    - assets/databases/artists.json
+    - assets/databases/organizers.json
+    - assets/databases/venues.json
+    - assets/databases/genres.json
 
   generate: true

@@ -1,5 +1,5 @@
-import 'package:sway_events/core/widgets/sidebar/side_navigation.dart';
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/widgets/sidebar/side_navigation.dart';
 
 /// Represents the toggler widget which is used to change expanded state of [SideNavigationBar]
 class SideBarTogglerWidget extends StatefulWidget {

@@ -4,7 +4,7 @@ class Artist {
   final String imageUrl;
   final String description;
   final bool isFollowing;
-  final List<String> genres;
+  final List<String> genres; // IDs of genres
   final List<String> upcomingEvents;
   final List<String> similarArtists;
   final Map<String, String> links;
@@ -31,7 +31,7 @@ class Artist {
       genres: (json['genres'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       upcomingEvents: (json['upcomingEvents'] as List<dynamic>).map((e) => e as String).toList(),
       similarArtists: (json['similarArtists'] as List<dynamic>).map((e) => e as String).toList(),
-      links: Map<String, String>.from(json['links'] as Map<String, dynamic>? ?? {}),
+      links: (json['links'] as Map<String, dynamic>).map((key, value) => MapEntry(key, value as String)),
     );
   }
 }

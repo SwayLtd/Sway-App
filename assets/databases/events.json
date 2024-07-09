@@ -1,0 +1,41 @@
+[
+  {
+    "id": "1",
+    "title": "No Face Social Club",
+    "dateTime": "2023-09-01T23:00:00",
+    "venue": "2",
+    "description": "Join us for a night of intense techno beats at the No Face Social Club.",
+    "imageUrl": "https://via.placeholder.com/150",
+    "genres": ["1", "2", "3"],
+    "distance": "11.2 KM",
+    "price": "€10.99",
+    "organizers": ["1", "3"],
+    "lineup": ["1", "2", "3"]
+  },
+  {
+    "id": "2",
+    "title": "Fuse Club Night",
+    "dateTime": "2023-09-08T22:00:00",
+    "venue": "1",
+    "description": "Experience the legendary Fuse Club night with top-notch techno artists.",
+    "imageUrl": "https://via.placeholder.com/150",
+    "genres": ["1", "5"],
+    "distance": "7.5 KM",
+    "price": "€15.00",
+    "organizers": ["2"],
+    "lineup": ["4", "5", "6"]
+  },
+  {
+    "id": "3",
+    "title": "Techno Train",
+    "dateTime": "2023-09-15T21:00:00",
+    "venue": "3",
+    "description": "All aboard the Techno Train for a journey through the darkest sounds of techno.",
+    "imageUrl": "https://via.placeholder.com/150",
+    "genres": ["1", "6"],
+    "distance": "5.0 KM",
+    "price": "€20.00",
+    "organizers": ["3"],
+    "lineup": ["1", "4", "5"]
+  }
+]

@@ -1,7 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:sway_events/core/constants/l10n.dart';
 import 'package:sway_events/core/routes.dart';
 import 'package:sway_events/core/widgets/appbar/appbar_item.dart';
-import 'package:flutter/material.dart';
 
 class ScaffoldWithAppBar extends StatefulWidget {
   const ScaffoldWithAppBar({super.key, required this.child});
@@ -108,7 +108,7 @@ class _ScaffoldWithAppBarState extends State<ScaffoldWithAppBar> {
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -134,7 +134,7 @@ class _ScaffoldWithAppBarState extends State<ScaffoldWithAppBar> {
                 ),
               ),
             ),
-          )
+          ),
         ],
         bottom: PreferredSize(
           preferredSize:

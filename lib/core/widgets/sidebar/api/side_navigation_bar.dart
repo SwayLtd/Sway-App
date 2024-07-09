@@ -1,9 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:sway_events/core/widgets/sidebar/core/bar_footer.dart';
 import 'package:sway_events/core/widgets/sidebar/core/bar_header.dart';
 import 'package:sway_events/core/widgets/sidebar/core/bar_item.dart';
 import 'package:sway_events/core/widgets/sidebar/core/bar_toggler.dart';
 import 'package:sway_events/core/widgets/sidebar/side_navigation.dart';
-import 'package:flutter/material.dart';
 
 /// The main widget for building a side navigation bar.
 ///

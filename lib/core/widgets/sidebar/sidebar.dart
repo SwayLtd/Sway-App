@@ -1,7 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:sway_events/core/constants/l10n.dart';
 import 'package:sway_events/core/routes.dart';
 import 'package:sway_events/core/widgets/sidebar/side_navigation.dart';
-import 'package:flutter/material.dart';
 
 class ScaffoldWithSideBar extends StatefulWidget {
   const ScaffoldWithSideBar({super.key, required this.child});
@@ -98,7 +98,7 @@ class _ScaffoldWithSideBarState extends State<ScaffoldWithSideBar> {
           ),
           Expanded(
             child: widget.child,
-          )
+          ),
         ],
       ),
       appBar: AppBar(
@@ -131,7 +131,7 @@ class _ScaffoldWithSideBarState extends State<ScaffoldWithSideBar> {
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

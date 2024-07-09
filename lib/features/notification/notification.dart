@@ -13,7 +13,7 @@ class NotificationScreen extends StatelessWidget {
         itemCount: 10, // Example: 10 notifications
         itemBuilder: (context, index) {
           return ListTile(
-            leading: Icon(Icons.notification_important),
+            leading: const Icon(Icons.notification_important),
             title: Text('Notification ${index + 1}'),
             subtitle: Text('This is the detail of notification ${index + 1}.'),
           );

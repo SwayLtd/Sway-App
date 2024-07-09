@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/widgets/genre_chip.dart';
+import 'package:sway_events/core/widgets/image_with_error_handler.dart';
+import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/artist/services/artist_service.dart';
-import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
@@ -23,11 +25,11 @@ class VenueScreen extends StatelessWidget {
         future: VenueService().getVenueById(venueId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data == null) {
-            return Center(child: Text('Venue not found'));
+            return const Center(child: Text('Venue not found'));
           } else {
             final venue = snapshot.data!;
             return SingleChildScrollView(
@@ -39,11 +41,10 @@ class VenueScreen extends StatelessWidget {
                     Center(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(15),
-                        child: Image.network(
-                          venue.imageUrl,
+                        child: ImageWithErrorHandler(
+                          imageUrl: venue.imageUrl,
                           width: 200,
                           height: 200,
-                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
@@ -52,7 +53,6 @@ class VenueScreen extends StatelessWidget {
                       venue.name,
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 5),
                     const SizedBox(height: 20),
                     const Text(
                       "RESIDENT ARTISTS",
@@ -72,11 +72,11 @@ class VenueScreen extends StatelessWidget {
                             }),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {
-                                return CircularProgressIndicator();
+                                return const CircularProgressIndicator();
                               } else if (snapshot.hasError) {
                                 return Text('Error: ${snapshot.error}');
                               } else if (!snapshot.hasData) {
-                                return Text('Artist not found');
+                                return const Text('Artist not found');
                               } else {
                                 final artist = snapshot.data!;
                                 return GestureDetector(
@@ -94,11 +94,10 @@ class VenueScreen extends StatelessWidget {
                                       children: [
                                         ClipRRect(
                                           borderRadius: BorderRadius.circular(10),
-                                          child: Image.network(
-                                            artist.imageUrl,
+                                          child: ImageWithErrorHandler(
+                                            imageUrl: artist.imageUrl,
                                             width: 100,
                                             height: 100,
-                                            fit: BoxFit.cover,
                                           ),
                                         ),
                                         const SizedBox(height: 5),
@@ -125,11 +124,11 @@ class VenueScreen extends StatelessWidget {
                           future: OrganizerService().getOrganizerById(organizerId),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState == ConnectionState.waiting) {
-                              return CircularProgressIndicator();
+                              return const CircularProgressIndicator();
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else if (!snapshot.hasData) {
-                              return Text('Organizer not found');
+                              return const Text('Organizer not found');
                             } else {
                               final organizer = snapshot.data!;
                               return GestureDetector(
@@ -147,11 +146,10 @@ class VenueScreen extends StatelessWidget {
                                   child: ListTile(
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(10),
-                                      child: Image.network(
-                                        organizer.imageUrl,
+                                      child: ImageWithErrorHandler(
+                                        imageUrl: organizer.imageUrl,
                                         width: 50,
                                         height: 50,
-                                        fit: BoxFit.cover,
                                       ),
                                     ),
                                     title: Text(organizer.name, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -184,7 +182,7 @@ class VenueScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8.0,
-                      children: venue.genres.map((genre) => Chip(label: Text(genre))).toList(),
+                      children: venue.genres.map((genreId) => GenreChip(genreId: genreId)).toList(),
                     ),
                     const SizedBox(height: 20),
                     const Text(

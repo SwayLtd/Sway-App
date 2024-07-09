@@ -1,5 +1,5 @@
-import 'package:sway_events/core/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/routes.dart';
 
 class AppBarItem extends StatefulWidget {
   final String title;

@@ -1,7 +1,3 @@
-// event_model.dart
-
-import 'package:sway_events/features/organizer/models/organizer_model.dart';
-
 class Event {
   final String id;
   final String title;

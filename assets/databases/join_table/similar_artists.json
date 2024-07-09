@@ -1,0 +1,15 @@
+[
+    { "artist_id": "1", "similar_artist_id": "2" },
+    { "artist_id": "1", "similar_artist_id": "3" },
+    { "artist_id": "2", "similar_artist_id": "1" },
+    { "artist_id": "2", "similar_artist_id": "3" },
+    { "artist_id": "3", "similar_artist_id": "1" },
+    { "artist_id": "3", "similar_artist_id": "2" },
+    { "artist_id": "4", "similar_artist_id": "5" },
+    { "artist_id": "4", "similar_artist_id": "6" },
+    { "artist_id": "5", "similar_artist_id": "4" },
+    { "artist_id": "5", "similar_artist_id": "6" },
+    { "artist_id": "6", "similar_artist_id": "4" },
+    { "artist_id": "6", "similar_artist_id": "5" }
+  ]
+  

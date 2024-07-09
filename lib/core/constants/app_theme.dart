@@ -76,7 +76,6 @@ class AppTheme {
       primary: Colors.amber,
       secondary: Colors.amberAccent,
       surface: Colors.black54,
-      background: Colors.black54,
       error: Colors.red,
       onPrimary: Colors.white,
       onSecondary: Colors.white,

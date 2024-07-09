@@ -1,5 +1,5 @@
-import 'package:sway_events/core/widgets/sidebar/side_navigation.dart';
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/widgets/sidebar/side_navigation.dart';
 
 /// This class provides customizable styling of a [SideNavigationBar] and for [SideNavigationBarItem]
 class SideNavigationBarTheme {
