@@ -1,0 +1,7 @@
+[
+    { "eventId": "1", "organizerId": "1" },
+    { "eventId": "1", "organizerId": "3" },
+    { "eventId": "2", "organizerId": "2" },
+    { "eventId": "3", "organizerId": "3" }
+  ]
+  

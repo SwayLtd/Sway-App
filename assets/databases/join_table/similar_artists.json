@@ -1,15 +1,15 @@
 [
-    { "artist_id": "1", "similar_artist_id": "2" },
-    { "artist_id": "1", "similar_artist_id": "3" },
-    { "artist_id": "2", "similar_artist_id": "1" },
-    { "artist_id": "2", "similar_artist_id": "3" },
-    { "artist_id": "3", "similar_artist_id": "1" },
-    { "artist_id": "3", "similar_artist_id": "2" },
-    { "artist_id": "4", "similar_artist_id": "5" },
-    { "artist_id": "4", "similar_artist_id": "6" },
-    { "artist_id": "5", "similar_artist_id": "4" },
-    { "artist_id": "5", "similar_artist_id": "6" },
-    { "artist_id": "6", "similar_artist_id": "4" },
-    { "artist_id": "6", "similar_artist_id": "5" }
+    { "artistId": "1", "similarArtistId": "2" },
+    { "artistId": "1", "similarArtistId": "3" },
+    { "artistId": "2", "similarArtistId": "1" },
+    { "artistId": "2", "similarArtistId": "3" },
+    { "artistId": "3", "similarArtistId": "1" },
+    { "artistId": "3", "similarArtistId": "2" },
+    { "artistId": "4", "similarArtistId": "5" },
+    { "artistId": "4", "similarArtistId": "6" },
+    { "artistId": "5", "similarArtistId": "4" },
+    { "artistId": "5", "similarArtistId": "6" },
+    { "artistId": "6", "similarArtistId": "4" },
+    { "artistId": "6", "similarArtistId": "5" }
   ]
   

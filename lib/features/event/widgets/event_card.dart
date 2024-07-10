@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sway_events/features/event/services/event_genre_service.dart';
 import 'package:sway_events/core/widgets/genre_chip.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/event/event.dart';
@@ -82,7 +83,9 @@ class EventCard extends StatelessWidget {
                   Text(
                     event.title,
                     style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold,),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 5),
                   Row(
@@ -96,7 +99,9 @@ class EventCard extends StatelessWidget {
                             return const Text(
                               'Loading...',
                               style: TextStyle(
-                                  fontSize: 14, color: Colors.grey,),
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
                             );
                           } else if (snapshot.hasError ||
                               !snapshot.hasData ||
@@ -104,14 +109,18 @@ class EventCard extends StatelessWidget {
                             return const Text(
                               'Location not found',
                               style: TextStyle(
-                                  fontSize: 14, color: Colors.grey,),
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
                             );
                           } else {
                             final venue = snapshot.data!;
                             return Text(
                               venue.name,
                               style: const TextStyle(
-                                  fontSize: 14, color: Colors.grey,),
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
                             );
                           }
                         },
@@ -133,7 +142,9 @@ class EventCard extends StatelessWidget {
                             TextSpan(
                               text: _formatEventDate(eventDateTime),
                               style: const TextStyle(
-                                  fontSize: 14, color: Colors.red,),
+                                fontSize: 14,
+                                color: Colors.red,
+                              ),
                             ),
                             const TextSpan(
                               text: ' | ',
@@ -143,7 +154,9 @@ class EventCard extends StatelessWidget {
                             TextSpan(
                               text: _formatEventTime(eventDateTime),
                               style: const TextStyle(
-                                  fontSize: 14, color: Colors.red,),
+                                fontSize: 14,
+                                color: Colors.red,
+                              ),
                             ),
                           ],
                         ),
@@ -156,11 +169,25 @@ class EventCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8.0,
-                    children: event.genres.map((genreId) {
-                      return GenreChip(genreId: genreId);
-                    }).toList(),
+                  FutureBuilder<List<String>>(
+                    future: EventGenreService().getGenresByEventId(event.id),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Text('No genres found');
+                      } else {
+                        final genres = snapshot.data!;
+                        return Wrap(
+                          spacing: 8.0,
+                          children: genres
+                              .map((genreId) => GenreChip(genreId: genreId))
+                              .toList(),
+                        );
+                      }
+                    },
                   ),
                 ],
               ),
@@ -182,7 +209,8 @@ class EventCard extends StatelessWidget {
         dateTime.day == now.day + 1) {
       return 'Tomorrow';
     } else {
-      return DateFormat.yMMMMEEEEd().format(dateTime); // Format readable by humans
+      return DateFormat.yMMMMEEEEd()
+          .format(dateTime); // Format readable by humans
     }
   }
 

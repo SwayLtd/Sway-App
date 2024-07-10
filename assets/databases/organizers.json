@@ -3,63 +3,42 @@
     "id": "1",
     "name": "Lollipop Collective",
     "imageUrl": "https://via.placeholder.com/50",
-    "followers": 22,
-    "isFollowing": false,
-    "description": "Lollipop Collective is known for organizing the most vibrant and eclectic techno events in the city.",
-    "upcomingEvents": ["1"]
+    "description": "Lollipop Collective is known for organizing the most vibrant and eclectic techno events in the city."
   },
   {
     "id": "2",
     "name": "Fuse Collective",
     "imageUrl": "https://via.placeholder.com/50",
-    "followers": 45,
-    "isFollowing": true,
-    "description": "Fuse Collective brings together the best of techno music with unforgettable club nights.",
-    "upcomingEvents": ["2"]
+    "description": "Fuse Collective brings together the best of techno music with unforgettable club nights."
   },
   {
     "id": "3",
     "name": "C12 Collective",
     "imageUrl": "https://via.placeholder.com/50",
-    "followers": 30,
-    "isFollowing": false,
-    "description": "C12 Collective offers a unique experience with underground techno events in a hidden gem of a venue.",
-    "upcomingEvents": ["1", "3"]
+    "description": "C12 Collective offers a unique experience with underground techno events in a hidden gem of a venue."
   },
   {
     "id": "4",
     "name": "Voltage Collective",
     "imageUrl": "https://via.placeholder.com/50",
-    "followers": 40,
-    "isFollowing": true,
-    "description": "Voltage Collective electrifies the techno scene with high-energy events and top-notch artists.",
-    "upcomingEvents": ["4"]
+    "description": "Voltage Collective electrifies the techno scene with high-energy events and top-notch artists."
   },
   {
     "id": "5",
     "name": "Underwater Collective",
     "imageUrl": "https://via.placeholder.com/50",
-    "followers": 25,
-    "isFollowing": false,
-    "description": "Underwater Collective immerses you in a deep techno experience with their unique themed parties.",
-    "upcomingEvents": ["5"]
+    "description": "Underwater Collective immerses you in a deep techno experience with their unique themed parties."
   },
   {
     "id": "6",
     "name": "Underground Collective",
     "imageUrl": "https://via.placeholder.com/50",
-    "followers": 35,
-    "isFollowing": false,
-    "description": "Underground Collective is dedicated to bringing you the raw and unfiltered sounds of the techno underground.",
-    "upcomingEvents": ["6"]
+    "description": "Underground Collective is dedicated to bringing you the raw and unfiltered sounds of the techno underground."
   },
   {
     "id": "7",
     "name": "Beach Vibes Collective",
     "imageUrl": "https://via.placeholder.com/50",
-    "followers": 50,
-    "isFollowing": true,
-    "description": "Beach Vibes Collective combines sun, sand, and techno for an unforgettable beachside party experience.",
-    "upcomingEvents": ["7"]
+    "description": "Beach Vibes Collective combines sun, sand, and techno for an unforgettable beachside party experience."
   }
 ]

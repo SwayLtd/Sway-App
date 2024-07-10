@@ -24,12 +24,15 @@ class OrganizerScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
+            debugPrint("Error loading organizer: ${snapshot.error}");
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data == null) {
+            debugPrint("Organizer not found with ID: $organizerId");
             return const Center(child: Text('Organizer not found'));
           } else {
             final organizer = snapshot.data!;
             debugPrint("Displaying Organizer: ${organizer.id}");
+            debugPrint("Organizer upcoming events: ${organizer.upcomingEvents}");
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -64,16 +67,24 @@ class OrganizerScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
+                  if (organizer.upcomingEvents.isEmpty)
+                    const Text('No upcoming events'),
                   ...organizer.upcomingEvents.map((eventId) {
+                    debugPrint("Loading event with ID: $eventId");
                     return FutureBuilder<Event?>(
                       future: EventService().getEventById(eventId),
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState == ConnectionState.waiting) {
                           return const CircularProgressIndicator();
-                        } else if (eventSnapshot.hasError || !eventSnapshot.hasData || eventSnapshot.data == null) {
+                        } else if (eventSnapshot.hasError) {
+                          debugPrint("Error loading event with ID $eventId: ${eventSnapshot.error}");
+                          return const SizedBox.shrink(); // handle event not found case
+                        } else if (!eventSnapshot.hasData || eventSnapshot.data == null) {
+                          debugPrint("Event not found with ID: $eventId");
                           return const SizedBox.shrink(); // handle event not found case
                         } else {
                           final event = eventSnapshot.data!;
+                          debugPrint("Displaying event: ${event.title}");
                           return ListTile(
                             title: Text(event.title),
                             subtitle: Text(event.dateTime),

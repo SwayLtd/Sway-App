@@ -3,11 +3,12 @@ import 'package:sway_events/core/widgets/genre_chip.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
-import 'package:sway_events/features/artist/services/artist_service.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
-import 'package:sway_events/features/organizer/services/organizer_service.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
+import 'package:sway_events/features/venue/services/venue_genre_service.dart';
+import 'package:sway_events/features/venue/services/venue_organizer_service.dart';
+import 'package:sway_events/features/venue/services/venue_resident_artists_service.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 
 class VenueScreen extends StatelessWidget {
@@ -59,26 +60,21 @@ class VenueScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: venue.residentArtists.map((artistId) {
-                          return FutureBuilder<Artist>(
-                            future: ArtistService().getArtistById(artistId).then((artist) {
-                              if (artist == null) {
-                                throw Exception('Artist not found');
-                              }
-                              return artist;
-                            }),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const CircularProgressIndicator();
-                              } else if (snapshot.hasError) {
-                                return Text('Error: ${snapshot.error}');
-                              } else if (!snapshot.hasData) {
-                                return const Text('Artist not found');
-                              } else {
-                                final artist = snapshot.data!;
+                    FutureBuilder<List<Artist>>(
+                      future: VenueResidentArtistsService().getArtistsByVenueId(venue.id),
+                      builder: (context, artistSnapshot) {
+                        if (artistSnapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (artistSnapshot.hasError) {
+                          return Text('Error: ${artistSnapshot.error}');
+                        } else if (!artistSnapshot.hasData || artistSnapshot.data!.isEmpty) {
+                          return const Text('No resident artists found');
+                        } else {
+                          final artists = artistSnapshot.data!;
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: artists.map((artist) {
                                 return GestureDetector(
                                   onTap: () {
                                     Navigator.push(
@@ -106,11 +102,11 @@ class VenueScreen extends StatelessWidget {
                                     ),
                                   ),
                                 );
-                              }
-                            },
+                              }).toList(),
+                            ),
                           );
-                        }).toList(),
-                      ),
+                        }
+                      },
                     ),
                     const SizedBox(height: 20),
                     const Text(
@@ -118,19 +114,19 @@ class VenueScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    Column(
-                      children: venue.ownedBy.map((organizerId) {
-                        return FutureBuilder<Organizer?>(
-                          future: OrganizerService().getOrganizerById(organizerId),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const CircularProgressIndicator();
-                            } else if (snapshot.hasError) {
-                              return Text('Error: ${snapshot.error}');
-                            } else if (!snapshot.hasData) {
-                              return const Text('Organizer not found');
-                            } else {
-                              final organizer = snapshot.data!;
+                    FutureBuilder<List<Organizer>>(
+                      future: VenueOrganizerService().getOrganizersByVenueId(venue.id),
+                      builder: (context, organizerSnapshot) {
+                        if (organizerSnapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (organizerSnapshot.hasError) {
+                          return Text('Error: ${organizerSnapshot.error}');
+                        } else if (!organizerSnapshot.hasData || organizerSnapshot.data!.isEmpty) {
+                          return const Text('No organizers found');
+                        } else {
+                          final organizers = organizerSnapshot.data!;
+                          return Column(
+                            children: organizers.map((organizer) {
                               return GestureDetector(
                                 onTap: () {
                                   Navigator.push(
@@ -164,15 +160,15 @@ class VenueScreen extends StatelessWidget {
                                       onPressed: () {
                                         // Follow/unfollow organizer action
                                       },
-                                      child: Text(organizer.isFollowing ? "Following" : "Follow"),
+                                      child: const Text("Follow"),
                                     ),
                                   ),
                                 ),
                               );
-                            }
-                          },
-                        );
-                      }).toList(),
+                            }).toList(),
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(height: 20),
                     const Text(
@@ -180,9 +176,23 @@ class VenueScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8.0,
-                      children: venue.genres.map((genreId) => GenreChip(genreId: genreId)).toList(),
+                    FutureBuilder<List<String>>(
+                      future: VenueGenreService().getGenresByVenueId(venue.id),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Text('No genres found');
+                        } else {
+                          final genres = snapshot.data!;
+                          return Wrap(
+                            spacing: 8.0,
+                            children: genres.map((genreId) => GenreChip(genreId: genreId)).toList(),
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(height: 20),
                     const Text(

@@ -33,11 +33,11 @@ class Event {
       venue: json['venue'] as String,
       description: json['description'] as String,
       imageUrl: json['imageUrl'] as String,
-      genres: (json['genres'] as List<dynamic>).map((e) => e as String).toList(),
+      genres: (json['genres'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       distance: json['distance'] as String,
       price: json['price'] as String,
-      organizers: (json['organizers'] as List<dynamic>).map((e) => e as String).toList(),
-      lineup: (json['lineup'] as List<dynamic>).map((e) => e as String).toList(),
+      organizers: (json['organizers'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      lineup: (json['lineup'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
     );
   }
 }

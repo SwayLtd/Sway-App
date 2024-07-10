@@ -1,9 +1,12 @@
 [
-    { "event_id": "1", "artist_id": "1" },
-    { "event_id": "1", "artist_id": "2" },
-    { "event_id": "1", "artist_id": "3" },
-    { "event_id": "2", "artist_id": "4" },
-    { "event_id": "2", "artist_id": "5" },
-    { "event_id": "2", "artist_id": "6" }
+    { "eventId": "1", "artistId": "1" },
+    { "eventId": "1", "artistId": "2" },
+    { "eventId": "1", "artistId": "3" },
+    { "eventId": "2", "artistId": "4" },
+    { "eventId": "2", "artistId": "5" },
+    { "eventId": "2", "artistId": "6" },
+    { "eventId": "3", "artistId": "1" },
+    { "eventId": "3", "artistId": "4" },
+    { "eventId": "3", "artistId": "5" }
   ]
   
