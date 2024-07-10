@@ -51,7 +51,7 @@ class EventCard extends StatelessWidget {
                   bottom: 10,
                   child: IconButton(
                     icon: const Icon(
-                      Icons.play_circle_filled,
+                      Icons.play_arrow,
                       size: 40,
                       color: Colors.white,
                     ),
@@ -63,30 +63,45 @@ class EventCard extends StatelessWidget {
                 Positioned(
                   right: 10,
                   bottom: 10,
-                  child: FutureBuilder<bool>(
-                    future: UserInterestEventService().isInterestedInEvent(event.id),
+                  child: FutureBuilder<Map<String, bool>>(
+                    future: _getEventStatus(event.id),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Icon(Icons.favorite_border, size: 30, color: Colors.white);
                       } else if (snapshot.hasError) {
                         return const Icon(Icons.error, size: 30, color: Colors.white);
                       } else {
-                        final bool isInterested = snapshot.data ?? false;
+                        final bool isInterested = snapshot.data?['isInterested'] ?? false;
+                        final bool isAttended = snapshot.data?['isAttended'] ?? false;
                         return Row(
                           children: [
-                            IconButton(
+                            PopupMenuButton<String>(
                               icon: Icon(
-                                isInterested ? Icons.favorite : Icons.favorite_border,
+                                isAttended
+                                    ? Icons.check_circle
+                                    : (isInterested
+                                        ? Icons.favorite
+                                        : Icons.favorite_border),
                                 size: 30,
                                 color: Colors.white,
                               ),
-                              onPressed: () {
-                                if (isInterested) {
-                                  UserInterestEventService().removeInterest(event.id);
-                                } else {
-                                  UserInterestEventService().addInterest(event.id);
-                                }
+                              onSelected: (String value) {
+                                _handleMenuSelection(value, event.id, isInterested, isAttended);
                               },
+                              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                const PopupMenuItem<String>(
+                                  value: 'interested',
+                                  child: Text('Interested'),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'going',
+                                  child: Text('Going'),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'ignored',
+                                  child: Text(isInterested || isAttended ? 'Not going' : 'Not interested'),
+                                ),
+                              ],
                             ),
                             FutureBuilder<int>(
                               future: UserInterestEventService().getEventInterestCount(event.id),
@@ -136,8 +151,7 @@ class EventCard extends StatelessWidget {
                       FutureBuilder(
                         future: VenueService().getVenueById(event.venue),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
                             return const Text(
                               'Loading...',
                               style: TextStyle(
@@ -169,8 +183,7 @@ class EventCard extends StatelessWidget {
                       ),
                       Text(
                         event.distance,
-                        style:
-                            const TextStyle(fontSize: 14, color: Colors.grey),
+                        style: const TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -190,8 +203,7 @@ class EventCard extends StatelessWidget {
                             ),
                             const TextSpan(
                               text: ' | ',
-                              style:
-                                  TextStyle(fontSize: 14, color: Colors.black),
+                              style: TextStyle(fontSize: 14, color: Colors.black),
                             ),
                             TextSpan(
                               text: _formatEventTime(eventDateTime),
@@ -205,8 +217,7 @@ class EventCard extends StatelessWidget {
                       ),
                       Text(
                         event.price,
-                        style:
-                            const TextStyle(fontSize: 14, color: Colors.black),
+                        style: const TextStyle(fontSize: 14, color: Colors.black),
                       ),
                     ],
                   ),
@@ -224,9 +235,7 @@ class EventCard extends StatelessWidget {
                         final genres = snapshot.data!;
                         return Wrap(
                           spacing: 8.0,
-                          children: genres
-                              .map((genreId) => GenreChip(genreId: genreId))
-                              .toList(),
+                          children: genres.map((genreId) => GenreChip(genreId: genreId)).toList(),
                         );
                       }
                     },
@@ -240,19 +249,38 @@ class EventCard extends StatelessWidget {
     );
   }
 
+  Future<Map<String, bool>> _getEventStatus(String eventId) async {
+    bool isInterested = await UserInterestEventService().isInterestedInEvent(eventId);
+    bool isAttended = await UserInterestEventService().isAttendedEvent(eventId);
+    return {'isInterested': isInterested, 'isAttended': isAttended};
+  }
+
+  void _handleMenuSelection(String value, String eventId, bool isInterested, bool isAttended) {
+    switch (value) {
+      case 'interested':
+        UserInterestEventService().addInterest(eventId);
+        break;
+      case 'going':
+        UserInterestEventService().markEventAsAttended(eventId);
+        break;
+      case 'ignored':
+        if (isInterested || isAttended) {
+          UserInterestEventService().removeInterest(eventId);
+        } else {
+          UserInterestEventService().removeInterest(eventId);
+        }
+        break;
+    }
+  }
+
   String _formatEventDate(DateTime dateTime) {
     final now = DateTime.now();
-    if (dateTime.year == now.year &&
-        dateTime.month == now.month &&
-        dateTime.day == now.day) {
+    if (dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day) {
       return 'Today';
-    } else if (dateTime.year == now.year &&
-        dateTime.month == now.month &&
-        dateTime.day == now.day + 1) {
+    } else if (dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day + 1) {
       return 'Tomorrow';
     } else {
-      return DateFormat.yMMMMEEEEd()
-          .format(dateTime); // Format readable by humans
+      return DateFormat.yMMMMEEEEd().format(dateTime);
     }
   }
 

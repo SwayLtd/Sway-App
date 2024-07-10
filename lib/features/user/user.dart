@@ -124,7 +124,6 @@ class UserScreen extends StatelessWidget {
                         }
                       },
                     ),
-
                     const SizedBox(height: 20),
                     const Text(
                       'Friends',
@@ -314,7 +313,7 @@ class UserScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'Events',
+                      'Interested Events',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -331,6 +330,47 @@ class UserScreen extends StatelessWidget {
                         } else if (!eventSnapshot.hasData ||
                             eventSnapshot.data!.isEmpty) {
                           return const Text('No interested events found');
+                        } else {
+                          final events = eventSnapshot.data!;
+                          return Column(
+                            children: events.map((event) {
+                              return ListTile(
+                                title: Text(event.title),
+                                subtitle: Text(event.dateTime),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          EventScreen(event: event),
+                                    ),
+                                  );
+                                },
+                              );
+                            }).toList(),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Attended Events',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    FutureBuilder<List<Event>>(
+                      future: UserInterestEventService()
+                          .getAttendedEventsByUserId(userId),
+                      builder: (context, eventSnapshot) {
+                        if (eventSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (eventSnapshot.hasError) {
+                          return Text('Error: ${eventSnapshot.error}');
+                        } else if (!eventSnapshot.hasData ||
+                            eventSnapshot.data!.isEmpty) {
+                          return const Text('No attended events found');
                         } else {
                           final events = eventSnapshot.data!;
                           return Column(

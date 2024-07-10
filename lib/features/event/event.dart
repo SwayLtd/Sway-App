@@ -32,46 +32,68 @@ class EventScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(event.title),
         actions: [
-  IconButton(
-    icon: const Icon(Icons.share),
-    onPressed: () {
-      // Share event action
-    },
-  ),
-  FutureBuilder<bool>(
-    future: UserInterestEventService().isInterestedInEvent(event.id),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const IconButton(
-          icon: Icon(Icons.favorite_border),
-          onPressed: null,
-        );
-      } else if (snapshot.hasError) {
-        return const IconButton(
-          icon: Icon(Icons.favorite_border),
-          onPressed: null,
-        );
-      } else {
-        final bool isInterested = snapshot.data ?? false;
-        return IconButton(
-          icon: Icon(
-            isInterested ? Icons.favorite : Icons.favorite_border,
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () {
+              // Share event action
+            },
           ),
-          onPressed: () {
-            if (isInterested) {
-              UserInterestEventService().removeInterest(event.id);
-            } else {
-              UserInterestEventService().addInterest(event.id);
-            }
-            // Met à jour l'interface utilisateur en appelant setState
-            (context as Element).markNeedsBuild();
-          },
-        );
-      }
-    },
-  ),
-],
-
+          FutureBuilder<Map<String, bool>>(
+            future: _getEventStatus(event.id),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const IconButton(
+                  icon: Icon(Icons.favorite_border),
+                  onPressed: null,
+                );
+              } else if (snapshot.hasError) {
+                return const IconButton(
+                  icon: Icon(Icons.error),
+                  onPressed: null,
+                );
+              } else {
+                final bool isInterested = snapshot.data?['isInterested'] ?? false;
+                final bool isAttended = snapshot.data?['isAttended'] ?? false;
+                return PopupMenuButton<String>(
+                  icon: Icon(
+                    isAttended
+                        ? Icons.check_circle
+                        : (isInterested
+                            ? Icons.favorite
+                            : Icons.favorite_border),
+                  ),
+                  onSelected: (String value) {
+                    _handleMenuSelection(value, event.id, context);
+                  },
+                  itemBuilder: (BuildContext context) {
+                    String notOptionText;
+                    if (isAttended) {
+                      notOptionText = 'Not going';
+                    } else if (isInterested) {
+                      notOptionText = 'Not interested';
+                    } else {
+                      notOptionText = 'Not interested';
+                    }
+                    return <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'interested',
+                        child: Text('Interested'),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'going',
+                        child: Text('Going'),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'ignored',
+                        child: Text(notOptionText),
+                      ),
+                    ];
+                  },
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -412,5 +434,27 @@ class EventScreen extends StatelessWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
+  }
+
+  Future<Map<String, bool>> _getEventStatus(String eventId) async {
+    bool isInterested = await UserInterestEventService().isInterestedInEvent(eventId);
+    bool isAttended = await UserInterestEventService().isAttendedEvent(eventId);
+    return {'isInterested': isInterested, 'isAttended': isAttended};
+  }
+
+  void _handleMenuSelection(String value, String eventId, BuildContext context) {
+    switch (value) {
+      case 'interested':
+        UserInterestEventService().addInterest(eventId);
+        break;
+      case 'going':
+        UserInterestEventService().markEventAsAttended(eventId);
+        break;
+      case 'ignored':
+        UserInterestEventService().removeInterest(eventId);
+        break;
+    }
+    // Met à jour l'interface utilisateur en appelant setState
+    (context as Element).markNeedsBuild();
   }
 }

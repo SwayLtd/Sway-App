@@ -2,7 +2,7 @@
   {
     "id": "1",
     "title": "No Face Social Club",
-    "dateTime": "2023-09-01T23:00:00",
+    "dateTime": "2024-09-01T23:00:00",
     "venue": "2",
     "description": "Join us for a night of intense techno beats at the No Face Social Club.",
     "imageUrl": "https://via.placeholder.com/150",
@@ -13,7 +13,7 @@
   {
     "id": "2",
     "title": "Fuse Club Night",
-    "dateTime": "2023-09-08T22:00:00",
+    "dateTime": "2024-09-08T22:00:00",
     "venue": "1",
     "description": "Experience the legendary Fuse Club night with top-notch techno artists.",
     "imageUrl": "https://via.placeholder.com/150",
@@ -24,7 +24,7 @@
   {
     "id": "3",
     "title": "Techno Train",
-    "dateTime": "2023-09-15T21:00:00",
+    "dateTime": "2024-09-15T21:00:00",
     "venue": "3",
     "description": "All aboard the Techno Train for a journey through the darkest sounds of techno.",
     "imageUrl": "https://via.placeholder.com/150",

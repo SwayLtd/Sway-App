@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
 import 'package:sway_events/features/event/widgets/event_card.dart';
+import 'package:sway_events/features/notification/notification.dart';
 import 'package:sway_events/features/search/search.dart';
 
 class DiscoveryScreen extends StatelessWidget {
@@ -22,12 +23,13 @@ class DiscoveryScreen extends StatelessWidget {
                     right: 0,
                     child: Badge(), // Keep Badge empty as per your requirement
                   )
-                else
-                  Container(),
               ],
             ),
             onPressed: () {
-              // Notification icon action
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationScreen()),
+              );
             },
           ),
           IconButton(
@@ -52,7 +54,10 @@ class DiscoveryScreen extends StatelessWidget {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No events found'));
           } else {
-            final events = snapshot.data ?? [];
+            final now = DateTime.now();
+            final events = (snapshot.data ?? [])
+                .where((event) => DateTime.parse(event.dateTime).isAfter(now))
+                .toList();
             return ListView(
               children: events.map((event) => EventCard(event: event)).toList(),
             );
