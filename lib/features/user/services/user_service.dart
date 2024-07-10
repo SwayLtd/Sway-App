@@ -13,4 +13,14 @@ class UserService {
       return null;
     }
   }
+
+  Future<List<User>> getUsersByIds(List<String> userIds) async {
+    final String response = await rootBundle.loadString('assets/databases/users.json');
+    final List<dynamic> usersJson = json.decode(response) as List<dynamic>;
+
+    return usersJson
+        .map((userJson) => User.fromJson(userJson as Map<String, dynamic>))
+        .where((user) => userIds.contains(user.id))
+        .toList();
+  }
 }

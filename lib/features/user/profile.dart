@@ -18,12 +18,11 @@ import 'package:sway_events/features/user/services/user_follow_organizer_service
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 import 'package:sway_events/features/genre/models/genre_model.dart';
 import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
-import 'package:sway_events/features/user/services/user_follow_user_service.dart';
 
-class UserScreen extends StatelessWidget {
+class ProfileScreen extends StatelessWidget {
   final String userId;
 
-  const UserScreen({required this.userId});
+  const ProfileScreen({required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -31,28 +30,16 @@ class UserScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('User Profile'),
         actions: [
-          FutureBuilder<bool>(
-            future: UserFollowUserService().isFollowingUser(userId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              } else {
-                final bool isFollowing = snapshot.data ?? false;
-                return ElevatedButton(
-                  onPressed: () {
-                    if (isFollowing) {
-                      UserFollowUserService().unfollowUser(userId);
-                    } else {
-                      UserFollowUserService().followUser(userId);
-                    }
-                    // Refresh UI after follow/unfollow
-                    (context as Element).markNeedsBuild();
-                  },
-                  child: Text(isFollowing ? "Unfollow" : "Follow"),
-                );
-              }
+          IconButton(
+            icon: const Icon(Icons.qr_code),
+            onPressed: () {
+              // Share action with QR code
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              // Edit user profile action
             },
           ),
         ],
@@ -99,17 +86,21 @@ class UserScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     const Text(
                       'Genres',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Genre>>(
-                      future: UserFollowGenreService().getFollowedGenresByUserId(userId),
+                      future: UserFollowGenreService()
+                          .getFollowedGenresByUserId(userId),
                       builder: (context, genreSnapshot) {
-                        if (genreSnapshot.connectionState == ConnectionState.waiting) {
+                        if (genreSnapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (genreSnapshot.hasError) {
                           return Text('Error: ${genreSnapshot.error}');
-                        } else if (!genreSnapshot.hasData || genreSnapshot.data!.isEmpty) {
+                        } else if (!genreSnapshot.hasData ||
+                            genreSnapshot.data!.isEmpty) {
                           return const Text('No followed genres found');
                         } else {
                           final genres = genreSnapshot.data!;
@@ -121,7 +112,8 @@ class UserScreen extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => GenreScreen(genreId: genre.id),
+                                      builder: (context) =>
+                                          GenreScreen(genreId: genre.id),
                                     ),
                                   );
                                 },
@@ -134,18 +126,29 @@ class UserScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     const Text(
+                      'Friends',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    // Placeholder for friends feature
+                    const SizedBox(height: 20),
+                    const Text(
                       'Artists',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Artist>>(
-                      future: UserFollowArtistService().getFollowedArtistsByUserId(userId),
+                      future: UserFollowArtistService()
+                          .getFollowedArtistsByUserId(userId),
                       builder: (context, artistSnapshot) {
-                        if (artistSnapshot.connectionState == ConnectionState.waiting) {
+                        if (artistSnapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (artistSnapshot.hasError) {
                           return Text('Error: ${artistSnapshot.error}');
-                        } else if (!artistSnapshot.hasData || artistSnapshot.data!.isEmpty) {
+                        } else if (!artistSnapshot.hasData ||
+                            artistSnapshot.data!.isEmpty) {
                           return const Text('No followed artists found');
                         } else {
                           final artists = artistSnapshot.data!;
@@ -158,7 +161,8 @@ class UserScreen extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ArtistScreen(artistId: artist.id),
+                                        builder: (context) =>
+                                            ArtistScreen(artistId: artist.id),
                                       ),
                                     );
                                   },
@@ -167,7 +171,8 @@ class UserScreen extends StatelessWidget {
                                     child: Column(
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                           child: ImageWithErrorHandler(
                                             imageUrl: artist.imageUrl,
                                             width: 100,
@@ -189,17 +194,21 @@ class UserScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     const Text(
                       'Venues',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Venue>>(
-                      future: UserFollowVenueService().getFollowedVenuesByUserId(userId),
+                      future: UserFollowVenueService()
+                          .getFollowedVenuesByUserId(userId),
                       builder: (context, venueSnapshot) {
-                        if (venueSnapshot.connectionState == ConnectionState.waiting) {
+                        if (venueSnapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (venueSnapshot.hasError) {
                           return Text('Error: ${venueSnapshot.error}');
-                        } else if (!venueSnapshot.hasData || venueSnapshot.data!.isEmpty) {
+                        } else if (!venueSnapshot.hasData ||
+                            venueSnapshot.data!.isEmpty) {
                           return const Text('No followed venues found');
                         } else {
                           final venues = venueSnapshot.data!;
@@ -212,7 +221,8 @@ class UserScreen extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => VenueScreen(venueId: venue.id),
+                                        builder: (context) =>
+                                            VenueScreen(venueId: venue.id),
                                       ),
                                     );
                                   },
@@ -221,7 +231,8 @@ class UserScreen extends StatelessWidget {
                                     child: Column(
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                           child: ImageWithErrorHandler(
                                             imageUrl: venue.imageUrl,
                                             width: 100,
@@ -243,17 +254,21 @@ class UserScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     const Text(
                       'Organizers',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Organizer>>(
-                      future: UserFollowOrganizerService().getFollowedOrganizersByUserId(userId),
+                      future: UserFollowOrganizerService()
+                          .getFollowedOrganizersByUserId(userId),
                       builder: (context, organizerSnapshot) {
-                        if (organizerSnapshot.connectionState == ConnectionState.waiting) {
+                        if (organizerSnapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (organizerSnapshot.hasError) {
                           return Text('Error: ${organizerSnapshot.error}');
-                        } else if (!organizerSnapshot.hasData || organizerSnapshot.data!.isEmpty) {
+                        } else if (!organizerSnapshot.hasData ||
+                            organizerSnapshot.data!.isEmpty) {
                           return const Text('No followed organizers found');
                         } else {
                           final organizers = organizerSnapshot.data!;
@@ -266,7 +281,8 @@ class UserScreen extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => OrganizerScreen(organizerId: organizer.id),
+                                        builder: (context) => OrganizerScreen(
+                                            organizerId: organizer.id),
                                       ),
                                     );
                                   },
@@ -275,7 +291,8 @@ class UserScreen extends StatelessWidget {
                                     child: Column(
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                           child: ImageWithErrorHandler(
                                             imageUrl: organizer.imageUrl,
                                             width: 100,
@@ -297,17 +314,21 @@ class UserScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     const Text(
                       'Interested Events',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Event>>(
-                      future: UserInterestEventService().getInterestedEventsByUserId(userId),
+                      future: UserInterestEventService()
+                          .getInterestedEventsByUserId(userId),
                       builder: (context, eventSnapshot) {
-                        if (eventSnapshot.connectionState == ConnectionState.waiting) {
+                        if (eventSnapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (eventSnapshot.hasError) {
                           return Text('Error: ${eventSnapshot.error}');
-                        } else if (!eventSnapshot.hasData || eventSnapshot.data!.isEmpty) {
+                        } else if (!eventSnapshot.hasData ||
+                            eventSnapshot.data!.isEmpty) {
                           return const Text('No interested events found');
                         } else {
                           final events = eventSnapshot.data!;
@@ -320,7 +341,8 @@ class UserScreen extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => EventScreen(event: event),
+                                      builder: (context) =>
+                                          EventScreen(event: event),
                                     ),
                                   );
                                 },
@@ -333,17 +355,21 @@ class UserScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     const Text(
                       'Attended Events',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Event>>(
-                      future: UserInterestEventService().getAttendedEventsByUserId(userId),
+                      future: UserInterestEventService()
+                          .getAttendedEventsByUserId(userId),
                       builder: (context, eventSnapshot) {
-                        if (eventSnapshot.connectionState == ConnectionState.waiting) {
+                        if (eventSnapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (eventSnapshot.hasError) {
                           return Text('Error: ${eventSnapshot.error}');
-                        } else if (!eventSnapshot.hasData || eventSnapshot.data!.isEmpty) {
+                        } else if (!eventSnapshot.hasData ||
+                            eventSnapshot.data!.isEmpty) {
                           return const Text('No attended events found');
                         } else {
                           final events = eventSnapshot.data!;
@@ -356,7 +382,8 @@ class UserScreen extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => EventScreen(event: event),
+                                      builder: (context) =>
+                                          EventScreen(event: event),
                                     ),
                                   );
                                 },

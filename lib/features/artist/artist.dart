@@ -9,6 +9,7 @@ import 'package:sway_events/features/artist/services/artist_service.dart';
 import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/genre/genre.dart';
+import 'package:sway_events/features/user/widgets/followers_list_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
@@ -59,6 +60,8 @@ class ArtistScreen extends StatelessWidget {
                       style: const TextStyle(
                           fontSize: 24, fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(height: 5),
+                    FollowersListWidget(entityId: artistId, entityType: 'artist'),
                     const SizedBox(height: 5),
                     FutureBuilder<bool>(
                       future: followArtistService.UserFollowArtistService()

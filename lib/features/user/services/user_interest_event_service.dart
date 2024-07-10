@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
+import 'package:sway_events/features/user/models/user_model.dart';
+import 'package:sway_events/features/user/services/user_service.dart';
 
 class UserInterestEventService {
   final String userId = "3"; // L'ID de l'utilisateur actuel
@@ -90,5 +92,17 @@ class UserInterestEventService {
 
   Future<void> saveUserInterestEventData(List<dynamic> data) async {
     // Implement saving logic here, depending on how you manage your local storage
+  }
+
+  Future<List<User>> getFollowersForEvent(String eventId) async {
+    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
+    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
+
+    final List<String> followerIds = interestJson
+        .where((interest) => interest['eventId'] == eventId)
+        .map<String>((interest) => interest['userId'] as String)
+        .toList();
+
+    return await UserService().getUsersByIds(followerIds);
   }
 }

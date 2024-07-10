@@ -11,7 +11,7 @@ import 'package:sway_events/core/utils/error/error_not_found.dart';
 import 'package:sway_events/core/widgets/navbar_no_appbar.dart';
 import 'package:sway_events/features/discovery/discovery.dart';
 import 'package:sway_events/features/search/search.dart';
-import 'package:sway_events/features/user/user.dart';
+import 'package:sway_events/features/user/profile.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
@@ -39,7 +39,7 @@ List routes = [
     'name': 'Profile',
     'path': '/profile/:id',
     'index': 3,
-    'screen': const UserScreen(userId: '3',),
+    'screen': const ProfileScreen(userId: '3',),
   },
 ];
 

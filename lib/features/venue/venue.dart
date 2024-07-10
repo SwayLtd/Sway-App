@@ -10,6 +10,7 @@ import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart'
     as followOrganizerService;
+import 'package:sway_events/features/user/widgets/followers_list_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/services/venue_genre_service.dart';
@@ -61,6 +62,8 @@ class VenueScreen extends StatelessWidget {
                       style: const TextStyle(
                           fontSize: 24, fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(height: 5),
+                    FollowersListWidget(entityId: venueId, entityType: 'venue'),
                     const SizedBox(height: 5),
                     FutureBuilder<int>(
                       future: UserFollowVenueService()

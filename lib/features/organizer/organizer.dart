@@ -6,6 +6,7 @@ import 'package:sway_events/features/event/services/event_service.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
+import 'package:sway_events/features/user/widgets/followers_list_widget.dart';
 
 class OrganizerScreen extends StatelessWidget {
   final String organizerId;
@@ -34,7 +35,8 @@ class OrganizerScreen extends StatelessWidget {
           } else {
             final organizer = snapshot.data!;
             debugPrint("Displaying Organizer: ${organizer.id}");
-            debugPrint("Organizer upcoming events: ${organizer.upcomingEvents}");
+            debugPrint(
+                "Organizer upcoming events: ${organizer.upcomingEvents}");
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -53,13 +55,18 @@ class OrganizerScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(
                     organizer.name,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 5),
+                  FollowersListWidget(entityId: organizerId, entityType: 'organizer'),
+                  const SizedBox(height: 5),
                   FutureBuilder<int>(
-                    future: UserFollowOrganizerService().getOrganizerFollowersCount(organizerId),
+                    future: UserFollowOrganizerService()
+                        .getOrganizerFollowersCount(organizerId),
                     builder: (context, countSnapshot) {
-                      if (countSnapshot.connectionState == ConnectionState.waiting) {
+                      if (countSnapshot.connectionState ==
+                          ConnectionState.waiting) {
                         return const Text('Loading followers...');
                       } else if (countSnapshot.hasError) {
                         return Text('Error: ${countSnapshot.error}');
@@ -70,7 +77,8 @@ class OrganizerScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   FutureBuilder<bool>(
-                    future: UserFollowOrganizerService().isFollowingOrganizer(organizerId),
+                    future: UserFollowOrganizerService()
+                        .isFollowingOrganizer(organizerId),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const CircularProgressIndicator();
@@ -82,9 +90,11 @@ class OrganizerScreen extends StatelessWidget {
                           onPressed: () {
                             // Follow/unfollow organizer action
                             if (isFollowing) {
-                              UserFollowOrganizerService().unfollowOrganizer(organizerId);
+                              UserFollowOrganizerService()
+                                  .unfollowOrganizer(organizerId);
                             } else {
-                              UserFollowOrganizerService().followOrganizer(organizerId);
+                              UserFollowOrganizerService()
+                                  .followOrganizer(organizerId);
                             }
                             // Reload the state
                             (context as Element).reassemble();
@@ -108,14 +118,19 @@ class OrganizerScreen extends StatelessWidget {
                     return FutureBuilder<Event?>(
                       future: EventService().getEventById(eventId),
                       builder: (context, eventSnapshot) {
-                        if (eventSnapshot.connectionState == ConnectionState.waiting) {
+                        if (eventSnapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (eventSnapshot.hasError) {
-                          debugPrint("Error loading event with ID $eventId: ${eventSnapshot.error}");
-                          return const SizedBox.shrink(); // handle event not found case
-                        } else if (!eventSnapshot.hasData || eventSnapshot.data == null) {
+                          debugPrint(
+                              "Error loading event with ID $eventId: ${eventSnapshot.error}");
+                          return const SizedBox
+                              .shrink(); // handle event not found case
+                        } else if (!eventSnapshot.hasData ||
+                            eventSnapshot.data == null) {
                           debugPrint("Event not found with ID: $eventId");
-                          return const SizedBox.shrink(); // handle event not found case
+                          return const SizedBox
+                              .shrink(); // handle event not found case
                         } else {
                           final event = eventSnapshot.data!;
                           debugPrint("Displaying event: ${event.title}");
@@ -126,7 +141,8 @@ class OrganizerScreen extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => EventScreen(event: event),
+                                  builder: (context) =>
+                                      EventScreen(event: event),
                                 ),
                               );
                             },

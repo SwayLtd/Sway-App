@@ -78,6 +78,7 @@ flutter:
     - assets/databases/join_table/user_follow_genre.json
     - assets/databases/join_table/user_follow_venue.json
     - assets/databases/join_table/user_follow_organizer.json
+    - assets/databases/join_table/user_follow_user.json
     - assets/databases/join_table/user_interest_event.json
 
   generate: true

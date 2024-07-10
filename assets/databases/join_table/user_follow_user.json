@@ -1,0 +1,23 @@
+[
+    {"followerId": "1", "followedId": "2"},
+    {"followerId": "1", "followedId": "3"},
+    {"followerId": "2", "followedId": "1"},
+    {"followerId": "2", "followedId": "3"},
+    {"followerId": "3", "followedId": "1"},
+    {"followerId": "3", "followedId": "4"},
+    {"followerId": "4", "followedId": "1"},
+    {"followerId": "4", "followedId": "2"},
+    {"followerId": "5", "followedId": "1"},
+    {"followerId": "5", "followedId": "3"},
+    {"followerId": "6", "followedId": "2"},
+    {"followerId": "6", "followedId": "5"},
+    {"followerId": "7", "followedId": "1"},
+    {"followerId": "7", "followedId": "4"},
+    {"followerId": "8", "followedId": "3"},
+    {"followerId": "8", "followedId": "6"},
+    {"followerId": "9", "followedId": "2"},
+    {"followerId": "9", "followedId": "5"},
+    {"followerId": "10", "followedId": "1"},
+    {"followerId": "10", "followedId": "7"}
+  ]
+  

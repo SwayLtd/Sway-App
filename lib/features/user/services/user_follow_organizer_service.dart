@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/user/models/user_model.dart';
+import 'package:sway_events/features/user/services/user_service.dart';
 
 class UserFollowOrganizerService {
   final String userId = "3"; // L'ID de l'utilisateur actuel
@@ -56,5 +58,17 @@ class UserFollowOrganizerService {
     final List<Organizer> allOrganizers = await OrganizerService().getOrganizers();
 
     return allOrganizers.where((organizer) => followedOrganizerIds.contains(organizer.id)).toList();
+  }
+
+  Future<List<User>> getFollowersForOrganizer(String organizerId) async {
+    final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_organizer.json');
+    final List<dynamic> followJson = json.decode(response) as List<dynamic>;
+
+    final List<String> followerIds = followJson
+        .where((follow) => follow['organizerId'] == organizerId)
+        .map<String>((follow) => follow['userId'] as String)
+        .toList();
+
+    return await UserService().getUsersByIds(followerIds);
   }
 }
