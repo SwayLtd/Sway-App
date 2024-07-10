@@ -30,11 +30,11 @@ class _ScaffoldWithNavBarWithoutAppBarState extends State<ScaffoldWithNavBarWith
       ),
       BottomNavigationBarItem(
         icon: const Icon(Icons.search_outlined),
-        label: context.loc.bottomnavbarDevices,
+        label: "Search",
       ),
       BottomNavigationBarItem(
         icon: const Icon(Icons.local_activity_outlined),
-        label: context.loc.bottomnavbarAutomations,
+        label: "Tickets",
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.person_outlined),

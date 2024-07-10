@@ -54,6 +54,8 @@ final GoRouter router = GoRouter(
         // Localizing road names
         routes[0]['name'] = context.loc.routesNameHome;
         routes[1]['name'] = context.loc.routesNameTest;
+        routes[2]['name'] = context.loc.routesNameHome;
+        routes[3]['name'] = context.loc.routesNameTest;
 
         return ResponsiveBreakpoints.builder(
           child: /*Stack(
