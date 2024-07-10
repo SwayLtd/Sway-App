@@ -18,4 +18,21 @@ class ArtistService {
       return null;
     }
   }
+
+  Future<List<Artist>> getTopArtistsByGenreId(String genreId) async {
+    final String artistGenreResponse = await rootBundle.loadString('assets/databases/join_table/artist_genre.json');
+    final List<dynamic> artistGenreJson = json.decode(artistGenreResponse) as List<dynamic>;
+    final artistIds = artistGenreJson
+        .where((entry) => entry['genreId'] == genreId)
+        .map((entry) => entry['artistId'] as String)
+        .toList();
+
+    final List<Artist> allArtists = await getArtists();
+    final List<Artist> filteredArtists = allArtists.where((artist) => artistIds.contains(artist.id)).toList();
+
+    // Tri des artistes par nombre de followers
+    filteredArtists.sort((a, b) => b.followers.compareTo(a.followers));
+
+    return filteredArtists;
+  }
 }

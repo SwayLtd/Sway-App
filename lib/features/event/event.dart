@@ -9,6 +9,7 @@ import 'package:sway_events/core/widgets/info_card.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
+import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
@@ -31,19 +32,46 @@ class EventScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(event.title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              // Share event action
-            },
+  IconButton(
+    icon: const Icon(Icons.share),
+    onPressed: () {
+      // Share event action
+    },
+  ),
+  FutureBuilder<bool>(
+    future: UserInterestEventService().isInterestedInEvent(event.id),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const IconButton(
+          icon: Icon(Icons.favorite_border),
+          onPressed: null,
+        );
+      } else if (snapshot.hasError) {
+        return const IconButton(
+          icon: Icon(Icons.favorite_border),
+          onPressed: null,
+        );
+      } else {
+        final bool isInterested = snapshot.data ?? false;
+        return IconButton(
+          icon: Icon(
+            isInterested ? Icons.favorite : Icons.favorite_border,
           ),
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () {
-              // Like event action
-            },
-          ),
-        ],
+          onPressed: () {
+            if (isInterested) {
+              UserInterestEventService().removeInterest(event.id);
+            } else {
+              UserInterestEventService().addInterest(event.id);
+            }
+            // Met à jour l'interface utilisateur en appelant setState
+            (context as Element).markNeedsBuild();
+          },
+        );
+      }
+    },
+  ),
+],
+
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -289,7 +317,20 @@ class EventScreen extends StatelessWidget {
                     final genres = snapshot.data!;
                     return Wrap(
                       spacing: 8.0,
-                      children: genres.map((genreId) => GenreChip(genreId: genreId)).toList(),
+                      children: genres.map((genre) {
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          GenreScreen(genreId: genre),
+                                    ),
+                                  );
+                                },
+                                child: GenreChip(genreId: genre),
+                              );
+                            }).toList(),
                     );
                   }
                 },
