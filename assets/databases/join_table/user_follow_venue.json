@@ -1,0 +1,9 @@
+[
+    { "userId": "1", "venueId": "1" },
+    { "userId": "1", "venueId": "2" },
+    { "userId": "2", "venueId": "3" },
+    { "userId": "2", "venueId": "4" },
+    { "userId": "3", "venueId": "1" },
+    { "userId": "3", "venueId": "3" }
+  ]
+  

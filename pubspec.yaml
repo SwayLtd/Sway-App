@@ -64,6 +64,8 @@ flutter:
     - assets/databases/organizers.json
     - assets/databases/venues.json
     - assets/databases/genres.json
+    - assets/databases/users.json
+    - assets/databases/user_permissions.json
     - assets/databases/join_table/artist_genre.json
     - assets/databases/join_table/event_artist.json
     - assets/databases/join_table/event_genre.json
@@ -72,5 +74,9 @@ flutter:
     - assets/databases/join_table/venue_genres.json
     - assets/databases/join_table/venue_organizers.json
     - assets/databases/join_table/venue_resident_artists.json
+    - assets/databases/join_table/user_follow_artist.json
+    - assets/databases/join_table/user_follow_venue.json
+    - assets/databases/join_table/user_follow_organizer.json
+    - assets/databases/join_table/user_interest_event.json
 
   generate: true

@@ -1,0 +1,6 @@
+[
+    { "userId": "1", "entityId": "1", "entityType": "event", "permission": "owner" },
+    { "userId": "2", "entityId": "1", "entityType": "venue", "permission": "manager" },
+    { "userId": "3", "entityId": "2", "entityType": "organizer", "permission": "user" }
+  ]
+  

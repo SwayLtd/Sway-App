@@ -1,0 +1,24 @@
+[
+    {
+      "id": "1",
+      "username": "john_doe",
+      "email": "john_doe@example.com",
+      "profilePictureUrl": "https://via.placeholder.com/150",
+      "createdAt": "2023-01-01T12:00:00Z"
+    },
+    {
+      "id": "2",
+      "username": "jane_smith",
+      "email": "jane_smith@example.com",
+      "profilePictureUrl": "https://via.placeholder.com/150",
+      "createdAt": "2023-02-01T12:00:00Z"
+    },
+    {
+      "id": "3",
+      "username": "bob_jones",
+      "email": "bob_jones@example.com",
+      "profilePictureUrl": "https://via.placeholder.com/150",
+      "createdAt": "2023-03-01T12:00:00Z"
+    }
+  ]
+  
