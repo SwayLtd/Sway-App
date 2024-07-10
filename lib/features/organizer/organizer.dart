@@ -9,6 +9,7 @@ import 'package:sway_events/features/user/services/user_follow_organizer_service
 
 class OrganizerScreen extends StatelessWidget {
   final String organizerId;
+  final String currentUserId = '3';
 
   const OrganizerScreen({required this.organizerId});
 
@@ -55,14 +56,6 @@ class OrganizerScreen extends StatelessWidget {
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 5),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // Follow/unfollow organizer action
-                    },
-                    icon: Icon(organizer.isFollowing ? Icons.check : Icons.add),
-                    label: Text(organizer.isFollowing ? 'Following' : 'Follow'),
-                  ),
-                  const SizedBox(height: 5),
                   FutureBuilder<int>(
                     future: UserFollowOrganizerService().getOrganizerFollowersCount(organizerId),
                     builder: (context, countSnapshot) {
@@ -72,6 +65,33 @@ class OrganizerScreen extends StatelessWidget {
                         return Text('Error: ${countSnapshot.error}');
                       } else {
                         return Text('${countSnapshot.data} followers');
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 5),
+                  FutureBuilder<bool>(
+                    future: UserFollowOrganizerService().isFollowingOrganizer(organizerId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return const Text('Error checking follow status');
+                      } else {
+                        final isFollowing = snapshot.data ?? false;
+                        return ElevatedButton.icon(
+                          onPressed: () {
+                            // Follow/unfollow organizer action
+                            if (isFollowing) {
+                              UserFollowOrganizerService().unfollowOrganizer(organizerId);
+                            } else {
+                              UserFollowOrganizerService().followOrganizer(organizerId);
+                            }
+                            // Reload the state
+                            (context as Element).reassemble();
+                          },
+                          icon: Icon(isFollowing ? Icons.check : Icons.add),
+                          label: Text(isFollowing ? 'Following' : 'Follow'),
+                        );
                       }
                     },
                   ),

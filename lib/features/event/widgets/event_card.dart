@@ -63,50 +63,56 @@ class EventCard extends StatelessWidget {
                 Positioned(
                   right: 10,
                   bottom: 10,
-                  child: Row(
-                    children: [
-                      FutureBuilder<int>(
-                        future: UserInterestEventService().getEventInterestCount(event.id),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Text(
-                              '...',
-                              style: TextStyle(
-                                fontSize: 14,
+                  child: FutureBuilder<bool>(
+                    future: UserInterestEventService().isInterestedInEvent(event.id),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Icon(Icons.favorite_border, size: 30, color: Colors.white);
+                      } else if (snapshot.hasError) {
+                        return const Icon(Icons.error, size: 30, color: Colors.white);
+                      } else {
+                        final bool isInterested = snapshot.data ?? false;
+                        return Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                isInterested ? Icons.favorite : Icons.favorite_border,
+                                size: 30,
                                 color: Colors.white,
                               ),
-                            );
-                          } else if (snapshot.hasError) {
-                            return const Text(
-                              '0',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
-                              ),
-                            );
-                          } else {
-                            return Text(
-                              '${snapshot.data}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.favorite_border,
-                          size: 30,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          // Like button action
-                        },
-                      ),
-                    ],
+                              onPressed: () {
+                                if (isInterested) {
+                                  UserInterestEventService().removeInterest(event.id);
+                                } else {
+                                  UserInterestEventService().addInterest(event.id);
+                                }
+                              },
+                            ),
+                            FutureBuilder<int>(
+                              future: UserInterestEventService().getEventInterestCount(event.id),
+                              builder: (context, countSnapshot) {
+                                if (countSnapshot.connectionState == ConnectionState.waiting) {
+                                  return const Text(
+                                    '...',
+                                    style: TextStyle(color: Colors.white, fontSize: 16),
+                                  );
+                                } else if (countSnapshot.hasError) {
+                                  return const Text(
+                                    '0',
+                                    style: TextStyle(color: Colors.white, fontSize: 16),
+                                  );
+                                } else {
+                                  return Text(
+                                    '${countSnapshot.data}',
+                                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+                        );
+                      }
+                    },
                   ),
                 ),
               ],

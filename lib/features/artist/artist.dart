@@ -11,7 +11,7 @@ import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
-import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
+import 'package:sway_events/features/user/services/user_follow_artist_service.dart' as followArtistService;
 
 class ArtistScreen extends StatelessWidget {
   final String artistId;
@@ -57,23 +57,25 @@ class ArtistScreen extends StatelessWidget {
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 5),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Follow/unfollow artist action
-                      },
-                      icon: Icon(artist.isFollowing ? Icons.check : Icons.add),
-                      label: Text(artist.isFollowing ? 'Following' : 'Follow'),
-                    ),
-                    const SizedBox(height: 5),
-                    FutureBuilder<int>(
-                      future: UserFollowArtistService().getArtistFollowersCount(artistId),
-                      builder: (context, countSnapshot) {
-                        if (countSnapshot.connectionState == ConnectionState.waiting) {
-                          return const Text('Loading followers...');
-                        } else if (countSnapshot.hasError) {
-                          return Text('Error: ${countSnapshot.error}');
+                    FutureBuilder<bool>(
+                      future: followArtistService.UserFollowArtistService().isFollowingArtist(artistId),
+                      builder: (context, followSnapshot) {
+                        if (followSnapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (followSnapshot.hasError) {
+                          return Text('Error: ${followSnapshot.error}');
                         } else {
-                          return Text('${countSnapshot.data} followers');
+                          final bool isFollowing = followSnapshot.data ?? false;
+                          return ElevatedButton(
+                            onPressed: () {
+                              if (isFollowing) {
+                                followArtistService.UserFollowArtistService().unfollowArtist(artistId);
+                              } else {
+                                followArtistService.UserFollowArtistService().followArtist(artistId);
+                              }
+                            },
+                            child: Text(isFollowing ? "Following" : "Follow"),
+                          );
                         }
                       },
                     ),
@@ -253,38 +255,6 @@ class ArtistScreen extends StatelessWidget {
           }
         },
       ),
-    );
-  }
-
-  Widget _buildLinksRow(Map<String, String> links) {
-    final List<Widget> icons = [];
-    links.forEach((platform, url) {
-      IconData iconData;
-      switch (platform) {
-        case 'soundcloud':
-          iconData = Icons.audiotrack;
-          break;
-        case 'spotify':
-          iconData = Icons.music_note;
-          break;
-        case 'wikipedia':
-          iconData = Icons.book;
-          break;
-        default:
-          iconData = Icons.link;
-      }
-      icons.add(
-        IconButton(
-          icon: Icon(iconData),
-          onPressed: () {
-            // Open link action
-          },
-        ),
-      );
-    });
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: icons,
     );
   }
 }

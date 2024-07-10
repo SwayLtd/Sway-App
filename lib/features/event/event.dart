@@ -11,11 +11,11 @@ import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
-import 'package:sway_events/features/user/models/user_follow_organizer_model.dart';
+import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
+import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
-import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
 
 class EventScreen extends StatelessWidget {
@@ -237,11 +237,27 @@ class EventScreen extends StatelessWidget {
                                         Text("${detailedOrganizer.upcomingEvents.length} upcoming events"),
                                       ],
                                     ),
-                                    trailing: ElevatedButton(
-                                      onPressed: () {
-                                        // Follow/unfollow organizer action
+                                    trailing: FutureBuilder<bool>(
+                                      future: UserFollowOrganizerService().isFollowingOrganizer(detailedOrganizer.id),
+                                      builder: (context, followSnapshot) {
+                                        if (followSnapshot.connectionState == ConnectionState.waiting) {
+                                          return const CircularProgressIndicator();
+                                        } else if (followSnapshot.hasError) {
+                                          return Text('Error: ${followSnapshot.error}');
+                                        } else {
+                                          final bool isFollowing = followSnapshot.data ?? false;
+                                          return ElevatedButton(
+                                            onPressed: () {
+                                              if (isFollowing) {
+                                                UserFollowOrganizerService().unfollowOrganizer(detailedOrganizer.id);
+                                              } else {
+                                                UserFollowOrganizerService().followOrganizer(detailedOrganizer.id);
+                                              }
+                                            },
+                                            child: Text(isFollowing ? "Following" : "Follow"),
+                                          );
+                                        }
                                       },
-                                      child: Text(detailedOrganizer.isFollowing ? "Following" : "Follow"),
                                     ),
                                   ),
                                 ),
@@ -273,9 +289,7 @@ class EventScreen extends StatelessWidget {
                     final genres = snapshot.data!;
                     return Wrap(
                       spacing: 8.0,
-                      children: genres
-                          .map((genreId) => GenreChip(genreId: genreId))
-                          .toList(),
+                      children: genres.map((genreId) => GenreChip(genreId: genreId)).toList(),
                     );
                   }
                 },
