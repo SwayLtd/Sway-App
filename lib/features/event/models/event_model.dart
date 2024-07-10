@@ -10,6 +10,7 @@ class Event {
   final String price;
   final List<String> organizers;
   final List<String> lineup;
+  final int interested;
 
   Event({
     required this.id,
@@ -23,6 +24,7 @@ class Event {
     required this.price,
     required this.organizers,
     required this.lineup,
+    required this.interested,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class Event {
       price: json['price'] as String,
       organizers: (json['organizers'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       lineup: (json['lineup'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      interested: json['interested'] as int? ?? 0,
     );
   }
 }

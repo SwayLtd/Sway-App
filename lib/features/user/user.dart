@@ -1,147 +1,291 @@
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/constants/l10n.dart';
+import 'package:sway_events/core/widgets/image_with_error_handler.dart';
+import 'package:sway_events/features/artist/artist.dart';
+import 'package:sway_events/features/artist/models/artist_model.dart';
+import 'package:sway_events/features/event/event.dart';
+import 'package:sway_events/features/event/models/event_model.dart';
+import 'package:sway_events/features/organizer/models/organizer_model.dart';
+import 'package:sway_events/features/organizer/organizer.dart';
+import 'package:sway_events/features/venue/models/venue_model.dart';
+import 'package:sway_events/features/venue/venue.dart';
+import 'package:sway_events/features/user/models/user_model.dart';
+import 'package:sway_events/features/user/services/user_service.dart';
+import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
+import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
+import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
+import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 
-class TestScreen extends StatefulWidget {
-  const TestScreen({super.key});
+class UserScreen extends StatelessWidget {
+  final String userId;
 
-  @override
-  _TestScreenState createState() => _TestScreenState();
-}
-
-class _TestScreenState extends State<TestScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  const UserScreen({required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
-      body: SuggestionsWidget(),
-    );
-  }
-}
-
-// Connected object model
-class ConnectedObject {
-  final String type;
-  bool state;
-  Map<String, dynamic> otherInfo;
-
-  ConnectedObject(this.type, this.state, this.otherInfo);
-}
-
-// Widget to display a suggestion
-class SuggestionsWidget extends StatefulWidget {
-  @override
-  _SuggestionsWidgetState createState() => _SuggestionsWidgetState();
-}
-
-class _SuggestionsWidgetState extends State<SuggestionsWidget> {
-  List<String> suggestions = [];
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Example of a list of connected objects
-    final List<ConnectedObject> connectedObjects = [
-      ConnectedObject(
-        'smoke_detector',
-        true,
-        {'location': context.loc.testLocationKitchen},
+      appBar: AppBar(
+        title: const Text('User Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code),
+            onPressed: () {
+              // Share action with QR code
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              // Edit user profile action
+            },
+          ),
+        ],
       ),
-      ConnectedObject('oven', true,
-          {'location': context.loc.testLocationKitchen},),
-      ConnectedObject(
-        'water_leakage_detector',
-        false,
-        {'location': context.loc.testLocationKitchen},
-      ),
-      ConnectedObject(
-        'thermostat',
-        false,
-        {'location': context.loc.testLocationKitchen},
-      ),
-      ConnectedObject(
-        'power_switch',
-        false,
-        {'location': context.loc.testLocationKitchen},
-      ),
-      ConnectedObject(
-        'motion_sensor',
-        true,
-        {'location': context.loc.testLocationKitchen},
-      ),
-    ];
-
-    // Function that returns a list of suggestions based on the connected objects list and their states and other information
-    List<String> getSuggestions(List connected) {
-      final List<String> suggestions = [];
-      final List<ConnectedObject> connectedObjects =
-          connected as List<ConnectedObject>;
-
-      // Browse each connected object and add a suggestion if it meets certain conditions between them
-      for (final ConnectedObject obj1 in connectedObjects) {
-        for (final ConnectedObject obj2 in connectedObjects) {
-          if (obj1.type == 'smoke_detector' &&
-              obj1.state == true &&
-              obj2.type == 'oven' &&
-              obj2.state == true) {
-            suggestions.add(
-              context.loc.testSuggestion1,
-            );
-          }
-          if (obj1.type == 'thermostat' &&
-              obj1.state == true &&
-              obj2.type == 'sensor_temp' &&
-              obj2.state == true) {
-            suggestions.add(
-              context.loc.testSuggestion2,
-            );
-          }
-          if (obj1.type == 'power_switch' &&
-              obj1.state == false &&
-              obj2.type == 'motion_sensor' &&
-              obj2.state == true) {
-            suggestions.add(
-              context.loc.testSuggestion3,
-            );
-          }
-        }
-      }
-
-      // Browse each connected object and add a suggestion if it meets certain conditions
-      for (final ConnectedObject obj in connectedObjects) {
-        if (obj.type == 'water_leakage_detector' && obj.state == false) {
-          suggestions.add(
-            context.loc.testSuggestion4,
-          );
-        }
-      }
-
-      return suggestions;
-    }
-
-    suggestions =
-        getSuggestions(connectedObjects); // Get the list of suggestions
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: ListView.builder(
-        itemCount: suggestions.length, // Number of suggestions
-        itemBuilder: (BuildContext context, int index) {
-          return Card(
-            elevation: 4.0,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                suggestions[index],
-                style: Theme.of(context).textTheme.titleLarge,
+      body: FutureBuilder<User?>(
+        future: UserService().getUserById(userId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('User not found'));
+          } else {
+            final user = snapshot.data!;
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: ImageWithErrorHandler(
+                          imageUrl: user.profilePictureUrl,
+                          width: 150,
+                          height: 150,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      user.username,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'Member since: ${user.createdAt.toLocal()}',
+                      style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Friends',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    // Placeholder for friends feature
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Artists',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    FutureBuilder<List<Artist>>(
+                      future: UserFollowArtistService().getFollowedArtistsByUserId(userId),
+                      builder: (context, artistSnapshot) {
+                        if (artistSnapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (artistSnapshot.hasError) {
+                          return Text('Error: ${artistSnapshot.error}');
+                        } else if (!artistSnapshot.hasData || artistSnapshot.data!.isEmpty) {
+                          return const Text('No followed artists found');
+                        } else {
+                          final artists = artistSnapshot.data!;
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: artists.map((artist) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ArtistScreen(artistId: artist.id),
+                                      ),
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: ImageWithErrorHandler(
+                                            imageUrl: artist.imageUrl,
+                                            width: 100,
+                                            height: 100,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(artist.name),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Venues',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    FutureBuilder<List<Venue>>(
+                      future: UserFollowVenueService().getFollowedVenuesByUserId(userId),
+                      builder: (context, venueSnapshot) {
+                        if (venueSnapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (venueSnapshot.hasError) {
+                          return Text('Error: ${venueSnapshot.error}');
+                        } else if (!venueSnapshot.hasData || venueSnapshot.data!.isEmpty) {
+                          return const Text('No followed venues found');
+                        } else {
+                          final venues = venueSnapshot.data!;
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: venues.map((venue) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => VenueScreen(venueId: venue.id),
+                                      ),
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: ImageWithErrorHandler(
+                                            imageUrl: venue.imageUrl,
+                                            width: 100,
+                                            height: 100,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(venue.name),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Organizers',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    FutureBuilder<List<Organizer>>(
+                      future: UserFollowOrganizerService().getFollowedOrganizersByUserId(userId),
+                      builder: (context, organizerSnapshot) {
+                        if (organizerSnapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (organizerSnapshot.hasError) {
+                          return Text('Error: ${organizerSnapshot.error}');
+                        } else if (!organizerSnapshot.hasData || organizerSnapshot.data!.isEmpty) {
+                          return const Text('No followed organizers found');
+                        } else {
+                          final organizers = organizerSnapshot.data!;
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: organizers.map((organizer) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => OrganizerScreen(organizerId: organizer.id),
+                                      ),
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: ImageWithErrorHandler(
+                                            imageUrl: organizer.imageUrl,
+                                            width: 100,
+                                            height: 100,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(organizer.name),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Events',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    FutureBuilder<List<Event>>(
+                      future: UserInterestEventService().getInterestedEventsByUserId(userId),
+                      builder: (context, eventSnapshot) {
+                        if (eventSnapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (eventSnapshot.hasError) {
+                          return Text('Error: ${eventSnapshot.error}');
+                        } else if (!eventSnapshot.hasData || eventSnapshot.data!.isEmpty) {
+                          return const Text('No interested events found');
+                        } else {
+                          final events = eventSnapshot.data!;
+                          return Column(
+                            children: events.map((event) {
+                              return ListTile(
+                                title: Text(event.title),
+                                subtitle: Text(event.dateTime),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EventScreen(event: event),
+                                    ),
+                                  );
+                                },
+                              );
+                            }).toList(),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
+            );
+          }
         },
       ),
     );

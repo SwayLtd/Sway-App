@@ -7,6 +7,7 @@ class Venue {
   final List<String> ownedBy;
   final List<String> genres;
   final String location;
+  final int followers;
 
   Venue({
     required this.id,
@@ -17,6 +18,7 @@ class Venue {
     required this.ownedBy,
     required this.genres,
     required this.location,
+    required this.followers,
   });
 
   factory Venue.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class Venue {
       ownedBy: (json['ownedBy'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       genres: (json['genres'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       location: json['location'] as String? ?? '',
+      followers: json['followers'] as int? ?? 0,
     );
   }
 }

@@ -11,6 +11,7 @@ import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
+import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 
 class ArtistScreen extends StatelessWidget {
   final String artistId;
@@ -56,7 +57,26 @@ class ArtistScreen extends StatelessWidget {
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 5),
-                    _buildLinksRow(artist.links),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Follow/unfollow artist action
+                      },
+                      icon: Icon(artist.isFollowing ? Icons.check : Icons.add),
+                      label: Text(artist.isFollowing ? 'Following' : 'Follow'),
+                    ),
+                    const SizedBox(height: 5),
+                    FutureBuilder<int>(
+                      future: UserFollowArtistService().getArtistFollowersCount(artistId),
+                      builder: (context, countSnapshot) {
+                        if (countSnapshot.connectionState == ConnectionState.waiting) {
+                          return const Text('Loading followers...');
+                        } else if (countSnapshot.hasError) {
+                          return Text('Error: ${countSnapshot.error}');
+                        } else {
+                          return Text('${countSnapshot.data} followers');
+                        }
+                      },
+                    ),
                     const SizedBox(height: 20),
                     const Text(
                       "UPCOMING EVENTS",

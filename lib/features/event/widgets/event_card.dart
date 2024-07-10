@@ -6,6 +6,7 @@ import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
+import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 
 class EventCard extends StatelessWidget {
   final Event event;
@@ -62,15 +63,50 @@ class EventCard extends StatelessWidget {
                 Positioned(
                   right: 10,
                   bottom: 10,
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.favorite_border,
-                      size: 30,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      // Like button action
-                    },
+                  child: Row(
+                    children: [
+                      FutureBuilder<int>(
+                        future: UserInterestEventService().getEventInterestCount(event.id),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Text(
+                              '...',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            );
+                          } else if (snapshot.hasError) {
+                            return const Text(
+                              '0',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            );
+                          } else {
+                            return Text(
+                              '${snapshot.data}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.favorite_border,
+                          size: 30,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          // Like button action
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],

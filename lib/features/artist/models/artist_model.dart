@@ -7,6 +7,8 @@ class Artist {
   final List<String> upcomingEvents;
   final List<String> similarArtists;
   final Map<String, String> links;
+  final int followers;
+  final bool isFollowing;
 
   Artist({
     required this.id,
@@ -17,6 +19,8 @@ class Artist {
     required this.upcomingEvents,
     required this.similarArtists,
     required this.links,
+    required this.followers,
+    required this.isFollowing,
   });
 
   factory Artist.fromJson(Map<String, dynamic> json) {
@@ -40,6 +44,8 @@ class Artist {
       links: (json['links'] as Map<String, dynamic>?)
               ?.map((key, value) => MapEntry(key, value as String)) ??
           {},
+      followers: json['followers'] as int? ?? 0,
+      isFollowing: json['isFollowing'] as bool? ?? false,
     );
   }
 }

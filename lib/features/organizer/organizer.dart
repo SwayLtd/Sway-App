@@ -5,6 +5,7 @@ import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
 
 class OrganizerScreen extends StatelessWidget {
   final String organizerId;
@@ -19,7 +20,7 @@ class OrganizerScreen extends StatelessWidget {
         title: const Text('Organizer'),
       ),
       body: FutureBuilder<Organizer?>(
-        future: OrganizerService().getOrganizerById(organizerId),
+        future: OrganizerService().getOrganizerByIdWithEvents(organizerId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -60,6 +61,19 @@ class OrganizerScreen extends StatelessWidget {
                     },
                     icon: Icon(organizer.isFollowing ? Icons.check : Icons.add),
                     label: Text(organizer.isFollowing ? 'Following' : 'Follow'),
+                  ),
+                  const SizedBox(height: 5),
+                  FutureBuilder<int>(
+                    future: UserFollowOrganizerService().getOrganizerFollowersCount(organizerId),
+                    builder: (context, countSnapshot) {
+                      if (countSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Text('Loading followers...');
+                      } else if (countSnapshot.hasError) {
+                        return Text('Error: ${countSnapshot.error}');
+                      } else {
+                        return Text('${countSnapshot.data} followers');
+                      }
+                    },
                   ),
                   const SizedBox(height: 20),
                   const Text(

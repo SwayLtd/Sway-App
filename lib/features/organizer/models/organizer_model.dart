@@ -20,7 +20,7 @@ class Organizer {
   });
 
   factory Organizer.fromJson(Map<String, dynamic> json, List<Event> events) {
-    // Filtrer les événements par organiserId
+    // Filtrer les événements par organizerId
     final organizerEvents = events.where((event) => event.organizers.contains(json['id'])).map((e) => e.id).toList();
 
     return Organizer(
@@ -31,6 +31,18 @@ class Organizer {
       isFollowing: json['isFollowing'] as bool? ?? false,
       description: json['description'] as String? ?? '',
       upcomingEvents: organizerEvents,
+    );
+  }
+
+  factory Organizer.fromJsonWithoutEvents(Map<String, dynamic> json) {
+    return Organizer(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      imageUrl: json['imageUrl'] as String,
+      followers: json['followers'] as int? ?? 0,
+      isFollowing: json['isFollowing'] as bool? ?? false,
+      description: json['description'] as String? ?? '',
+      upcomingEvents: [],
     );
   }
 }

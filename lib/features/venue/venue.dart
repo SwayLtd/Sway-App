@@ -3,13 +3,17 @@ import 'package:sway_events/core/widgets/genre_chip.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
+import 'package:sway_events/features/artist/services/artist_service.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
+import 'package:sway_events/features/user/models/user_follow_organizer_model.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
+import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/services/venue_genre_service.dart';
 import 'package:sway_events/features/venue/services/venue_organizer_service.dart';
 import 'package:sway_events/features/venue/services/venue_resident_artists_service.dart';
-import 'package:sway_events/features/venue/services/venue_service.dart';
+import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
+import 'package:sway_events/features/organizer/services/organizer_service.dart';
 
 class VenueScreen extends StatelessWidget {
   final String venueId;
@@ -53,6 +57,19 @@ class VenueScreen extends StatelessWidget {
                     Text(
                       venue.name,
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 5),
+                    FutureBuilder<int>(
+                      future: UserFollowVenueService().getVenueFollowersCount(venueId),
+                      builder: (context, countSnapshot) {
+                        if (countSnapshot.connectionState == ConnectionState.waiting) {
+                          return const Text('Loading followers...');
+                        } else if (countSnapshot.hasError) {
+                          return Text('Error: ${countSnapshot.error}');
+                        } else {
+                          return Text('${countSnapshot.data} followers');
+                        }
+                      },
                     ),
                     const SizedBox(height: 20),
                     const Text(
@@ -127,43 +144,68 @@ class VenueScreen extends StatelessWidget {
                           final organizers = organizerSnapshot.data!;
                           return Column(
                             children: organizers.map((organizer) {
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => OrganizerScreen(organizerId: organizer.id),
-                                    ),
-                                  );
-                                },
-                                child: Card(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  elevation: 2,
-                                  child: ListTile(
-                                    leading: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: ImageWithErrorHandler(
-                                        imageUrl: organizer.imageUrl,
-                                        width: 50,
-                                        height: 50,
-                                      ),
-                                    ),
-                                    title: Text(organizer.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text("${organizer.followers} followers"),
-                                        Text("${organizer.upcomingEvents.length} upcoming events"),
-                                      ],
-                                    ),
-                                    trailing: ElevatedButton(
-                                      onPressed: () {
-                                        // Follow/unfollow organizer action
+                              return FutureBuilder<Organizer?>(
+                                future: OrganizerService().getOrganizerByIdWithEvents(organizer.id),
+                                builder: (context, organizerDetailSnapshot) {
+                                  if (organizerDetailSnapshot.connectionState == ConnectionState.waiting) {
+                                    return const CircularProgressIndicator();
+                                  } else if (organizerDetailSnapshot.hasError) {
+                                    return Text('Error: ${organizerDetailSnapshot.error}');
+                                  } else if (!organizerDetailSnapshot.hasData || organizerDetailSnapshot.data == null) {
+                                    return const Text('Organizer details not found');
+                                  } else {
+                                    final detailedOrganizer = organizerDetailSnapshot.data!;
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => OrganizerScreen(organizerId: detailedOrganizer.id),
+                                          ),
+                                        );
                                       },
-                                      child: const Text("Follow"),
-                                    ),
-                                  ),
-                                ),
+                                      child: Card(
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        elevation: 2,
+                                        child: ListTile(
+                                          leading: ClipRRect(
+                                            borderRadius: BorderRadius.circular(10),
+                                            child: ImageWithErrorHandler(
+                                              imageUrl: detailedOrganizer.imageUrl,
+                                              width: 50,
+                                              height: 50,
+                                            ),
+                                          ),
+                                          title: Text(detailedOrganizer.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                          subtitle: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              FutureBuilder<int>(
+                                                future: UserFollowOrganizerService().getOrganizerFollowersCount(detailedOrganizer.id),
+                                                builder: (context, countSnapshot) {
+                                                  if (countSnapshot.connectionState == ConnectionState.waiting) {
+                                                    return const Text('Loading followers...');
+                                                  } else if (countSnapshot.hasError) {
+                                                    return Text('Error: ${countSnapshot.error}');
+                                                  } else {
+                                                    return Text('${countSnapshot.data} followers');
+                                                  }
+                                                },
+                                              ),
+                                              Text("${detailedOrganizer.upcomingEvents.length} upcoming events"),
+                                            ],
+                                          ),
+                                          trailing: ElevatedButton(
+                                            onPressed: () {
+                                              // Follow/unfollow organizer action
+                                            },
+                                            child: Text(detailedOrganizer.isFollowing ? "Following" : "Follow"),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
                               );
                             }).toList(),
                           );
