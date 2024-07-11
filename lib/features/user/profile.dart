@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/widgets/genre_chip.dart';
+import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
