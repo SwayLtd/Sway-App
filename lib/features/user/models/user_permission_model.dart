@@ -1,10 +1,8 @@
-// user_permission_model.dart
-
 class UserPermission {
   final String userId;
   final String entityId;
-  final String entityType; // "event", "venue", "organizer"
-  final String permission; // "owner", "manager", "user"
+  final String entityType;
+  String permission; // Change from final to mutable
 
   UserPermission({
     required this.userId,

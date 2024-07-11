@@ -23,6 +23,16 @@ class UserPermissionService {
         .toList();
   }
 
+  Future<List<UserPermission>> getPermissionsByEntity(
+      String entityId, String entityType) async {
+    final permissions = await getUserPermissions();
+    return permissions
+        .where((permission) =>
+            permission.entityId == entityId &&
+            permission.entityType == entityType)
+        .toList();
+  }
+
   Future<List<UserPermission>> getPermissionsByUserIdAndType(
       String userId, String entityType) async {
     final permissions = await getPermissionsByUserId(userId);
@@ -57,7 +67,17 @@ class UserPermissionService {
         currentUser.id, entityId, entityType, requiredPermission);
   }
 
+  Future<void> deleteUserPermission(
+      String userId, String entityId, String entityType) async {
+    final permissions = await getUserPermissions();
+    permissions.removeWhere((permission) =>
+        permission.userId == userId &&
+        permission.entityId == entityId &&
+        permission.entityType == entityType);
+    await saveUserPermissions(permissions);
+  }
+
   Future<void> saveUserPermissions(List<UserPermission> permissions) async {
-    // Implement saving logic here, depending on how you manage your local storage
+    // Implémentation de la logique de sauvegarde, dépend de votre stockage local
   }
 }

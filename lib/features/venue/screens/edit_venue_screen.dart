@@ -1,6 +1,7 @@
 // edit_venue_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
@@ -87,6 +88,32 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: _updateVenue,
+          ),
+          FutureBuilder<bool>(
+            future: UserPermissionService()
+                .hasPermissionForCurrentUser(widget.venue.id, 'venue', 'owner'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!) {
+                return const SizedBox.shrink();
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.account_tree),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserAccessManagementScreen(
+                            entityId: widget.venue.id, entityType: 'venue'),
+                      ),
+                    );
+                  },
+                );
+              }
+            },
           ),
         ],
       ),

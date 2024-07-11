@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 
 class EditOrganizerScreen extends StatefulWidget {
@@ -88,6 +89,33 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: _updateOrganizer,
+          ),
+          FutureBuilder<bool>(
+            future: UserPermissionService().hasPermissionForCurrentUser(
+                widget.organizer.id, 'organizer', 'owner'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!) {
+                return const SizedBox.shrink();
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.account_tree),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserAccessManagementScreen(
+                            entityId: widget.organizer.id,
+                            entityType: 'organizer'),
+                      ),
+                    );
+                  },
+                );
+              }
+            },
           ),
         ],
       ),
