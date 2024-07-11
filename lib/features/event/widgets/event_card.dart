@@ -104,7 +104,7 @@ class EventCard extends StatelessWidget {
                               ],
                             ),
                             FutureBuilder<int>(
-                              future: UserInterestEventService().getEventInterestCount(event.id),
+                              future: UserInterestEventService().getEventInterestCount(event.id, 'both'),
                               builder: (context, countSnapshot) {
                                 if (countSnapshot.connectionState == ConnectionState.waiting) {
                                   return const Text(

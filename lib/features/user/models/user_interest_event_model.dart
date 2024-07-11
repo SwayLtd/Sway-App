@@ -1,7 +1,7 @@
 class UserInterestEvent {
   final String userId;
   final String eventId;
-  final String status; // "interested" or "attended"
+  final String status; // "interested" or "going"
 
   UserInterestEvent({
     required this.userId,

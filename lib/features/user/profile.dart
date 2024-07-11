@@ -8,6 +8,8 @@ import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
+import 'package:sway_events/features/user/screens/edit_profile_screen.dart';
+import 'package:sway_events/features/user/widgets/followers_list_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/venue.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
@@ -18,6 +20,8 @@ import 'package:sway_events/features/user/services/user_follow_organizer_service
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 import 'package:sway_events/features/genre/models/genre_model.dart';
 import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
+import 'package:sway_events/features/user/services/user_follow_user_service.dart';
+import 'package:sway_events/features/user/screens/followers_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String userId;
@@ -38,8 +42,19 @@ class ProfileScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              // Edit user profile action
+            onPressed: () async {
+              User? user = await UserService().getUserById(userId);
+              if (user != null) {
+                final updatedUser = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfileScreen(user: user),
+                  ),
+                );
+                if (updatedUser != null) {
+                  // Handle the updated user information if necessary
+                }
+              }
             },
           ),
         ],
@@ -82,6 +97,11 @@ class ProfileScreen extends StatelessWidget {
                       'Member since: ${user.createdAt.toLocal()}',
                       style: const TextStyle(
                           fontSize: 16, fontStyle: FontStyle.italic),
+                    ),
+                    const SizedBox(height: 20),
+                    FollowersListWidget(
+                      entityId: userId,
+                      entityType: 'user',
                     ),
                     const SizedBox(height: 20),
                     const Text(

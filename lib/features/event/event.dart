@@ -14,6 +14,7 @@ import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
+import 'package:sway_events/features/user/widgets/followers_list_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
@@ -52,7 +53,8 @@ class EventScreen extends StatelessWidget {
                   onPressed: null,
                 );
               } else {
-                final bool isInterested = snapshot.data?['isInterested'] ?? false;
+                final bool isInterested =
+                    snapshot.data?['isInterested'] ?? false;
                 final bool isAttended = snapshot.data?['isAttended'] ?? false;
                 return PopupMenuButton<String>(
                   icon: Icon(
@@ -114,8 +116,11 @@ class EventScreen extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 event.title,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 5),
+              FollowersListWidget(entityId: event.id, entityType: 'event'),
               const SizedBox(height: 10),
               InfoCard(title: "Date", content: formatEventDate(eventDateTime)),
               FutureBuilder<Venue?>(
@@ -123,13 +128,15 @@ class EventScreen extends StatelessWidget {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const InfoCard(
-                      title: "Location", content: 'Loading...',
+                      title: "Location",
+                      content: 'Loading...',
                     );
                   } else if (snapshot.hasError ||
                       !snapshot.hasData ||
                       snapshot.data == null) {
                     return const InfoCard(
-                      title: "Location", content: 'Location not found',
+                      title: "Location",
+                      content: 'Location not found',
                     );
                   } else {
                     final venue = snapshot.data!;
@@ -167,11 +174,13 @@ class EventScreen extends StatelessWidget {
                 child: FutureBuilder<List<Artist>>(
                   future: EventArtistService().getArtistsByEventId(event.id),
                   builder: (context, artistSnapshot) {
-                    if (artistSnapshot.connectionState == ConnectionState.waiting) {
+                    if (artistSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const CircularProgressIndicator();
                     } else if (artistSnapshot.hasError) {
                       return Text('Error: ${artistSnapshot.error}');
-                    } else if (!artistSnapshot.hasData || artistSnapshot.data!.isEmpty) {
+                    } else if (!artistSnapshot.hasData ||
+                        artistSnapshot.data!.isEmpty) {
                       return const Text('No artists found');
                     } else {
                       final artists = artistSnapshot.data!;
@@ -213,40 +222,49 @@ class EventScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               const Text(
-                "OWNED BY",
+                "ORGANIZED BY",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               FutureBuilder<List<Organizer>>(
-                future: EventOrganizerService().getOrganizersByEventId(event.id),
+                future:
+                    EventOrganizerService().getOrganizersByEventId(event.id),
                 builder: (context, organizerSnapshot) {
-                  if (organizerSnapshot.connectionState == ConnectionState.waiting) {
+                  if (organizerSnapshot.connectionState ==
+                      ConnectionState.waiting) {
                     return const CircularProgressIndicator();
                   } else if (organizerSnapshot.hasError) {
                     return Text('Error: ${organizerSnapshot.error}');
-                  } else if (!organizerSnapshot.hasData || organizerSnapshot.data!.isEmpty) {
+                  } else if (!organizerSnapshot.hasData ||
+                      organizerSnapshot.data!.isEmpty) {
                     return const Text('No organizers found');
                   } else {
                     final organizers = organizerSnapshot.data!;
                     return Column(
                       children: organizers.map((organizer) {
                         return FutureBuilder<Organizer?>(
-                          future: OrganizerService().getOrganizerByIdWithEvents(organizer.id),
+                          future: OrganizerService()
+                              .getOrganizerByIdWithEvents(organizer.id),
                           builder: (context, organizerDetailSnapshot) {
-                            if (organizerDetailSnapshot.connectionState == ConnectionState.waiting) {
+                            if (organizerDetailSnapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const CircularProgressIndicator();
                             } else if (organizerDetailSnapshot.hasError) {
-                              return Text('Error: ${organizerDetailSnapshot.error}');
-                            } else if (!organizerDetailSnapshot.hasData || organizerDetailSnapshot.data == null) {
+                              return Text(
+                                  'Error: ${organizerDetailSnapshot.error}');
+                            } else if (!organizerDetailSnapshot.hasData ||
+                                organizerDetailSnapshot.data == null) {
                               return const Text('Organizer details not found');
                             } else {
-                              final detailedOrganizer = organizerDetailSnapshot.data!;
+                              final detailedOrganizer =
+                                  organizerDetailSnapshot.data!;
                               return GestureDetector(
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => OrganizerScreen(organizerId: detailedOrganizer.id),
+                                      builder: (context) => OrganizerScreen(
+                                          organizerId: detailedOrganizer.id),
                                     ),
                                   );
                                 },
@@ -264,47 +282,67 @@ class EventScreen extends StatelessWidget {
                                         height: 50,
                                       ),
                                     ),
-                                    title: Text(detailedOrganizer.name,
+                                    title: Text(
+                                      detailedOrganizer.name,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         FutureBuilder<int>(
-                                          future: UserFollowOrganizerService().getOrganizerFollowersCount(detailedOrganizer.id),
+                                          future: UserFollowOrganizerService()
+                                              .getOrganizerFollowersCount(
+                                                  detailedOrganizer.id),
                                           builder: (context, countSnapshot) {
-                                            if (countSnapshot.connectionState == ConnectionState.waiting) {
-                                              return const Text('Loading followers...');
+                                            if (countSnapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return const Text(
+                                                  'Loading followers...');
                                             } else if (countSnapshot.hasError) {
-                                              return Text('Error: ${countSnapshot.error}');
+                                              return Text(
+                                                  'Error: ${countSnapshot.error}');
                                             } else {
-                                              return Text('${countSnapshot.data} followers');
+                                              return Text(
+                                                  '${countSnapshot.data} followers');
                                             }
                                           },
                                         ),
-                                        Text("${detailedOrganizer.upcomingEvents.length} upcoming events"),
+                                        Text(
+                                            "${detailedOrganizer.upcomingEvents.length} upcoming events"),
                                       ],
                                     ),
                                     trailing: FutureBuilder<bool>(
-                                      future: UserFollowOrganizerService().isFollowingOrganizer(detailedOrganizer.id),
+                                      future: UserFollowOrganizerService()
+                                          .isFollowingOrganizer(
+                                              detailedOrganizer.id),
                                       builder: (context, followSnapshot) {
-                                        if (followSnapshot.connectionState == ConnectionState.waiting) {
+                                        if (followSnapshot.connectionState ==
+                                            ConnectionState.waiting) {
                                           return const CircularProgressIndicator();
                                         } else if (followSnapshot.hasError) {
-                                          return Text('Error: ${followSnapshot.error}');
+                                          return Text(
+                                              'Error: ${followSnapshot.error}');
                                         } else {
-                                          final bool isFollowing = followSnapshot.data ?? false;
+                                          final bool isFollowing =
+                                              followSnapshot.data ?? false;
                                           return ElevatedButton(
                                             onPressed: () {
                                               if (isFollowing) {
-                                                UserFollowOrganizerService().unfollowOrganizer(detailedOrganizer.id);
+                                                UserFollowOrganizerService()
+                                                    .unfollowOrganizer(
+                                                        detailedOrganizer.id);
                                               } else {
-                                                UserFollowOrganizerService().followOrganizer(detailedOrganizer.id);
+                                                UserFollowOrganizerService()
+                                                    .followOrganizer(
+                                                        detailedOrganizer.id);
                                               }
                                             },
-                                            child: Text(isFollowing ? "Following" : "Follow"),
+                                            child: Text(isFollowing
+                                                ? "Following"
+                                                : "Follow"),
                                           );
                                         }
                                       },
@@ -340,38 +378,20 @@ class EventScreen extends StatelessWidget {
                     return Wrap(
                       spacing: 8.0,
                       children: genres.map((genre) {
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          GenreScreen(genreId: genre),
-                                    ),
-                                  );
-                                },
-                                child: GenreChip(genreId: genre),
-                              );
-                            }).toList(),
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    GenreScreen(genreId: genre),
+                              ),
+                            );
+                          },
+                          child: GenreChip(genreId: genre),
+                        );
+                      }).toList(),
                     );
-                  }
-                },
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "INTERESTED",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              FutureBuilder<int>(
-                future: UserInterestEventService().getEventInterestCount(event.id),
-                builder: (context, interestSnapshot) {
-                  if (interestSnapshot.connectionState == ConnectionState.waiting) {
-                    return const Text('Loading...');
-                  } else if (interestSnapshot.hasError) {
-                    return Text('Error: ${interestSnapshot.error}');
-                  } else {
-                    return Text('${interestSnapshot.data} people interested');
                   }
                 },
               ),
@@ -395,13 +415,15 @@ class EventScreen extends StatelessWidget {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const InfoCard(
-                          title: "Location", content: 'Loading...',
+                        title: "Location",
+                        content: 'Loading...',
                       );
                     } else if (snapshot.hasError ||
                         !snapshot.hasData ||
                         snapshot.data == null) {
                       return const InfoCard(
-                          title: "Location", content: 'Location not found',
+                        title: "Location",
+                        content: 'Location not found',
                       );
                     } else {
                       final venue = snapshot.data!;
@@ -437,12 +459,14 @@ class EventScreen extends StatelessWidget {
   }
 
   Future<Map<String, bool>> _getEventStatus(String eventId) async {
-    bool isInterested = await UserInterestEventService().isInterestedInEvent(eventId);
+    bool isInterested =
+        await UserInterestEventService().isInterestedInEvent(eventId);
     bool isAttended = await UserInterestEventService().isAttendedEvent(eventId);
     return {'isInterested': isInterested, 'isAttended': isAttended};
   }
 
-  void _handleMenuSelection(String value, String eventId, BuildContext context) {
+  void _handleMenuSelection(
+      String value, String eventId, BuildContext context) {
     switch (value) {
       case 'interested':
         UserInterestEventService().addInterest(eventId);
