@@ -9,7 +9,7 @@ import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/user/screens/edit_profile_screen.dart';
-import 'package:sway_events/features/user/widgets/followers_list_widget.dart';
+import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/venue.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
@@ -99,7 +99,7 @@ class ProfileScreen extends StatelessWidget {
                           fontSize: 16, fontStyle: FontStyle.italic),
                     ),
                     const SizedBox(height: 20),
-                    FollowersListWidget(
+                    FollowersCountWidget(
                       entityId: userId,
                       entityType: 'user',
                     ),

@@ -14,7 +14,7 @@ import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
-import 'package:sway_events/features/user/widgets/followers_list_widget.dart';
+import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
@@ -120,7 +120,7 @@ class EventScreen extends StatelessWidget {
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 5),
-              FollowersListWidget(entityId: event.id, entityType: 'event'),
+              FollowersCountWidget(entityId: event.id, entityType: 'event'),
               const SizedBox(height: 10),
               InfoCard(title: "Date", content: formatEventDate(eventDateTime)),
               FutureBuilder<Venue?>(

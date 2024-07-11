@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/user/screens/followers_screen.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
+import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
 import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 import 'package:sway_events/features/user/services/user_follow_user_service.dart';
 
-class FollowersListWidget extends StatelessWidget {
+class FollowersCountWidget extends StatelessWidget {
   final String entityId;
-  final String entityType; // 'venue', 'organizer', 'event', 'artist', 'user'
+  final String entityType; // 'venue', 'organizer', 'event', 'artist', 'user', 'genre'
 
-  const FollowersListWidget({required this.entityId, required this.entityType});
+  const FollowersCountWidget({required this.entityId, required this.entityType});
 
   @override
   Widget build(BuildContext context) {
@@ -220,6 +221,8 @@ class FollowersListWidget extends StatelessWidget {
         return UserFollowVenueService().getVenueFollowersCount(entityId);
       case 'organizer':
         return UserFollowOrganizerService().getOrganizerFollowersCount(entityId);
+      case 'genre':
+        return UserFollowGenreService().getGenreFollowersCount(entityId);
       default:
         throw Exception('Unknown entity type');
     }

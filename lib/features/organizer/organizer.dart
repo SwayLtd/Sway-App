@@ -6,7 +6,8 @@ import 'package:sway_events/features/event/services/event_service.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
-import 'package:sway_events/features/user/widgets/followers_list_widget.dart';
+import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
+import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 
 class OrganizerScreen extends StatelessWidget {
   final String organizerId;
@@ -58,53 +59,10 @@ class OrganizerScreen extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 24, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 10),
+                  FollowersCountWidget(entityId: organizerId, entityType: 'organizer'),
                   const SizedBox(height: 5),
-                  FollowersListWidget(entityId: organizerId, entityType: 'organizer'),
-                  const SizedBox(height: 5),
-                  FutureBuilder<int>(
-                    future: UserFollowOrganizerService()
-                        .getOrganizerFollowersCount(organizerId),
-                    builder: (context, countSnapshot) {
-                      if (countSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Text('Loading followers...');
-                      } else if (countSnapshot.hasError) {
-                        return Text('Error: ${countSnapshot.error}');
-                      } else {
-                        return Text('${countSnapshot.data} followers');
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 5),
-                  FutureBuilder<bool>(
-                    future: UserFollowOrganizerService()
-                        .isFollowingOrganizer(organizerId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      } else if (snapshot.hasError) {
-                        return const Text('Error checking follow status');
-                      } else {
-                        final isFollowing = snapshot.data ?? false;
-                        return ElevatedButton.icon(
-                          onPressed: () {
-                            // Follow/unfollow organizer action
-                            if (isFollowing) {
-                              UserFollowOrganizerService()
-                                  .unfollowOrganizer(organizerId);
-                            } else {
-                              UserFollowOrganizerService()
-                                  .followOrganizer(organizerId);
-                            }
-                            // Reload the state
-                            (context as Element).reassemble();
-                          },
-                          icon: Icon(isFollowing ? Icons.check : Icons.add),
-                          label: Text(isFollowing ? 'Following' : 'Follow'),
-                        );
-                      }
-                    },
-                  ),
+                  FollowingButtonWidget(entityId: organizerId, entityType: 'organizer'),
                   const SizedBox(height: 20),
                   const Text(
                     "UPCOMING EVENTS",

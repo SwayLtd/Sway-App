@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
+import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
 import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
@@ -9,7 +10,8 @@ import 'package:sway_events/features/user/user.dart';
 
 class FollowersScreen extends StatefulWidget {
   final String entityId;
-  final String entityType; // 'venue', 'organizer', 'event', 'artist', 'user'
+  final String
+      entityType; // 'venue', 'organizer', 'event', 'artist', 'user', 'genre'
   final int initialTabIndex;
 
   const FollowersScreen({
@@ -22,13 +24,15 @@ class FollowersScreen extends StatefulWidget {
   _FollowersScreenState createState() => _FollowersScreenState();
 }
 
-class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProviderStateMixin {
+class _FollowersScreenState extends State<FollowersScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTabIndex);
+    _tabController = TabController(
+        length: 2, vsync: this, initialIndex: widget.initialTabIndex);
   }
 
   @override
@@ -149,12 +153,15 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
       case 'venue':
         return UserFollowVenueService().getFollowersForVenue(widget.entityId);
       case 'organizer':
-        return UserFollowOrganizerService().getFollowersForOrganizer(widget.entityId);
+        return UserFollowOrganizerService()
+            .getFollowersForOrganizer(widget.entityId);
       case 'event':
         if (followerType == 'interested') {
-          return UserInterestEventService().getInterestedUsersForEvent(widget.entityId);
+          return UserInterestEventService()
+              .getInterestedUsersForEvent(widget.entityId);
         } else if (followerType == 'going') {
-          return UserInterestEventService().getGoingUsersForEvent(widget.entityId);
+          return UserInterestEventService()
+              .getGoingUsersForEvent(widget.entityId);
         } else {
           return Future.value([]);
         }
@@ -166,7 +173,8 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
         } else {
           return Future.value([]);
         }
-
+      case 'genre':
+        return UserFollowGenreService().getUsersFollowingGenre(widget.entityId);
       default:
         throw Exception('Unknown entity type');
     }

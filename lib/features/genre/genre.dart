@@ -4,8 +4,11 @@ import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/artist/services/artist_service.dart';
 import 'package:sway_events/features/genre/models/genre_model.dart';
 import 'package:sway_events/features/genre/services/genre_service.dart';
+import 'package:sway_events/features/user/screens/followers_screen.dart';
 import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
 import 'package:sway_events/features/artist/artist.dart';
+import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
+import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 
 class GenreScreen extends StatelessWidget {
   final String genreId;
@@ -37,64 +40,51 @@ class GenreScreen extends StatelessWidget {
                   children: [
                     Text(
                       genre.name,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 24, fontWeight: FontWeight.bold),
                     ),
+                    const SizedBox(height: 10),
+                    FollowersCountWidget(entityId: genreId, entityType: 'genre'),
+                    /*ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FollowersScreen(
+                                entityId: genre.id, entityType: 'genre'),
+                          ),
+                        );
+                      },
+                      child: Text('View Followers'),
+                    ),*/
+                    const SizedBox(height: 10),
+                    FollowingButtonWidget(entityId: genreId, entityType: 'genre'),
                     const SizedBox(height: 10),
                     Text(genre.description),
                     const SizedBox(height: 10),
                     Text("BPM Range: ${genre.bpmRange}"),
                     const SizedBox(height: 20),
-                    FutureBuilder<int>(
-                      future: UserFollowGenreService().getGenreFollowersCount(genreId),
-                      builder: (context, countSnapshot) {
-                        if (countSnapshot.connectionState == ConnectionState.waiting) {
-                          return const Text('Loading followers...');
-                        } else if (countSnapshot.hasError) {
-                          return Text('Error: ${countSnapshot.error}');
-                        } else {
-                          return Text('${countSnapshot.data} followers');
-                        }
-                      },
-                    ),
-                    FutureBuilder<bool>(
-                      future: UserFollowGenreService().isFollowingGenre(genreId),
-                      builder: (context, followSnapshot) {
-                        if (followSnapshot.connectionState == ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        } else if (followSnapshot.hasError) {
-                          return Text('Error: ${followSnapshot.error}');
-                        } else {
-                          final bool isFollowing = followSnapshot.data ?? false;
-                          return ElevatedButton(
-                            onPressed: () {
-                              if (isFollowing) {
-                                UserFollowGenreService().unfollowGenre(genreId);
-                              } else {
-                                UserFollowGenreService().followGenre(genreId);
-                              }
-                            },
-                            child: Text(isFollowing ? "Following" : "Follow"),
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 20),
                     const Text(
                       "TOP ARTISTS",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Artist>>(
                       future: ArtistService().getTopArtistsByGenreId(genreId),
                       builder: (context, artistSnapshot) {
-                        if (artistSnapshot.connectionState == ConnectionState.waiting) {
+                        if (artistSnapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (artistSnapshot.hasError) {
                           return Text('Error: ${artistSnapshot.error}');
-                        } else if (!artistSnapshot.hasData || artistSnapshot.data!.isEmpty) {
+                        } else if (!artistSnapshot.hasData ||
+                            artistSnapshot.data!.isEmpty) {
                           return const Text('No artists found');
                         } else {
-                          final artists = artistSnapshot.data!.take(5).toList(); // Limiting to 5 artists
+                          final artists = artistSnapshot.data!
+                              .take(5)
+                              .toList(); // Limiting to 5 artists
                           return SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
@@ -104,7 +94,8 @@ class GenreScreen extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ArtistScreen(artistId: artist.id),
+                                        builder: (context) =>
+                                            ArtistScreen(artistId: artist.id),
                                       ),
                                     );
                                   },
@@ -113,7 +104,8 @@ class GenreScreen extends StatelessWidget {
                                     child: Column(
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                           child: ImageWithErrorHandler(
                                             imageUrl: artist.imageUrl,
                                             width: 100,

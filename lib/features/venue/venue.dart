@@ -10,7 +10,8 @@ import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart'
     as followOrganizerService;
-import 'package:sway_events/features/user/widgets/followers_list_widget.dart';
+import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
+import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/services/venue_genre_service.dart';
@@ -62,47 +63,9 @@ class VenueScreen extends StatelessWidget {
                       style: const TextStyle(
                           fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 5),
-                    FollowersListWidget(entityId: venueId, entityType: 'venue'),
-                    const SizedBox(height: 5),
-                    FutureBuilder<int>(
-                      future: UserFollowVenueService()
-                          .getVenueFollowersCount(venueId),
-                      builder: (context, countSnapshot) {
-                        if (countSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Text('Loading followers...');
-                        } else if (countSnapshot.hasError) {
-                          return Text('Error: ${countSnapshot.error}');
-                        } else {
-                          return Text('${countSnapshot.data} followers');
-                        }
-                      },
-                    ),
-                    FutureBuilder<bool>(
-                      future:
-                          UserFollowVenueService().isFollowingVenue(venueId),
-                      builder: (context, followSnapshot) {
-                        if (followSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        } else if (followSnapshot.hasError) {
-                          return Text('Error: ${followSnapshot.error}');
-                        } else {
-                          final bool isFollowing = followSnapshot.data ?? false;
-                          return ElevatedButton(
-                            onPressed: () {
-                              if (isFollowing) {
-                                UserFollowVenueService().unfollowVenue(venueId);
-                              } else {
-                                UserFollowVenueService().followVenue(venueId);
-                              }
-                            },
-                            child: Text(isFollowing ? "Following" : "Follow"),
-                          );
-                        }
-                      },
-                    ),
+                    const SizedBox(height: 10),
+                    FollowersCountWidget(entityId: venueId, entityType: 'venue'),
+                    FollowingButtonWidget(entityId: venueId, entityType: 'venue'),
                     const SizedBox(height: 20),
                     const Text(
                       "RESIDENT ARTISTS",

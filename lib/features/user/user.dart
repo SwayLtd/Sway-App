@@ -8,7 +8,8 @@ import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
-import 'package:sway_events/features/user/widgets/followers_list_widget.dart';
+import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
+import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/venue.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
@@ -32,30 +33,7 @@ class UserScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('User Profile'),
         actions: [
-          FutureBuilder<bool>(
-            future: UserFollowUserService().isFollowingUser(userId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              } else {
-                final bool isFollowing = snapshot.data ?? false;
-                return ElevatedButton(
-                  onPressed: () {
-                    if (isFollowing) {
-                      UserFollowUserService().unfollowUser(userId);
-                    } else {
-                      UserFollowUserService().followUser(userId);
-                    }
-                    // Refresh UI after follow/unfollow
-                    (context as Element).markNeedsBuild();
-                  },
-                  child: Text(isFollowing ? "Unfollow" : "Follow"),
-                );
-              }
-            },
-          ),
+          FollowingButtonWidget(entityId: userId, entityType: 'user'),
         ],
       ),
       body: FutureBuilder<User?>(
@@ -98,7 +76,7 @@ class UserScreen extends StatelessWidget {
                           fontSize: 16, fontStyle: FontStyle.italic),
                     ),
                     const SizedBox(height: 20),
-                    FollowersListWidget(
+                    FollowersCountWidget(
                       entityId: userId,
                       entityType: 'user',
                     ),
