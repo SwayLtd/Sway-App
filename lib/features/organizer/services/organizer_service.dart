@@ -1,12 +1,16 @@
+// organizer_service.dart
+
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
+import 'package:sway_events/features/user/services/user_permission_service.dart';
 
 class OrganizerService {
+  final UserPermissionService _permissionService = UserPermissionService();
+
   Future<List<Organizer>> getOrganizersWithEvents() async {
-    print("Loading organizers with events from JSON");
     final String response = await rootBundle.loadString('assets/databases/organizers.json');
     final List<dynamic> organizerJson = json.decode(response) as List<dynamic>;
 
@@ -29,7 +33,6 @@ class OrganizerService {
   }
 
   Future<List<Organizer>> getOrganizers() async {
-    print("Loading organizers from JSON");
     final String response = await rootBundle.loadString('assets/databases/organizers.json');
     final List<dynamic> organizerJson = json.decode(response) as List<dynamic>;
 
@@ -46,5 +49,29 @@ class OrganizerService {
     } catch (e) {
       return null;
     }
+  }
+
+  Future<void> addOrganizer(Organizer organizer) async {
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(organizer.id, 'organizer', 'owner');
+    if (!hasPermission) {
+      throw Exception('Permission denied');
+    }
+    // Logic to add organizer
+  }
+
+  Future<void> updateOrganizer(Organizer organizer) async {
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(organizer.id, 'organizer', 'manager');
+    if (!hasPermission) {
+      throw Exception('Permission denied');
+    }
+    // Logic to update organizer
+  }
+
+  Future<void> deleteOrganizer(String organizerId) async {
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(organizerId, 'organizer', 'owner');
+    if (!hasPermission) {
+      throw Exception('Permission denied');
+    }
+    // Logic to delete organizer
   }
 }

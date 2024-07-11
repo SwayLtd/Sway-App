@@ -10,9 +10,11 @@ import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart'
     as followOrganizerService;
+import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
+import 'package:sway_events/features/venue/screens/edit_venue_screen.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/services/venue_genre_service.dart';
 import 'package:sway_events/features/venue/services/venue_organizer_service.dart';
@@ -29,6 +31,59 @@ class VenueScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Venue Details'),
+        actions: [
+          FutureBuilder<bool>(
+            future: UserPermissionService()
+                .hasPermissionForCurrentUser(venueId, 'venue', 'edit'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!) {
+                return const SizedBox.shrink();
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    final venue = await VenueService().getVenueById(venueId);
+                    if (venue != null) {
+                      final updatedVenue = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditVenueScreen(venue: venue),
+                        ),
+                      );
+                      if (updatedVenue != null) {
+                        // Handle the updated venue if necessary
+                      }
+                    }
+                  },
+                );
+              }
+            },
+          ),
+          FutureBuilder<bool>(
+            future: UserPermissionService()
+                .hasPermissionForCurrentUser(venueId, 'venue', 'insight'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!) {
+                return const SizedBox.shrink();
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.insights),
+                  onPressed: () {
+                    // Logic to show insights
+                  },
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<Venue?>(
         future: VenueService().getVenueById(venueId),
@@ -64,8 +119,10 @@ class VenueScreen extends StatelessWidget {
                           fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    FollowersCountWidget(entityId: venueId, entityType: 'venue'),
-                    FollowingButtonWidget(entityId: venueId, entityType: 'venue'),
+                    FollowersCountWidget(
+                        entityId: venueId, entityType: 'venue'),
+                    FollowingButtonWidget(
+                        entityId: venueId, entityType: 'venue'),
                     const SizedBox(height: 20),
                     const Text(
                       "RESIDENT ARTISTS",

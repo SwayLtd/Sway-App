@@ -39,4 +39,12 @@ class UserService {
   Future<void> saveUserData(List<dynamic> data) async {
     // Implement saving logic here, depending on how you manage your local storage
   }
+
+  // Nouvelle méthode pour obtenir l'utilisateur actuellement connecté
+  Future<User?> getCurrentUser() async {
+    // Logic to get current user ID, for now, assuming we store current user ID in local storage
+    const currentUserId = "3"; // Utilisateur actuel avec ID 3
+
+    return getUserById(currentUserId);
+  }
 }

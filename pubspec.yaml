@@ -65,7 +65,7 @@ flutter:
     - assets/databases/venues.json
     - assets/databases/genres.json
     - assets/databases/users.json
-    - assets/databases/user_permissions.json
+    - assets/databases/join_table/user_permissions.json
     - assets/databases/join_table/artist_genre.json
     - assets/databases/join_table/event_artist.json
     - assets/databases/join_table/event_genre.json

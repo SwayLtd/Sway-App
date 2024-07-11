@@ -4,8 +4,10 @@ import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
+import 'package:sway_events/features/organizer/screens/edit_organizer_screen.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
+import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 
@@ -21,6 +23,61 @@ class OrganizerScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Organizer'),
+        actions: [
+          FutureBuilder<bool>(
+            future: UserPermissionService()
+                .hasPermissionForCurrentUser(organizerId, 'organizer', 'edit'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!) {
+                return const SizedBox.shrink();
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    final organizer =
+                        await OrganizerService().getOrganizerById(organizerId);
+                    if (organizer != null) {
+                      final updatedOrganizer = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              EditOrganizerScreen(organizer: organizer),
+                        ),
+                      );
+                      if (updatedOrganizer != null) {
+                        // Handle the updated organizer if necessary
+                      }
+                    }
+                  },
+                );
+              }
+            },
+          ),
+          FutureBuilder<bool>(
+            future: UserPermissionService().hasPermissionForCurrentUser(
+                organizerId, 'organizer', 'insight'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!) {
+                return const SizedBox.shrink();
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.insights),
+                  onPressed: () {
+                    // Navigate to the insights screen
+                  },
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<Organizer?>(
         future: OrganizerService().getOrganizerByIdWithEvents(organizerId),
@@ -60,9 +117,11 @@ class OrganizerScreen extends StatelessWidget {
                         fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  FollowersCountWidget(entityId: organizerId, entityType: 'organizer'),
+                  FollowersCountWidget(
+                      entityId: organizerId, entityType: 'organizer'),
                   const SizedBox(height: 5),
-                  FollowingButtonWidget(entityId: organizerId, entityType: 'organizer'),
+                  FollowingButtonWidget(
+                      entityId: organizerId, entityType: 'organizer'),
                   const SizedBox(height: 20),
                   const Text(
                     "UPCOMING EVENTS",

@@ -20,6 +20,8 @@ import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/user/services/user_permission_service.dart';
+import 'package:sway_events/features/event/screens/edit_event_screen.dart';
 
 class EventScreen extends StatelessWidget {
   final Event event;
@@ -91,6 +93,54 @@ class EventScreen extends StatelessWidget {
                         child: Text(notOptionText),
                       ),
                     ];
+                  },
+                );
+              }
+            },
+          ),
+          FutureBuilder<bool>(
+            future: UserPermissionService()
+                .hasPermissionForCurrentUser(event.id, 'event', 'edit'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!) {
+                return const SizedBox.shrink();
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    final updatedEvent = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditEventScreen(event: event),
+                      ),
+                    );
+                    if (updatedEvent != null) {
+                      // Handle the updated event if necessary
+                    }
+                  },
+                );
+              }
+            },
+          ),
+          FutureBuilder<bool>(
+            future: UserPermissionService()
+                .hasPermissionForCurrentUser(event.id, 'event', 'insight'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!) {
+                return const SizedBox.shrink();
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.insights),
+                  onPressed: () {
+                    // Navigate to the insights screen
                   },
                 );
               }
@@ -288,10 +338,9 @@ class EventScreen extends StatelessWidget {
                                             CrossAxisAlignment.start,
                                         children: [
                                           FutureBuilder<int>(
-                                            future:
-                                                UserFollowOrganizerService()
-                                                    .getOrganizerFollowersCount(
-                                                        detailedOrganizer.id),
+                                            future: UserFollowOrganizerService()
+                                                .getOrganizerFollowersCount(
+                                                    detailedOrganizer.id),
                                             builder: (context, countSnapshot) {
                                               if (countSnapshot
                                                       .connectionState ==
@@ -313,14 +362,11 @@ class EventScreen extends StatelessWidget {
                                         ],
                                       ),
                                       trailing: FutureBuilder<bool>(
-                                        future:
-                                            UserFollowOrganizerService()
-                                                .isFollowingOrganizer(
-                                                    detailedOrganizer.id),
-                                        builder:
-                                            (context, followSnapshot) {
-                                          if (followSnapshot
-                                                  .connectionState ==
+                                        future: UserFollowOrganizerService()
+                                            .isFollowingOrganizer(
+                                                detailedOrganizer.id),
+                                        builder: (context, followSnapshot) {
+                                          if (followSnapshot.connectionState ==
                                               ConnectionState.waiting) {
                                             return const CircularProgressIndicator();
                                           } else if (followSnapshot.hasError) {
@@ -370,8 +416,7 @@ class EventScreen extends StatelessWidget {
                       return const CircularProgressIndicator();
                     } else if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
-                    } else if (!snapshot.hasData ||
-                        snapshot.data!.isEmpty) {
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return const Text('No genres found');
                     } else {
                       final genres = snapshot.data!;
