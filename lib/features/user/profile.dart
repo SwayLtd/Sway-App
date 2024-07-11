@@ -1,27 +1,28 @@
+// profile.dart
+
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/genre/genre.dart';
+import 'package:sway_events/features/genre/models/genre_model.dart';
+import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
+import 'package:sway_events/features/user/models/user_model.dart';
 import 'package:sway_events/features/user/screens/edit_profile_screen.dart';
+import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
+import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
+import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
+import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
+import 'package:sway_events/features/user/services/user_interest_event_service.dart';
+import 'package:sway_events/features/user/services/user_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/venue.dart';
-import 'package:sway_events/features/user/models/user_model.dart';
-import 'package:sway_events/features/user/services/user_service.dart';
-import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
-import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
-import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
-import 'package:sway_events/features/user/services/user_interest_event_service.dart';
-import 'package:sway_events/features/genre/models/genre_model.dart';
-import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
-import 'package:sway_events/features/user/services/user_follow_user_service.dart';
-import 'package:sway_events/features/user/screens/followers_screen.dart';
+import 'package:sway_events/features/user/screens/user_entities_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String userId;
@@ -55,6 +56,17 @@ class ProfileScreen extends StatelessWidget {
                   // Handle the updated user information if necessary
                 }
               }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.account_tree),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserEntitiesScreen(userId: userId),
+                ),
+              );
             },
           ),
         ],

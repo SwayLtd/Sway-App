@@ -23,13 +23,11 @@ class UserPermissionService {
         .toList();
   }
 
-  Future<List<UserPermission>> getPermissionsByEntity(
-      String entityId, String entityType) async {
-    final permissions = await getUserPermissions();
+  Future<List<UserPermission>> getPermissionsByUserIdAndType(
+      String userId, String entityType) async {
+    final permissions = await getPermissionsByUserId(userId);
     return permissions
-        .where((permission) =>
-            permission.entityId == entityId &&
-            permission.entityType == entityType)
+        .where((permission) => permission.entityType == entityType)
         .toList();
   }
 

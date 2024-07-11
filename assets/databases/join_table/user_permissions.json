@@ -7,9 +7,9 @@
   { "userId": "2", "entityId": "2", "entityType": "event", "permission": "manager" },
   { "userId": "2", "entityId": "3", "entityType": "organizer", "permission": "user" },
 
-  { "userId": "3", "entityId": "1", "entityType": "organizer", "permission": "user" },
-  { "userId": "3", "entityId": "1", "entityType": "venue", "permission": "user" },
-  { "userId": "3", "entityId": "2", "entityType": "event", "permission": "user" },
+  { "userId": "3", "entityId": "1", "entityType": "organizer", "permission": "owner" },
+  { "userId": "3", "entityId": "1", "entityType": "venue", "permission": "owner" },
+  { "userId": "3", "entityId": "2", "entityType": "event", "permission": "owner" },
 
   { "userId": "4", "entityId": "1", "entityType": "event", "permission": "user" },
   { "userId": "4", "entityId": "2", "entityType": "venue", "permission": "owner" },
