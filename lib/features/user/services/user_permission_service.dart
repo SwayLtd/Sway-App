@@ -67,6 +67,17 @@ class UserPermissionService {
         currentUser.id, entityId, entityType, requiredPermission);
   }
 
+  Future<void> addUserPermission(String userId, String entityId,
+      String entityType, String permission) async {
+    final permissions = await getUserPermissions();
+    permissions.add(UserPermission(
+        userId: userId,
+        entityId: entityId,
+        entityType: entityType,
+        permission: permission));
+    await saveUserPermissions(permissions);
+  }
+
   Future<void> deleteUserPermission(
       String userId, String entityId, String entityType) async {
     final permissions = await getUserPermissions();

@@ -1,7 +1,6 @@
-// user_access_management_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
+import 'package:sway_events/features/user/screens/user_search_screen.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/models/user_permission_model.dart';
 import 'package:sway_events/features/user/services/user_service.dart';
@@ -20,39 +19,30 @@ class UserAccessManagementScreen extends StatefulWidget {
 
 class _UserAccessManagementScreenState
     extends State<UserAccessManagementScreen> {
-  void _showDeleteConfirmationDialog(
-      BuildContext context, UserPermission permission) {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text(
-              'Are you sure you want to delete this user from the entity?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Fermer la boîte de dialogue
-              },
-            ),
-            TextButton(
-              child: const Text('Delete'),
-              onPressed: () async {
-                await UserPermissionService().deleteUserPermission(
-                  permission.userId,
-                  permission.entityId,
-                  permission.entityType,
-                );
-                Navigator.of(context).pop(); // Fermer la boîte de dialogue
-                setState(() {}); // Redessiner l'écran après suppression
-              },
-            ),
-          ],
-        );
-      },
-    );
+  List<User> _currentUsers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUsers();
+  }
+
+  Future<void> _loadCurrentUsers() async {
+    final permissions = await UserPermissionService()
+        .getPermissionsByEntity(widget.entityId, widget.entityType);
+    final users = await Future.wait(permissions
+        .map((permission) => UserService().getUserById(permission.userId)));
+    setState(() {
+      _currentUsers = users.whereType<User>().toList();
+    });
+  }
+
+  void _addUser(User user, String role) {
+    setState(() {
+      _currentUsers.add(user);
+      UserPermissionService()
+          .addUserPermission(user.id, widget.entityId, widget.entityType, role);
+    });
   }
 
   @override
@@ -60,6 +50,25 @@ class _UserAccessManagementScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Access Management'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.group_add),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserSearchScreen(
+                    excludedUsers: _currentUsers,
+                    onUserSelected: (user, role) {
+                      _addUser(user, role);
+                    },
+                  ),
+                ),
+              );
+              _loadCurrentUsers();
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<UserPermission>>(
         future: UserPermissionService()
@@ -95,10 +104,10 @@ class _UserAccessManagementScreenState
                     } else {
                       final user = userSnapshot.data!;
                       return ListTile(
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        title: Text(user.username),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Expanded(child: Text(user.username)),
                             DropdownButton<String>(
                               value: permission.permission,
                               items: <String>[
@@ -139,6 +148,37 @@ class _UserAccessManagementScreenState
           }
         },
       ),
+    );
+  }
+
+  Future<void> _showDeleteConfirmationDialog(
+      BuildContext context, UserPermission permission) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to remove this user?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Delete'),
+              onPressed: () async {
+                await UserPermissionService().deleteUserPermission(
+                    permission.userId, widget.entityId, widget.entityType);
+                Navigator.of(context).pop();
+                setState(() {});
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
