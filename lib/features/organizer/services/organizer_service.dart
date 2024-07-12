@@ -52,7 +52,7 @@ class OrganizerService {
   }
 
   Future<void> addOrganizer(Organizer organizer) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(organizer.id, 'organizer', 'owner');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(organizer.id, 'organizer', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
@@ -68,7 +68,7 @@ class OrganizerService {
   }
 
   Future<void> deleteOrganizer(String organizerId) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(organizerId, 'organizer', 'owner');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(organizerId, 'organizer', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }

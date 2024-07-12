@@ -65,7 +65,7 @@ class VenueService {
   }
 
   Future<void> addVenue(Venue venue) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(venue.id, 'venue', 'owner');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(venue.id, 'venue', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
@@ -81,7 +81,7 @@ class VenueService {
   }
 
   Future<void> deleteVenue(String venueId) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(venueId, 'venue', 'owner');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(venueId, 'venue', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }

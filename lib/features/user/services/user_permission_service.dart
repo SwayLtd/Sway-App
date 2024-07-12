@@ -49,10 +49,10 @@ class UserPermissionService {
         permission.entityType == entityType &&
         (permission.permission == requiredPermission ||
             (requiredPermission == 'edit' &&
-                (permission.permission == 'owner' ||
+                (permission.permission == 'admin' ||
                     permission.permission == 'manager')) ||
             (requiredPermission == 'insight' &&
-                (permission.permission == 'owner' ||
+                (permission.permission == 'admin' ||
                     permission.permission == 'manager' ||
                     permission.permission == 'user'))));
   }

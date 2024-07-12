@@ -1,10 +1,9 @@
-// edit_organizer_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
-import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
+import 'package:sway_events/features/user/models/user_permission_model.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
+import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
 
 class EditOrganizerScreen extends StatefulWidget {
   final Organizer organizer;
@@ -46,38 +45,35 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
     Navigator.pop(context, updatedOrganizer);
   }
 
-  Future<void> _showDeleteConfirmationDialog() async {
+  Future<void> _showDeleteConfirmationDialog(
+      BuildContext context, UserPermission permission) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button for dialog to close
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirm Deletion'),
-          content:
-              const Text('Are you sure you want to delete this organizer?'),
+          content: const Text('Are you sure you want to remove this user?'),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: const Text('Delete'),
               onPressed: () async {
-                await _deleteOrganizer();
-                Navigator.of(context).pop(); // Dismiss the dialog
+                await UserPermissionService().deleteUserPermission(
+                    permission.userId, widget.organizer.id, 'organizer');
+                Navigator.of(context).pop();
+                setState(() {});
               },
             ),
           ],
         );
       },
     );
-  }
-
-  Future<void> _deleteOrganizer() async {
-    await OrganizerService().deleteOrganizer(widget.organizer.id);
-    Navigator.pop(context, true); // Retourner un indicateur de suppression
   }
 
   @override
@@ -90,31 +86,19 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
             icon: const Icon(Icons.save),
             onPressed: _updateOrganizer,
           ),
-          FutureBuilder<bool>(
-            future: UserPermissionService().hasPermissionForCurrentUser(
-                widget.organizer.id, 'organizer', 'owner'),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              } else if (snapshot.hasError ||
-                  !snapshot.hasData ||
-                  !snapshot.data!) {
-                return const SizedBox.shrink();
-              } else {
-                return IconButton(
-                  icon: const Icon(Icons.account_tree),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => UserAccessManagementScreen(
-                            entityId: widget.organizer.id,
-                            entityType: 'organizer'),
-                      ),
-                    );
-                  },
-                );
-              }
+          IconButton(
+            icon: const Icon(Icons.group),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserAccessManagementScreen(
+                    entityId: widget.organizer.id,
+                    entityType: 'organizer',
+                  ),
+                ),
+              );
+              setState(() {});
             },
           ),
         ],
@@ -135,7 +119,7 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
             const SizedBox(height: 20),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                  widget.organizer.id, 'organizer', 'owner'),
+                  widget.organizer.id, 'organizer', 'admin'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
@@ -148,11 +132,18 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       child: ElevatedButton(
-                        onPressed: _showDeleteConfirmationDialog,
+                        onPressed: () {
+                          _showDeleteConfirmationDialog(
+                              context,
+                              UserPermission(
+                                  userId: 'currentUser',
+                                  entityId: widget.organizer.id,
+                                  entityType: 'organizer',
+                                  permission: 'admin'));
+                        },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.red,
-                          minimumSize: const Size.fromHeight(
-                              50), // Set width to fill the screen
+                          minimumSize: const Size.fromHeight(50),
                         ),
                         child: const Text('Delete Organizer'),
                       ),

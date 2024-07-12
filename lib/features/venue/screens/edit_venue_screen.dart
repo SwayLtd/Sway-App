@@ -1,10 +1,9 @@
-// edit_venue_screen.dart
-
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
+import 'package:sway_events/features/user/models/user_permission_model.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
+import 'package:sway_events/features/user/services/user_permission_service.dart';
+import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
 
 class EditVenueScreen extends StatefulWidget {
   final Venue venue;
@@ -46,37 +45,35 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
     Navigator.pop(context, updatedVenue);
   }
 
-  Future<void> _showDeleteConfirmationDialog() async {
+  Future<void> _showDeleteConfirmationDialog(
+      BuildContext context, UserPermission permission) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button for dialog to close
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete this venue?'),
+          content: const Text('Are you sure you want to remove this user?'),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: const Text('Delete'),
               onPressed: () async {
-                await _deleteVenue();
-                Navigator.of(context).pop(); // Dismiss the dialog
+                await UserPermissionService().deleteUserPermission(
+                    permission.userId, widget.venue.id, 'venue');
+                Navigator.of(context).pop();
+                setState(() {});
               },
             ),
           ],
         );
       },
     );
-  }
-
-  Future<void> _deleteVenue() async {
-    await VenueService().deleteVenue(widget.venue.id);
-    Navigator.pop(context, true); // Retourner un indicateur de suppression
   }
 
   @override
@@ -89,30 +86,19 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
             icon: const Icon(Icons.save),
             onPressed: _updateVenue,
           ),
-          FutureBuilder<bool>(
-            future: UserPermissionService()
-                .hasPermissionForCurrentUser(widget.venue.id, 'venue', 'owner'),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              } else if (snapshot.hasError ||
-                  !snapshot.hasData ||
-                  !snapshot.data!) {
-                return const SizedBox.shrink();
-              } else {
-                return IconButton(
-                  icon: const Icon(Icons.account_tree),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => UserAccessManagementScreen(
-                            entityId: widget.venue.id, entityType: 'venue'),
-                      ),
-                    );
-                  },
-                );
-              }
+          IconButton(
+            icon: const Icon(Icons.group),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserAccessManagementScreen(
+                    entityId: widget.venue.id,
+                    entityType: 'venue',
+                  ),
+                ),
+              );
+              setState(() {});
             },
           ),
         ],
@@ -138,7 +124,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
             ),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                  widget.venue.id, 'venue', 'owner'),
+                  widget.venue.id, 'venue', 'admin'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
@@ -150,11 +136,18 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                   return Padding(
                     padding: const EdgeInsets.only(top: 20),
                     child: ElevatedButton(
-                      onPressed: _showDeleteConfirmationDialog,
+                      onPressed: () {
+                        _showDeleteConfirmationDialog(
+                            context,
+                            UserPermission(
+                                userId: 'currentUser',
+                                entityId: widget.venue.id,
+                                entityType: 'venue',
+                                permission: 'admin'));
+                      },
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.red,
-                        minimumSize: const Size.fromHeight(
-                            50), // Set width to fill the screen
+                        minimumSize: const Size.fromHeight(50),
                       ),
                       child: const Text('Delete Venue'),
                     ),

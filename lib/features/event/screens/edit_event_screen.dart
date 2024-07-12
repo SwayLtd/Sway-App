@@ -1,11 +1,9 @@
-// edit_event_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
-import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
-// Ajout dans les imports
+import 'package:sway_events/features/user/models/user_permission_model.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
+import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
 
 class EditEventScreen extends StatefulWidget {
   final Event event;
@@ -54,37 +52,35 @@ class _EditEventScreenState extends State<EditEventScreen> {
     Navigator.pop(context, updatedEvent);
   }
 
-  Future<void> _showDeleteConfirmationDialog() async {
+  Future<void> _showDeleteConfirmationDialog(
+      BuildContext context, UserPermission permission) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button for dialog to close
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete this event?'),
+          content: const Text('Are you sure you want to remove this user?'),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: const Text('Delete'),
               onPressed: () async {
-                await _deleteEvent();
-                Navigator.of(context).pop(); // Dismiss the dialog
+                await UserPermissionService().deleteUserPermission(
+                    permission.userId, widget.event.id, 'event');
+                Navigator.of(context).pop();
+                setState(() {});
               },
             ),
           ],
         );
       },
     );
-  }
-
-  Future<void> _deleteEvent() async {
-    await EventService().deleteEvent(widget.event.id);
-    Navigator.pop(context, true); // Retourner un indicateur de suppression
   }
 
   @override
@@ -97,30 +93,19 @@ class _EditEventScreenState extends State<EditEventScreen> {
             icon: const Icon(Icons.save),
             onPressed: _updateEvent,
           ),
-          FutureBuilder<bool>(
-            future: UserPermissionService()
-                .hasPermissionForCurrentUser(widget.event.id, 'event', 'owner'),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              } else if (snapshot.hasError ||
-                  !snapshot.hasData ||
-                  !snapshot.data!) {
-                return const SizedBox.shrink();
-              } else {
-                return IconButton(
-                  icon: const Icon(Icons.account_tree),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => UserAccessManagementScreen(
-                            entityId: widget.event.id, entityType: 'event'),
-                      ),
-                    );
-                  },
-                );
-              }
+          IconButton(
+            icon: const Icon(Icons.group),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserAccessManagementScreen(
+                    entityId: widget.event.id,
+                    entityType: 'event',
+                  ),
+                ),
+              );
+              setState(() {});
             },
           ),
         ],
@@ -146,7 +131,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
             const SizedBox(height: 20),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                  widget.event.id, 'event', 'owner'),
+                  widget.event.id, 'event', 'admin'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
@@ -159,11 +144,18 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       child: ElevatedButton(
-                        onPressed: _showDeleteConfirmationDialog,
+                        onPressed: () {
+                          _showDeleteConfirmationDialog(
+                              context,
+                              UserPermission(
+                                  userId: 'currentUser',
+                                  entityId: widget.event.id,
+                                  entityType: 'event',
+                                  permission: 'admin'));
+                        },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.red,
-                          minimumSize: const Size.fromHeight(
-                              50), // Set width to fill the screen
+                          minimumSize: const Size.fromHeight(50),
                         ),
                         child: const Text('Delete Event'),
                       ),

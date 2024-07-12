@@ -29,7 +29,7 @@ class EventService {
   }
 
   Future<void> addEvent(Event event) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(event.id, 'event', 'owner');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(event.id, 'event', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
@@ -45,7 +45,7 @@ class EventService {
   }
 
   Future<void> deleteEvent(String eventId) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(eventId, 'event', 'owner');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(eventId, 'event', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
