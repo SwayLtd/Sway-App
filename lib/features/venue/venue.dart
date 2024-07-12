@@ -5,6 +5,7 @@ import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/artist/services/artist_service.dart';
 import 'package:sway_events/features/genre/genre.dart';
+import 'package:sway_events/features/insight/insight.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
@@ -77,7 +78,15 @@ class VenueScreen extends StatelessWidget {
                 return IconButton(
                   icon: const Icon(Icons.insights),
                   onPressed: () {
-                    // Logic to show insights
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => InsightScreen(
+                          entityId: venueId,
+                          entityType: 'venue',
+                        ),
+                      ),
+                    );
                   },
                 );
               }

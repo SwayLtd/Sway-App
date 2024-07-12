@@ -11,6 +11,7 @@ import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/genre/genre.dart';
+import 'package:sway_events/features/insight/insight.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
@@ -140,7 +141,15 @@ class EventScreen extends StatelessWidget {
                 return IconButton(
                   icon: const Icon(Icons.insights),
                   onPressed: () {
-                    // Navigate to the insights screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => InsightScreen(
+                          entityId: event.id,
+                          entityType: 'event',
+                        ),
+                      ),
+                    );
                   },
                 );
               }

@@ -3,6 +3,7 @@ import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
+import 'package:sway_events/features/insight/insight.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/screens/edit_organizer_screen.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
@@ -71,7 +72,15 @@ class OrganizerScreen extends StatelessWidget {
                 return IconButton(
                   icon: const Icon(Icons.insights),
                   onPressed: () {
-                    // Navigate to the insights screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => InsightScreen(
+                          entityId: organizerId,
+                          entityType: 'organizer',
+                        ),
+                      ),
+                    );
                   },
                 );
               }
