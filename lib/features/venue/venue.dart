@@ -1,41 +1,48 @@
+// venue.dart
+
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
-import 'package:sway_events/features/artist/services/artist_service.dart';
 import 'package:sway_events/features/genre/genre.dart';
+import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/features/insight/insight.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
-import 'package:sway_events/features/user/services/user_follow_organizer_service.dart'
-    as followOrganizerService;
+import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/screens/edit_venue_screen.dart';
-import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/services/venue_genre_service.dart';
 import 'package:sway_events/features/venue/services/venue_organizer_service.dart';
 import 'package:sway_events/features/venue/services/venue_resident_artists_service.dart';
-import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
+import 'package:sway_events/features/venue/services/venue_service.dart';
+import 'package:sway_events/core/utils/share_util.dart';
 
-class VenueScreen extends StatelessWidget {
+class VenueScreen extends StatefulWidget {
   final String venueId;
 
   const VenueScreen({required this.venueId});
 
   @override
+  _VenueScreenState createState() => _VenueScreenState();
+}
+
+class _VenueScreenState extends State<VenueScreen> {
+  String venueName = 'Venue';
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Venue Details'),
+        title: Text('$venueName Details'),
         actions: [
           FutureBuilder<bool>(
             future: UserPermissionService()
-                .hasPermissionForCurrentUser(venueId, 'venue', 'edit'),
+                .hasPermissionForCurrentUser(widget.venueId, 'venue', 'edit'),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox.shrink();
@@ -47,7 +54,7 @@ class VenueScreen extends StatelessWidget {
                 return IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () async {
-                    final venue = await VenueService().getVenueById(venueId);
+                    final venue = await VenueService().getVenueById(widget.venueId);
                     if (venue != null) {
                       final updatedVenue = await Navigator.push(
                         context,
@@ -66,7 +73,7 @@ class VenueScreen extends StatelessWidget {
           ),
           FutureBuilder<bool>(
             future: UserPermissionService()
-                .hasPermissionForCurrentUser(venueId, 'venue', 'insight'),
+                .hasPermissionForCurrentUser(widget.venueId, 'venue', 'insight'),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox.shrink();
@@ -82,7 +89,7 @@ class VenueScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => InsightScreen(
-                          entityId: venueId,
+                          entityId: widget.venueId,
                           entityType: 'venue',
                         ),
                       ),
@@ -92,10 +99,16 @@ class VenueScreen extends StatelessWidget {
               }
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () {
+              shareEntity('venue', widget.venueId, venueName);
+            },
+          ),
         ],
       ),
       body: FutureBuilder<Venue?>(
-        future: VenueService().getVenueById(venueId),
+        future: VenueService().getVenueById(widget.venueId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -105,6 +118,7 @@ class VenueScreen extends StatelessWidget {
             return const Center(child: Text('Venue not found'));
           } else {
             final venue = snapshot.data!;
+            venueName = venue.name; // Mettre à jour le nom du lieu
             return SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -125,13 +139,19 @@ class VenueScreen extends StatelessWidget {
                     Text(
                       venue.name,
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     FollowersCountWidget(
-                        entityId: venueId, entityType: 'venue'),
+                      entityId: widget.venueId,
+                      entityType: 'venue',
+                    ),
                     FollowingButtonWidget(
-                        entityId: venueId, entityType: 'venue'),
+                      entityId: widget.venueId,
+                      entityType: 'venue',
+                    ),
                     const SizedBox(height: 20),
                     const Text(
                       "RESIDENT ARTISTS",
@@ -227,7 +247,8 @@ class VenueScreen extends StatelessWidget {
                                   } else if (organizerWithEventsSnapshot
                                       .hasError) {
                                     return Text(
-                                        'Error: ${organizerWithEventsSnapshot.error}');
+                                      'Error: ${organizerWithEventsSnapshot.error}',
+                                    );
                                   } else if (!organizerWithEventsSnapshot
                                           .hasData ||
                                       organizerWithEventsSnapshot.data ==
@@ -243,8 +264,9 @@ class VenueScreen extends StatelessWidget {
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 OrganizerScreen(
-                                                    organizerId:
-                                                        organizerWithEvents.id),
+                                              organizerId:
+                                                  organizerWithEvents.id,
+                                            ),
                                           ),
                                         );
                                       },
@@ -276,36 +298,40 @@ class VenueScreen extends StatelessWidget {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               FutureBuilder<int>(
-                                                future: followOrganizerService
-                                                        .UserFollowOrganizerService()
+                                                future: UserFollowOrganizerService()
                                                     .getOrganizerFollowersCount(
-                                                        organizerWithEvents.id),
+                                                  organizerWithEvents.id,
+                                                ),
                                                 builder:
                                                     (context, countSnapshot) {
                                                   if (countSnapshot
                                                           .connectionState ==
                                                       ConnectionState.waiting) {
                                                     return const Text(
-                                                        'Loading followers...');
+                                                      'Loading followers...',
+                                                    );
                                                   } else if (countSnapshot
                                                       .hasError) {
                                                     return Text(
-                                                        'Error: ${countSnapshot.error}');
+                                                      'Error: ${countSnapshot.error}',
+                                                    );
                                                   } else {
                                                     return Text(
-                                                        '${countSnapshot.data} followers');
+                                                      '${countSnapshot.data} followers',
+                                                    );
                                                   }
                                                 },
                                               ),
                                               Text(
-                                                  "${organizerWithEvents.upcomingEvents.length} upcoming events"),
+                                                "${organizerWithEvents.upcomingEvents.length} upcoming events",
+                                              ),
                                             ],
                                           ),
                                           trailing: FutureBuilder<bool>(
-                                            future: followOrganizerService
-                                                    .UserFollowOrganizerService()
+                                            future: UserFollowOrganizerService()
                                                 .isFollowingOrganizer(
-                                                    organizerWithEvents.id),
+                                              organizerWithEvents.id,
+                                            ),
                                             builder: (context, followSnapshot) {
                                               if (followSnapshot
                                                       .connectionState ==
@@ -314,7 +340,8 @@ class VenueScreen extends StatelessWidget {
                                               } else if (followSnapshot
                                                   .hasError) {
                                                 return Text(
-                                                    'Error: ${followSnapshot.error}');
+                                                  'Error: ${followSnapshot.error}',
+                                                );
                                               } else {
                                                 final bool isFollowing =
                                                     followSnapshot.data ??
@@ -322,22 +349,22 @@ class VenueScreen extends StatelessWidget {
                                                 return ElevatedButton(
                                                   onPressed: () {
                                                     if (isFollowing) {
-                                                      followOrganizerService
-                                                              .UserFollowOrganizerService()
+                                                      UserFollowOrganizerService()
                                                           .unfollowOrganizer(
-                                                              organizerWithEvents
-                                                                  .id);
+                                                        organizerWithEvents.id,
+                                                      );
                                                     } else {
-                                                      followOrganizerService
-                                                              .UserFollowOrganizerService()
+                                                      UserFollowOrganizerService()
                                                           .followOrganizer(
-                                                              organizerWithEvents
-                                                                  .id);
+                                                        organizerWithEvents.id,
+                                                      );
                                                     }
                                                   },
-                                                  child: Text(isFollowing
-                                                      ? "Following"
-                                                      : "Follow"),
+                                                  child: Text(
+                                                    isFollowing
+                                                        ? "Following"
+                                                        : "Follow",
+                                                  ),
                                                 );
                                               }
                                             },

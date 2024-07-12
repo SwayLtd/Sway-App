@@ -27,6 +27,7 @@ Coming soon
 * **Sharing sysem**: Ability to share different entities, like music genres, venues, etc.
 
 ### Implemented Features
+- Sharing system v1
 * Implementation of music genres, events, artists, venues and organizers
 * Discovery screen v1
 * Search screen v1

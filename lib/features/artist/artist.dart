@@ -1,34 +1,51 @@
+// artist.dart
+
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/artist/services/artist_genre_service.dart';
-import 'package:sway_events/features/event/services/event_artist_service.dart';
-import 'package:sway_events/features/artist/services/similar_artist_service.dart';
-import 'package:sway_events/features/genre/widgets/genre_chip.dart';
+import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
+import 'package:sway_events/features/artist/services/artist_genre_service.dart';
 import 'package:sway_events/features/artist/services/artist_service.dart';
+import 'package:sway_events/features/artist/services/similar_artist_service.dart';
 import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
+import 'package:sway_events/features/event/services/event_artist_service.dart';
 import 'package:sway_events/features/genre/genre.dart';
+import 'package:sway_events/features/genre/widgets/genre_chip.dart';
+import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
-import 'package:sway_events/features/user/services/user_follow_artist_service.dart'
-    as followArtistService;
 
-class ArtistScreen extends StatelessWidget {
+class ArtistScreen extends StatefulWidget {
   final String artistId;
 
   const ArtistScreen({required this.artistId});
 
   @override
+  _ArtistScreenState createState() => _ArtistScreenState();
+}
+
+class _ArtistScreenState extends State<ArtistScreen> {
+  String artistName = 'Artist';
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Artist Details'),
+        title: Text('$artistName Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () {
+              shareEntity('artist', widget.artistId, artistName);
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<Artist?>(
-        future: ArtistService().getArtistById(artistId),
+        future: ArtistService().getArtistById(widget.artistId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -38,6 +55,7 @@ class ArtistScreen extends StatelessWidget {
             return const Center(child: Text('Artist not found'));
           } else {
             final artist = snapshot.data!;
+            artistName = artist.name; // Update the artist name
             return SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -61,11 +79,11 @@ class ArtistScreen extends StatelessWidget {
                           fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 5),
-                    FollowersCountWidget(entityId: artistId, entityType: 'artist'),
+                    FollowersCountWidget(entityId: widget.artistId, entityType: 'artist'),
                     const SizedBox(height: 5),
                     FutureBuilder<bool>(
-                      future: followArtistService.UserFollowArtistService()
-                          .isFollowingArtist(artistId),
+                      future: UserFollowArtistService()
+                          .isFollowingArtist(widget.artistId),
                       builder: (context, followSnapshot) {
                         if (followSnapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -77,11 +95,11 @@ class ArtistScreen extends StatelessWidget {
                           return ElevatedButton(
                             onPressed: () {
                               if (isFollowing) {
-                                followArtistService.UserFollowArtistService()
-                                    .unfollowArtist(artistId);
+                                UserFollowArtistService()
+                                    .unfollowArtist(widget.artistId);
                               } else {
-                                followArtistService.UserFollowArtistService()
-                                    .followArtist(artistId);
+                                UserFollowArtistService()
+                                    .followArtist(widget.artistId);
                               }
                             },
                             child: Text(isFollowing ? "Following" : "Follow"),
@@ -98,18 +116,18 @@ class ArtistScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Event>>(
                       future:
-                          EventArtistService().getEventsByArtistId(artistId),
+                          EventArtistService().getEventsByArtistId(widget.artistId),
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (eventSnapshot.hasError) {
                           return Center(
-                              child: Text('Error: ${eventSnapshot.error}'));
+                              child: Text('Error: ${eventSnapshot.error}'),);
                         } else if (!eventSnapshot.hasData ||
                             eventSnapshot.data!.isEmpty) {
                           return const Center(
-                              child: Text('No upcoming events found'));
+                              child: Text('No upcoming events found'),);
                         } else {
                           final events = eventSnapshot.data!;
                           return Column(
@@ -149,14 +167,14 @@ class ArtistScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     FutureBuilder<List<String>>(
                       future:
-                          ArtistGenreService().getGenresByArtistId(artistId),
+                          ArtistGenreService().getGenresByArtistId(widget.artistId),
                       builder: (context, genreSnapshot) {
                         if (genreSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (genreSnapshot.hasError) {
                           return Center(
-                              child: Text('Error: ${genreSnapshot.error}'));
+                              child: Text('Error: ${genreSnapshot.error}'),);
                         } else if (!genreSnapshot.hasData ||
                             genreSnapshot.data!.isEmpty) {
                           return const Center(child: Text('No genres found'));
@@ -190,18 +208,18 @@ class ArtistScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Venue>>(
-                      future: VenueService().getVenuesByArtistId(artistId),
+                      future: VenueService().getVenuesByArtistId(widget.artistId),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (snapshot.hasError) {
                           return Center(
-                              child: Text('Error: ${snapshot.error}'));
+                              child: Text('Error: ${snapshot.error}'),);
                         } else if (!snapshot.hasData ||
                             snapshot.data!.isEmpty) {
                           return const Center(
-                              child: Text('No resident venues found'));
+                              child: Text('No resident venues found'),);
                         } else {
                           final venues = snapshot.data!;
                           return Column(
@@ -233,7 +251,7 @@ class ArtistScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     FutureBuilder<List<String>>(
                       future: SimilarArtistService()
-                          .getSimilarArtistsByArtistId(artistId),
+                          .getSimilarArtistsByArtistId(widget.artistId),
                       builder: (context, similarArtistSnapshot) {
                         if (similarArtistSnapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -241,11 +259,11 @@ class ArtistScreen extends StatelessWidget {
                         } else if (similarArtistSnapshot.hasError) {
                           return Center(
                               child: Text(
-                                  'Error: ${similarArtistSnapshot.error}'));
+                                  'Error: ${similarArtistSnapshot.error}',),);
                         } else if (!similarArtistSnapshot.hasData ||
                             similarArtistSnapshot.data!.isEmpty) {
                           return const Center(
-                              child: Text('No similar artists found'));
+                              child: Text('No similar artists found'),);
                         } else {
                           final similarArtists = similarArtistSnapshot.data!;
                           return SingleChildScrollView(
@@ -275,7 +293,7 @@ class ArtistScreen extends StatelessWidget {
                                               builder: (context) =>
                                                   ArtistScreen(
                                                       artistId:
-                                                          similarArtist.id),
+                                                          similarArtist.id,),
                                             ),
                                           );
                                         },

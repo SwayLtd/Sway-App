@@ -23,6 +23,7 @@ import 'package:sway_events/features/venue/venue.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/event/screens/edit_event_screen.dart';
+import 'package:sway_events/core/utils/share_util.dart';
 
 class EventScreen extends StatelessWidget {
   final Event event;
@@ -40,7 +41,7 @@ class EventScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
-              // Share event action
+              shareEntity('event', event.id, event.title);
             },
           ),
           FutureBuilder<Map<String, bool>>(

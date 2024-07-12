@@ -11,10 +11,10 @@ import 'package:sway_events/features/user/services/user_follow_organizer_service
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
+import 'package:sway_events/core/utils/share_util.dart';
 
 class OrganizerScreen extends StatelessWidget {
   final String organizerId;
-  final String currentUserId = '3';
 
   const OrganizerScreen({required this.organizerId});
 
@@ -83,6 +83,16 @@ class OrganizerScreen extends StatelessWidget {
                     );
                   },
                 );
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () async {
+              final organizer =
+                  await OrganizerService().getOrganizerById(organizerId);
+              if (organizer != null) {
+                shareEntity('organizer', organizerId, organizer.name);
               }
             },
           ),

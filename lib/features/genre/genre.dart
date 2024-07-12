@@ -9,20 +9,36 @@ import 'package:sway_events/features/user/services/user_follow_genre_service.dar
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
+import 'package:sway_events/core/utils/share_util.dart';
 
-class GenreScreen extends StatelessWidget {
+class GenreScreen extends StatefulWidget {
   final String genreId;
 
   const GenreScreen({required this.genreId});
 
   @override
+  _GenreScreenState createState() => _GenreScreenState();
+}
+
+class _GenreScreenState extends State<GenreScreen> {
+  String genreName = 'Genre';
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Genre Details'),
+        title: Text('$genreName Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () {
+              shareEntity('genre', widget.genreId, genreName);
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<Genre?>(
-        future: GenreService().getGenreById(genreId),
+        future: GenreService().getGenreById(widget.genreId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -32,6 +48,7 @@ class GenreScreen extends StatelessWidget {
             return const Center(child: Text('Genre not found'));
           } else {
             final genre = snapshot.data!;
+            genreName = genre.name; // Update the genre name
             return SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -44,21 +61,9 @@ class GenreScreen extends StatelessWidget {
                           fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    FollowersCountWidget(entityId: genreId, entityType: 'genre'),
-                    /*ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => FollowersScreen(
-                                entityId: genre.id, entityType: 'genre'),
-                          ),
-                        );
-                      },
-                      child: Text('View Followers'),
-                    ),*/
+                    FollowersCountWidget(entityId: widget.genreId, entityType: 'genre'),
                     const SizedBox(height: 10),
-                    FollowingButtonWidget(entityId: genreId, entityType: 'genre'),
+                    FollowingButtonWidget(entityId: widget.genreId, entityType: 'genre'),
                     const SizedBox(height: 10),
                     Text(genre.description),
                     const SizedBox(height: 10),
@@ -66,25 +71,20 @@ class GenreScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     const Text(
                       "TOP ARTISTS",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Artist>>(
-                      future: ArtistService().getTopArtistsByGenreId(genreId),
+                      future: ArtistService().getTopArtistsByGenreId(widget.genreId),
                       builder: (context, artistSnapshot) {
-                        if (artistSnapshot.connectionState ==
-                            ConnectionState.waiting) {
+                        if (artistSnapshot.connectionState == ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (artistSnapshot.hasError) {
                           return Text('Error: ${artistSnapshot.error}');
-                        } else if (!artistSnapshot.hasData ||
-                            artistSnapshot.data!.isEmpty) {
+                        } else if (!artistSnapshot.hasData || artistSnapshot.data!.isEmpty) {
                           return const Text('No artists found');
                         } else {
-                          final artists = artistSnapshot.data!
-                              .take(5)
-                              .toList(); // Limiting to 5 artists
+                          final artists = artistSnapshot.data!.take(5).toList(); // Limiting to 5 artists
                           return SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
@@ -94,8 +94,7 @@ class GenreScreen extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            ArtistScreen(artistId: artist.id),
+                                        builder: (context) => ArtistScreen(artistId: artist.id),
                                       ),
                                     );
                                   },
@@ -104,8 +103,7 @@ class GenreScreen extends StatelessWidget {
                                     child: Column(
                                       children: [
                                         ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(10),
                                           child: ImageWithErrorHandler(
                                             imageUrl: artist.imageUrl,
                                             width: 100,
