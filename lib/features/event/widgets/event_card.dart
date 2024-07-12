@@ -1,3 +1,5 @@
+// event_card.dart
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sway_events/features/event/services/event_genre_service.dart';
@@ -30,6 +32,7 @@ class EventCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         elevation: 5,
         margin: const EdgeInsets.all(10),
+        color: Theme.of(context).cardColor, // Utilisation de la couleur de fond de la carte du thème
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -132,6 +135,11 @@ class EventCard extends StatelessWidget {
                 ),
               ],
             ),
+            const Divider(
+              height: 1,
+              thickness: 1,
+              color: Colors.grey,
+            ),
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Column(
@@ -217,7 +225,7 @@ class EventCard extends StatelessWidget {
                       ),
                       Text(
                         event.price,
-                        style: const TextStyle(fontSize: 14, color: Colors.black),
+                        style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodyMedium!.color),
                       ),
                     ],
                   ),

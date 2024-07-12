@@ -1,3 +1,5 @@
+// info_card.dart
+
 import 'package:flutter/material.dart';
 
 class InfoCard extends StatelessWidget {
@@ -13,6 +15,7 @@ class InfoCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 5),
+      color: Theme.of(context).cardColor, // Utiliser la couleur de la card du thème
       child: ListTile(
         title: Text(title),
         subtitle: GestureDetector(
