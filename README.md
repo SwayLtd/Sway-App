@@ -1,48 +1,51 @@
 # Sway Events
+
 ## Project Description
-Sway Events is an open-source and multi-platform smart home application that stands out by proactively suggesting ways to improve your smart home and make your connected objects smarter.
-
-Our technology allows us to offer a unique experience in terms of controlling and optimizing your smart home. For example, our application can suggest programming your coffee maker to be ready when you wake up or turning off the lights automatically when you leave your home.
-
-By choosing Sway Events, you benefit from a high-quality open-source and multi-platform smart home application that will help you simplify your daily life and enjoy a smarter and more connected home.
+Sway Events is an open-source, multi-platform event management application that helps users discover, organize, and manage events effortlessly. Sway Events aims to provide a seamless and intuitive experience for both event attendees and organizers.
 
 ## Screenshots
-![Mobile screenshot](/assets/images/screenshots/mobile.png)
-![Tablet screenshot](/assets/images/screenshots/tablet.png)
-![Desktop screenshot](/assets/images/screenshots/desktop.png)
+Coming soon
 
 ## Roadmap
+
 ### Planned Features
-* Adaptive: changing functionality based on platform's capabilities (e.g. using native adaptive method and "[adaptive_dialog](https://pub.dev/packages/adaptive_dialog)" package)
-* Visual flow-based programming for the automations
-* [BLoC architecture](https://youtu.be/Ep6R7U9wa0U)
-* Welcome screen with [authentication](https://bloclibrary.dev/#/flutterfirebaselogintutorial)
-* Onboarding
-* Analytics and error reporting (+ error screens)
-* Implementing notification
-* Building all screens
-* Third-party integrations
+* **Discovery Page**: Enhanced event discovery based on user preferences, including music genres, venues, event names, artists, and location.
+* **Search Screen Enhancements**: Advanced search functionality with filters and a potential map view for later iterations.
+* **Verified User System**: Verified user mark to allow creation of events, venues, and organizers.
+* **User Verification Form**: In-app form for users to apply for verification.
+* **Real Databases**: Transition from fake files to real databases with genuine information.
+* **Ticketing System**: Implementation of a ticketing system.
+* **Social Media Integrations for users**: Links to Spotify, Instagram, etc., on user profiles.
+* **Venue Ratings**: System for rating venues.
+* **Location System**: Geographical positioning and location-based event discovery.
+* **Map Interactions**: Interactive maps for event locations and meeting points.
+* **Insights**: Advanced data insights for event organizers.
+* **Admin Dashboard**: Dashboard for organizers to manage events, tickets, and promotions.
+* **Community Features**: Group messages, shared timetables.
+* **E-commerce Features**: Promo codes, gift cards, and product sales.
+* **Gamification**: Profile gamification to enhance user engagement.
+* **Sharing sysem**: Ability to share different entities, like music genres, venues, etc.
 
 ### Implemented Features
-* [Accessibility v1](https://docs.flutter.dev/development/accessibility-and-localization/accessibility)
-* Theme integration
-* Responsive design for mobile, tablet and desktop
-* Localization (English and French)
-* App theme integration (light and dark)
-* Route management with GoRouter
-* Feature-First file structure
+* Implementation of music genres, events, artists, venues and organizers
+* Discovery screen v1
+* Search screen v1
+* Following system for events, venues, organizers, artists, music genres and users.
+* Management system for events, venues, and organizers.
+* Responsive design with light and dark theme integration.
 
 ### Last Updates
-* Choose language in the settings
-* [Shared preferences](https://youtu.be/ZpLQIFUqaGI)
-* [Accessibility v2](https://docs.flutter.dev/development/accessibility-and-localization/accessibility) (tooltips on all buttons, [semantics](https://medium.com/flutter-community/a-deep-dive-into-flutters-accessibility-widgets-eb0ef9455bc) (labels, merge and exclude)
+* Added role-based access control for user, manager, and admin roles on events, venues and organizers.
+* Implemented search functionality for user access management.
+* Added user entities roles list screen on the profile page.
+* Enhanced role permission system for editing, deleting, and showing insights for various entities.
 
 ### Known Issues
-* Side bar theme is not changing when switching theme.
-* Side bar item is not part of screen reader's focus.
-* Side bar item is not highlighted when selected from other screen breakpoints.
+* Sidebar theme does not change when switching themes.
+* Sidebar items are not part of the screen reader's focus.
+* Sidebar items are not highlighted when selected from other screen breakpoints.
 
-See the [open issues](https://github.com/Sway/Sway-Home/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/Sway/Sway-Events/issues) for a list of proposed features (and known issues).
 
 ## Multi-platform
-Currently under development for Android, iOS, iPadOS, Windows and web. A MacOS version will be adapted.
+Currently under development for Android, iOS, and web. A MacOS, iPadOS, Windows version will be adapted in the future.
