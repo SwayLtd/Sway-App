@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
+import 'package:sway_events/core/widgets/scrolling_text_screen.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/event/event.dart';
@@ -13,6 +14,7 @@ import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
 import 'package:sway_events/features/user/screens/edit_profile_screen.dart';
+import 'package:sway_events/features/user/screens/user_entities_screen.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
@@ -22,12 +24,66 @@ import 'package:sway_events/features/user/services/user_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/venue.dart';
-import 'package:sway_events/features/user/screens/user_entities_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   final String userId;
 
   const ProfileScreen({required this.userId});
+
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  int _clickCounter = 0;
+  DateTime _firstClickTime = DateTime.now();
+  static const int _clickThreshold = 5;
+  static const int _timeThreshold = 2; // in seconds
+
+  void _handleAvatarClick() {
+    final now = DateTime.now();
+    if (now.difference(_firstClickTime).inSeconds > _timeThreshold) {
+      _firstClickTime = now;
+      _clickCounter = 1;
+    } else {
+      _clickCounter++;
+      if (_clickCounter == _clickThreshold) {
+        _clickCounter = 0;
+        _showTextEditor();
+      }
+    }
+  }
+
+  void _showTextEditor() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String inputText = '';
+        return AlertDialog(
+          title: Text('Enter your text'),
+          content: TextField(
+            onChanged: (value) {
+              inputText = value;
+            },
+            decoration: InputDecoration(hintText: "Enter text here"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (inputText.isNotEmpty) {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) =>
+                          ScrollingTextScreen(text: inputText)));
+                }
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +100,7 @@ class ProfileScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
-              User? user = await UserService().getUserById(userId);
+              User? user = await UserService().getUserById(widget.userId);
               if (user != null) {
                 final updatedUser = await Navigator.push(
                   context,
@@ -64,7 +120,8 @@ class ProfileScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => UserEntitiesScreen(userId: userId),
+                  builder: (context) =>
+                      UserEntitiesScreen(userId: widget.userId),
                 ),
               );
             },
@@ -72,7 +129,7 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
       body: FutureBuilder<User?>(
-        future: UserService().getUserById(userId),
+        future: UserService().getUserById(widget.userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -89,12 +146,15 @@ class ProfileScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
-                        child: ImageWithErrorHandler(
-                          imageUrl: user.profilePictureUrl,
-                          width: 150,
-                          height: 150,
+                      child: GestureDetector(
+                        onTap: _handleAvatarClick,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: ImageWithErrorHandler(
+                            imageUrl: user.profilePictureUrl,
+                            width: 150,
+                            height: 150,
+                          ),
                         ),
                       ),
                     ),
@@ -112,7 +172,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     FollowersCountWidget(
-                      entityId: userId,
+                      entityId: widget.userId,
                       entityType: 'user',
                     ),
                     const SizedBox(height: 20),
@@ -124,7 +184,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Genre>>(
                       future: UserFollowGenreService()
-                          .getFollowedGenresByUserId(userId),
+                          .getFollowedGenresByUserId(widget.userId),
                       builder: (context, genreSnapshot) {
                         if (genreSnapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -172,7 +232,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Artist>>(
                       future: UserFollowArtistService()
-                          .getFollowedArtistsByUserId(userId),
+                          .getFollowedArtistsByUserId(widget.userId),
                       builder: (context, artistSnapshot) {
                         if (artistSnapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -232,7 +292,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Venue>>(
                       future: UserFollowVenueService()
-                          .getFollowedVenuesByUserId(userId),
+                          .getFollowedVenuesByUserId(widget.userId),
                       builder: (context, venueSnapshot) {
                         if (venueSnapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -292,7 +352,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Organizer>>(
                       future: UserFollowOrganizerService()
-                          .getFollowedOrganizersByUserId(userId),
+                          .getFollowedOrganizersByUserId(widget.userId),
                       builder: (context, organizerSnapshot) {
                         if (organizerSnapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -352,7 +412,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Event>>(
                       future: UserInterestEventService()
-                          .getInterestedEventsByUserId(userId),
+                          .getInterestedEventsByUserId(widget.userId),
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -393,7 +453,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Event>>(
                       future: UserInterestEventService()
-                          .getAttendedEventsByUserId(userId),
+                          .getAttendedEventsByUserId(widget.userId),
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
