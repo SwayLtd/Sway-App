@@ -1,7 +1,7 @@
 # Sway Events
 
 ## Project Description
-Sway Events is an open-source, multi-platform event management application that helps users discover, organize, and manage events effortlessly. Sway Events aims to provide a seamless and intuitive experience for both event attendees and organizers.
+Sway Events is a multi-platform event management application that helps users discover, organize, and manage events effortlessly. Sway Events aims to provide a seamless and intuitive experience for both event attendees and organizers.
 
 ## Screenshots
 Coming soon
@@ -25,6 +25,7 @@ Coming soon
 * **E-commerce Features**: Promo codes, gift cards, and product sales.
 * **Gamification**: Profile gamification to enhance user engagement.
 * **Sharing sysem**: Ability to share different entities, like music genres, venues, etc.
+* **Rating system**: Rate venues, organizers and maybe artists
 
 ### Implemented Features
 - Sharing system v1
