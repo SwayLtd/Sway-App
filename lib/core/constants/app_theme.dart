@@ -23,7 +23,7 @@ class AppTheme {
   cardColor: Colors.white, // Couleur blanche pour les cartes
   appBarTheme: AppBarTheme(
     systemOverlayStyle: const SystemUiOverlayStyle(
-      statusBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.light,
     ),
     elevation: 0.5,
@@ -98,7 +98,7 @@ static ThemeData dark = ThemeData(
   cardColor: Colors.grey[850], // Couleur pour les cartes dans le thème sombre
   appBarTheme: AppBarTheme(
     systemOverlayStyle: const SystemUiOverlayStyle(
-      statusBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.light,
     ),
     elevation: 0.5,
