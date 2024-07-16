@@ -1,3 +1,5 @@
+// following_button_widget.dart
+
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
@@ -9,7 +11,8 @@ class FollowingButtonWidget extends StatelessWidget {
   final String entityId;
   final String entityType; // 'venue', 'organizer', 'artist', 'user', 'genre'
 
-  const FollowingButtonWidget({required this.entityId, required this.entityType});
+  const FollowingButtonWidget(
+      {required this.entityId, required this.entityType});
 
   Future<bool> _isFollowing() {
     switch (entityType) {
@@ -73,7 +76,11 @@ class FollowingButtonWidget extends StatelessWidget {
           return Text('Error: ${snapshot.error}');
         } else {
           final bool isFollowing = snapshot.data ?? false;
-          return ElevatedButton(
+          return IconButton(
+            icon: Icon(
+              isFollowing ? Icons.star : Icons.star_border,
+              color: isFollowing ? Colors.yellow : Colors.black,
+            ),
             onPressed: () async {
               if (isFollowing) {
                 await _unfollowEntity();
@@ -83,7 +90,6 @@ class FollowingButtonWidget extends StatelessWidget {
               // Refresh UI after follow/unfollow
               (context as Element).markNeedsBuild();
             },
-            child: Text(isFollowing ? "Following" : "Follow"),
           );
         }
       },

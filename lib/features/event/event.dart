@@ -1,29 +1,31 @@
+// event.dart
+
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/widgets/common_section_widget.dart';
-import 'package:sway_events/features/event/services/event_artist_service.dart';
-import 'package:sway_events/features/event/services/event_genre_service.dart';
-import 'package:sway_events/features/event/services/event_organizer_service.dart';
 import 'package:sway_events/core/utils/date_utils.dart';
-import 'package:sway_events/features/event/widgets/info_card.dart';
-import 'package:sway_events/features/genre/widgets/genre_chip.dart';
+import 'package:sway_events/core/utils/share_util.dart';
+import 'package:sway_events/core/widgets/common_section_widget.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
+import 'package:sway_events/features/event/screens/edit_event_screen.dart';
+import 'package:sway_events/features/event/services/event_artist_service.dart';
+import 'package:sway_events/features/event/services/event_genre_service.dart';
+import 'package:sway_events/features/event/services/event_organizer_service.dart';
+import 'package:sway_events/features/event/widgets/info_card.dart';
 import 'package:sway_events/features/genre/genre.dart';
+import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/features/insight/insight.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
+import 'package:sway_events/features/organizer/services/organizer_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
+import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
-import 'package:sway_events/features/organizer/services/organizer_service.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
-import 'package:sway_events/features/event/screens/edit_event_screen.dart';
-import 'package:sway_events/core/utils/share_util.dart';
 
 class EventScreen extends StatelessWidget {
   final Event event;
@@ -305,11 +307,11 @@ class EventScreen extends StatelessWidget {
                                 return const CircularProgressIndicator();
                               } else if (organizerDetailSnapshot.hasError) {
                                 return Text(
-                                    'Error: ${organizerDetailSnapshot.error}');
+                                    'Error: ${organizerDetailSnapshot.error}',);
                               } else if (!organizerDetailSnapshot.hasData ||
                                   organizerDetailSnapshot.data == null) {
                                 return const Text(
-                                    'Organizer details not found');
+                                    'Organizer details not found',);
                               } else {
                                 final detailedOrganizer =
                                     organizerDetailSnapshot.data!;
@@ -319,7 +321,7 @@ class EventScreen extends StatelessWidget {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => OrganizerScreen(
-                                            organizerId: detailedOrganizer.id),
+                                            organizerId: detailedOrganizer.id,),
                                       ),
                                     );
                                   },
@@ -350,38 +352,38 @@ class EventScreen extends StatelessWidget {
                                           FutureBuilder<int>(
                                             future: UserFollowOrganizerService()
                                                 .getOrganizerFollowersCount(
-                                                    detailedOrganizer.id),
+                                                    detailedOrganizer.id,),
                                             builder: (context, countSnapshot) {
                                               if (countSnapshot
                                                       .connectionState ==
                                                   ConnectionState.waiting) {
                                                 return const Text(
-                                                    'Loading followers...');
+                                                    'Loading followers...',);
                                               } else if (countSnapshot
                                                   .hasError) {
                                                 return Text(
-                                                    'Error: ${countSnapshot.error}');
+                                                    'Error: ${countSnapshot.error}',);
                                               } else {
                                                 return Text(
-                                                    '${countSnapshot.data} followers');
+                                                    '${countSnapshot.data} followers',);
                                               }
                                             },
                                           ),
                                           Text(
-                                              "${detailedOrganizer.upcomingEvents.length} upcoming events"),
+                                              "${detailedOrganizer.upcomingEvents.length} upcoming events",),
                                         ],
                                       ),
                                       trailing: FutureBuilder<bool>(
                                         future: UserFollowOrganizerService()
                                             .isFollowingOrganizer(
-                                                detailedOrganizer.id),
+                                                detailedOrganizer.id,),
                                         builder: (context, followSnapshot) {
                                           if (followSnapshot.connectionState ==
                                               ConnectionState.waiting) {
                                             return const CircularProgressIndicator();
                                           } else if (followSnapshot.hasError) {
                                             return Text(
-                                                'Error: ${followSnapshot.error}');
+                                                'Error: ${followSnapshot.error}',);
                                           } else {
                                             final bool isFollowing =
                                                 followSnapshot.data ?? false;
@@ -390,16 +392,16 @@ class EventScreen extends StatelessWidget {
                                                 if (isFollowing) {
                                                   UserFollowOrganizerService()
                                                       .unfollowOrganizer(
-                                                          detailedOrganizer.id);
+                                                          detailedOrganizer.id,);
                                                 } else {
                                                   UserFollowOrganizerService()
                                                       .followOrganizer(
-                                                          detailedOrganizer.id);
+                                                          detailedOrganizer.id,);
                                                 }
                                               },
                                               child: Text(isFollowing
                                                   ? "Following"
-                                                  : "Follow"),
+                                                  : "Follow",),
                                             );
                                           }
                                         },
@@ -516,14 +518,14 @@ class EventScreen extends StatelessWidget {
   }
 
   Future<Map<String, bool>> _getEventStatus(String eventId) async {
-    bool isInterested =
+    final bool isInterested =
         await UserInterestEventService().isInterestedInEvent(eventId);
-    bool isAttended = await UserInterestEventService().isAttendedEvent(eventId);
+    final bool isAttended = await UserInterestEventService().isAttendedEvent(eventId);
     return {'isInterested': isInterested, 'isAttended': isAttended};
   }
 
   void _handleMenuSelection(
-      String value, String eventId, BuildContext context) {
+      String value, String eventId, BuildContext context,) {
     switch (value) {
       case 'interested':
         UserInterestEventService().addInterest(eventId);

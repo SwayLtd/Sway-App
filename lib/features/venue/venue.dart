@@ -1,6 +1,7 @@
 // venue.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
@@ -20,7 +21,6 @@ import 'package:sway_events/features/venue/services/venue_genre_service.dart';
 import 'package:sway_events/features/venue/services/venue_organizer_service.dart';
 import 'package:sway_events/features/venue/services/venue_resident_artists_service.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
-import 'package:sway_events/core/utils/share_util.dart';
 
 class VenueScreen extends StatefulWidget {
   final String venueId;
@@ -54,7 +54,8 @@ class _VenueScreenState extends State<VenueScreen> {
                 return IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () async {
-                    final venue = await VenueService().getVenueById(widget.venueId);
+                    final venue =
+                        await VenueService().getVenueById(widget.venueId);
                     if (venue != null) {
                       final updatedVenue = await Navigator.push(
                         context,
@@ -72,8 +73,8 @@ class _VenueScreenState extends State<VenueScreen> {
             },
           ),
           FutureBuilder<bool>(
-            future: UserPermissionService()
-                .hasPermissionForCurrentUser(widget.venueId, 'venue', 'insight'),
+            future: UserPermissionService().hasPermissionForCurrentUser(
+                widget.venueId, 'venue', 'insight'),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox.shrink();
@@ -104,6 +105,10 @@ class _VenueScreenState extends State<VenueScreen> {
             onPressed: () {
               shareEntity('venue', widget.venueId, venueName);
             },
+          ),
+          FollowingButtonWidget(
+            entityId: widget.venueId,
+            entityType: 'venue',
           ),
         ],
       ),
@@ -145,10 +150,6 @@ class _VenueScreenState extends State<VenueScreen> {
                     ),
                     const SizedBox(height: 10),
                     FollowersCountWidget(
-                      entityId: widget.venueId,
-                      entityType: 'venue',
-                    ),
-                    FollowingButtonWidget(
                       entityId: widget.venueId,
                       entityType: 'venue',
                     ),
@@ -211,6 +212,19 @@ class _VenueScreenState extends State<VenueScreen> {
                           );
                         }
                       },
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "ABOUT",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      venue.description,
+                      style: const TextStyle(
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     const Text(

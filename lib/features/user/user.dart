@@ -1,6 +1,7 @@
 // user.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/common_section_widget.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
@@ -23,7 +24,6 @@ import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/venue.dart';
-import 'package:sway_events/core/utils/share_util.dart';
 
 class UserScreen extends StatelessWidget {
   final String userId;
@@ -36,13 +36,25 @@ class UserScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('User Profile'),
         actions: [
-          FollowingButtonWidget(entityId: userId, entityType: 'user'),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              shareEntity('user', userId, 'User Name'); // Remplacez 'User Name' par le nom réel de l'utilisateur si disponible
+          FutureBuilder<User?>(
+            future: UserService().getUserById(userId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+                return const SizedBox.shrink();
+              } else {
+                final user = snapshot.data!;
+                return IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: () {
+                    shareEntity('user', userId, user.username);
+                  },
+                );
+              }
             },
           ),
+          FollowingButtonWidget(entityId: userId, entityType: 'user'),
         ],
       ),
       body: FutureBuilder<User?>(
@@ -76,13 +88,13 @@ class UserScreen extends StatelessWidget {
                     Text(
                       user.username,
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold),
+                          fontSize: 24, fontWeight: FontWeight.bold,),
                     ),
                     const SizedBox(height: 5),
                     Text(
                       'Member since: ${user.createdAt.toLocal()}',
                       style: const TextStyle(
-                          fontSize: 16, fontStyle: FontStyle.italic),
+                          fontSize: 16, fontStyle: FontStyle.italic,),
                     ),
                     const SizedBox(height: 20),
                     FollowersCountWidget(

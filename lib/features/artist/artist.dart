@@ -14,6 +14,7 @@ import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
+import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
@@ -41,6 +42,10 @@ class _ArtistScreenState extends State<ArtistScreen> {
             onPressed: () {
               shareEntity('artist', widget.artistId, artistName);
             },
+          ),
+          FollowingButtonWidget(
+            entityId: widget.artistId,
+            entityType: 'artist',
           ),
         ],
       ),
@@ -76,37 +81,11 @@ class _ArtistScreenState extends State<ArtistScreen> {
                     Text(
                       artist.name,
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold),
+                          fontSize: 24, fontWeight: FontWeight.bold,),
                     ),
                     const SizedBox(height: 5),
-                    FollowersCountWidget(entityId: widget.artistId, entityType: 'artist'),
-                    const SizedBox(height: 5),
-                    FutureBuilder<bool>(
-                      future: UserFollowArtistService()
-                          .isFollowingArtist(widget.artistId),
-                      builder: (context, followSnapshot) {
-                        if (followSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        } else if (followSnapshot.hasError) {
-                          return Text('Error: ${followSnapshot.error}');
-                        } else {
-                          final bool isFollowing = followSnapshot.data ?? false;
-                          return ElevatedButton(
-                            onPressed: () {
-                              if (isFollowing) {
-                                UserFollowArtistService()
-                                    .unfollowArtist(widget.artistId);
-                              } else {
-                                UserFollowArtistService()
-                                    .followArtist(widget.artistId);
-                              }
-                            },
-                            child: Text(isFollowing ? "Following" : "Follow"),
-                          );
-                        }
-                      },
-                    ),
+                    FollowersCountWidget(
+                        entityId: widget.artistId, entityType: 'artist',),
                     const SizedBox(height: 20),
                     const Text(
                       "UPCOMING EVENTS",
@@ -115,19 +94,21 @@ class _ArtistScreenState extends State<ArtistScreen> {
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Event>>(
-                      future:
-                          EventArtistService().getEventsByArtistId(widget.artistId),
+                      future: EventArtistService()
+                          .getEventsByArtistId(widget.artistId),
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (eventSnapshot.hasError) {
                           return Center(
-                              child: Text('Error: ${eventSnapshot.error}'),);
+                            child: Text('Error: ${eventSnapshot.error}'),
+                          );
                         } else if (!eventSnapshot.hasData ||
                             eventSnapshot.data!.isEmpty) {
                           return const Center(
-                              child: Text('No upcoming events found'),);
+                            child: Text('No upcoming events found'),
+                          );
                         } else {
                           final events = eventSnapshot.data!;
                           return Column(
@@ -166,15 +147,16 @@ class _ArtistScreenState extends State<ArtistScreen> {
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<String>>(
-                      future:
-                          ArtistGenreService().getGenresByArtistId(widget.artistId),
+                      future: ArtistGenreService()
+                          .getGenresByArtistId(widget.artistId),
                       builder: (context, genreSnapshot) {
                         if (genreSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (genreSnapshot.hasError) {
                           return Center(
-                              child: Text('Error: ${genreSnapshot.error}'),);
+                            child: Text('Error: ${genreSnapshot.error}'),
+                          );
                         } else if (!genreSnapshot.hasData ||
                             genreSnapshot.data!.isEmpty) {
                           return const Center(child: Text('No genres found'));
@@ -208,18 +190,21 @@ class _ArtistScreenState extends State<ArtistScreen> {
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Venue>>(
-                      future: VenueService().getVenuesByArtistId(widget.artistId),
+                      future:
+                          VenueService().getVenuesByArtistId(widget.artistId),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (snapshot.hasError) {
                           return Center(
-                              child: Text('Error: ${snapshot.error}'),);
+                            child: Text('Error: ${snapshot.error}'),
+                          );
                         } else if (!snapshot.hasData ||
                             snapshot.data!.isEmpty) {
                           return const Center(
-                              child: Text('No resident venues found'),);
+                            child: Text('No resident venues found'),
+                          );
                         } else {
                           final venues = snapshot.data!;
                           return Column(
@@ -258,12 +243,15 @@ class _ArtistScreenState extends State<ArtistScreen> {
                           return const CircularProgressIndicator();
                         } else if (similarArtistSnapshot.hasError) {
                           return Center(
-                              child: Text(
-                                  'Error: ${similarArtistSnapshot.error}',),);
+                            child: Text(
+                              'Error: ${similarArtistSnapshot.error}',
+                            ),
+                          );
                         } else if (!similarArtistSnapshot.hasData ||
                             similarArtistSnapshot.data!.isEmpty) {
                           return const Center(
-                              child: Text('No similar artists found'),);
+                            child: Text('No similar artists found'),
+                          );
                         } else {
                           final similarArtists = similarArtistSnapshot.data!;
                           return SingleChildScrollView(
@@ -292,8 +280,8 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                             MaterialPageRoute(
                                               builder: (context) =>
                                                   ArtistScreen(
-                                                      artistId:
-                                                          similarArtist.id,),
+                                                artistId: similarArtist.id,
+                                              ),
                                             ),
                                           );
                                         },

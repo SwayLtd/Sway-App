@@ -1,15 +1,15 @@
+// genre.dart
+
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
+import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/artist/services/artist_service.dart';
 import 'package:sway_events/features/genre/models/genre_model.dart';
 import 'package:sway_events/features/genre/services/genre_service.dart';
-import 'package:sway_events/features/user/screens/followers_screen.dart';
-import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
-import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
-import 'package:sway_events/core/utils/share_util.dart';
 
 class GenreScreen extends StatefulWidget {
   final String genreId;
@@ -35,6 +35,7 @@ class _GenreScreenState extends State<GenreScreen> {
               shareEntity('genre', widget.genreId, genreName);
             },
           ),
+          FollowingButtonWidget(entityId: widget.genreId, entityType: 'genre'),
         ],
       ),
       body: FutureBuilder<Genre?>(
@@ -58,12 +59,16 @@ class _GenreScreenState extends State<GenreScreen> {
                     Text(
                       genre.name,
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold),
+                          fontSize: 24, fontWeight: FontWeight.bold,),
                     ),
                     const SizedBox(height: 10),
                     FollowersCountWidget(entityId: widget.genreId, entityType: 'genre'),
-                    const SizedBox(height: 10),
-                    FollowingButtonWidget(entityId: widget.genreId, entityType: 'genre'),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "ABOUT",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 10),
                     Text(genre.description),
                     const SizedBox(height: 10),

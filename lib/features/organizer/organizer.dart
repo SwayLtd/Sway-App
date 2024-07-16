@@ -1,4 +1,7 @@
+// organizer.dart
+
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
@@ -7,11 +10,9 @@ import 'package:sway_events/features/insight/insight.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/screens/edit_organizer_screen.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
-import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
-import 'package:sway_events/core/utils/share_util.dart';
 
 class OrganizerScreen extends StatelessWidget {
   final String organizerId;
@@ -60,7 +61,10 @@ class OrganizerScreen extends StatelessWidget {
           ),
           FutureBuilder<bool>(
             future: UserPermissionService().hasPermissionForCurrentUser(
-                organizerId, 'organizer', 'insight'),
+              organizerId,
+              'organizer',
+              'insight',
+            ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox.shrink();
@@ -96,6 +100,10 @@ class OrganizerScreen extends StatelessWidget {
               }
             },
           ),
+          FollowingButtonWidget(
+            entityId: organizerId,
+            entityType: 'organizer',
+          ),
         ],
       ),
       body: FutureBuilder<Organizer?>(
@@ -113,7 +121,8 @@ class OrganizerScreen extends StatelessWidget {
             final organizer = snapshot.data!;
             debugPrint("Displaying Organizer: ${organizer.id}");
             debugPrint(
-                "Organizer upcoming events: ${organizer.upcomingEvents}");
+              "Organizer upcoming events: ${organizer.upcomingEvents}",
+            );
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -133,14 +142,16 @@ class OrganizerScreen extends StatelessWidget {
                   Text(
                     organizer.name,
                     style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   FollowersCountWidget(
-                      entityId: organizerId, entityType: 'organizer'),
+                    entityId: organizerId,
+                    entityType: 'organizer',
+                  ),
                   const SizedBox(height: 5),
-                  FollowingButtonWidget(
-                      entityId: organizerId, entityType: 'organizer'),
                   const SizedBox(height: 20),
                   const Text(
                     "UPCOMING EVENTS",
@@ -159,7 +170,8 @@ class OrganizerScreen extends StatelessWidget {
                           return const CircularProgressIndicator();
                         } else if (eventSnapshot.hasError) {
                           debugPrint(
-                              "Error loading event with ID $eventId: ${eventSnapshot.error}");
+                            "Error loading event with ID $eventId: ${eventSnapshot.error}",
+                          );
                           return const SizedBox
                               .shrink(); // handle event not found case
                         } else if (!eventSnapshot.hasData ||

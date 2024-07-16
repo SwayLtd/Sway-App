@@ -16,7 +16,6 @@ Coming soon
 * **Real Databases**: Transition from fake files to real databases with genuine information.
 * **Ticketing System**: Implementation of a ticketing system.
 * **Social Media Integrations for users**: Links to Spotify, Instagram, etc., on user profiles.
-* **Venue Ratings**: System for rating venues.
 * **Location System**: Geographical positioning and location-based event discovery.
 * **Map Interactions**: Interactive maps for event locations and meeting points.
 * **Insights**: Advanced data insights for event organizers.
@@ -37,15 +36,17 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Following widget moved on entitis app bar
+* Sharing system implementation
+* Dark mode coherence
+* Fake insights
 * Added role-based access control for user, manager, and admin roles on events, venues and organizers.
 * Implemented search functionality for user access management.
 * Added user entities roles list screen on the profile page.
 * Enhanced role permission system for editing, deleting, and showing insights for various entities.
 
 ### Known Issues
-* Sidebar theme does not change when switching themes.
-* Sidebar items are not part of the screen reader's focus.
-* Sidebar items are not highlighted when selected from other screen breakpoints.
+* None
 
 See the [open issues](https://github.com/Sway/Sway-Events/issues) for a list of proposed features (and known issues).
 
