@@ -177,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'Genres',
+                      'GENRES',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -218,14 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'Friends',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    // Placeholder for friends feature
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Artists',
+                      'ARTISTS',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -285,7 +278,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'Venues',
+                      'VENUES',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -345,7 +338,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'Organizers',
+                      'ORGANIZERS',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -405,7 +398,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'Interested Events',
+                      'INTERESTED EVENTS',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -446,7 +439,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'Attended Events',
+                      'ATTENDED EVENTS',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),

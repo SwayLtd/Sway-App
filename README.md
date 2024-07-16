@@ -22,6 +22,7 @@ Coming soon
 * **Admin Dashboard**: Dashboard for organizers to manage events, tickets, and promotions.
 * **Community Features**: Group messages, shared timetables.
 * **E-commerce Features**: Promo codes, gift cards, and product sales.
+* **Advanced Notifications**: Notifications for organizers and general notifications
 * **Gamification**: Profile gamification to enhance user engagement.
 * **Sharing sysem**: Ability to share different entities, like music genres, venues, etc.
 * **Rating system**: Rate venues, organizers and maybe artists
@@ -43,7 +44,7 @@ Coming soon
 * Following widget moved on entities app bar
 
 ### Known Issues
-* None
+* Duplicate artists on Discovery screen
 
 See the [open issues](https://github.com/Sway/Sway-Events/issues) for a list of proposed features (and known issues).
 

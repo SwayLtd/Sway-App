@@ -31,5 +31,38 @@
     "distance": "5.0 KM",
     "price": "€20.00",
     "organizers": ["3"]
+  },
+  {
+    "id": "4",
+    "title": "Underground Vibes",
+    "dateTime": "2024-09-22T20:00:00",
+    "venue": "4",
+    "description": "Discover the best underground techno artists in an intimate setting.",
+    "imageUrl": "https://via.placeholder.com/150",
+    "distance": "8.3 KM",
+    "price": "€12.00",
+    "organizers": ["1"]
+  },
+  {
+    "id": "5",
+    "title": "Rave On",
+    "dateTime": "2024-09-29T23:00:00",
+    "venue": "5",
+    "description": "An all-night rave featuring the top DJs in the techno scene.",
+    "imageUrl": "https://via.placeholder.com/150",
+    "distance": "10.5 KM",
+    "price": "€18.00",
+    "organizers": ["2", "3"]
+  },
+  {
+    "id": "6",
+    "title": "Techno Fiesta",
+    "dateTime": "2024-10-06T22:00:00",
+    "venue": "6",
+    "description": "Celebrate the best of techno with a fiesta that goes all night long.",
+    "imageUrl": "https://via.placeholder.com/150",
+    "distance": "9.0 KM",
+    "price": "€14.50",
+    "organizers": ["1", "2"]
   }
 ]
