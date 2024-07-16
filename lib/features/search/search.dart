@@ -226,9 +226,12 @@ class _SearchScreenState extends State<SearchScreen> {
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Wrap(
-        spacing: 8.0,
-        children: filterWidgets,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Wrap(
+          spacing: 8.0,
+          children: filterWidgets,
+        ),
       ),
     );
   }
@@ -413,10 +416,12 @@ class _SearchScreenState extends State<SearchScreen> {
                 } else {
                   return Row(
                     children: [
-                      const Icon(Icons.music_note, size: 16, color: Colors.grey),
+                      const Icon(Icons.music_note,
+                          size: 16, color: Colors.grey),
                       const SizedBox(width: 4),
                       Text(
-                          snapshot.data!.map((genre) => genre.name).join(', ')),
+                        snapshot.data!.map((genre) => genre.name).join(', '),
+                      ),
                     ],
                   );
                 }

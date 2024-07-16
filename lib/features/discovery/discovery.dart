@@ -1,9 +1,10 @@
+// discovery.dart
+
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
 import 'package:sway_events/features/event/widgets/event_card.dart';
 import 'package:sway_events/features/notification/notification.dart';
-import 'package:sway_events/features/search/search.dart';
 
 class DiscoveryScreen extends StatelessWidget {
   final int unreadNotifications = 5; // Number of unread notifications
@@ -29,16 +30,6 @@ class DiscoveryScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => NotificationScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Navigate to SearchScreen
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SearchScreen()),
               );
             },
           ),
