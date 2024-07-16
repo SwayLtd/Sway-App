@@ -84,12 +84,12 @@ class _SearchScreenState extends State<SearchScreen> {
 
     setState(() {
       _searchResults = {
-        'Users': users.take(5).toList(),
-        'Genres': genres.take(5).toList(),
+        'Events': events.take(5).toList(),
+        'Organizers': organizers.take(5).toList(),
         'Artists': artists.take(5).toList(),
         'Venues': venues.take(5).toList(),
-        'Organizers': organizers.take(5).toList(),
-        'Events': events.take(5).toList(),
+        'Genres': genres.take(5).toList(),
+        'Users': users.take(5).toList(),
       };
 
       _searchResults.removeWhere((key, value) => value.isEmpty);
