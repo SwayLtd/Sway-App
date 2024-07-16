@@ -1,5 +1,3 @@
-// organizer_service.dart
-
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
@@ -8,10 +6,29 @@ import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 
 class OrganizerService {
+  Future<List<Organizer>> searchOrganizers(String query) async {
+    final String response =
+        await rootBundle.loadString('assets/databases/organizers.json');
+    final List<dynamic> organizerJson = json.decode(response) as List<dynamic>;
+
+    final organizers = organizerJson.map((json) {
+      return Organizer.fromJsonWithoutEvents(json as Map<String, dynamic>);
+    }).toList();
+
+    final results = organizers.where((organizer) {
+      final matches =
+          organizer.name.toLowerCase().contains(query.toLowerCase());
+      return matches;
+    }).toList();
+
+    return results;
+  }
+
   final UserPermissionService _permissionService = UserPermissionService();
 
   Future<List<Organizer>> getOrganizersWithEvents() async {
-    final String response = await rootBundle.loadString('assets/databases/organizers.json');
+    final String response =
+        await rootBundle.loadString('assets/databases/organizers.json');
     final List<dynamic> organizerJson = json.decode(response) as List<dynamic>;
 
     // Charger les événements
@@ -25,7 +42,8 @@ class OrganizerService {
   Future<Organizer?> getOrganizerByIdWithEvents(String id) async {
     final List<Organizer> organizers = await getOrganizersWithEvents();
     try {
-      final Organizer organizer = organizers.firstWhere((organizer) => organizer.id == id);
+      final Organizer organizer =
+          organizers.firstWhere((organizer) => organizer.id == id);
       return organizer;
     } catch (e) {
       return null;
@@ -33,18 +51,21 @@ class OrganizerService {
   }
 
   Future<List<Organizer>> getOrganizers() async {
-    final String response = await rootBundle.loadString('assets/databases/organizers.json');
+    final String response =
+        await rootBundle.loadString('assets/databases/organizers.json');
     final List<dynamic> organizerJson = json.decode(response) as List<dynamic>;
 
     return organizerJson
-        .map((json) => Organizer.fromJsonWithoutEvents(json as Map<String, dynamic>))
+        .map((json) =>
+            Organizer.fromJsonWithoutEvents(json as Map<String, dynamic>))
         .toList();
   }
 
   Future<Organizer?> getOrganizerById(String id) async {
     final List<Organizer> organizers = await getOrganizers();
     try {
-      final Organizer organizer = organizers.firstWhere((organizer) => organizer.id == id);
+      final Organizer organizer =
+          organizers.firstWhere((organizer) => organizer.id == id);
       return organizer;
     } catch (e) {
       return null;
@@ -52,7 +73,8 @@ class OrganizerService {
   }
 
   Future<void> addOrganizer(Organizer organizer) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(organizer.id, 'organizer', 'admin');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(
+        organizer.id, 'organizer', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
@@ -60,7 +82,8 @@ class OrganizerService {
   }
 
   Future<void> updateOrganizer(Organizer organizer) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(organizer.id, 'organizer', 'manager');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(
+        organizer.id, 'organizer', 'manager');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
@@ -68,7 +91,8 @@ class OrganizerService {
   }
 
   Future<void> deleteOrganizer(String organizerId) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(organizerId, 'organizer', 'admin');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(
+        organizerId, 'organizer', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }

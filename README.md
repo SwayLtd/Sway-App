@@ -27,7 +27,8 @@ Coming soon
 * **Rating system**: Rate venues, organizers and maybe artists
 
 ### Implemented Features
-- Sharing system v1
+* Search system v1 
+* Sharing system v1
 * Implementation of music genres, events, artists, venues and organizers
 * Discovery screen v1
 * Search screen v1
@@ -36,14 +37,9 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
-* Following widget moved on entitis app bar
+* Search system with filters for events (v1)
+* Following widget moved on entities app bar
 * Sharing system implementation
-* Dark mode coherence
-* Fake insights
-* Added role-based access control for user, manager, and admin roles on events, venues and organizers.
-* Implemented search functionality for user access management.
-* Added user entities roles list screen on the profile page.
-* Enhanced role permission system for editing, deleting, and showing insights for various entities.
 
 ### Known Issues
 * None

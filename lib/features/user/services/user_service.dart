@@ -3,7 +3,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
-import 'package:flutter/foundation.dart'; // Ajout pour debugPrint
 
 class UserService {
   Future<User?> getUserById(String userId) async {
@@ -19,23 +18,19 @@ class UserService {
   }
 
   Future<List<User>> searchUsers(String query) async {
-    debugPrint("Searching users with query: $query");
     final String response =
         await rootBundle.loadString('assets/databases/users.json');
     final List<dynamic> userJson = json.decode(response) as List<dynamic>;
 
     final users = userJson.map((json) {
-      debugPrint("Converting JSON to User: $json");
       return User.fromJson(json as Map<String, dynamic>);
     }).toList();
 
     final results = users.where((user) {
       final matches = user.username.toLowerCase().contains(query.toLowerCase());
-      debugPrint("Checking user: ${user.username}, Matches: $matches");
       return matches;
     }).toList();
 
-    debugPrint("Search results: ${results.map((u) => u.username).join(', ')}");
     return results;
   }
 

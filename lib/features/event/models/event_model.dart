@@ -1,3 +1,5 @@
+// event_model.dart
+//
 class Event {
   final String id;
   final String title;

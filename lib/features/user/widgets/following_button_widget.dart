@@ -79,7 +79,7 @@ class FollowingButtonWidget extends StatelessWidget {
           return IconButton(
             icon: Icon(
               isFollowing ? Icons.star : Icons.star_border,
-              color: isFollowing ? Colors.yellow : Colors.black,
+              color: isFollowing ? Colors.yellow : Theme.of(context).iconTheme.color,
             ),
             onPressed: () async {
               if (isFollowing) {

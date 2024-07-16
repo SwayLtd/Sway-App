@@ -1,21 +1,42 @@
 // venue_service.dart
 
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/artist/services/artist_service.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
-import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
+import 'package:sway_events/features/venue/models/venue_model.dart';
 
 class VenueService {
   final UserPermissionService _permissionService = UserPermissionService();
 
-  Future<List<Venue>> getVenues() async {
-    final String response = await rootBundle.loadString('assets/databases/venues.json');
+  Future<List<Venue>> searchVenues(String query) async {
+    final String response =
+        await rootBundle.loadString('assets/databases/venues.json');
     final List<dynamic> venueJson = json.decode(response) as List<dynamic>;
-    return venueJson.map((json) => Venue.fromJson(json as Map<String, dynamic>)).toList();
+
+    final venues = venueJson.map((json) {
+      return Venue.fromJson(json as Map<String, dynamic>);
+    }).toList();
+
+    final results = venues.where((venue) {
+      final matches = venue.name.toLowerCase().contains(query.toLowerCase());
+      return matches;
+    }).toList();
+
+    return results;
+  }
+
+  Future<List<Venue>> getVenues() async {
+    final String response =
+        await rootBundle.loadString('assets/databases/venues.json');
+    final List<dynamic> venueJson = json.decode(response) as List<dynamic>;
+    return venueJson
+        .map((json) => Venue.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   Future<Venue?> getVenueById(String venueId) async {
@@ -29,8 +50,10 @@ class VenueService {
   }
 
   Future<List<Artist>> getResidentArtistsByVenueId(String venueId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/venue_resident_artists.json');
-    final List<dynamic> venueArtistJson = json.decode(response) as List<dynamic>;
+    final String response = await rootBundle
+        .loadString('assets/databases/join_table/venue_resident_artists.json');
+    final List<dynamic> venueArtistJson =
+        json.decode(response) as List<dynamic>;
     final artistIds = venueArtistJson
         .where((entry) => entry['venueId'] == venueId)
         .map((entry) => entry['artistId'] as String)
@@ -41,20 +64,26 @@ class VenueService {
   }
 
   Future<List<Organizer>> getOrganizersByVenueId(String venueId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/venue_organizers.json');
-    final List<dynamic> venueOrganizerJson = json.decode(response) as List<dynamic>;
+    final String response = await rootBundle
+        .loadString('assets/databases/join_table/venue_organizers.json');
+    final List<dynamic> venueOrganizerJson =
+        json.decode(response) as List<dynamic>;
     final organizerIds = venueOrganizerJson
         .where((entry) => entry['venueId'] == venueId)
         .map((entry) => entry['organizerId'] as String)
         .toList();
 
     final organizers = await OrganizerService().getOrganizers();
-    return organizers.where((organizer) => organizerIds.contains(organizer.id)).toList();
+    return organizers
+        .where((organizer) => organizerIds.contains(organizer.id))
+        .toList();
   }
 
   Future<List<Venue>> getVenuesByArtistId(String artistId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/venue_resident_artists.json');
-    final List<dynamic> venueArtistJson = json.decode(response) as List<dynamic>;
+    final String response = await rootBundle
+        .loadString('assets/databases/join_table/venue_resident_artists.json');
+    final List<dynamic> venueArtistJson =
+        json.decode(response) as List<dynamic>;
     final venueIds = venueArtistJson
         .where((entry) => entry['artistId'] == artistId)
         .map((entry) => entry['venueId'] as String)
@@ -65,7 +94,8 @@ class VenueService {
   }
 
   Future<void> addVenue(Venue venue) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(venue.id, 'venue', 'admin');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(
+        venue.id, 'venue', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
@@ -73,7 +103,8 @@ class VenueService {
   }
 
   Future<void> updateVenue(Venue venue) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(venue.id, 'venue', 'manager');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(
+        venue.id, 'venue', 'manager');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
@@ -81,7 +112,8 @@ class VenueService {
   }
 
   Future<void> deleteVenue(String venueId) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(venueId, 'venue', 'admin');
+    final hasPermission = await _permissionService.hasPermissionForCurrentUser(
+        venueId, 'venue', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }

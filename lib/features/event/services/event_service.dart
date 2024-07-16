@@ -1,5 +1,3 @@
-// event_service.dart
-
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
@@ -19,13 +17,41 @@ class EventService {
     return events.firstWhere((event) => event.id == eventId);
   }
 
-  Future<List<Event>> searchEvents(String query) async {
+  Future<List<Event>> searchEvents(String query, Map<String, dynamic> filters) async {
     final events = await getEvents();
+    final genres = await _getEventGenres();
+
     return events.where((event) {
       final eventTitleLower = event.title.toLowerCase();
       final searchLower = query.toLowerCase();
-      return eventTitleLower.contains(searchLower);
+      bool matchesQuery = eventTitleLower.contains(searchLower);
+
+      String? cityFilter = filters['city'] as String?;
+      DateTime? dateFilter = filters['date'] as DateTime?;
+      List<String>? genreFilter = (filters['genres'] as List<dynamic>?)?.cast<String>();
+      bool nearMeFilter = filters['nearMe'] as bool? ?? false;
+
+      bool matchesCity = cityFilter == null || event.venue == cityFilter;
+      bool matchesDate = dateFilter == null || event.dateTime.startsWith(dateFilter.toString().split(' ')[0]);
+      bool matchesGenre = genreFilter == null || genreFilter.isEmpty || genreFilter.any((genre) => genres[event.id]?.contains(genre) == true);
+      bool matchesNearMe = !nearMeFilter; // Implémenter la logique "near me" plus tard
+
+      return matchesQuery && matchesCity && matchesDate && matchesGenre && matchesNearMe;
     }).toList();
+  }
+
+  Future<Map<String, List<String>>> _getEventGenres() async {
+    final String response = await rootBundle.loadString('assets/databases/join_table/event_genre.json');
+    final List<dynamic> genreJson = json.decode(response) as List<dynamic>;
+    final Map<String, List<String>> eventGenres = {};
+
+    for (var entry in genreJson) {
+      final eventId = entry['eventId'] as String;
+      final genreId = entry['genreId'] as String;
+      eventGenres.putIfAbsent(eventId, () => []).add(genreId);
+    }
+
+    return eventGenres;
   }
 
   Future<void> addEvent(Event event) async {
