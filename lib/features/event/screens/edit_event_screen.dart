@@ -1,9 +1,11 @@
+// edit_event_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
 import 'package:sway_events/features/user/models/user_permission_model.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
+import 'package:sway_events/features/user/services/user_permission_service.dart';
 
 class EditEventScreen extends StatefulWidget {
   final Event event;
@@ -18,6 +20,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   late TextEditingController _priceController;
+  late List<String> _selectedGenres;
+  late List<String> _selectedArtists;
+  late List<String> _selectedOrganizers;
 
   @override
   void initState() {
@@ -26,6 +31,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _descriptionController =
         TextEditingController(text: widget.event.description);
     _priceController = TextEditingController(text: widget.event.price);
+    _selectedGenres = List<String>.from(widget.event.genres);
+    _selectedArtists = List<String>.from(widget.event.artists);
+    _selectedOrganizers = List<String>.from(widget.event.organizers);
   }
 
   @override
@@ -45,15 +53,17 @@ class _EditEventScreenState extends State<EditEventScreen> {
       dateTime: widget.event.dateTime,
       venue: widget.event.venue,
       imageUrl: widget.event.imageUrl,
-      organizers: widget.event.organizers,
+      organizers: _selectedOrganizers,
       distance: widget.event.distance,
+      genres: _selectedGenres,
+      artists: _selectedArtists,
     );
     await EventService().updateEvent(updatedEvent);
     Navigator.pop(context, updatedEvent);
   }
 
   Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, UserPermission permission) async {
+      BuildContext context, UserPermission permission,) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -72,7 +82,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
               child: const Text('Delete'),
               onPressed: () async {
                 await UserPermissionService().deleteUserPermission(
-                    permission.userId, widget.event.id, 'event');
+                    permission.userId, widget.event.id, 'event',);
                 Navigator.of(context).pop();
                 setState(() {});
               },
@@ -129,9 +139,48 @@ class _EditEventScreenState extends State<EditEventScreen> {
               decoration: const InputDecoration(labelText: 'Price'),
             ),
             const SizedBox(height: 20),
+            Wrap(
+              spacing: 8.0,
+              children: _selectedGenres
+                  .map((genre) => Chip(
+                        label: Text(genre),
+                        onDeleted: () {
+                          setState(() {
+                            _selectedGenres.remove(genre);
+                          });
+                        },
+                      ),)
+                  .toList(),
+            ),
+            Wrap(
+              spacing: 8.0,
+              children: _selectedArtists
+                  .map((artist) => Chip(
+                        label: Text(artist),
+                        onDeleted: () {
+                          setState(() {
+                            _selectedArtists.remove(artist);
+                          });
+                        },
+                      ),)
+                  .toList(),
+            ),
+            Wrap(
+              spacing: 8.0,
+              children: _selectedOrganizers
+                  .map((organizer) => Chip(
+                        label: Text(organizer),
+                        onDeleted: () {
+                          setState(() {
+                            _selectedOrganizers.remove(organizer);
+                          });
+                        },
+                      ),)
+                  .toList(),
+            ),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                  widget.event.id, 'event', 'admin'),
+                  widget.event.id, 'event', 'admin',),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
@@ -148,10 +197,11 @@ class _EditEventScreenState extends State<EditEventScreen> {
                           _showDeleteConfirmationDialog(
                               context,
                               UserPermission(
-                                  userId: 'currentUser',
-                                  entityId: widget.event.id,
-                                  entityType: 'event',
-                                  permission: 'admin'));
+                                userId: 'currentUser',
+                                entityId: widget.event.id,
+                                entityType: 'event',
+                                permission: 'admin',
+                              ),);
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.red,

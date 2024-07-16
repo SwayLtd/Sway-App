@@ -27,6 +27,7 @@ Coming soon
 * **Rating system**: Rate venues, organizers and maybe artists
 
 ### Implemented Features
+* Discovery suggestions v1
 * Search system v1 
 * Sharing system v1
 * Implementation of music genres, events, artists, venues and organizers
@@ -37,9 +38,9 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Discovery page with suggestions for all entity types based on follows
 * Search system with filters for events (v1)
 * Following widget moved on entities app bar
-* Sharing system implementation
 
 ### Known Issues
 * None

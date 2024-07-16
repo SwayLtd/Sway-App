@@ -1,5 +1,3 @@
-// event_model.dart
-//
 class Event {
   final String id;
   final String title;
@@ -10,6 +8,8 @@ class Event {
   final String distance;
   final String price;
   final List<String> organizers;
+  final List<String> genres;
+  final List<String> artists;
 
   Event({
     required this.id,
@@ -21,6 +21,8 @@ class Event {
     required this.distance,
     required this.price,
     required this.organizers,
+    required this.genres,
+    required this.artists,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -34,6 +36,8 @@ class Event {
       distance: json['distance'] as String? ?? '',
       price: json['price'] as String? ?? '',
       organizers: (json['organizers'] as List<dynamic>?)?.map((e) => e as String? ?? '').toList() ?? [],
+      genres: (json['genres'] as List<dynamic>?)?.map((e) => e as String? ?? '').toList() ?? [],
+      artists: (json['artists'] as List<dynamic>?)?.map((e) => e as String? ?? '').toList() ?? [],
     );
   }
 }
