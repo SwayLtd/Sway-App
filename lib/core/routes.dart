@@ -11,6 +11,7 @@ import 'package:sway_events/core/utils/error/error_not_found.dart';
 import 'package:sway_events/core/widgets/navbar_no_appbar.dart';
 import 'package:sway_events/features/discovery/discovery.dart';
 import 'package:sway_events/features/search/search.dart';
+import 'package:sway_events/features/ticketing/ticketing.dart';
 import 'package:sway_events/features/user/profile.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -33,7 +34,7 @@ List routes = [
     'name': 'Tickets',
     'path': '/tickets',
     'index': 2,
-    'screen': SearchScreen(),
+    'screen': TicketingScreen(),
   },
   {
     'name': 'Profile',
