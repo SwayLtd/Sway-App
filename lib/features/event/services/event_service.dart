@@ -3,10 +3,13 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
+import 'package:sway_events/features/user/models/user_event_ticket_model.dart';
+import 'package:sway_events/features/user/services/user_event_ticket_service.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 
 class EventService {
   final UserPermissionService _permissionService = UserPermissionService();
+  final UserEventTicketService _userEventTicketService = UserEventTicketService();
 
   Future<List<Event>> getEvents() async {
     final String response = await rootBundle.loadString('assets/databases/events.json');
@@ -36,7 +39,7 @@ class EventService {
       bool matchesCity = cityFilter == null || event.venue == cityFilter;
       bool matchesDate = dateFilter == null || event.dateTime.startsWith(dateFilter.toString().split(' ')[0]);
       bool matchesGenre = genreFilter == null || genreFilter.isEmpty || genreFilter.any((genre) => genres[event.id]?.contains(genre) == true);
-      bool matchesNearMe = !nearMeFilter; // Implémenter la logique "near me" plus tard
+      bool matchesNearMe = !nearMeFilter; // Implement the "near me" logic later
 
       return matchesQuery && matchesCity && matchesDate && matchesGenre && matchesNearMe;
     }).toList();
@@ -78,5 +81,15 @@ class EventService {
       throw Exception('Permission denied');
     }
     // Logic to delete event
+  }
+
+  Future<List<UserEventTicket>> getUserTicketsForEvent(String eventId) async {
+    return await _userEventTicketService.getTicketsByEventId(eventId);
+  }
+
+  // Ajout de la méthode getEventsByIds
+  Future<List<Event>> getEventsByIds(List<String> eventIds) async {
+    final events = await getEvents();
+    return events.where((event) => eventIds.contains(event.id)).toList();
   }
 }

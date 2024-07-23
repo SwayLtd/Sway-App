@@ -9,8 +9,7 @@ Coming soon
 ## Roadmap
 
 ### Planned Features
-* **Discovery Page**: Enhanced event discovery based on user preferences, including music genres, venues, event names, artists, and location.
-* **Search Screen Enhancements**: Advanced search functionality with filters and a potential map view for later iterations.
+* **Filters for all search types**: Filters are currently only working on events. Need to be updated to work on other entities type.
 * **Verified User System**: Verified user mark to allow creation of events, venues, and organizers.
 * **User Verification Form**: In-app form for users to apply for verification.
 * **Real Databases**: Transition from fake files to real databases with genuine information.
@@ -28,6 +27,8 @@ Coming soon
 * **Rating system**: Rate venues, organizers and maybe artists
 
 ### Implemented Features
+* Event ticketing
+* Purchasing system v0.5 (sales orders, invoices, items - only backend)
 * Discovery suggestions v1
 * Search system v1 
 * Sharing system v1
@@ -39,6 +40,8 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Event ticketing v1
+* Advanced purchasing system back-end with sales orders, invoices, items
 * Discovery page with suggestions for all entity types based on follows
 * Search system with filters for events (v1)
 * Following widget moved on entities app bar

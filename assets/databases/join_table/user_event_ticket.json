@@ -1,0 +1,51 @@
+[
+  {
+    "id": "1",
+    "userId": "3",
+    "eventId": "1",
+    "ticketId": "101",
+    "status": "active"
+  },
+  {
+    "id": "2",
+    "userId": "3",
+    "eventId": "1",
+    "ticketId": "102",
+    "status": "active"
+  },
+  {
+    "id": "3",
+    "userId": "3",
+    "eventId": "2",
+    "ticketId": "103",
+    "status": "active"
+  },
+  {
+    "id": "4",
+    "userId": "3",
+    "eventId": "3",
+    "ticketId": "104",
+    "status": "active"
+  },
+  {
+    "id": "5",
+    "userId": "3",
+    "eventId": "4",
+    "ticketId": "105",
+    "status": "resold"
+  },
+  {
+    "id": "6",
+    "userId": "3",
+    "eventId": "5",
+    "ticketId": "106",
+    "status": "active"
+  },
+  {
+    "id": "7",
+    "userId": "3",
+    "eventId": "6",
+    "ticketId": "107",
+    "status": "active"
+  }
+]

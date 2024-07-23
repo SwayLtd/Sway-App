@@ -3,7 +3,7 @@ description: Sway Events is a multi-platform event management application that h
 
 publish_to: "none"
 
-version: 0.0.8 # Accessibility v1
+version: 0.0.9 # Purchasing system v0.5 and event tickets implemented
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
@@ -64,6 +64,10 @@ flutter:
     - assets/databases/venues.json
     - assets/databases/genres.json
     - assets/databases/users.json
+    - assets/databases/tickets.json
+    - assets/databases/orders.json
+    - assets/databases/invoices.json
+    - assets/databases/items.json
     - assets/databases/join_table/user_permissions.json
     - assets/databases/join_table/artist_genre.json
     - assets/databases/join_table/event_artist.json
@@ -79,5 +83,7 @@ flutter:
     - assets/databases/join_table/user_follow_organizer.json
     - assets/databases/join_table/user_follow_user.json
     - assets/databases/join_table/user_interest_event.json
+    - assets/databases/join_table/user_event_ticket.json
+    - assets/databases/join_table/order_items.json
 
   generate: true
