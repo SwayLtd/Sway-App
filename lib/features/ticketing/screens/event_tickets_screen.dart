@@ -36,7 +36,7 @@ class _EventTicketsScreenState extends State<EventTicketsScreen> {
         await userTicketService.getTicketsByEventId(widget.event.id);
 
     final List<Ticket> loadedTickets = [];
-    for (var userTicket in userTickets) {
+    for (final userTicket in userTickets) {
       final ticket = await ticketService.getTicketById(userTicket.ticketId);
       loadedTickets.add(ticket);
     }
@@ -61,7 +61,7 @@ class _EventTicketsScreenState extends State<EventTicketsScreen> {
         title: Text('${widget.event.title} Tickets'),
       ),
       body: tickets.isEmpty
-          ? Center(child: Text('No tickets found for this event'))
+          ? const Center(child: Text('No tickets found for this event'))
           : Column(
               children: [
                 if (tickets.length > 1)
