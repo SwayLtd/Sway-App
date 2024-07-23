@@ -58,6 +58,7 @@ flutter:
 
   assets:
     - assets/
+    - assets/images/icon.png
     - assets/databases/events.json
     - assets/databases/artists.json
     - assets/databases/organizers.json

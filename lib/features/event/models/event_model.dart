@@ -1,6 +1,9 @@
+// event_model.dart
+
 class Event {
   final String id;
   final String title;
+  final String type;
   final String dateTime;
   final String venue;
   final String description;
@@ -14,6 +17,7 @@ class Event {
   Event({
     required this.id,
     required this.title,
+    required this.type,
     required this.dateTime,
     required this.venue,
     required this.description,
@@ -29,6 +33,7 @@ class Event {
     return Event(
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? '',
+      type: json['type'] as String? ?? '',
       dateTime: json['dateTime'] as String? ?? '',
       venue: json['venue'] as String? ?? '',
       description: json['description'] as String? ?? '',

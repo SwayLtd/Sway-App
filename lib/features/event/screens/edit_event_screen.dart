@@ -23,6 +23,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late List<String> _selectedGenres;
   late List<String> _selectedArtists;
   late List<String> _selectedOrganizers;
+  late String _selectedType;
 
   @override
   void initState() {
@@ -34,6 +35,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _selectedGenres = List<String>.from(widget.event.genres);
     _selectedArtists = List<String>.from(widget.event.artists);
     _selectedOrganizers = List<String>.from(widget.event.organizers);
+    _selectedType = widget.event.type;
   }
 
   @override
@@ -48,6 +50,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
     final updatedEvent = Event(
       id: widget.event.id,
       title: _titleController.text,
+      type: _selectedType,
       description: _descriptionController.text,
       price: _priceController.text,
       dateTime: widget.event.dateTime,
@@ -63,7 +66,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
   }
 
   Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, UserPermission permission,) async {
+    BuildContext context,
+    UserPermission permission,
+  ) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -82,7 +87,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
               child: const Text('Delete'),
               onPressed: () async {
                 await UserPermissionService().deleteUserPermission(
-                    permission.userId, widget.event.id, 'event',);
+                  permission.userId,
+                  widget.event.id,
+                  'event',
+                );
                 Navigator.of(context).pop();
                 setState(() {});
               },
@@ -139,48 +147,73 @@ class _EditEventScreenState extends State<EditEventScreen> {
               decoration: const InputDecoration(labelText: 'Price'),
             ),
             const SizedBox(height: 20),
+            DropdownButton<String>(
+              value: _selectedType,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedType = newValue!;
+                });
+              },
+              items: <String>['festival', 'party', 'concert']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
             Wrap(
               spacing: 8.0,
               children: _selectedGenres
-                  .map((genre) => Chip(
-                        label: Text(genre),
-                        onDeleted: () {
-                          setState(() {
-                            _selectedGenres.remove(genre);
-                          });
-                        },
-                      ),)
+                  .map(
+                    (genre) => Chip(
+                      label: Text(genre),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedGenres.remove(genre);
+                        });
+                      },
+                    ),
+                  )
                   .toList(),
             ),
             Wrap(
               spacing: 8.0,
               children: _selectedArtists
-                  .map((artist) => Chip(
-                        label: Text(artist),
-                        onDeleted: () {
-                          setState(() {
-                            _selectedArtists.remove(artist);
-                          });
-                        },
-                      ),)
+                  .map(
+                    (artist) => Chip(
+                      label: Text(artist),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedArtists.remove(artist);
+                        });
+                      },
+                    ),
+                  )
                   .toList(),
             ),
             Wrap(
               spacing: 8.0,
               children: _selectedOrganizers
-                  .map((organizer) => Chip(
-                        label: Text(organizer),
-                        onDeleted: () {
-                          setState(() {
-                            _selectedOrganizers.remove(organizer);
-                          });
-                        },
-                      ),)
+                  .map(
+                    (organizer) => Chip(
+                      label: Text(organizer),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedOrganizers.remove(organizer);
+                        });
+                      },
+                    ),
+                  )
                   .toList(),
             ),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                  widget.event.id, 'event', 'admin',),
+                widget.event.id,
+                'event',
+                'admin',
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
@@ -195,13 +228,14 @@ class _EditEventScreenState extends State<EditEventScreen> {
                       child: ElevatedButton(
                         onPressed: () {
                           _showDeleteConfirmationDialog(
-                              context,
-                              UserPermission(
-                                userId: 'currentUser',
-                                entityId: widget.event.id,
-                                entityType: 'event',
-                                permission: 'admin',
-                              ),);
+                            context,
+                            UserPermission(
+                              userId: 'currentUser',
+                              entityId: widget.event.id,
+                              entityType: 'event',
+                              permission: 'admin',
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.red,

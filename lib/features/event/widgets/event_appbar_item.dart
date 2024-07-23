@@ -1,27 +1,22 @@
-// appbar_item.dart
-
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/routes.dart';
 
-class AppBarItem extends StatefulWidget {
+class EventAppBarItem extends StatelessWidget {
   final String title;
   final int index;
+  final ValueChanged<int> onTap;
+  final int selectedIndex;
 
-  const AppBarItem({
-    super.key,
+  const EventAppBarItem({
+    Key? key,
     required this.title,
     required this.index,
-  });
+    required this.onTap,
+    required this.selectedIndex,
+  }) : super(key: key);
 
-  @override
-  _AppBarItemState createState() => _AppBarItemState();
-}
-
-class _AppBarItemState extends State<AppBarItem> {
   @override
   Widget build(BuildContext context) {
-    final int index = widget.index;
-    final String title = widget.title;
+    final bool isSelected = selectedIndex == index;
 
     return Theme(
       data: Theme.of(context).copyWith(
@@ -34,14 +29,12 @@ class _AppBarItemState extends State<AppBarItem> {
       child: Stack(
         children: [
           Positioned(
-            // This is the bottom line that will be displayed when the button is selected
             left: 0,
             right: 0,
             bottom: 0,
             child: Container(
               height: 2,
-              // Depending on the selected index, set the color of the bottom menu
-              color: selectedIndex() == index
+              color: isSelected
                   ? Theme.of(context).primaryColor
                   : Colors.transparent,
             ),
@@ -50,14 +43,15 @@ class _AppBarItemState extends State<AppBarItem> {
             child: Text(
               title,
               style: TextStyle(
-                // Depending on the selected index, set the color of the text
-                color: selectedIndex() == index
+                color: isSelected
                     ? Theme.of(context).primaryColor
                     : Theme.of(context).textTheme.bodyLarge!.color,
               ),
             ),
             onPressed: () {
-              onTap(context, index);
+              if (selectedIndex != index) {
+                onTap(index);
+              }
             },
           ),
         ],
