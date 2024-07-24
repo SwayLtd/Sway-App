@@ -54,6 +54,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       description: _descriptionController.text,
       price: _priceController.text,
       dateTime: widget.event.dateTime,
+      endDateTime: widget.event.endDateTime,
       venue: widget.event.venue,
       imageUrl: widget.event.imageUrl,
       organizers: _selectedOrganizers,

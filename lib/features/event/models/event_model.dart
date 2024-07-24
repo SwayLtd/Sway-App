@@ -5,6 +5,7 @@ class Event {
   final String title;
   final String type;
   final String dateTime;
+  final String endDateTime;
   final String venue;
   final String description;
   final String imageUrl;
@@ -19,6 +20,7 @@ class Event {
     required this.title,
     required this.type,
     required this.dateTime,
+    required this.endDateTime,
     required this.venue,
     required this.description,
     required this.imageUrl,
@@ -35,6 +37,7 @@ class Event {
       title: json['title'] as String? ?? '',
       type: json['type'] as String? ?? '',
       dateTime: json['dateTime'] as String? ?? '',
+      endDateTime: json['endDateTime'] as String? ?? '',
       venue: json['venue'] as String? ?? '',
       description: json['description'] as String? ?? '',
       imageUrl: json['imageUrl'] as String? ?? '',

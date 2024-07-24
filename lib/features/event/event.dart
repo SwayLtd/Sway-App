@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sway_events/core/utils/date_utils.dart';
 import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/common_section_widget.dart';
@@ -150,7 +151,7 @@ class _EventScreenState extends State<EventScreen> {
           ),
           FutureBuilder<bool>(
             future: UserPermissionService().hasPermissionForCurrentUser(
-                widget.event.id, 'event', 'insight'),
+                widget.event.id, 'event', 'insight',),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox.shrink();
@@ -308,6 +309,7 @@ class _EventScreenState extends State<EventScreen> {
 
   Widget _buildOverview() {
     final DateTime eventDateTime = DateTime.parse(widget.event.dateTime);
+    final DateTime eventEndDateTime = DateTime.parse(widget.event.endDateTime);
 
     return SingleChildScrollView(
       child: Padding(
@@ -332,9 +334,11 @@ class _EventScreenState extends State<EventScreen> {
             ),
             const SizedBox(height: 5),
             FollowersCountWidget(
-                entityId: widget.event.id, entityType: 'event'),
+                entityId: widget.event.id, entityType: 'event',),
             const SizedBox(height: 10),
-            InfoCard(title: "Date", content: formatEventDate(eventDateTime)),
+            InfoCard(
+                title: "Date",
+                content: formatEventDateRange(eventDateTime, eventEndDateTime),),
             FutureBuilder<Venue?>(
               future: VenueService().getVenueById(widget.event.venue),
               builder: (context, snapshot) {
@@ -377,7 +381,7 @@ class _EventScreenState extends State<EventScreen> {
               title: "LINE UP",
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: FutureBuilder<List<Artist>>(
+                child: FutureBuilder<List<Map<String, dynamic>>>(
                   future:
                       EventArtistService().getArtistsByEventId(widget.event.id),
                   builder: (context, artistSnapshot) {
@@ -390,9 +394,13 @@ class _EventScreenState extends State<EventScreen> {
                         artistSnapshot.data!.isEmpty) {
                       return const Text('No artists found');
                     } else {
-                      final artists = artistSnapshot.data!;
+                      final artistEntries = artistSnapshot.data!;
                       return Row(
-                        children: artists.map((artist) {
+                        children: artistEntries.map((entry) {
+                          final artist = entry['artist'] as Artist;
+                          final startTime = entry['startTime'] as String?;
+                          final endTime = entry['endTime'] as String?;
+                          final status = entry['status'] as String?;
                           return GestureDetector(
                             onTap: () {
                               Navigator.push(
@@ -409,14 +417,33 @@ class _EventScreenState extends State<EventScreen> {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
-                                    child: ImageWithErrorHandler(
-                                      imageUrl: artist.imageUrl,
-                                      width: 100,
-                                      height: 100,
-                                    ),
+                                    child: status == 'cancelled'
+                                        ? ColorFiltered(
+                                            colorFilter: const ColorFilter.mode(
+                                                Colors.grey,
+                                                BlendMode.saturation,),
+                                            child: ImageWithErrorHandler(
+                                              imageUrl: artist.imageUrl,
+                                              width: 100,
+                                              height: 100,
+                                            ),
+                                          )
+                                        : ImageWithErrorHandler(
+                                            imageUrl: artist.imageUrl,
+                                            width: 100,
+                                            height: 100,
+                                          ),
                                   ),
                                   const SizedBox(height: 5),
-                                  Text(artist.name),
+                                  Text(artist.name,
+                                      style: TextStyle(
+                                        color: status == 'cancelled'
+                                            ? Colors.grey
+                                            : null,
+                                      ),),
+                                  if (startTime != null && endTime != null)
+                                    Text(
+                                        '${_formatTime(startTime)} - ${_formatTime(endTime)}',),
                                 ],
                               ),
                             ),
@@ -767,10 +794,10 @@ class _EventScreenState extends State<EventScreen> {
           ),
           const SizedBox(height: 10),
           _buildStoreItem(
-              'Festival T-Shirt', 'assets/images/icon.png', '€25.00'),
+              'Festival T-Shirt', 'assets/images/icon.png', '€25.00',),
           _buildStoreItem('Festival Cap', 'assets/images/icon.png', '€15.00'),
           _buildStoreItem(
-              'Festival Poster', 'assets/images/icon.png', '€10.00'),
+              'Festival Poster', 'assets/images/icon.png', '€10.00',),
         ],
       ),
     );
@@ -815,7 +842,7 @@ class _EventScreenState extends State<EventScreen> {
           ),
           const SizedBox(height: 10),
           _buildCommunityPost(
-              'User123', 'Had an amazing time at the festival!'),
+              'User123', 'Had an amazing time at the festival!',),
           _buildCommunityPost('User456', 'Can\'t wait for the next event!'),
           _buildCommunityPost('User789', 'Loved the performances!'),
         ],
@@ -856,5 +883,24 @@ class _EventScreenState extends State<EventScreen> {
     }
     // Met à jour l'interface utilisateur en appelant setState
     (context as Element).markNeedsBuild();
+  }
+
+  String formatEventDateRange(DateTime start, DateTime end) {
+    final DateFormat dateFormat = DateFormat('dd MMM yyyy');
+    final DateFormat timeFormat = DateFormat('HH:mm');
+
+    String startDate = dateFormat.format(start);
+    String endDate = dateFormat.format(end);
+    String startTime = timeFormat.format(start);
+    String endTime = timeFormat.format(end);
+
+    return '$startDate $startTime - $endDate $endTime';
+  }
+
+  String _formatTime(String dateTime) {
+    final time = DateTime.parse(dateTime);
+    final formattedTime =
+        "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+    return formattedTime;
   }
 }

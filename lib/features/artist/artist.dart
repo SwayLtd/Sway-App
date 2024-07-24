@@ -12,7 +12,6 @@ import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_artist_service.dart';
 import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/genre/widgets/genre_chip.dart';
-import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
@@ -81,11 +80,15 @@ class _ArtistScreenState extends State<ArtistScreen> {
                     Text(
                       artist.name,
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold,),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 5),
                     FollowersCountWidget(
-                        entityId: widget.artistId, entityType: 'artist',),
+                      entityId: widget.artistId,
+                      entityType: 'artist',
+                    ),
                     const SizedBox(height: 20),
                     const Text(
                       "UPCOMING EVENTS",
@@ -93,7 +96,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    FutureBuilder<List<Event>>(
+                    FutureBuilder<List<Map<String, dynamic>>>(
                       future: EventArtistService()
                           .getEventsByArtistId(widget.artistId),
                       builder: (context, eventSnapshot) {
@@ -110,12 +113,28 @@ class _ArtistScreenState extends State<ArtistScreen> {
                             child: Text('No upcoming events found'),
                           );
                         } else {
-                          final events = eventSnapshot.data!;
+                          final eventEntries = eventSnapshot.data!;
                           return Column(
-                            children: events.map((event) {
+                            children: eventEntries.map((entry) {
+                              final event = entry['event'] as Event;
+                              final startTime = entry['startTime'] as String?;
+                              final endTime = entry['endTime'] as String?;
+                              final status = entry['status'] as String?;
                               return ListTile(
                                 title: Text(event.title),
-                                subtitle: Text(event.dateTime),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('From: ${event.dateTime} to $endTime'),
+                                    if (status != null && status != 'confirmed')
+                                      Text('Status: $status',
+                                          style: TextStyle(
+                                            color: status == 'cancelled'
+                                                ? Colors.red
+                                                : null,
+                                          )),
+                                  ],
+                                ),
                                 onTap: () {
                                   Navigator.push(
                                     context,
