@@ -21,9 +21,12 @@ class EventArtistService {
       final artist = artistMap[entry['artistId']];
       return {
         'artist': artist,
-        'startTime': entry['startTime'],
-        'endTime': entry['endTime'],
-        'status': entry['status']
+        'startTime':
+            (entry['startTime'] is String) ? entry['startTime'] as String : '',
+        'endTime':
+            (entry['endTime'] is String) ? entry['endTime'] as String : '',
+        'status': (entry['status'] as String?) ?? '',
+        'stage': (entry['stage'] as String?) ?? '',
       };
     }).toList();
   }
@@ -45,10 +48,34 @@ class EventArtistService {
       final event = eventMap[entry['eventId']];
       return {
         'event': event,
-        'startTime': entry['startTime'],
-        'endTime': entry['endTime'],
-        'status': entry['status']
+        'startTime':
+            (entry['startTime'] is String) ? entry['startTime'] as String : '',
+        'endTime':
+            (entry['endTime'] is String) ? entry['endTime'] as String : '',
+        'status': (entry['status'] as String?) ?? '',
+        'stage': (entry['stage'] as String?) ?? '',
       };
+    }).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getArtistsByEventIdAndDay(
+      String eventId, DateTime day) async {
+    final List<Map<String, dynamic>> artists =
+        await getArtistsByEventId(eventId);
+    return artists.where((entry) {
+      final startTimeStr = entry['startTime'] as String?;
+      final endTimeStr = entry['endTime'] as String?;
+      if (startTimeStr != null && endTimeStr != null) {
+        try {
+          final startTime = DateTime.parse(startTimeStr);
+          final endTime = DateTime.parse(endTimeStr);
+          return startTime.day == day.day && endTime.day == day.day;
+        } catch (e) {
+          // Handle the invalid date format exception
+          return false;
+        }
+      }
+      return false;
     }).toList();
   }
 }

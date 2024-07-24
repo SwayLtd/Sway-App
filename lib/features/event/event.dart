@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sway_events/core/utils/date_utils.dart';
 import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/common_section_widget.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
@@ -151,7 +150,10 @@ class _EventScreenState extends State<EventScreen> {
           ),
           FutureBuilder<bool>(
             future: UserPermissionService().hasPermissionForCurrentUser(
-                widget.event.id, 'event', 'insight',),
+              widget.event.id,
+              'event',
+              'insight',
+            ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox.shrink();
@@ -243,11 +245,9 @@ class _EventScreenState extends State<EventScreen> {
                             },
                             child: Container(
                               width: 30,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [Colors.transparent, Colors.black54],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
                                 ),
                               ),
                               child: const Icon(
@@ -273,11 +273,9 @@ class _EventScreenState extends State<EventScreen> {
                             },
                             child: Container(
                               width: 30,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [Colors.black54, Colors.transparent],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
                                 ),
                               ),
                               child: const Icon(
@@ -334,11 +332,14 @@ class _EventScreenState extends State<EventScreen> {
             ),
             const SizedBox(height: 5),
             FollowersCountWidget(
-                entityId: widget.event.id, entityType: 'event',),
+              entityId: widget.event.id,
+              entityType: 'event',
+            ),
             const SizedBox(height: 10),
             InfoCard(
-                title: "Date",
-                content: formatEventDateRange(eventDateTime, eventEndDateTime),),
+              title: "Date",
+              content: formatEventDateRange(eventDateTime, eventEndDateTime),
+            ),
             FutureBuilder<Venue?>(
               future: VenueService().getVenueById(widget.event.venue),
               builder: (context, snapshot) {
@@ -420,30 +421,52 @@ class _EventScreenState extends State<EventScreen> {
                                     child: status == 'cancelled'
                                         ? ColorFiltered(
                                             colorFilter: const ColorFilter.mode(
-                                                Colors.grey,
-                                                BlendMode.saturation,),
-                                            child: ImageWithErrorHandler(
-                                              imageUrl: artist.imageUrl,
+                                              Colors.grey,
+                                              BlendMode.saturation,
+                                            ),
+                                            child: Image.network(
+                                              artist.imageUrl,
                                               width: 100,
                                               height: 100,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
+                                                return Icon(
+                                                  Icons.error,
+                                                  size: 100,
+                                                );
+                                              },
                                             ),
                                           )
-                                        : ImageWithErrorHandler(
-                                            imageUrl: artist.imageUrl,
+                                        : Image.network(
+                                            artist.imageUrl,
                                             width: 100,
                                             height: 100,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Icon(
+                                                Icons.error,
+                                                size: 100,
+                                              );
+                                            },
                                           ),
                                   ),
                                   const SizedBox(height: 5),
-                                  Text(artist.name,
-                                      style: TextStyle(
-                                        color: status == 'cancelled'
-                                            ? Colors.grey
-                                            : null,
-                                      ),),
-                                  if (startTime != null && endTime != null)
+                                  Text(
+                                    artist.name,
+                                    style: TextStyle(
+                                      color: status == 'cancelled'
+                                          ? Colors.grey
+                                          : null,
+                                    ),
+                                  ),
+                                  if (widget.event.type == 'festival' &&
+                                      startTime != null &&
+                                      endTime != null)
                                     Text(
-                                        '${_formatTime(startTime)} - ${_formatTime(endTime)}',),
+                                      '${_formatTime(startTime)} - ${_formatTime(endTime)}',
+                                    ),
                                 ],
                               ),
                             ),
@@ -698,54 +721,269 @@ class _EventScreenState extends State<EventScreen> {
   }
 
   Widget _buildTimetable() {
+    bool _isGridView =
+        false; // State variable to toggle between list and grid view
+    List<DateTime> festivalDays = _calculateFestivalDays(widget.event);
+    DateTime selectedDay = festivalDays.first;
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Column(
+          children: [
+            DropdownButton<DateTime>(
+              value: selectedDay,
+              onChanged: (DateTime? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    selectedDay = newValue;
+                  });
+                }
+              },
+              items: festivalDays.map((DateTime date) {
+                return DropdownMenuItem<DateTime>(
+                  value: date,
+                  child: Text(DateFormat('EEEE').format(date)),
+                );
+              }).toList(),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isGridView = !_isGridView;
+                    });
+                  },
+                  child: Text(_isGridView ? 'List View' : 'Grid View'),
+                ),
+              ],
+            ),
+            Expanded(
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: EventArtistService()
+                    .getArtistsByEventIdAndDay(widget.event.id, selectedDay),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No events found'));
+                  } else {
+                    final eventArtists = snapshot.data!;
+                    return _isGridView
+                        ? buildGridView(eventArtists)
+                        : buildListView(eventArtists);
+                  }
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  List<DateTime> _calculateFestivalDays(Event event) {
+    DateTime startDate = DateTime.parse(event.dateTime);
+    DateTime endDate = DateTime.parse(event.endDateTime);
+    List<DateTime> days = [];
+    while (startDate.isBefore(endDate)) {
+      days.add(startDate);
+      startDate = startDate.add(Duration(days: 1));
+    }
+    days.add(endDate); // To include the last day as well
+    return days;
+  }
+
+  Widget buildListView(List<Map<String, dynamic>> eventArtists) {
+    Map<String, List<Map<String, dynamic>>> artistsByStage = {};
+    for (var entry in eventArtists) {
+      final stage = entry['stage'] as String?;
+      if (stage != null) {
+        if (!artistsByStage.containsKey(stage)) {
+          artistsByStage[stage] = [];
+        }
+        artistsByStage[stage]!.add(entry);
+      }
+    }
+
+    return ListView(
+      children: artistsByStage.entries.map((stageEntry) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              stageEntry.key,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Column(
+              children: stageEntry.value.map((entry) {
+                final artist = entry['artist'] as Artist;
+                final startTime = entry['startTime'] as String?;
+                final endTime = entry['endTime'] as String?;
+                final status = entry['status'] as String?;
+
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ArtistScreen(artistId: artist.id),
+                      ),
+                    );
+                  },
+                  child: ListTile(
+                    title: Text(
+                      artist.name,
+                      style: TextStyle(
+                        color: status == 'cancelled' ? Colors.grey : null,
+                      ),
+                    ),
+                    subtitle: startTime != null && endTime != null
+                        ? Text(
+                            '${_formatTime(startTime)} - ${_formatTime(endTime)}')
+                        : null,
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget buildGridView(List<Map<String, dynamic>> eventArtists) {
+    Map<String, List<Map<String, dynamic>>> artistsByStage = {};
+    for (var entry in eventArtists) {
+      final stage = entry['stage'] as String?;
+      if (stage != null) {
+        if (!artistsByStage.containsKey(stage)) {
+          artistsByStage[stage] = [];
+        }
+        artistsByStage[stage]!.add(entry);
+      }
+    }
+
+    // Définir les heures de début et de fin du festival
+    final DateTime festivalStartTime = DateTime(2024, 9, 1, 14, 0); // 14h
+    final DateTime festivalEndTime = DateTime(2024, 9, 2, 4, 0); // 4h du matin
+
+    final List<DateTime> timeSlots =
+        _generateTimeSlots(festivalStartTime, festivalEndTime);
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      scrollDirection: Axis.vertical,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Timetable',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          _buildTimetableDay('Day 1', [
-            _buildTimetableEntry('10:00 AM', 'Opening Ceremony'),
-            _buildTimetableEntry('11:00 AM', 'DJ Set by Artist A'),
-            _buildTimetableEntry('01:00 PM', 'Live Performance by Artist B'),
-          ]),
-          const SizedBox(height: 20),
-          _buildTimetableDay('Day 2', [
-            _buildTimetableEntry('10:00 AM', 'Morning Yoga'),
-            _buildTimetableEntry('11:00 AM', 'DJ Set by Artist C'),
-            _buildTimetableEntry('01:00 PM', 'Live Performance by Artist D'),
-          ]),
-        ],
+        children: artistsByStage.entries.map((stageEntry) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                stageEntry.key,
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: timeSlots.map((slot) {
+                    final artistEntry = stageEntry.value.firstWhere(
+                      (entry) {
+                        final startTimeStr = entry['startTime'] as String?;
+                        final endTimeStr = entry['endTime'] as String?;
+                        if (startTimeStr != null && endTimeStr != null) {
+                          final startTime = DateTime.parse(startTimeStr);
+                          final endTime = DateTime.parse(endTimeStr);
+                          return slot.isAtSameMomentAs(startTime) ||
+                              (slot.isAfter(startTime) &&
+                                  slot.isBefore(endTime));
+                        }
+                        return false;
+                      },
+                      orElse: () => {},
+                    );
+                    if (artistEntry.isNotEmpty) {
+                      final artist = artistEntry['artist'] as Artist;
+                      final startTime = artistEntry['startTime'] as String?;
+                      final endTime = artistEntry['endTime'] as String?;
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ArtistScreen(artistId: artist.id),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.all(4.0),
+                          padding: const EdgeInsets.all(8.0),
+                          color: Theme.of(context).cardColor,
+                          child: Column(
+                            children: [
+                              Text(
+                                artist.name,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: artistEntry['status'] == 'cancelled'
+                                      ? Colors.grey
+                                      : null,
+                                ),
+                              ),
+                              if (startTime != null && endTime != null)
+                                Text(
+                                  '${_formatTime(startTime)} - ${_formatTime(endTime)}',
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else {
+                      return Container(
+                        margin: const EdgeInsets.all(4.0),
+                        padding: const EdgeInsets.all(8.0),
+                        color: Theme.of(context).cardColor,
+                        child: Column(
+                          children: [
+                            Text(
+                              '',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              '${_formatTime(slot.toIso8601String())}',
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  }).toList(),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
 
-  Widget _buildTimetableDay(String day, List<Widget> entries) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          day,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        Column(children: entries),
-      ],
-    );
-  }
+  List<DateTime> _generateTimeSlots(DateTime start, DateTime end) {
+    List<DateTime> slots = [];
+    DateTime current = start;
 
-  Widget _buildTimetableEntry(String time, String event) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(time),
-        Text(event),
-      ],
-    );
+    while (current.isBefore(end) || current.isAtSameMomentAs(end)) {
+      slots.add(current);
+      current = current.add(Duration(hours: 1));
+    }
+
+    return slots;
   }
 
   Widget _buildWallet() {
@@ -794,10 +1032,16 @@ class _EventScreenState extends State<EventScreen> {
           ),
           const SizedBox(height: 10),
           _buildStoreItem(
-              'Festival T-Shirt', 'assets/images/icon.png', '€25.00',),
+            'Festival T-Shirt',
+            'assets/images/icon.png',
+            '€25.00',
+          ),
           _buildStoreItem('Festival Cap', 'assets/images/icon.png', '€15.00'),
           _buildStoreItem(
-              'Festival Poster', 'assets/images/icon.png', '€10.00',),
+            'Festival Poster',
+            'assets/images/icon.png',
+            '€10.00',
+          ),
         ],
       ),
     );
@@ -842,8 +1086,10 @@ class _EventScreenState extends State<EventScreen> {
           ),
           const SizedBox(height: 10),
           _buildCommunityPost(
-              'User123', 'Had an amazing time at the festival!',),
-          _buildCommunityPost('User456', 'Can\'t wait for the next event!'),
+            'User123',
+            'Had an amazing time at the festival!',
+          ),
+          _buildCommunityPost('User456', "Can't wait for the next event!"),
           _buildCommunityPost('User789', 'Loved the performances!'),
         ],
       ),
@@ -889,10 +1135,10 @@ class _EventScreenState extends State<EventScreen> {
     final DateFormat dateFormat = DateFormat('dd MMM yyyy');
     final DateFormat timeFormat = DateFormat('HH:mm');
 
-    String startDate = dateFormat.format(start);
-    String endDate = dateFormat.format(end);
-    String startTime = timeFormat.format(start);
-    String endTime = timeFormat.format(end);
+    final String startDate = dateFormat.format(start);
+    final String endDate = dateFormat.format(end);
+    final String startTime = timeFormat.format(start);
+    final String endTime = timeFormat.format(end);
 
     return '$startDate $startTime - $endDate $endTime';
   }
