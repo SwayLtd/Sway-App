@@ -1,7 +1,7 @@
 # Sway Events
 
 ## Project Description
-Sway Events is a multi-platform event management application that helps users discover, organize, and manage events effortlessly. Sway Events aims to provide a seamless and intuitive experience for both event attendees and organizers.
+Sway Events is a mobile event management application that helps users discover, organize, and manage events effortlessly. Sway Events aims to provide a seamless and intuitive experience for both event attendees and organizers.
 
 ## Screenshots
 Coming soon
@@ -52,4 +52,4 @@ Coming soon
 See the [open issues](https://github.com/Sway/Sway-Events/issues) for a list of proposed features (and known issues).
 
 ## Multi-platform
-Currently under development for Android, iOS, and web. A MacOS, iPadOS, Windows version will be adapted in the future.
+Currently under development for Android and iOS. A Web, MacOS, iPadOS, Windows version will be adapted in the future.
