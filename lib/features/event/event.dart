@@ -723,82 +723,139 @@ class _EventScreenState extends State<EventScreen> {
   Widget _buildTimetable() {
     bool _isGridView =
         false; // State variable to toggle between list and grid view
-    List<DateTime> festivalDays = _calculateFestivalDays(widget.event);
-    DateTime selectedDay = festivalDays.first;
+    DateTime selectedDay = DateTime.now(); // Default selected day
 
     return StatefulBuilder(
       builder: (context, setState) {
-        return Column(
-          children: [
-            DropdownButton<DateTime>(
-              value: selectedDay,
-              onChanged: (DateTime? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    selectedDay = newValue;
-                  });
-                }
-              },
-              items: festivalDays.map((DateTime date) {
-                return DropdownMenuItem<DateTime>(
-                  value: date,
-                  child: Text(DateFormat('EEEE').format(date)),
-                );
-              }).toList(),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _isGridView = !_isGridView;
-                    });
-                  },
-                  child: Text(_isGridView ? 'List View' : 'Grid View'),
-                ),
-              ],
-            ),
-            Expanded(
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: EventArtistService()
-                    .getArtistsByEventIdAndDay(widget.event.id, selectedDay),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No events found'));
-                  } else {
-                    final eventArtists = snapshot.data!;
-                    return _isGridView
-                        ? buildGridView(eventArtists)
-                        : buildListView(eventArtists);
-                  }
-                },
-              ),
-            ),
-          ],
+        return FutureBuilder<List<DateTime>>(
+          future: _calculateFestivalDays(widget.event),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No festival days found'));
+            } else {
+              List<DateTime> festivalDays = snapshot.data!;
+              if (!festivalDays.contains(selectedDay)) {
+                selectedDay = festivalDays.first;
+              }
+
+              // Exclure la date du 5 septembre
+              festivalDays = festivalDays
+                  .where((date) => date.isBefore(DateTime(2024, 9, 5)))
+                  .toList();
+
+              return Column(
+                children: [
+                  DropdownButton<DateTime>(
+                    value: selectedDay,
+                    onChanged: (DateTime? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedDay = newValue;
+                        });
+                      }
+                    },
+                    items: festivalDays.map((DateTime date) {
+                      return DropdownMenuItem<DateTime>(
+                        value: date,
+                        child: Text(DateFormat('EEEE, MMM d').format(date)),
+                      );
+                    }).toList(),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _isGridView = !_isGridView;
+                          });
+                        },
+                        child: Text(_isGridView ? 'List View' : 'Grid View'),
+                      ),
+                    ],
+                  ),
+                  Expanded(
+                    child: FutureBuilder<List<Map<String, dynamic>>>(
+                      future: EventArtistService().getArtistsByEventIdAndDay(
+                        widget.event.id,
+                        selectedDay,
+                      ),
+                      builder: (context, artistSnapshot) {
+                        if (artistSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (artistSnapshot.hasError) {
+                          return Center(
+                              child: Text('Error: ${artistSnapshot.error}'));
+                        } else if (!artistSnapshot.hasData ||
+                            artistSnapshot.data!.isEmpty) {
+                          return const Center(child: Text('No events found'));
+                        } else {
+                          final eventArtists = artistSnapshot.data!;
+                          return _isGridView
+                              ? buildGridView(eventArtists, selectedDay)
+                              : buildListView(eventArtists);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }
+          },
         );
       },
     );
   }
 
-  List<DateTime> _calculateFestivalDays(Event event) {
-    DateTime startDate = DateTime.parse(event.dateTime);
-    DateTime endDate = DateTime.parse(event.endDateTime);
-    List<DateTime> days = [];
-    while (startDate.isBefore(endDate)) {
-      days.add(startDate);
-      startDate = startDate.add(Duration(days: 1));
+  Future<List<DateTime>> _calculateFestivalDays(Event event) async {
+    final List<Map<String, dynamic>> artists =
+        await EventArtistService().getArtistsByEventId(event.id);
+
+    DateTime? firstArtistStart;
+    DateTime? lastArtistEnd;
+
+    for (var entry in artists) {
+      final startTimeStr = entry['startTime'] as String?;
+      final endTimeStr = entry['endTime'] as String?;
+      if (startTimeStr != null && endTimeStr != null) {
+        final startTime = DateTime.parse(startTimeStr);
+        final endTime = DateTime.parse(endTimeStr);
+        if (firstArtistStart == null || startTime.isBefore(firstArtistStart)) {
+          firstArtistStart = startTime;
+        }
+        if (lastArtistEnd == null || endTime.isAfter(lastArtistEnd)) {
+          lastArtistEnd = endTime;
+        }
+      }
     }
-    days.add(endDate); // To include the last day as well
+
+    if (firstArtistStart == null || lastArtistEnd == null) {
+      // Return the event dates as fallback
+      firstArtistStart = DateTime.parse(event.dateTime);
+      lastArtistEnd = DateTime.parse(event.endDateTime);
+    }
+
+    List<DateTime> days = [];
+
+    DateTime currentDay = DateTime(
+        firstArtistStart.year, firstArtistStart.month, firstArtistStart.day);
+    while (currentDay.isBefore(lastArtistEnd) ||
+        currentDay.isAtSameMomentAs(lastArtistEnd)) {
+      days.add(currentDay);
+      currentDay = currentDay.add(Duration(days: 1));
+    }
+
     return days;
   }
 
   Widget buildListView(List<Map<String, dynamic>> eventArtists) {
-    Map<String, List<Map<String, dynamic>>> artistsByStage = {};
+    final Map<String, List<Map<String, dynamic>>> artistsByStage = {};
     for (var entry in eventArtists) {
       final stage = entry['stage'] as String?;
       if (stage != null) {
@@ -808,6 +865,10 @@ class _EventScreenState extends State<EventScreen> {
         artistsByStage[stage]!.add(entry);
       }
     }
+
+    artistsByStage.forEach((stage, artists) {
+      print('Stage: $stage, Artists count: ${artists.length}');
+    });
 
     return ListView(
       children: artistsByStage.entries.map((stageEntry) {
@@ -824,6 +885,9 @@ class _EventScreenState extends State<EventScreen> {
                 final startTime = entry['startTime'] as String?;
                 final endTime = entry['endTime'] as String?;
                 final status = entry['status'] as String?;
+
+                print(
+                    'Artist: ${artist.name}, Stage: ${stageEntry.key}, StartTime: $startTime, EndTime: $endTime, Status: $status');
 
                 return GestureDetector(
                   onTap: () {
@@ -855,7 +919,39 @@ class _EventScreenState extends State<EventScreen> {
     );
   }
 
-  Widget buildGridView(List<Map<String, dynamic>> eventArtists) {
+  Widget buildGridView(
+      List<Map<String, dynamic>> eventArtists, DateTime selectedDay) {
+    // Define start and end times based on the earliest start and latest end times of artists
+    DateTime? earliestStartTime;
+    DateTime? latestEndTime;
+
+    for (var entry in eventArtists) {
+      final startTimeStr = entry['startTime'] as String?;
+      final endTimeStr = entry['endTime'] as String?;
+      if (startTimeStr != null && endTimeStr != null) {
+        final startTime = DateTime.tryParse(startTimeStr);
+        final endTime = DateTime.tryParse(endTimeStr);
+        if (startTime != null && endTime != null) {
+          if (earliestStartTime == null ||
+              startTime.isBefore(earliestStartTime)) {
+            earliestStartTime = startTime;
+          }
+          if (latestEndTime == null || endTime.isAfter(latestEndTime)) {
+            latestEndTime = endTime;
+          }
+        }
+      }
+    }
+
+    if (earliestStartTime == null || latestEndTime == null) {
+      return const Center(child: Text('No events found'));
+    }
+
+    final startHour = earliestStartTime.hour;
+    final endHour = latestEndTime.hour < startHour
+        ? latestEndTime.hour + 24
+        : latestEndTime.hour;
+
     Map<String, List<Map<String, dynamic>>> artistsByStage = {};
     for (var entry in eventArtists) {
       final stage = entry['stage'] as String?;
@@ -867,123 +963,103 @@ class _EventScreenState extends State<EventScreen> {
       }
     }
 
-    // Définir les heures de début et de fin du festival
-    final DateTime festivalStartTime = DateTime(2024, 9, 1, 14, 0); // 14h
-    final DateTime festivalEndTime = DateTime(2024, 9, 2, 4, 0); // 4h du matin
-
-    final List<DateTime> timeSlots =
-        _generateTimeSlots(festivalStartTime, festivalEndTime);
+    List<int> hours = [];
+    for (int hour = startHour; hour <= endHour; hour++) {
+      hours.add(hour % 24);
+    }
 
     return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
+      scrollDirection: Axis.horizontal,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: artistsByStage.entries.map((stageEntry) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                stageEntry.key,
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: timeSlots.map((slot) {
+        children: [
+          Row(
+            children: hours.map((hour) {
+              return Container(
+                width: 100,
+                alignment: Alignment.center,
+                child: Text('${hour.toString().padLeft(2, '0')}:00'),
+              );
+            }).toList(),
+          ),
+          ...artistsByStage.entries.map((stageEntry) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  stageEntry.key,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: hours.map((hour) {
+                    final slot = DateTime(selectedDay.year, selectedDay.month,
+                        selectedDay.day, hour % 24);
+
                     final artistEntry = stageEntry.value.firstWhere(
                       (entry) {
                         final startTimeStr = entry['startTime'] as String?;
                         final endTimeStr = entry['endTime'] as String?;
-                        if (startTimeStr != null && endTimeStr != null) {
-                          final startTime = DateTime.parse(startTimeStr);
-                          final endTime = DateTime.parse(endTimeStr);
-                          return slot.isAtSameMomentAs(startTime) ||
-                              (slot.isAfter(startTime) &&
-                                  slot.isBefore(endTime));
+                        if (startTimeStr == null || endTimeStr == null) {
+                          return false;
                         }
-                        return false;
+                        final startTime = DateTime.tryParse(startTimeStr);
+                        final endTime = DateTime.tryParse(endTimeStr);
+                        if (startTime == null || endTime == null) {
+                          return false;
+                        }
+                        return slot.isAtSameMomentAs(startTime) ||
+                            (slot.isAfter(startTime) &&
+                                slot.isBefore(endTime)) ||
+                            (slot.isBefore(startTime) &&
+                                slot
+                                    .add(Duration(hours: 24))
+                                    .isBefore(endTime));
                       },
-                      orElse: () => {},
+                      orElse: () => <String, dynamic>{},
                     );
-                    if (artistEntry.isNotEmpty) {
-                      final artist = artistEntry['artist'] as Artist;
-                      final startTime = artistEntry['startTime'] as String?;
-                      final endTime = artistEntry['endTime'] as String?;
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ArtistScreen(artistId: artist.id),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.all(4.0),
-                          padding: const EdgeInsets.all(8.0),
-                          color: Theme.of(context).cardColor,
-                          child: Column(
-                            children: [
-                              Text(
-                                artist.name,
+
+                    return GestureDetector(
+                      onTap: artistEntry.isNotEmpty
+                          ? () {
+                              final artist = artistEntry['artist'] as Artist;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ArtistScreen(artistId: artist.id),
+                                ),
+                              );
+                            }
+                          : null,
+                      child: Container(
+                        width: 100,
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(8.0),
+                        color: artistEntry.isNotEmpty
+                            ? (artistEntry['status'] == 'cancelled'
+                                ? Colors.grey
+                                : Theme.of(context).primaryColorLight)
+                            : Colors.white,
+                        child: artistEntry.isNotEmpty
+                            ? Text(
+                                (artistEntry['artist'] as Artist).name,
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
                                   color: artistEntry['status'] == 'cancelled'
                                       ? Colors.grey
-                                      : null,
+                                      : Colors.black,
                                 ),
-                              ),
-                              if (startTime != null && endTime != null)
-                                Text(
-                                  '${_formatTime(startTime)} - ${_formatTime(endTime)}',
-                                ),
-                            ],
-                          ),
-                        ),
-                      );
-                    } else {
-                      return Container(
-                        margin: const EdgeInsets.all(4.0),
-                        padding: const EdgeInsets.all(8.0),
-                        color: Theme.of(context).cardColor,
-                        child: Column(
-                          children: [
-                            Text(
-                              '',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            Text(
-                              '${_formatTime(slot.toIso8601String())}',
-                            ),
-                          ],
-                        ),
-                      );
-                    }
+                              )
+                            : null,
+                      ),
+                    );
                   }).toList(),
                 ),
-              ),
-            ],
-          );
-        }).toList(),
+              ],
+            );
+          }).toList(),
+        ],
       ),
     );
-  }
-
-  List<DateTime> _generateTimeSlots(DateTime start, DateTime end) {
-    List<DateTime> slots = [];
-    DateTime current = start;
-
-    while (current.isBefore(end) || current.isAtSameMomentAs(end)) {
-      slots.add(current);
-      current = current.add(Duration(hours: 1));
-    }
-
-    return slots;
   }
 
   Widget _buildWallet() {

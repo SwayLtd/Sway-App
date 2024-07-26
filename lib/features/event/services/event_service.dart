@@ -92,4 +92,15 @@ class EventService {
     final events = await getEvents();
     return events.where((event) => eventIds.contains(event.id)).toList();
   }
+
+  Future<DateTime?> getFestivalStartTime(String eventId) async {
+  final String response = await rootBundle.loadString('assets/databases/events.json');
+  final List<dynamic> eventsJson = json.decode(response) as List<dynamic>;
+
+  final event = eventsJson.firstWhere((event) => event['id'] == eventId, orElse: () => null);
+  if (event != null) {
+    return DateTime.parse(event['dateTime'] as String);
+  }
+  return null;
+}
 }
