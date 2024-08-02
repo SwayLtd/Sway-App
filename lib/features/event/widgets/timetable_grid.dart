@@ -2,9 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
+import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 
 Widget buildGridView(
+  BuildContext context, // Ajout du BuildContext ici
   List<Map<String, dynamic>> eventArtists,
   DateTime selectedDay,
 ) {
@@ -155,51 +158,111 @@ Widget buildGridView(
                       SizedBox(
                         width: 200 * durationInHours,
                         height: 100,
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            side: const BorderSide(color: Colors.amber),
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        artist.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}',
-                                        style: const TextStyle(
-                                          fontSize: 12.0, // Reduced font size
-                                          color: Colors.grey, // Grey color
-                                        ),
-                                        overflow: TextOverflow
-                                            .ellipsis, // Prevent line break
-                                      ),
-                                    ],
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ArtistScreen(artistId: artist.id),
+                              ),
+                            );
+                          },
+                          child: FutureBuilder<bool>(
+                            future: UserFollowArtistService()
+                                .isFollowingArtist(artist.id),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Card(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 8.0,),
+                                    child: Row(
+                                      children: [
+                                        CircularProgressIndicator(),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.add_alert_outlined,
-                                    size: 20.0,
-                                  ), // Updated icon and size
-                                  onPressed: () {
-                                    // Action to handle when the alert icon is pressed
-                                  },
-                                ),
-                              ],
-                            ),
+                                );
+                              } else if (snapshot.hasError) {
+                                return const Card(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 8.0,),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.error, color: Colors.red),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                final bool isFollowing = snapshot.data ?? false;
+                                return Card(
+                                  color: isFollowing
+                                      ? Theme.of(context).primaryColor
+                                      : null, // Changer la couleur si l'utilisateur suit l'artiste
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(color: Theme.of(context).primaryColor),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                artist.name,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isFollowing
+                                                      ? Colors.black
+                                                      : Theme.of(context).textTheme.bodyMedium?.color, // Changer la couleur du texte si l'utilisateur suit l'artiste
+                                                ),
+                                              ),
+                                              Text(
+                                                '${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                      12.0, // Reduced font size
+                                                  color: isFollowing
+                                                      ? Colors.grey[800]
+                                                      : Colors
+                                                          .grey, // Changer la couleur si l'utilisateur suit l'artiste
+                                                ),
+                                                overflow: TextOverflow
+                                                    .ellipsis, // Prevent line break
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.add_alert_outlined,
+                                            size: 20.0,
+                                            color: isFollowing
+                                                ? Colors.black
+                                                : Colors
+                                                    .white, // Changer la couleur de l'icône si l'utilisateur suit l'artiste
+                                          ),
+                                          onPressed: () {
+                                            // Action to handle when the alert icon is pressed
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                           ),
                         ),
                       ),

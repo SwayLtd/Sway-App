@@ -230,7 +230,7 @@ class _EventScreenState extends State<EventScreen> {
                           ),
                         ],
                       ),
-                      if (_scrollController.hasClients &&
+                      /*if (_scrollController.hasClients &&
                           _scrollController.position.maxScrollExtent > 0)
                         Positioned(
                           right: 0,
@@ -285,7 +285,7 @@ class _EventScreenState extends State<EventScreen> {
                               ),
                             ),
                           ),
-                        ),
+                        ),*/
                     ],
                   ),
                 ),
@@ -722,7 +722,7 @@ class _EventScreenState extends State<EventScreen> {
   }
 
   Widget _buildTimetable() {
-    bool _isGridView =
+    bool isGridView =
         false; // State variable to toggle between list and grid view
     DateTime selectedDay = DateTime.now(); // Default selected day
 
@@ -750,59 +750,79 @@ class _EventScreenState extends State<EventScreen> {
 
               return Column(
                 children: [
-                  DropdownButton<DateTime>(
-                    value: selectedDay,
-                    onChanged: (DateTime? newValue) {
-                      if (newValue != null) {
-                        setState(() {
-                          selectedDay = newValue;
-                        });
-                      }
-                    },
-                    items: festivalDays.map((DateTime date) {
-                      return DropdownMenuItem<DateTime>(
-                        value: date,
-                        child: Text(DateFormat('EEEE, MMM d').format(date)),
-                      );
-                    }).toList(),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _isGridView = !_isGridView;
-                          });
-                        },
-                        child: Text(_isGridView ? 'List View' : 'Grid View'),
-                      ),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        top: 16.0), // Add top padding here
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 16.0), // Add left padding here
+                          child: DropdownButton<DateTime>(
+                            value: selectedDay,
+                            onChanged: (DateTime? newValue) {
+                              if (newValue != null) {
+                                setState(() {
+                                  selectedDay = newValue;
+                                });
+                              }
+                            },
+                            items: festivalDays.map((DateTime date) {
+                              return DropdownMenuItem<DateTime>(
+                                value: date,
+                                child: Text(
+                                    DateFormat('EEEE, MMM d').format(date)),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              right: 16.0), // Add right padding here
+                          child: IconButton(
+                            icon: Icon(
+                                isGridView ? Icons.view_list : Icons.grid_view),
+                            onPressed: () {
+                              setState(() {
+                                isGridView = !isGridView;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   Expanded(
-                    child: FutureBuilder<List<Map<String, dynamic>>>(
-                      future: EventArtistService().getArtistsByEventIdAndDay(
-                        widget.event.id,
-                        selectedDay,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          top:
+                              16.0), // Add top padding here for ListView/GridView
+                      child: FutureBuilder<List<Map<String, dynamic>>>(
+                        future: EventArtistService().getArtistsByEventIdAndDay(
+                          widget.event.id,
+                          selectedDay,
+                        ),
+                        builder: (context, artistSnapshot) {
+                          if (artistSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (artistSnapshot.hasError) {
+                            return Center(
+                                child: Text('Error: ${artistSnapshot.error}'));
+                          } else if (!artistSnapshot.hasData ||
+                              artistSnapshot.data!.isEmpty) {
+                            return const Center(child: Text('No events found'));
+                          } else {
+                            final eventArtists = artistSnapshot.data!;
+                            return isGridView
+                                ? buildGridView(
+                                    context, eventArtists, selectedDay)
+                                : buildListView(eventArtists);
+                          }
+                        },
                       ),
-                      builder: (context, artistSnapshot) {
-                        if (artistSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        } else if (artistSnapshot.hasError) {
-                          return Center(
-                              child: Text('Error: ${artistSnapshot.error}'));
-                        } else if (!artistSnapshot.hasData ||
-                            artistSnapshot.data!.isEmpty) {
-                          return const Center(child: Text('No events found'));
-                        } else {
-                          final eventArtists = artistSnapshot.data!;
-                          return _isGridView
-                              ? buildGridView(eventArtists, selectedDay)
-                              : buildListView(eventArtists);
-                        }
-                      },
                     ),
                   ),
                 ],
@@ -871,52 +891,62 @@ class _EventScreenState extends State<EventScreen> {
       print('Stage: $stage, Artists count: ${artists.length}');
     });
 
-    return ListView(
-      children: artistsByStage.entries.map((stageEntry) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              stageEntry.key,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Column(
-              children: stageEntry.value.map((entry) {
-                final artist = entry['artist'] as Artist;
-                final startTime = entry['startTime'] as String?;
-                final endTime = entry['endTime'] as String?;
-                final status = entry['status'] as String?;
+    return Padding(
+      padding:
+          const EdgeInsets.only(top: 16.0), // Add top padding here for ListView
+      child: ListView(
+        children: artistsByStage.entries.map((stageEntry) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 16.0), // Add left padding here for stage names
+                child: Text(
+                  stageEntry.key,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Column(
+                children: stageEntry.value.map((entry) {
+                  final artist = entry['artist'] as Artist;
+                  final startTime = entry['startTime'] as String?;
+                  final endTime = entry['endTime'] as String?;
+                  final status = entry['status'] as String?;
 
-                print(
-                    'Artist: ${artist.name}, Stage: ${stageEntry.key}, StartTime: $startTime, EndTime: $endTime, Status: $status');
+                  print(
+                      'Artist: ${artist.name}, Stage: ${stageEntry.key}, StartTime: $startTime, EndTime: $endTime, Status: $status');
 
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ArtistScreen(artistId: artist.id),
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ArtistScreen(artistId: artist.id),
+                        ),
+                      );
+                    },
+                    child: ListTile(
+                      title: Text(
+                        artist.name,
+                        style: TextStyle(
+                          color: status == 'cancelled' ? Colors.grey : null,
+                        ),
                       ),
-                    );
-                  },
-                  child: ListTile(
-                    title: Text(
-                      artist.name,
-                      style: TextStyle(
-                        color: status == 'cancelled' ? Colors.grey : null,
-                      ),
+                      subtitle: startTime != null && endTime != null
+                          ? Text(
+                              '${_formatTime(startTime)} - ${_formatTime(endTime)}')
+                          : null,
                     ),
-                    subtitle: startTime != null && endTime != null
-                        ? Text(
-                            '${_formatTime(startTime)} - ${_formatTime(endTime)}')
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        );
-      }).toList(),
+                  );
+                }).toList(),
+              ),
+            ],
+          );
+        }).toList(),
+      ),
     );
   }
 
