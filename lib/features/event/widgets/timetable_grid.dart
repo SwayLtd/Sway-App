@@ -1,5 +1,3 @@
-// timetable_grid.dart
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sway_events/features/artist/artist.dart';
@@ -7,7 +5,7 @@ import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 
 Widget buildGridView(
-  BuildContext context, // Ajout du BuildContext ici
+  BuildContext context,
   List<Map<String, dynamic>> eventArtists,
   DateTime selectedDay,
 ) {
@@ -176,8 +174,8 @@ Widget buildGridView(
                                   ConnectionState.waiting) {
                                 return const Card(
                                   child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8.0,),
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 8.0),
                                     child: Row(
                                       children: [
                                         CircularProgressIndicator(),
@@ -188,8 +186,8 @@ Widget buildGridView(
                               } else if (snapshot.hasError) {
                                 return const Card(
                                   child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8.0,),
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 8.0),
                                     child: Row(
                                       children: [
                                         Icon(Icons.error, color: Colors.red),
@@ -204,12 +202,15 @@ Widget buildGridView(
                                       ? Theme.of(context).primaryColor
                                       : null, // Changer la couleur si l'utilisateur suit l'artiste
                                   shape: RoundedRectangleBorder(
-                                    side: BorderSide(color: Theme.of(context).primaryColor),
+                                    side: BorderSide(
+                                      color: Theme.of(context).primaryColor,
+                                    ),
                                     borderRadius: BorderRadius.circular(10.0),
                                   ),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0,),
+                                      horizontal: 8.0,
+                                    ),
                                     child: Row(
                                       children: [
                                         Expanded(
@@ -225,7 +226,10 @@ Widget buildGridView(
                                                   fontWeight: FontWeight.bold,
                                                   color: isFollowing
                                                       ? Colors.black
-                                                      : Theme.of(context).textTheme.bodyMedium?.color, // Changer la couleur du texte si l'utilisateur suit l'artiste
+                                                      : Theme.of(context)
+                                                          .textTheme
+                                                          .bodyMedium
+                                                          ?.color, // Changer la couleur du texte si l'utilisateur suit l'artiste
                                                 ),
                                               ),
                                               Text(
@@ -289,12 +293,9 @@ Widget buildGridView(
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 60.0),
               child: Container(
-                //height: 100,
                 alignment: Alignment.centerLeft,
                 color: Colors.white, // Background color for stage names
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0,
-                ), // Padding around the stage names
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Text(
                   stage,
                   style: const TextStyle(

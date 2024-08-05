@@ -10,15 +10,19 @@ import 'package:sway_events/features/event/screens/edit_event_screen.dart';
 import 'package:sway_events/features/event/services/event_artist_service.dart';
 import 'package:sway_events/features/event/services/event_genre_service.dart';
 import 'package:sway_events/features/event/services/event_organizer_service.dart';
-import 'package:sway_events/features/event/widgets/timetable_grid.dart';
+import 'package:sway_events/features/event/utils/timetable_utils.dart';
 import 'package:sway_events/features/event/widgets/event_appbar_item.dart';
 import 'package:sway_events/features/event/widgets/info_card.dart';
+import 'package:sway_events/features/event/widgets/timetable.dart';
+import 'package:sway_events/features/event/widgets/timetable_grid.dart';
+import 'package:sway_events/features/event/widgets/timetable_list.dart';
 import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/features/insight/insight.dart';
 import 'package:sway_events/features/organizer/models/organizer_model.dart';
 import 'package:sway_events/features/organizer/organizer.dart';
 import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
@@ -39,6 +43,12 @@ class EventScreen extends StatefulWidget {
 class _EventScreenState extends State<EventScreen> {
   late ScrollController _scrollController;
   int _selectedTabIndex = 0;
+  bool isGridView = false;
+  DateTime selectedDay = DateTime.now();
+  List<String> selectedStages = [];
+  bool showFollowedArtistsOnly = false;
+  List<Map<String, dynamic>> eventArtists = [];
+  List<String> allStages = [];
 
   @override
   void initState() {
@@ -230,62 +240,6 @@ class _EventScreenState extends State<EventScreen> {
                           ),
                         ],
                       ),
-                      /*if (_scrollController.hasClients &&
-                          _scrollController.position.maxScrollExtent > 0)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: GestureDetector(
-                            onTap: () {
-                              _scrollController.animateTo(
-                                _scrollController.position.maxScrollExtent,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            },
-                            child: Container(
-                              width: 30,
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [Colors.transparent, Colors.black54],
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      if (_scrollController.hasClients &&
-                          _scrollController.offset > 0)
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: GestureDetector(
-                            onTap: () {
-                              _scrollController.animateTo(
-                                0,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            },
-                            child: Container(
-                              width: 30,
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [Colors.black54, Colors.transparent],
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back_ios,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),*/
                     ],
                   ),
                 ),
@@ -296,7 +250,7 @@ class _EventScreenState extends State<EventScreen> {
         index: _selectedTabIndex,
         children: [
           _buildOverview(),
-          _buildTimetable(),
+          TimetableWidget(event: widget.event),
           _buildWallet(),
           _buildStore(),
           _buildMap(),
@@ -466,7 +420,7 @@ class _EventScreenState extends State<EventScreen> {
                                       startTime != null &&
                                       endTime != null)
                                     Text(
-                                      '${_formatTime(startTime)} - ${_formatTime(endTime)}',
+                                      '${formatTime(startTime)} - ${formatTime(endTime)}',
                                     ),
                                 ],
                               ),
@@ -721,235 +675,6 @@ class _EventScreenState extends State<EventScreen> {
     );
   }
 
-  Widget _buildTimetable() {
-    bool isGridView =
-        false; // State variable to toggle between list and grid view
-    DateTime selectedDay = DateTime.now(); // Default selected day
-
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return FutureBuilder<List<DateTime>>(
-          future: _calculateFestivalDays(widget.event),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('No festival days found'));
-            } else {
-              List<DateTime> festivalDays = snapshot.data!;
-              if (!festivalDays.contains(selectedDay)) {
-                selectedDay = festivalDays.first;
-              }
-
-              // Exclure la date du 5 septembre
-              festivalDays = festivalDays
-                  .where((date) => date.isBefore(DateTime(2024, 9, 5)))
-                  .toList();
-
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        top: 16.0), // Add top padding here
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 16.0), // Add left padding here
-                          child: DropdownButton<DateTime>(
-                            value: selectedDay,
-                            onChanged: (DateTime? newValue) {
-                              if (newValue != null) {
-                                setState(() {
-                                  selectedDay = newValue;
-                                });
-                              }
-                            },
-                            items: festivalDays.map((DateTime date) {
-                              return DropdownMenuItem<DateTime>(
-                                value: date,
-                                child: Text(
-                                    DateFormat('EEEE, MMM d').format(date)),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              right: 16.0), // Add right padding here
-                          child: IconButton(
-                            icon: Icon(
-                                isGridView ? Icons.view_list : Icons.grid_view),
-                            onPressed: () {
-                              setState(() {
-                                isGridView = !isGridView;
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          top:
-                              16.0), // Add top padding here for ListView/GridView
-                      child: FutureBuilder<List<Map<String, dynamic>>>(
-                        future: EventArtistService().getArtistsByEventIdAndDay(
-                          widget.event.id,
-                          selectedDay,
-                        ),
-                        builder: (context, artistSnapshot) {
-                          if (artistSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          } else if (artistSnapshot.hasError) {
-                            return Center(
-                                child: Text('Error: ${artistSnapshot.error}'));
-                          } else if (!artistSnapshot.hasData ||
-                              artistSnapshot.data!.isEmpty) {
-                            return const Center(child: Text('No events found'));
-                          } else {
-                            final eventArtists = artistSnapshot.data!;
-                            return isGridView
-                                ? buildGridView(
-                                    context, eventArtists, selectedDay)
-                                : buildListView(eventArtists);
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }
-          },
-        );
-      },
-    );
-  }
-
-  Future<List<DateTime>> _calculateFestivalDays(Event event) async {
-    final List<Map<String, dynamic>> artists =
-        await EventArtistService().getArtistsByEventId(event.id);
-
-    DateTime? firstArtistStart;
-    DateTime? lastArtistEnd;
-
-    for (var entry in artists) {
-      final startTimeStr = entry['startTime'] as String?;
-      final endTimeStr = entry['endTime'] as String?;
-      if (startTimeStr != null && endTimeStr != null) {
-        final startTime = DateTime.parse(startTimeStr);
-        final endTime = DateTime.parse(endTimeStr);
-        if (firstArtistStart == null || startTime.isBefore(firstArtistStart)) {
-          firstArtistStart = startTime;
-        }
-        if (lastArtistEnd == null || endTime.isAfter(lastArtistEnd)) {
-          lastArtistEnd = endTime;
-        }
-      }
-    }
-
-    if (firstArtistStart == null || lastArtistEnd == null) {
-      // Return the event dates as fallback
-      firstArtistStart = DateTime.parse(event.dateTime);
-      lastArtistEnd = DateTime.parse(event.endDateTime);
-    }
-
-    List<DateTime> days = [];
-
-    DateTime currentDay = DateTime(
-        firstArtistStart.year, firstArtistStart.month, firstArtistStart.day);
-    while (currentDay.isBefore(lastArtistEnd) ||
-        currentDay.isAtSameMomentAs(lastArtistEnd)) {
-      days.add(currentDay);
-      currentDay = currentDay.add(Duration(days: 1));
-    }
-
-    return days;
-  }
-
-  Widget buildListView(List<Map<String, dynamic>> eventArtists) {
-    final Map<String, List<Map<String, dynamic>>> artistsByStage = {};
-    for (var entry in eventArtists) {
-      final stage = entry['stage'] as String?;
-      if (stage != null) {
-        if (!artistsByStage.containsKey(stage)) {
-          artistsByStage[stage] = [];
-        }
-        artistsByStage[stage]!.add(entry);
-      }
-    }
-
-    artistsByStage.forEach((stage, artists) {
-      print('Stage: $stage, Artists count: ${artists.length}');
-    });
-
-    return Padding(
-      padding:
-          const EdgeInsets.only(top: 16.0), // Add top padding here for ListView
-      child: ListView(
-        children: artistsByStage.entries.map((stageEntry) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 16.0), // Add left padding here for stage names
-                child: Text(
-                  stageEntry.key,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Column(
-                children: stageEntry.value.map((entry) {
-                  final artist = entry['artist'] as Artist;
-                  final startTime = entry['startTime'] as String?;
-                  final endTime = entry['endTime'] as String?;
-                  final status = entry['status'] as String?;
-
-                  print(
-                      'Artist: ${artist.name}, Stage: ${stageEntry.key}, StartTime: $startTime, EndTime: $endTime, Status: $status');
-
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              ArtistScreen(artistId: artist.id),
-                        ),
-                      );
-                    },
-                    child: ListTile(
-                      title: Text(
-                        artist.name,
-                        style: TextStyle(
-                          color: status == 'cancelled' ? Colors.grey : null,
-                        ),
-                      ),
-                      subtitle: startTime != null && endTime != null
-                          ? Text(
-                              '${_formatTime(startTime)} - ${_formatTime(endTime)}')
-                          : null,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   Widget _buildWallet() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -1105,12 +830,5 @@ class _EventScreenState extends State<EventScreen> {
     final String endTime = timeFormat.format(end);
 
     return '$startDate $startTime - $endDate $endTime';
-  }
-
-  String _formatTime(String dateTime) {
-    final time = DateTime.parse(dateTime);
-    final formattedTime =
-        "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
-    return formattedTime;
   }
 }
