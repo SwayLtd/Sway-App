@@ -1,3 +1,5 @@
+// image_with_error_handler.dart
+
 import 'package:flutter/material.dart';
 
 class ImageWithErrorHandler extends StatelessWidget {

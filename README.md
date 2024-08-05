@@ -48,6 +48,7 @@ Coming soon
 
 ### Known Issues
 * Duplicate artists on Discovery screen
+* Offset artists displayed on the timetables grid view if a scene scheduled earlier than the other scenes is hidden.
 
 See the [open issues](https://github.com/Sway/Sway-Events/issues) for a list of proposed features (and known issues).
 
