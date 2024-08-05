@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/organizer/models/organizer_model.dart';
-import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/promoter/models/promoter_model.dart';
+import 'package:sway_events/features/promoter/services/promoter_service.dart';
 import 'package:sway_events/features/user/models/user_permission_model.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
 
-class EditOrganizerScreen extends StatefulWidget {
-  final Organizer organizer;
+class EditPromoterScreen extends StatefulWidget {
+  final Promoter promoter;
 
-  const EditOrganizerScreen({required this.organizer});
+  const EditPromoterScreen({required this.promoter});
 
   @override
-  _EditOrganizerScreenState createState() => _EditOrganizerScreenState();
+  _EditPromoterScreenState createState() => _EditPromoterScreenState();
 }
 
-class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
+class _EditPromoterScreenState extends State<EditPromoterScreen> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.organizer.name);
+    _nameController = TextEditingController(text: widget.promoter.name);
     _descriptionController =
-        TextEditingController(text: widget.organizer.description);
+        TextEditingController(text: widget.promoter.description);
   }
 
   @override
@@ -33,16 +33,16 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
     super.dispose();
   }
 
-  Future<void> _updateOrganizer() async {
-    final updatedOrganizer = Organizer(
-      id: widget.organizer.id,
+  Future<void> _updatePromoter() async {
+    final updatedPromoter = Promoter(
+      id: widget.promoter.id,
       name: _nameController.text,
       description: _descriptionController.text,
-      imageUrl: widget.organizer.imageUrl,
-      upcomingEvents: widget.organizer.upcomingEvents,
+      imageUrl: widget.promoter.imageUrl,
+      upcomingEvents: widget.promoter.upcomingEvents,
     );
-    await OrganizerService().updateOrganizer(updatedOrganizer);
-    Navigator.pop(context, updatedOrganizer);
+    await PromoterService().updatePromoter(updatedPromoter);
+    Navigator.pop(context, updatedPromoter);
   }
 
   Future<void> _showDeleteConfirmationDialog(
@@ -65,7 +65,7 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
               child: const Text('Delete'),
               onPressed: () async {
                 await UserPermissionService().deleteUserPermission(
-                    permission.userId, widget.organizer.id, 'organizer');
+                    permission.userId, widget.promoter.id, 'promoter');
                 Navigator.of(context).pop();
                 setState(() {});
               },
@@ -80,11 +80,11 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Organizer'),
+        title: const Text('Edit Promoter'),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: _updateOrganizer,
+            onPressed: _updatePromoter,
           ),
           IconButton(
             icon: const Icon(Icons.group),
@@ -93,8 +93,8 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => UserAccessManagementScreen(
-                    entityId: widget.organizer.id,
-                    entityType: 'organizer',
+                    entityId: widget.promoter.id,
+                    entityType: 'promoter',
                   ),
                 ),
               );
@@ -119,7 +119,7 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
             const SizedBox(height: 20),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                  widget.organizer.id, 'organizer', 'admin'),
+                  widget.promoter.id, 'promoter', 'admin'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
@@ -137,15 +137,15 @@ class _EditOrganizerScreenState extends State<EditOrganizerScreen> {
                               context,
                               UserPermission(
                                   userId: 'currentUser',
-                                  entityId: widget.organizer.id,
-                                  entityType: 'organizer',
+                                  entityId: widget.promoter.id,
+                                  entityType: 'promoter',
                                   permission: 'admin'));
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.red,
                           minimumSize: const Size.fromHeight(50),
                         ),
-                        child: const Text('Delete Organizer'),
+                        child: const Text('Delete Promoter'),
                       ),
                     ),
                   );

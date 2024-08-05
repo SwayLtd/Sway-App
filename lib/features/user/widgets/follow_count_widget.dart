@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:sway_events/features/user/screens/followers_screen.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
-import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
+import 'package:sway_events/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 import 'package:sway_events/features/user/services/user_follow_user_service.dart';
 
 class FollowersCountWidget extends StatelessWidget {
   final String entityId;
-  final String entityType; // 'venue', 'organizer', 'event', 'artist', 'user', 'genre'
+  final String entityType; // 'venue', 'promoter', 'event', 'artist', 'user', 'genre'
 
   const FollowersCountWidget({required this.entityId, required this.entityType});
 
@@ -219,8 +219,8 @@ class FollowersCountWidget extends StatelessWidget {
         return UserFollowArtistService().getArtistFollowersCount(entityId);
       case 'venue':
         return UserFollowVenueService().getVenueFollowersCount(entityId);
-      case 'organizer':
-        return UserFollowOrganizerService().getOrganizerFollowersCount(entityId);
+      case 'promoter':
+        return UserFollowPromoterService().getPromoterFollowersCount(entityId);
       case 'genre':
         return UserFollowGenreService().getGenreFollowersCount(entityId);
       default:

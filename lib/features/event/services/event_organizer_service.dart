@@ -1,18 +1,18 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/organizer/models/organizer_model.dart';
-import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/promoter/models/promoter_model.dart';
+import 'package:sway_events/features/promoter/services/promoter_service.dart';
 
-class EventOrganizerService {
-  Future<List<Organizer>> getOrganizersByEventId(String eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/event_organizer.json');
-    final List<dynamic> eventOrganizerJson = json.decode(response) as List<dynamic>;
-    final organizerIds = eventOrganizerJson
+class EventPromoterService {
+  Future<List<Promoter>> getPromotersByEventId(String eventId) async {
+    final String response = await rootBundle.loadString('assets/databases/join_table/event_promoter.json');
+    final List<dynamic> eventPromoterJson = json.decode(response) as List<dynamic>;
+    final promoterIds = eventPromoterJson
         .where((entry) => entry['eventId'] == eventId)
-        .map((entry) => entry['organizerId'] as String)
+        .map((entry) => entry['promoterId'] as String)
         .toList();
 
-    final organizers = await OrganizerService().getOrganizers();
-    return organizers.where((organizer) => organizerIds.contains(organizer.id)).toList();
+    final promoters = await PromoterService().getPromoters();
+    return promoters.where((promoter) => promoterIds.contains(promoter.id)).toList();
   }
 }

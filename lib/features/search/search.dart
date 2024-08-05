@@ -11,9 +11,9 @@ import 'package:sway_events/features/event/services/event_service.dart';
 import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/genre/models/genre_model.dart';
 import 'package:sway_events/features/genre/services/genre_service.dart';
-import 'package:sway_events/features/organizer/models/organizer_model.dart';
-import 'package:sway_events/features/organizer/organizer.dart';
-import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/promoter/models/promoter_model.dart';
+import 'package:sway_events/features/promoter/promoter.dart';
+import 'package:sway_events/features/promoter/services/promoter_service.dart';
 import 'package:sway_events/features/search/screens/filters_screen.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
 import 'package:sway_events/features/user/services/user_service.dart';
@@ -34,7 +34,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final EventGenreService _eventGenreService = EventGenreService();
   final ArtistService _artistService = ArtistService();
   final VenueService _venueService = VenueService();
-  final OrganizerService _organizerService = OrganizerService();
+  final PromoterService _promoterService = PromoterService();
   final GenreService _genreService = GenreService();
   final UserService _userService = UserService();
 
@@ -78,14 +78,14 @@ class _SearchScreenState extends State<SearchScreen> {
     final events = await _eventService.searchEvents(query, _filters);
     final artists = await _artistService.searchArtists(query);
     final venues = await _venueService.searchVenues(query);
-    final organizers = await _organizerService.searchOrganizers(query);
+    final promoters = await _promoterService.searchPromoters(query);
     final genres = await _genreService.searchGenres(query);
     final users = await _userService.searchUsers(query);
 
     setState(() {
       _searchResults = {
         'Events': events.take(5).toList(),
-        'Organizers': organizers.take(5).toList(),
+        'Promoters': promoters.take(5).toList(),
         'Artists': artists.take(5).toList(),
         'Venues': venues.take(5).toList(),
         'Genres': genres.take(5).toList(),
@@ -246,7 +246,7 @@ class _SearchScreenState extends State<SearchScreen> {
           autofocus: true,
           decoration: InputDecoration(
             hintText:
-                'Search events, artists, venues, organizers, genres, users',
+                'Search events, artists, venues, promoters, genres, users',
             suffixIcon: IconButton(
               icon: const Icon(Icons.clear),
               onPressed: () {
@@ -352,14 +352,14 @@ class _SearchScreenState extends State<SearchScreen> {
           );
         },
       );
-    } else if (result is Organizer) {
+    } else if (result is Promoter) {
       return ListTile(
         title: Text(result.name),
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => OrganizerScreen(organizerId: result.id),
+              builder: (context) => PromoterScreen(promoterId: result.id),
             ),
           );
         },

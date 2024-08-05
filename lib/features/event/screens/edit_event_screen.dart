@@ -22,7 +22,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late TextEditingController _priceController;
   late List<String> _selectedGenres;
   late List<String> _selectedArtists;
-  late List<String> _selectedOrganizers;
+  late List<String> _selectedPromoters;
   late String _selectedType;
 
   @override
@@ -34,7 +34,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _priceController = TextEditingController(text: widget.event.price);
     _selectedGenres = List<String>.from(widget.event.genres);
     _selectedArtists = List<String>.from(widget.event.artists);
-    _selectedOrganizers = List<String>.from(widget.event.organizers);
+    _selectedPromoters = List<String>.from(widget.event.promoters);
     _selectedType = widget.event.type;
   }
 
@@ -57,7 +57,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       endDateTime: widget.event.endDateTime,
       venue: widget.event.venue,
       imageUrl: widget.event.imageUrl,
-      organizers: _selectedOrganizers,
+      promoters: _selectedPromoters,
       distance: widget.event.distance,
       genres: _selectedGenres,
       artists: _selectedArtists,
@@ -196,13 +196,13 @@ class _EditEventScreenState extends State<EditEventScreen> {
             ),
             Wrap(
               spacing: 8.0,
-              children: _selectedOrganizers
+              children: _selectedPromoters
                   .map(
-                    (organizer) => Chip(
-                      label: Text(organizer),
+                    (promoter) => Chip(
+                      label: Text(promoter),
                       onDeleted: () {
                         setState(() {
-                          _selectedOrganizers.remove(organizer);
+                          _selectedPromoters.remove(promoter);
                         });
                       },
                     ),

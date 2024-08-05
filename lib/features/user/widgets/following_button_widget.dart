@@ -3,13 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
-import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
+import 'package:sway_events/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway_events/features/user/services/user_follow_user_service.dart';
 import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
 
 class FollowingButtonWidget extends StatelessWidget {
   final String entityId;
-  final String entityType; // 'venue', 'organizer', 'artist', 'user', 'genre'
+  final String entityType; // 'venue', 'promoter', 'artist', 'user', 'genre'
 
   const FollowingButtonWidget(
       {required this.entityId, required this.entityType});
@@ -20,8 +20,8 @@ class FollowingButtonWidget extends StatelessWidget {
         return UserFollowArtistService().isFollowingArtist(entityId);
       case 'venue':
         return UserFollowVenueService().isFollowingVenue(entityId);
-      case 'organizer':
-        return UserFollowOrganizerService().isFollowingOrganizer(entityId);
+      case 'promoter':
+        return UserFollowPromoterService().isFollowingPromoter(entityId);
       case 'genre':
         return UserFollowGenreService().isFollowingGenre(entityId);
       case 'user':
@@ -37,8 +37,8 @@ class FollowingButtonWidget extends StatelessWidget {
         return UserFollowArtistService().followArtist(entityId);
       case 'venue':
         return UserFollowVenueService().followVenue(entityId);
-      case 'organizer':
-        return UserFollowOrganizerService().followOrganizer(entityId);
+      case 'promoter':
+        return UserFollowPromoterService().followPromoter(entityId);
       case 'genre':
         return UserFollowGenreService().followGenre(entityId);
       case 'user':
@@ -54,8 +54,8 @@ class FollowingButtonWidget extends StatelessWidget {
         return UserFollowArtistService().unfollowArtist(entityId);
       case 'venue':
         return UserFollowVenueService().unfollowVenue(entityId);
-      case 'organizer':
-        return UserFollowOrganizerService().unfollowOrganizer(entityId);
+      case 'promoter':
+        return UserFollowPromoterService().unfollowPromoter(entityId);
       case 'genre':
         return UserFollowGenreService().unfollowGenre(entityId);
       case 'user':

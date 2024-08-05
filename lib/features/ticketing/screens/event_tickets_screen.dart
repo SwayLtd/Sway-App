@@ -243,10 +243,10 @@ class _EventTicketsScreenState extends State<EventTicketsScreen> {
                                                 Icons.contact_support,
                                               ),
                                               title: const Text(
-                                                'Contact organizer',
+                                                'Contact promoter',
                                               ),
                                               onTap: () {
-                                                // Contact organizer logic
+                                                // Contact promoter logic
                                               },
                                             ),
                                           ],

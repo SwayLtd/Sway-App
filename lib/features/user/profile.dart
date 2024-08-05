@@ -10,14 +10,14 @@ import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/genre/models/genre_model.dart';
 import 'package:sway_events/features/genre/widgets/genre_chip.dart';
-import 'package:sway_events/features/organizer/models/organizer_model.dart';
-import 'package:sway_events/features/organizer/organizer.dart';
+import 'package:sway_events/features/promoter/models/promoter_model.dart';
+import 'package:sway_events/features/promoter/promoter.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
 import 'package:sway_events/features/user/screens/edit_profile_screen.dart';
 import 'package:sway_events/features/user/screens/user_entities_screen.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
-import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
+import 'package:sway_events/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 import 'package:sway_events/features/user/services/user_service.dart';
@@ -343,31 +343,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    FutureBuilder<List<Organizer>>(
-                      future: UserFollowOrganizerService()
-                          .getFollowedOrganizersByUserId(widget.userId),
-                      builder: (context, organizerSnapshot) {
-                        if (organizerSnapshot.connectionState ==
+                    FutureBuilder<List<Promoter>>(
+                      future: UserFollowPromoterService()
+                          .getFollowedPromotersByUserId(widget.userId),
+                      builder: (context, promoterSnapshot) {
+                        if (promoterSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
-                        } else if (organizerSnapshot.hasError) {
-                          return Text('Error: ${organizerSnapshot.error}');
-                        } else if (!organizerSnapshot.hasData ||
-                            organizerSnapshot.data!.isEmpty) {
-                          return const Text('No followed organizers found');
+                        } else if (promoterSnapshot.hasError) {
+                          return Text('Error: ${promoterSnapshot.error}');
+                        } else if (!promoterSnapshot.hasData ||
+                            promoterSnapshot.data!.isEmpty) {
+                          return const Text('No followed promoters found');
                         } else {
-                          final organizers = organizerSnapshot.data!;
+                          final promoters = promoterSnapshot.data!;
                           return SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
-                              children: organizers.map((organizer) {
+                              children: promoters.map((promoter) {
                                 return GestureDetector(
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => OrganizerScreen(
-                                            organizerId: organizer.id),
+                                        builder: (context) => PromoterScreen(
+                                            promoterId: promoter.id),
                                       ),
                                     );
                                   },
@@ -379,13 +379,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           borderRadius:
                                               BorderRadius.circular(10),
                                           child: ImageWithErrorHandler(
-                                            imageUrl: organizer.imageUrl,
+                                            imageUrl: promoter.imageUrl,
                                             width: 100,
                                             height: 100,
                                           ),
                                         ),
                                         const SizedBox(height: 5),
-                                        Text(organizer.name),
+                                        Text(promoter.name),
                                       ],
                                     ),
                                   ),

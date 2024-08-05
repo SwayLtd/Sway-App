@@ -18,8 +18,8 @@ class InsightScreen extends StatelessWidget {
     switch (entityType) {
       case 'venue':
         return insightService.generateVenueInsight();
-      case 'organizer':
-        return insightService.generateOrganizerInsight();
+      case 'promoter':
+        return insightService.generatePromoterInsight();
       case 'event':
         return insightService.generateEventInsight();
       default:
@@ -57,7 +57,7 @@ class InsightScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrganizerInsights(OrganizerInsight insight) {
+  Widget _buildPromoterInsights(PromoterInsight insight) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -114,8 +114,8 @@ class InsightScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: insight is VenueInsight
                   ? _buildVenueInsights(insight)
-                  : insight is OrganizerInsight
-                      ? _buildOrganizerInsights(insight)
+                  : insight is PromoterInsight
+                      ? _buildPromoterInsights(insight)
                       : insight is EventInsight
                           ? _buildEventInsights(insight)
                           : Container(), // Handle invalid type gracefully

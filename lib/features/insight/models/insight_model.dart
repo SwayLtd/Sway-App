@@ -16,14 +16,14 @@ class VenueInsight {
   });
 }
 
-class OrganizerInsight {
+class PromoterInsight {
   final int totalEvents;
   final double averageRating;
   final int followers;
   final double revenue;
   final int partnerships;
 
-  OrganizerInsight({
+  PromoterInsight({
     required this.totalEvents,
     required this.averageRating,
     required this.followers,

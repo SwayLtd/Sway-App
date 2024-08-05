@@ -1,4 +1,4 @@
-// organizer.dart
+// promoter.dart
 
 import 'package:flutter/material.dart';
 import 'package:sway_events/core/utils/share_util.dart';
@@ -7,28 +7,28 @@ import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
 import 'package:sway_events/features/insight/insight.dart';
-import 'package:sway_events/features/organizer/models/organizer_model.dart';
-import 'package:sway_events/features/organizer/screens/edit_organizer_screen.dart';
-import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/promoter/models/promoter_model.dart';
+import 'package:sway_events/features/promoter/screens/edit_promoter_screen.dart';
+import 'package:sway_events/features/promoter/services/promoter_service.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 
-class OrganizerScreen extends StatelessWidget {
-  final String organizerId;
+class PromoterScreen extends StatelessWidget {
+  final String promoterId;
 
-  const OrganizerScreen({required this.organizerId});
+  const PromoterScreen({required this.promoterId});
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("OrganizerScreen opened with ID: $organizerId");
+    debugPrint("PromoterScreen opened with ID: $promoterId");
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Organizer'),
+        title: const Text('Promoter'),
         actions: [
           FutureBuilder<bool>(
             future: UserPermissionService()
-                .hasPermissionForCurrentUser(organizerId, 'organizer', 'edit'),
+                .hasPermissionForCurrentUser(promoterId, 'promoter', 'edit'),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox.shrink();
@@ -40,18 +40,18 @@ class OrganizerScreen extends StatelessWidget {
                 return IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () async {
-                    final organizer =
-                        await OrganizerService().getOrganizerById(organizerId);
-                    if (organizer != null) {
-                      final updatedOrganizer = await Navigator.push(
+                    final promoter =
+                        await PromoterService().getPromoterById(promoterId);
+                    if (promoter != null) {
+                      final updatedPromoter = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
-                              EditOrganizerScreen(organizer: organizer),
+                              EditPromoterScreen(promoter: promoter),
                         ),
                       );
-                      if (updatedOrganizer != null) {
-                        // Handle the updated organizer if necessary
+                      if (updatedPromoter != null) {
+                        // Handle the updated promoter if necessary
                       }
                     }
                   },
@@ -61,8 +61,8 @@ class OrganizerScreen extends StatelessWidget {
           ),
           FutureBuilder<bool>(
             future: UserPermissionService().hasPermissionForCurrentUser(
-              organizerId,
-              'organizer',
+              promoterId,
+              'promoter',
               'insight',
             ),
             builder: (context, snapshot) {
@@ -80,8 +80,8 @@ class OrganizerScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => InsightScreen(
-                          entityId: organizerId,
-                          entityType: 'organizer',
+                          entityId: promoterId,
+                          entityType: 'promoter',
                         ),
                       ),
                     );
@@ -93,35 +93,35 @@ class OrganizerScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () async {
-              final organizer =
-                  await OrganizerService().getOrganizerById(organizerId);
-              if (organizer != null) {
-                shareEntity('organizer', organizerId, organizer.name);
+              final promoter =
+                  await PromoterService().getPromoterById(promoterId);
+              if (promoter != null) {
+                shareEntity('promoter', promoterId, promoter.name);
               }
             },
           ),
           FollowingButtonWidget(
-            entityId: organizerId,
-            entityType: 'organizer',
+            entityId: promoterId,
+            entityType: 'promoter',
           ),
         ],
       ),
-      body: FutureBuilder<Organizer?>(
-        future: OrganizerService().getOrganizerByIdWithEvents(organizerId),
+      body: FutureBuilder<Promoter?>(
+        future: PromoterService().getPromoterByIdWithEvents(promoterId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            debugPrint("Error loading organizer: ${snapshot.error}");
+            debugPrint("Error loading promoter: ${snapshot.error}");
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data == null) {
-            debugPrint("Organizer not found with ID: $organizerId");
-            return const Center(child: Text('Organizer not found'));
+            debugPrint("Promoter not found with ID: $promoterId");
+            return const Center(child: Text('Promoter not found'));
           } else {
-            final organizer = snapshot.data!;
-            debugPrint("Displaying Organizer: ${organizer.id}");
+            final promoter = snapshot.data!;
+            debugPrint("Displaying Promoter: ${promoter.id}");
             debugPrint(
-              "Organizer upcoming events: ${organizer.upcomingEvents}",
+              "Promoter upcoming events: ${promoter.upcomingEvents}",
             );
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -132,7 +132,7 @@ class OrganizerScreen extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(15),
                       child: ImageWithErrorHandler(
-                        imageUrl: organizer.imageUrl,
+                        imageUrl: promoter.imageUrl,
                         width: 200,
                         height: 200,
                       ),
@@ -140,7 +140,7 @@ class OrganizerScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    organizer.name,
+                    promoter.name,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -148,8 +148,8 @@ class OrganizerScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   FollowersCountWidget(
-                    entityId: organizerId,
-                    entityType: 'organizer',
+                    entityId: promoterId,
+                    entityType: 'promoter',
                   ),
                   const SizedBox(height: 5),
                   const SizedBox(height: 20),
@@ -158,9 +158,9 @@ class OrganizerScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  if (organizer.upcomingEvents.isEmpty)
+                  if (promoter.upcomingEvents.isEmpty)
                     const Text('No upcoming events'),
-                  ...organizer.upcomingEvents.map((eventId) {
+                  ...promoter.upcomingEvents.map((eventId) {
                     debugPrint("Loading event with ID: $eventId");
                     return FutureBuilder<Event?>(
                       future: EventService().getEventById(eventId),
@@ -205,7 +205,7 @@ class OrganizerScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  Text(organizer.description),
+                  Text(promoter.description),
                 ],
               ),
             );

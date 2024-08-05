@@ -1,5 +1,5 @@
 name: sway_events
-description: Sway Events is a mobile event management application that helps users discover, organize, and manage events effortlessly. Sway Events aims to provide a seamless and intuitive experience for both event attendees and organizers.
+description: Sway Events is a mobile event management application that helps users discover, organize, and manage events effortlessly. Sway Events aims to provide a seamless and intuitive experience for both event attendees and promoters.
 
 publish_to: "none"
 
@@ -58,7 +58,7 @@ flutter:
     - assets/images/icon.png
     - assets/databases/events.json
     - assets/databases/artists.json
-    - assets/databases/organizers.json
+    - assets/databases/promoters.json
     - assets/databases/venues.json
     - assets/databases/genres.json
     - assets/databases/users.json
@@ -70,15 +70,15 @@ flutter:
     - assets/databases/join_table/artist_genre.json
     - assets/databases/join_table/event_artist.json
     - assets/databases/join_table/event_genre.json
-    - assets/databases/join_table/event_organizer.json
+    - assets/databases/join_table/event_promoter.json
     - assets/databases/join_table/similar_artists.json
     - assets/databases/join_table/venue_genres.json
-    - assets/databases/join_table/venue_organizers.json
+    - assets/databases/join_table/venue_promoters.json
     - assets/databases/join_table/venue_resident_artists.json
     - assets/databases/join_table/user_follow_artist.json
     - assets/databases/join_table/user_follow_genre.json
     - assets/databases/join_table/user_follow_venue.json
-    - assets/databases/join_table/user_follow_organizer.json
+    - assets/databases/join_table/user_follow_promoter.json
     - assets/databases/join_table/user_follow_user.json
     - assets/databases/join_table/user_interest_event.json
     - assets/databases/join_table/user_event_ticket.json

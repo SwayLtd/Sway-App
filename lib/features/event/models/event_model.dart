@@ -11,7 +11,7 @@ class Event {
   final String imageUrl;
   final String distance;
   final String price;
-  final List<String> organizers;
+  final List<String> promoters;
   final List<String> genres;
   final List<String> artists;
 
@@ -26,7 +26,7 @@ class Event {
     required this.imageUrl,
     required this.distance,
     required this.price,
-    required this.organizers,
+    required this.promoters,
     required this.genres,
     required this.artists,
   });
@@ -43,7 +43,7 @@ class Event {
       imageUrl: json['imageUrl'] as String? ?? '',
       distance: json['distance'] as String? ?? '',
       price: json['price'] as String? ?? '',
-      organizers: (json['organizers'] as List<dynamic>?)?.map((e) => e as String? ?? '').toList() ?? [],
+      promoters: (json['promoters'] as List<dynamic>?)?.map((e) => e as String? ?? '').toList() ?? [],
       genres: (json['genres'] as List<dynamic>?)?.map((e) => e as String? ?? '').toList() ?? [],
       artists: (json['artists'] as List<dynamic>?)?.map((e) => e as String? ?? '').toList() ?? [],
     );

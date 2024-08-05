@@ -14,13 +14,13 @@ import 'package:sway_events/features/genre/models/genre_model.dart';
 import 'package:sway_events/features/genre/services/genre_service.dart';
 import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/features/notification/notification.dart';
-import 'package:sway_events/features/organizer/models/organizer_model.dart';
-import 'package:sway_events/features/organizer/organizer.dart';
-import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/promoter/models/promoter_model.dart';
+import 'package:sway_events/features/promoter/promoter.dart';
+import 'package:sway_events/features/promoter/services/promoter_service.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
-import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
+import 'package:sway_events/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 import 'package:sway_events/features/user/services/user_service.dart';
@@ -35,8 +35,8 @@ class DiscoveryScreen extends StatelessWidget {
       UserFollowArtistService();
   final UserFollowGenreService _userFollowGenreService =
       UserFollowGenreService();
-  final UserFollowOrganizerService _userFollowOrganizerService =
-      UserFollowOrganizerService();
+  final UserFollowPromoterService _userFollowPromoterService =
+      UserFollowPromoterService();
   final UserFollowVenueService _userFollowVenueService =
       UserFollowVenueService();
   final SimilarArtistService _similarArtistService = SimilarArtistService();
@@ -107,12 +107,12 @@ class DiscoveryScreen extends StatelessWidget {
                           ),
                         ),
                       ],
-                      if ((recommendations['organizers'] as List<Organizer>)
+                      if ((recommendations['promoters'] as List<Promoter>)
                           .isNotEmpty) ...[
-                        _buildSectionTitle('Suggested Organizers'),
-                        ..._buildOrganizerCards(
+                        _buildSectionTitle('Suggested Promoters'),
+                        ..._buildPromoterCards(
                           context,
-                          recommendations['organizers'] as List<Organizer>,
+                          recommendations['promoters'] as List<Promoter>,
                         ),
                       ],
                       if ((recommendations['artists'] as List<Artist>)
@@ -155,8 +155,8 @@ class DiscoveryScreen extends StatelessWidget {
         await _userFollowArtistService.getFollowedArtistsByUserId(userId);
     final followedGenres =
         await _userFollowGenreService.getFollowedGenresByUserId(userId);
-    final followedOrganizers =
-        await _userFollowOrganizerService.getFollowedOrganizersByUserId(userId);
+    final followedPromoters =
+        await _userFollowPromoterService.getFollowedPromotersByUserId(userId);
     final followedVenues =
         await _userFollowVenueService.getFollowedVenuesByUserId(userId);
     final interestedEvents =
@@ -167,8 +167,8 @@ class DiscoveryScreen extends StatelessWidget {
     final followedArtistIds =
         followedArtists.map((artist) => artist.id).toList();
     final followedGenreIds = followedGenres.map((genre) => genre.id).toList();
-    final followedOrganizerIds =
-        followedOrganizers.map((organizer) => organizer.id).toList();
+    final followedPromoterIds =
+        followedPromoters.map((promoter) => promoter.id).toList();
     final followedVenueIds = followedVenues.map((venue) => venue.id).toList();
     final followedEventIds =
         interestedEvents.map((event) => event.id).toList() +
@@ -202,17 +202,17 @@ class DiscoveryScreen extends StatelessWidget {
       final matchesArtist =
           event.artists.any((artistId) => followedArtistIds.contains(artistId));
       final matchesVenue = followedVenueIds.contains(event.venue);
-      final matchesOrganizer = event.organizers
-          .any((organizerId) => followedOrganizerIds.contains(organizerId));
+      final matchesPromoter = event.promoters
+          .any((promoterId) => followedPromoterIds.contains(promoterId));
       final isNotFollowedEvent = !followedEventIds.contains(event.id);
       return (isToday || isFutureEvent) &&
-          (matchesGenre || matchesArtist || matchesVenue || matchesOrganizer) &&
+          (matchesGenre || matchesArtist || matchesVenue || matchesPromoter) &&
           isNotFollowedEvent;
     }).toList();
 
     final allArtists = await ArtistService().getArtists();
     final allGenres = await GenreService().getGenres();
-    final allOrganizers = await OrganizerService().getOrganizers();
+    final allPromoters = await PromoterService().getPromoters();
     final allVenues = await VenueService().getVenues();
 
     final suggestedArtists = allArtists
@@ -223,8 +223,8 @@ class DiscoveryScreen extends StatelessWidget {
         .where((genre) => !followedGenreIds.contains(genre.id))
         .take(3)
         .toList();
-    final suggestedOrganizers = allOrganizers
-        .where((organizer) => !followedOrganizerIds.contains(organizer.id))
+    final suggestedPromoters = allPromoters
+        .where((promoter) => !followedPromoterIds.contains(promoter.id))
         .take(3)
         .toList();
     final suggestedVenues = allVenues
@@ -236,7 +236,7 @@ class DiscoveryScreen extends StatelessWidget {
       'events': filteredEvents.take(5).toList(),
       'artists': {...similarArtists.take(3), ...suggestedArtists}.toList(),
       'genres': suggestedGenres,
-      'organizers': suggestedOrganizers,
+      'promoters': suggestedPromoters,
       'venues': suggestedVenues,
     };
   }
@@ -271,20 +271,20 @@ class DiscoveryScreen extends StatelessWidget {
     ];
   }
 
-  List<Widget> _buildOrganizerCards(
+  List<Widget> _buildPromoterCards(
     BuildContext context,
-    List<Organizer> organizers,
+    List<Promoter> promoters,
   ) {
-    return organizers
+    return promoters
         .map<Widget>(
-          (organizer) => ListTile(
-            title: Text(organizer.name),
+          (promoter) => ListTile(
+            title: Text(promoter.name),
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(15),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15),
                 child: ImageWithErrorHandler(
-                  imageUrl: organizer.imageUrl,
+                  imageUrl: promoter.imageUrl,
                   width: 50,
                   height: 50,
                 ),
@@ -295,7 +295,7 @@ class DiscoveryScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      OrganizerScreen(organizerId: organizer.id),
+                      PromoterScreen(promoterId: promoter.id),
                 ),
               );
             },

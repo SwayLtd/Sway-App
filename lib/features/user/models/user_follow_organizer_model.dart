@@ -1,23 +1,23 @@
-class UserFollowOrganizer {
+class UserFollowPromoter {
   final String userId;
-  final String organizerId;
+  final String promoterId;
 
-  UserFollowOrganizer({
+  UserFollowPromoter({
     required this.userId,
-    required this.organizerId,
+    required this.promoterId,
   });
 
-  factory UserFollowOrganizer.fromJson(Map<String, dynamic> json) {
-    return UserFollowOrganizer(
+  factory UserFollowPromoter.fromJson(Map<String, dynamic> json) {
+    return UserFollowPromoter(
       userId: json['userId'] as String,
-      organizerId: json['organizerId'] as String,
+      promoterId: json['promoterId'] as String,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,
-      'organizerId': organizerId,
+      'promoterId': promoterId,
     };
   }
 }

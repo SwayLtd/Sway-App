@@ -1,8 +1,8 @@
 [
-    { "venueId": "1", "organizerId": "2" },
-    { "venueId": "2", "organizerId": "1" },
-    { "venueId": "2", "organizerId": "3" },
-    { "venueId": "3", "organizerId": "3" },
-    { "venueId": "4", "organizerId": "4" }
+    { "venueId": "1", "promoterId": "2" },
+    { "venueId": "2", "promoterId": "1" },
+    { "venueId": "2", "promoterId": "3" },
+    { "venueId": "3", "promoterId": "3" },
+    { "venueId": "4", "promoterId": "4" }
   ]
   

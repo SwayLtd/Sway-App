@@ -5,8 +5,8 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/artist/services/artist_service.dart';
-import 'package:sway_events/features/organizer/models/organizer_model.dart';
-import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/promoter/models/promoter_model.dart';
+import 'package:sway_events/features/promoter/services/promoter_service.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 
@@ -63,19 +63,19 @@ class VenueService {
     return artists.where((artist) => artistIds.contains(artist.id)).toList();
   }
 
-  Future<List<Organizer>> getOrganizersByVenueId(String venueId) async {
+  Future<List<Promoter>> getPromotersByVenueId(String venueId) async {
     final String response = await rootBundle
-        .loadString('assets/databases/join_table/venue_organizers.json');
-    final List<dynamic> venueOrganizerJson =
+        .loadString('assets/databases/join_table/venue_promoters.json');
+    final List<dynamic> venuePromoterJson =
         json.decode(response) as List<dynamic>;
-    final organizerIds = venueOrganizerJson
+    final promoterIds = venuePromoterJson
         .where((entry) => entry['venueId'] == venueId)
-        .map((entry) => entry['organizerId'] as String)
+        .map((entry) => entry['promoterId'] as String)
         .toList();
 
-    final organizers = await OrganizerService().getOrganizers();
-    return organizers
-        .where((organizer) => organizerIds.contains(organizer.id))
+    final promoters = await PromoterService().getPromoters();
+    return promoters
+        .where((promoter) => promoterIds.contains(promoter.id))
         .toList();
   }
 

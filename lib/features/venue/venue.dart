@@ -8,17 +8,17 @@ import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/features/insight/insight.dart';
-import 'package:sway_events/features/organizer/models/organizer_model.dart';
-import 'package:sway_events/features/organizer/organizer.dart';
-import 'package:sway_events/features/organizer/services/organizer_service.dart';
-import 'package:sway_events/features/user/services/user_follow_organizer_service.dart';
+import 'package:sway_events/features/promoter/models/promoter_model.dart';
+import 'package:sway_events/features/promoter/promoter.dart';
+import 'package:sway_events/features/promoter/services/promoter_service.dart';
+import 'package:sway_events/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/screens/edit_venue_screen.dart';
 import 'package:sway_events/features/venue/services/venue_genre_service.dart';
-import 'package:sway_events/features/venue/services/venue_organizer_service.dart';
+import 'package:sway_events/features/venue/services/venue_promoter_service.dart';
 import 'package:sway_events/features/venue/services/venue_resident_artists_service.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
 
@@ -233,53 +233,53 @@ class _VenueScreenState extends State<VenueScreen> {
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    FutureBuilder<List<Organizer>>(
-                      future: VenueOrganizerService()
-                          .getOrganizersByVenueId(venue.id),
-                      builder: (context, organizerSnapshot) {
-                        if (organizerSnapshot.connectionState ==
+                    FutureBuilder<List<Promoter>>(
+                      future: VenuePromoterService()
+                          .getPromotersByVenueId(venue.id),
+                      builder: (context, promoterSnapshot) {
+                        if (promoterSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
-                        } else if (organizerSnapshot.hasError) {
-                          return Text('Error: ${organizerSnapshot.error}');
-                        } else if (!organizerSnapshot.hasData ||
-                            organizerSnapshot.data!.isEmpty) {
-                          return const Text('No organizers found');
+                        } else if (promoterSnapshot.hasError) {
+                          return Text('Error: ${promoterSnapshot.error}');
+                        } else if (!promoterSnapshot.hasData ||
+                            promoterSnapshot.data!.isEmpty) {
+                          return const Text('No promoters found');
                         } else {
-                          final organizers = organizerSnapshot.data!;
+                          final promoters = promoterSnapshot.data!;
                           return Column(
-                            children: organizers.map((organizer) {
-                              return FutureBuilder<Organizer?>(
-                                future: OrganizerService()
-                                    .getOrganizerByIdWithEvents(organizer.id),
+                            children: promoters.map((promoter) {
+                              return FutureBuilder<Promoter?>(
+                                future: PromoterService()
+                                    .getPromoterByIdWithEvents(promoter.id),
                                 builder:
-                                    (context, organizerWithEventsSnapshot) {
-                                  if (organizerWithEventsSnapshot
+                                    (context, promoterWithEventsSnapshot) {
+                                  if (promoterWithEventsSnapshot
                                           .connectionState ==
                                       ConnectionState.waiting) {
                                     return const CircularProgressIndicator();
-                                  } else if (organizerWithEventsSnapshot
+                                  } else if (promoterWithEventsSnapshot
                                       .hasError) {
                                     return Text(
-                                      'Error: ${organizerWithEventsSnapshot.error}',
+                                      'Error: ${promoterWithEventsSnapshot.error}',
                                     );
-                                  } else if (!organizerWithEventsSnapshot
+                                  } else if (!promoterWithEventsSnapshot
                                           .hasData ||
-                                      organizerWithEventsSnapshot.data ==
+                                      promoterWithEventsSnapshot.data ==
                                           null) {
-                                    return const Text('Organizer not found');
+                                    return const Text('Promoter not found');
                                   } else {
-                                    final organizerWithEvents =
-                                        organizerWithEventsSnapshot.data!;
+                                    final promoterWithEvents =
+                                        promoterWithEventsSnapshot.data!;
                                     return GestureDetector(
                                       onTap: () {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                OrganizerScreen(
-                                              organizerId:
-                                                  organizerWithEvents.id,
+                                                PromoterScreen(
+                                              promoterId:
+                                                  promoterWithEvents.id,
                                             ),
                                           ),
                                         );
@@ -296,13 +296,13 @@ class _VenueScreenState extends State<VenueScreen> {
                                                 BorderRadius.circular(10),
                                             child: ImageWithErrorHandler(
                                               imageUrl:
-                                                  organizerWithEvents.imageUrl,
+                                                  promoterWithEvents.imageUrl,
                                               width: 50,
                                               height: 50,
                                             ),
                                           ),
                                           title: Text(
-                                            organizerWithEvents.name,
+                                            promoterWithEvents.name,
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -312,9 +312,9 @@ class _VenueScreenState extends State<VenueScreen> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               FutureBuilder<int>(
-                                                future: UserFollowOrganizerService()
-                                                    .getOrganizerFollowersCount(
-                                                  organizerWithEvents.id,
+                                                future: UserFollowPromoterService()
+                                                    .getPromoterFollowersCount(
+                                                  promoterWithEvents.id,
                                                 ),
                                                 builder:
                                                     (context, countSnapshot) {
@@ -337,14 +337,14 @@ class _VenueScreenState extends State<VenueScreen> {
                                                 },
                                               ),
                                               Text(
-                                                "${organizerWithEvents.upcomingEvents.length} upcoming events",
+                                                "${promoterWithEvents.upcomingEvents.length} upcoming events",
                                               ),
                                             ],
                                           ),
                                           trailing: FutureBuilder<bool>(
-                                            future: UserFollowOrganizerService()
-                                                .isFollowingOrganizer(
-                                              organizerWithEvents.id,
+                                            future: UserFollowPromoterService()
+                                                .isFollowingPromoter(
+                                              promoterWithEvents.id,
                                             ),
                                             builder: (context, followSnapshot) {
                                               if (followSnapshot
@@ -363,14 +363,14 @@ class _VenueScreenState extends State<VenueScreen> {
                                                 return ElevatedButton(
                                                   onPressed: () {
                                                     if (isFollowing) {
-                                                      UserFollowOrganizerService()
-                                                          .unfollowOrganizer(
-                                                        organizerWithEvents.id,
+                                                      UserFollowPromoterService()
+                                                          .unfollowPromoter(
+                                                        promoterWithEvents.id,
                                                       );
                                                     } else {
-                                                      UserFollowOrganizerService()
-                                                          .followOrganizer(
-                                                        organizerWithEvents.id,
+                                                      UserFollowPromoterService()
+                                                          .followPromoter(
+                                                        promoterWithEvents.id,
                                                       );
                                                     }
                                                   },

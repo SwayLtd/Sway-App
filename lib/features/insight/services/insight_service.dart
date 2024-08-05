@@ -13,8 +13,8 @@ class InsightService {
     );
   }
 
-  Future<OrganizerInsight> generateOrganizerInsight() async {
-    return OrganizerInsight(
+  Future<PromoterInsight> generatePromoterInsight() async {
+    return PromoterInsight(
       totalEvents: 50,
       averageRating: 4.2,
       followers: 10000,

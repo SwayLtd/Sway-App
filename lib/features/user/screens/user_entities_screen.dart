@@ -3,10 +3,10 @@ import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/screens/edit_event_screen.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
-import 'package:sway_events/features/organizer/models/organizer_model.dart';
-import 'package:sway_events/features/organizer/organizer.dart';
-import 'package:sway_events/features/organizer/screens/edit_organizer_screen.dart';
-import 'package:sway_events/features/organizer/services/organizer_service.dart';
+import 'package:sway_events/features/promoter/models/promoter_model.dart';
+import 'package:sway_events/features/promoter/promoter.dart';
+import 'package:sway_events/features/promoter/screens/edit_promoter_screen.dart';
+import 'package:sway_events/features/promoter/services/promoter_service.dart';
 import 'package:sway_events/features/user/models/user_permission_model.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
@@ -46,15 +46,15 @@ class UserEntitiesScreen extends StatelessWidget {
           );
         }
         break;
-      case 'organizer':
-        final organizer =
-            await OrganizerService().getOrganizerByIdWithEvents(entityId);
-        if (organizer != null) {
+      case 'promoter':
+        final promoter =
+            await PromoterService().getPromoterByIdWithEvents(entityId);
+        if (promoter != null) {
           Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) =>
-                    OrganizerScreen(organizerId: organizer.id)),
+                    PromoterScreen(promoterId: promoter.id)),
           );
         }
         break;
@@ -84,15 +84,15 @@ class UserEntitiesScreen extends StatelessWidget {
           );
         }
         break;
-      case 'organizer':
-        final organizer =
-            await OrganizerService().getOrganizerByIdWithEvents(entityId);
-        if (organizer != null) {
+      case 'promoter':
+        final promoter =
+            await PromoterService().getPromoterByIdWithEvents(entityId);
+        if (promoter != null) {
           Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) =>
-                    EditOrganizerScreen(organizer: organizer)),
+                    EditPromoterScreen(promoter: promoter)),
           );
         }
         break;
@@ -214,45 +214,45 @@ class UserEntitiesScreen extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                'Organizers',
+                'Promoters',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             FutureBuilder<List<UserPermission>>(
-              future: _getPermissions('organizer'),
+              future: _getPermissions('promoter'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No organizers found'));
+                  return const Center(child: Text('No promoters found'));
                 } else {
-                  final organizerPermissions = snapshot.data!;
+                  final promoterPermissions = snapshot.data!;
                   return Column(
-                    children: organizerPermissions.map((permission) {
-                      return FutureBuilder<Organizer?>(
-                        future: OrganizerService()
-                            .getOrganizerByIdWithEvents(permission.entityId),
-                        builder: (context, organizerSnapshot) {
-                          if (organizerSnapshot.connectionState ==
+                    children: promoterPermissions.map((permission) {
+                      return FutureBuilder<Promoter?>(
+                        future: PromoterService()
+                            .getPromoterByIdWithEvents(permission.entityId),
+                        builder: (context, promoterSnapshot) {
+                          if (promoterSnapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const CircularProgressIndicator();
-                          } else if (organizerSnapshot.hasError ||
-                              !organizerSnapshot.hasData) {
+                          } else if (promoterSnapshot.hasError ||
+                              !promoterSnapshot.hasData) {
                             return const SizedBox.shrink();
                           } else {
-                            final organizer = organizerSnapshot.data!;
+                            final promoter = promoterSnapshot.data!;
                             return ListTile(
-                              title: Text(organizer.name),
+                              title: Text(promoter.name),
                               subtitle: Text('Role: ${permission.permission}'),
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(
-                                    context, 'organizer', permission.entityId),
+                                    context, 'promoter', permission.entityId),
                               ),
                               onTap: () => _navigateToEntity(
-                                  context, 'organizer', permission.entityId),
+                                  context, 'promoter', permission.entityId),
                             );
                           }
                         },
