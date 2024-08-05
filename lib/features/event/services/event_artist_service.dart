@@ -18,9 +18,13 @@ class EventArtistService {
     final artistMap = {for (var artist in artists) artist.id: artist};
 
     return artistEntries.map((entry) {
-      final artist = artistMap[entry['artistId']];
+      final artistIds = (entry['artistIds'] as List<dynamic>)
+          .map((id) => artistMap[id])
+          .toList();
+      final validArtists = artistIds.where((artist) => artist != null).toList();
       return {
-        'artist': artist,
+        'artists': validArtists,
+        'customName': entry['customName'] as String?,
         'startTime':
             (entry['startTime'] is String) ? entry['startTime'] as String : '',
         'endTime':
@@ -38,7 +42,7 @@ class EventArtistService {
     final List<dynamic> eventArtistJson =
         json.decode(response) as List<dynamic>;
     final eventEntries = eventArtistJson
-        .where((entry) => entry['artistId'] == artistId)
+        .where((entry) => (entry['artistIds'] as List<dynamic>).contains(artistId))
         .toList();
 
     final events = await EventService().getEvents();
@@ -97,7 +101,7 @@ class EventArtistService {
           return isWithinDay;
         } catch (e) {
           print(
-              'Invalid date format for artist: ${entry['artist'].name}, StartTime: $startTimeStr, EndTime: $endTimeStr');
+              'Invalid date format for artist, StartTime: $startTimeStr, EndTime: $endTimeStr');
         }
       }
       return false;
@@ -128,7 +132,7 @@ class EventArtistService {
           }
         } catch (e) {
           print(
-              'Invalid date format for artist: ${entry['artist'].name}, StartTime: $startTimeStr, EndTime: $endTimeStr');
+              'Invalid date format for artist, StartTime: $startTimeStr, EndTime: $endTimeStr');
         }
       }
     }

@@ -27,10 +27,11 @@ Coming soon
 * **Rating system**: Rate venues, promoters and maybe artists
 
 ### Implemented Features
+* Timetable v4 (multiple artists, list and grid view, filters, follow, design, status management)
 * Event ticketing
 * Purchasing system v0.5 (sales orders, invoices, items - only backend)
 * Discovery suggestions v1
-* Search system v1 
+* Search system v1
 * Sharing system v1
 * Implementation of music genres, events, artists, venues and promoters
 * Discovery screen v1
@@ -40,6 +41,7 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Timetable v4 (multiple artist and custom names management, status management and artist image rotator widget)
 * Timetable v3 (automatic time scrolling and saving of scroll offset, automatic day selection and saving day selection)
 * Timetable v2 (filters, follow, new design)
 * Event ticketing v1
@@ -47,6 +49,7 @@ Coming soon
 * Discovery page with suggestions for all entity types based on follows
 
 ### Known Issues
+* (Timetable) The automatic scroll to the right time on gird view doesn't take into account the fact that we're moving to the next day at midnight.
 * (FIXED)(Timetable) All festival days are not displayed correctly in "calculateFestivalDays". Warning "festivalDays = festivalDays.where((date) => date.isBefore(DateTime(2024, 9, 5))).toList();"
 * (Timetable) Offset artists displayed on the timetables grid view if a scene scheduled earlier than the other scenes is hidden.
 * Duplicate artists on Discovery screen

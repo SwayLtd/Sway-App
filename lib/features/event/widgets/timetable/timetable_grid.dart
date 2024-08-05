@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
+import 'package:sway_events/features/event/utils/timetable_utils.dart';
+import 'package:sway_events/features/event/widgets/timetable/artist_image_rotator.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 
 class GridViewWidget extends StatefulWidget {
@@ -127,11 +129,16 @@ class _GridViewWidgetState extends State<GridViewWidget> {
     if (widget.showOnlyFollowedArtists) {
       artistsToShow = [];
       for (final artistMap in widget.eventArtists) {
-        final artist = artistMap['artist'] as Artist;
-        final bool isFollowing =
-            await userFollowArtistService.isFollowingArtist(artist.id);
-        if (isFollowing) {
-          artistsToShow.add(artistMap);
+        final List<Artist> artists = (artistMap['artists'] as List<dynamic>)
+            .map((artist) => artist as Artist)
+            .toList();
+        for (final artist in artists) {
+          final bool isFollowing =
+              await userFollowArtistService.isFollowingArtist(artist.id);
+          if (isFollowing) {
+            artistsToShow.add(artistMap);
+            break;
+          }
         }
       }
     }
@@ -274,7 +281,12 @@ class _GridViewWidgetState extends State<GridViewWidget> {
 
                               for (final artistMap in artistsToShow
                                   .where((e) => e['stage'] == stage)) {
-                                final artist = artistMap['artist'] as Artist;
+                                final List<Artist> artists =
+                                    (artistMap['artists'] as List<dynamic>)
+                                        .map((artist) => artist as Artist)
+                                        .toList();
+                                final customName =
+                                    artistMap['customName'] as String?;
                                 final startTime = DateTime.parse(
                                   artistMap['startTime'] as String,
                                 );
@@ -289,6 +301,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                             .inMinutes /
                                         60.0 -
                                     accumulatedOffset;
+                                final status = artistMap['status'] as String?;
 
                                 if (offsetInHours > 0) {
                                   stageRow.add(
@@ -305,18 +318,39 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                     height: 100,
                                     child: GestureDetector(
                                       onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ArtistScreen(
-                                              artistId: artist.id,
+                                        if (artists.length > 1) {
+                                          showArtistsBottomSheet(
+                                            context,
+                                            artists,
+                                          );
+                                        } else {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ArtistScreen(
+                                                artistId: artists.first.id,
+                                              ),
                                             ),
-                                          ),
-                                        );
+                                          );
+                                        }
                                       },
                                       child: FutureBuilder<bool>(
-                                        future: userFollowArtistService
-                                            .isFollowingArtist(artist.id),
+                                        future: Future.wait(
+                                          artists
+                                              .map(
+                                                (artist) =>
+                                                    userFollowArtistService
+                                                        .isFollowingArtist(
+                                                  artist.id,
+                                                ),
+                                              )
+                                              .toList(),
+                                        ).then(
+                                          (results) => results.any(
+                                            (isFollowing) => isFollowing,
+                                          ),
+                                        ),
                                         builder: (context, snapshot) {
                                           if (snapshot.connectionState ==
                                               ConnectionState.waiting) {
@@ -364,83 +398,133 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                                 borderRadius:
                                                     BorderRadius.circular(10.0),
                                               ),
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 8.0,
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    if (100 * durationInHours >=
-                                                        100)
-                                                      ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(
-                                                          8.0,
-                                                        ),
-                                                        child:
-                                                            ImageWithErrorHandler(
-                                                          imageUrl:
-                                                              artist.imageUrl,
-                                                          width: 40,
-                                                          height: 40,
-                                                        ),
-                                                      ),
-                                                    const SizedBox(width: 8.0),
-                                                    Expanded(
-                                                      child: Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            artist.name,
-                                                            style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: isFollowing
-                                                                  ? Colors.black
-                                                                  : Theme.of(
-                                                                      context,
-                                                                    )
-                                                                      .textTheme
-                                                                      .bodyMedium
-                                                                      ?.color,
+                                              child: Stack(
+                                                children: [
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      horizontal: 8.0,
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        if (100 *
+                                                                durationInHours >=
+                                                            100)
+                                                          ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                              8.0,
                                                             ),
+                                                            child: artists
+                                                                        .length ==
+                                                                    1
+                                                                ? ImageWithErrorHandler(
+                                                                    imageUrl: artists
+                                                                        .first
+                                                                        .imageUrl,
+                                                                    width: 40,
+                                                                    height: 40,
+                                                                  )
+                                                                : ArtistImageRotator(
+                                                                    artists:
+                                                                        artists,
+                                                                  ),
                                                           ),
-                                                          Text(
-                                                            '${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}',
-                                                            style: TextStyle(
-                                                              fontSize: 12.0,
-                                                              color: isFollowing
-                                                                  ? Colors
-                                                                      .grey[800]
-                                                                  : Colors.grey,
-                                                            ),
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
+                                                        const SizedBox(
+                                                          width: 8.0,
+                                                        ),
+                                                        Expanded(
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Text(
+                                                                customName ??
+                                                                    artists
+                                                                        .map(
+                                                                          (artist) =>
+                                                                              artist.name,
+                                                                        )
+                                                                        .join(
+                                                                          ' B2B ',
+                                                                        ),
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: status ==
+                                                                          'cancelled'
+                                                                      ? Colors
+                                                                          .red
+                                                                      : isFollowing
+                                                                          ? Colors
+                                                                              .black
+                                                                          : Theme.of(context)
+                                                                              .textTheme
+                                                                              .bodyMedium
+                                                                              ?.color,
+                                                                  decoration: status ==
+                                                                          'cancelled'
+                                                                      ? TextDecoration
+                                                                          .lineThrough
+                                                                      : null,
+                                                                ),
+                                                              ),
+                                                              Text(
+                                                                '${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}',
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  color: isFollowing
+                                                                      ? Colors.grey[
+                                                                          800]
+                                                                      : Colors
+                                                                          .grey,
+                                                                ),
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                              ),
+                                                            ],
                                                           ),
-                                                        ],
+                                                        ),
+                                                        const Padding(
+                                                          padding:
+                                                              EdgeInsets.only(
+                                                            right: 8.0,
+                                                          ),
+                                                          child: Icon(
+                                                            Icons
+                                                                .add_alert_outlined,
+                                                            size: 20.0,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  if (status == 'cancelled')
+                                                    Positioned.fill(
+                                                      child: Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: Colors.red
+                                                              .withOpacity(0.3),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                            10.0,
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
-                                                    const Padding(
-                                                      padding: EdgeInsets.only(
-                                                        right: 8.0,
-                                                      ),
-                                                      child: Icon(
-                                                        Icons
-                                                            .add_alert_outlined,
-                                                        size: 20.0,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                                ],
                                               ),
                                             );
                                           }

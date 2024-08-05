@@ -50,4 +50,19 @@ class Artist {
       isFollowing: json['isFollowing'] as bool? ?? false,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'imageUrl': imageUrl,
+      'description': description,
+      'genres': genres,
+      'upcomingEvents': upcomingEvents,
+      'similarArtists': similarArtists,
+      'links': links,
+      'followers': followers,
+      'isFollowing': isFollowing,
+    };
+  }
 }

@@ -4,6 +4,7 @@ import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/event/utils/timetable_utils.dart';
+import 'package:sway_events/features/event/widgets/timetable/artist_image_rotator.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 
 Future<Widget> buildListView(
@@ -28,9 +29,14 @@ Future<Widget> buildListView(
         artistsByStage[stage] = [];
       }
       if (showOnlyFollowedArtists) {
-        final artist = entry['artist'] as Artist;
-        if (await userFollowArtistService.isFollowingArtist(artist.id)) {
-          artistsByStage[stage]!.add(entry);
+        final List<Artist> artists = (entry['artists'] as List<dynamic>)
+            .map((artist) => artist as Artist)
+            .toList();
+        for (final artist in artists) {
+          if (await userFollowArtistService.isFollowingArtist(artist.id)) {
+            artistsByStage[stage]!.add(entry);
+            break;
+          }
         }
       } else {
         artistsByStage[stage]!.add(entry);
@@ -66,13 +72,25 @@ Future<Widget> buildListView(
                 if (entry == null) {
                   return null;
                 }
-                final artist = entry['artist'] as Artist;
+                final List<Artist> artists = (entry['artists'] as List<dynamic>)
+                    .map((artist) => artist as Artist)
+                    .toList();
+                final customName = entry['customName'] as String?;
                 final startTime = entry['startTime'] as String?;
                 final endTime = entry['endTime'] as String?;
                 final status = entry['status'] as String?;
 
                 return FutureBuilder<bool>(
-                  future: userFollowArtistService.isFollowingArtist(artist.id),
+                  future: Future.wait(
+                    artists
+                        .map(
+                          (artist) => userFollowArtistService
+                              .isFollowingArtist(artist.id),
+                        )
+                        .toList(),
+                  ).then(
+                    (results) => results.any((isFollowing) => isFollowing),
+                  ),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return ListTile(
@@ -83,7 +101,10 @@ Future<Widget> buildListView(
                             Text(formatTime(endTime ?? '')),
                           ],
                         ),
-                        title: Text(artist.name),
+                        title: Text(
+                          customName ??
+                              artists.map((artist) => artist.name).join(', '),
+                        ),
                         trailing: const CircularProgressIndicator(),
                       );
                     } else if (snapshot.hasError) {
@@ -95,7 +116,10 @@ Future<Widget> buildListView(
                             Text(formatTime(endTime ?? '')),
                           ],
                         ),
-                        title: Text(artist.name),
+                        title: Text(
+                          customName ??
+                              artists.map((artist) => artist.name).join(', '),
+                        ),
                         trailing: const Icon(Icons.error, color: Colors.red),
                       );
                     } else {
@@ -136,24 +160,39 @@ Future<Widget> buildListView(
                           ),
                           title: Row(
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0),
-                                child: ImageWithErrorHandler(
-                                  imageUrl: artist.imageUrl,
-                                  width: 40,
-                                  height: 40,
+                              if (artists.length == 1) ...[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  child: ImageWithErrorHandler(
+                                    imageUrl: artists.first.imageUrl,
+                                    width: 40,
+                                    height: 40,
+                                  ),
                                 ),
-                              ),
+                              ] else ...[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  child: ArtistImageRotator(
+                                    artists: artists,
+                                  ),
+                                ),
+                              ],
                               const SizedBox(width: 8.0),
                               Expanded(
                                 child: Text(
-                                  artist.name,
+                                  customName ??
+                                      artists
+                                          .map((artist) => artist.name)
+                                          .join(' B2B '),
                                   style: TextStyle(
                                     color: status == 'cancelled'
-                                        ? Colors.grey
+                                        ? Colors.redAccent
                                         : null,
                                     fontWeight:
                                         isFollowing ? FontWeight.bold : null,
+                                    decoration: status == 'cancelled'
+                                        ? TextDecoration.lineThrough
+                                        : null,
                                   ),
                                 ),
                               ),
@@ -172,13 +211,21 @@ Future<Widget> buildListView(
                             ],
                           ),
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ArtistScreen(artistId: artist.id),
-                              ),
-                            );
+                            if (artists.length > 1) {
+                              showArtistsBottomSheet(
+                                context,
+                                artists,
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ArtistScreen(
+                                    artistId: artists.first.id,
+                                  ),
+                                ),
+                              );
+                            }
                           },
                         ),
                       );

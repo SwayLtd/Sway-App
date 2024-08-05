@@ -3,7 +3,7 @@ description: Sway Events is a mobile event management application that helps use
 
 publish_to: "none"
 
-version: 0.0.9 # Purchasing system v0.5 and event tickets implemented
+version: 0.1.0 # Timetable v4
 
 environment:
   sdk: ">=2.18.5 <4.0.0"

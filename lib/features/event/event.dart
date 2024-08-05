@@ -353,7 +353,12 @@ class _EventScreenState extends State<EventScreen> {
                       final artistEntries = artistSnapshot.data!;
                       return Row(
                         children: artistEntries.map((entry) {
-                          final artist = entry['artist'] as Artist;
+                          final artistData = entry['artist'];
+                          if (artistData == null) {
+                            return const SizedBox.shrink();
+                          }
+                          final artist = Artist.fromJson(
+                              artistData as Map<String, dynamic>);
                           final startTime = entry['startTime'] as String?;
                           final endTime = entry['endTime'] as String?;
                           final status = entry['status'] as String?;
@@ -386,7 +391,7 @@ class _EventScreenState extends State<EventScreen> {
                                               fit: BoxFit.cover,
                                               errorBuilder:
                                                   (context, error, stackTrace) {
-                                                return Icon(
+                                                return const Icon(
                                                   Icons.error,
                                                   size: 100,
                                                 );
@@ -400,7 +405,7 @@ class _EventScreenState extends State<EventScreen> {
                                             fit: BoxFit.cover,
                                             errorBuilder:
                                                 (context, error, stackTrace) {
-                                              return Icon(
+                                              return const Icon(
                                                 Icons.error,
                                                 size: 100,
                                               );
