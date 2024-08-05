@@ -1,3 +1,5 @@
+// artist_model.dart
+
 class Artist {
   final String id;
   final String name;
