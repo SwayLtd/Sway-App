@@ -45,3 +45,5 @@ app.*.map.json
 
 # Test files
 lib/main_timetable.dart
+lib/features/event/widgets/timetable/timetable_grid_savepos.dart
+lib/features/event/widgets/timetable/timetable_grid_autohour.dart
