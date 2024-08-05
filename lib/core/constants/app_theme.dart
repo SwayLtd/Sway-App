@@ -119,7 +119,7 @@ class AppTheme {
     brightness: Brightness.dark,
     fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
     disabledColor: Colors.white70,
-    scaffoldBackgroundColor: Colors.black54,
+    scaffoldBackgroundColor: Colors.black, // Changer à noir opaque
     cardColor: Colors.grey[850], // Couleur pour les cartes dans le thème sombre
     appBarTheme: AppBarTheme(
       systemOverlayStyle: const SystemUiOverlayStyle(

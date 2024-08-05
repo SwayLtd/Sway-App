@@ -27,84 +27,58 @@ class GridViewWidget extends StatefulWidget {
 
 class _GridViewWidgetState extends State<GridViewWidget> {
   bool _isScrollInitialized = false;
-  double _lastHorizontalScrollOffset = 0.0;
-  double _lastVerticalScrollOffset = 0.0;
-  late ScrollController _horizontalScrollController;
-  late ScrollController _verticalScrollController;
+double _lastScrollOffset = 0.0;
+late ScrollController _horizontalScrollController;
+
 
   @override
-  void initState() {
-    super.initState();
-    _loadLastScrollOffsets();
-  }
+void initState() {
+  super.initState();
+  _loadLastScrollOffset();
+}
 
-  Future<void> _loadLastScrollOffsets() async {
-    final prefs = await SharedPreferences.getInstance();
-    final DateTime earliestTime = widget.eventArtists
-        .map((e) => DateTime.parse(e['startTime'] as String))
-        .reduce((a, b) => a.isBefore(b) ? a : b);
-    final now = DateTime.now();
-    final initialHorizontalOffset = (now.hour - earliestTime.hour) * 200.0;
+Future<void> _loadLastScrollOffset() async {
+  final prefs = await SharedPreferences.getInstance();
+  final DateTime earliestTime = widget.eventArtists
+      .map((e) => DateTime.parse(e['startTime'] as String))
+      .reduce((a, b) => a.isBefore(b) ? a : b);
+  final now = DateTime.now();
+  final initialOffset = (now.hour - earliestTime.hour) * 200.0;
 
-    _lastHorizontalScrollOffset =
-        prefs.getDouble('lastHorizontalScrollOffset') ??
-            initialHorizontalOffset;
-    _lastVerticalScrollOffset =
-        prefs.getDouble('lastVerticalScrollOffset') ?? 0.0;
+  _lastScrollOffset = prefs.getDouble('lastScrollOffset') ?? initialOffset;
+  _initializeScrollController();
+  setState(() {
+    _isScrollInitialized = true;
+  });
+  print('Loaded last scroll offset: $_lastScrollOffset');
+}
 
-    final lastVisitedTime = prefs.getString('lastVisitedTime');
-    final shouldResetScroll = lastVisitedTime != null &&
-        DateTime.now().difference(DateTime.parse(lastVisitedTime)).inMinutes >
-            15;
+void _initializeScrollController() {
+  _horizontalScrollController = ScrollController(
+    initialScrollOffset: _lastScrollOffset,
+  );
+  _horizontalScrollController.addListener(_saveScrollOffset);
+  print('ScrollController initialized with offset: $_lastScrollOffset');
+}
 
-    if (shouldResetScroll) {
-      _lastHorizontalScrollOffset = initialHorizontalOffset;
-      _lastVerticalScrollOffset = 0.0;
-    }
+Future<void> _saveScrollOffset() async {
+  if (!_horizontalScrollController.hasClients) return;
+  final prefs = await SharedPreferences.getInstance();
+  final offset = _horizontalScrollController.offset;
+  await prefs.setDouble('lastScrollOffset', offset);
+  print('Saved scroll offset: $offset');
+}
 
-    _initializeScrollControllers();
-    setState(() {
-      _isScrollInitialized = true;
-    });
-  }
-
-  void _initializeScrollControllers() {
-    _horizontalScrollController = ScrollController(
-      initialScrollOffset: _lastHorizontalScrollOffset,
-    );
-    _horizontalScrollController.addListener(_saveScrollOffsets);
-
-    _verticalScrollController = ScrollController(
-      initialScrollOffset: _lastVerticalScrollOffset,
-    );
-    _verticalScrollController.addListener(_saveScrollOffsets);
-  }
-
-  Future<void> _saveScrollOffsets() async {
-    if (!_horizontalScrollController.hasClients ||
-        !_verticalScrollController.hasClients) return;
-    final prefs = await SharedPreferences.getInstance();
-    final horizontalOffset = _horizontalScrollController.offset;
-    final verticalOffset = _verticalScrollController.offset;
-    await prefs.setDouble('lastHorizontalScrollOffset', horizontalOffset);
-    await prefs.setDouble('lastVerticalScrollOffset', verticalOffset);
-    await prefs.setString('lastVisitedTime', DateTime.now().toIso8601String());
-  }
 
   @override
   void dispose() {
-    _horizontalScrollController.removeListener(_saveScrollOffsets);
+    _horizontalScrollController.removeListener(_saveScrollOffset);
     _horizontalScrollController.dispose();
-    _verticalScrollController.removeListener(_saveScrollOffsets);
-    _verticalScrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_isScrollInitialized) {
-      return const Center(child: CircularProgressIndicator());
-    }
     return FutureBuilder<Widget>(
       future: _buildGridView(context),
       builder: (context, snapshot) {
@@ -136,11 +110,12 @@ class _GridViewWidgetState extends State<GridViewWidget> {
       }
     }
 
+    print('Artists to show: ${artistsToShow.length}');
+
     final List<String> filteredStages = widget.stages
         .where((stage) => widget.selectedStages.contains(stage))
         .where(
-          (stage) => artistsToShow.any((artist) => artist['stage'] == stage),
-        )
+            (stage) => artistsToShow.any((artist) => artist['stage'] == stage))
         .toList();
 
     final DateTime earliestTime = widget.eventArtists
@@ -166,7 +141,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          controller: _verticalScrollController,
+          scrollDirection: Axis.vertical,
           child: Stack(
             children: [
               SingleChildScrollView(
@@ -253,8 +228,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                         alignment: Alignment.centerLeft,
                                         child: Padding(
                                           padding: const EdgeInsets.only(
-                                            left: 130.0,
-                                          ),
+                                              left: 130.0),
                                           child: Text(
                                             DateFormat.Hm().format(hour),
                                           ),
@@ -309,8 +283,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => ArtistScreen(
-                                              artistId: artist.id,
-                                            ),
+                                                artistId: artist.id),
                                           ),
                                         );
                                       },
@@ -355,7 +328,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                               color: isFollowing
                                                   ? Theme.of(context)
                                                       .primaryColor
-                                                  : Theme.of(context).cardColor,
+                                                  : null,
                                               shape: RoundedRectangleBorder(
                                                 side: BorderSide(
                                                   color: Theme.of(context)

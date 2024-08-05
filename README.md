@@ -40,15 +40,16 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Timetable v3 (automatic time scrolling and saving of scroll offset, automatic day selection and saving day selection)
+* Timetable v2 (filters, follow, new design)
 * Event ticketing v1
 * Advanced purchasing system back-end with sales orders, invoices, items
 * Discovery page with suggestions for all entity types based on follows
-* Search system with filters for events (v1)
-* Following widget moved on entities app bar
 
 ### Known Issues
+* (FIXED)(Timetable) All festival days are not displayed correctly in "calculateFestivalDays". Warning "festivalDays = festivalDays.where((date) => date.isBefore(DateTime(2024, 9, 5))).toList();"
+* (Timetable) Offset artists displayed on the timetables grid view if a scene scheduled earlier than the other scenes is hidden.
 * Duplicate artists on Discovery screen
-* Offset artists displayed on the timetables grid view if a scene scheduled earlier than the other scenes is hidden.
 
 See the [open issues](https://github.com/Sway/Sway-Events/issues) for a list of proposed features (and known issues).
 

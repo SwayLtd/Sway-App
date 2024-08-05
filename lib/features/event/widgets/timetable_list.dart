@@ -166,7 +166,6 @@ Future<Widget> buildListView(
                                 isFollowing
                                     ? Icons.favorite
                                     : Icons.favorite_border,
-                                color: Colors.black,
                               ),
                               const SizedBox(width: 8.0),
                               const Icon(Icons.add_alert_outlined),

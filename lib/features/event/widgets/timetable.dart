@@ -1,7 +1,6 @@
-// timetable.dart
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
 import 'package:sway_events/features/event/services/event_artist_service.dart';
 import 'package:sway_events/features/event/utils/timetable_utils.dart';
@@ -33,13 +32,41 @@ class _TimetableWidgetState extends State<TimetableWidget> {
   }
 
   Future<void> _initializeStages() async {
-    final artists =
-        await EventArtistService().getArtistsByEventId(widget.event.id);
+    final artists = await EventArtistService().getArtistsByEventId(widget.event.id);
     final stageSet = artists.map((e) => e['stage'] as String).toSet().toList();
     setState(() {
       stages = stageSet;
       selectedStages = List.from(stageSet);
       initialStages = List.from(stageSet); // Save initial order of stages
+    });
+    await _initializeSelectedDay();
+  }
+
+  Future<void> _initializeSelectedDay() async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final festivalDays = await calculateFestivalDays(widget.event);
+
+    final lastSelectedDayString = prefs.getString('lastSelectedDay');
+    final lastSelectedDay = lastSelectedDayString != null ? DateTime.parse(lastSelectedDayString) : null;
+    final lastSelectedTimeString = prefs.getString('lastSelectedTime');
+    final lastSelectedTime = lastSelectedTimeString != null ? DateTime.parse(lastSelectedTimeString) : null;
+
+    final shouldResetDay = lastSelectedTime == null ||
+        now.difference(lastSelectedTime).inMinutes > 15;
+
+    setState(() {
+      if (shouldResetDay || lastSelectedDay == null) {
+        selectedDay = festivalDays.firstWhere(
+          (day) =>
+              day.day == now.day &&
+              day.month == now.month &&
+              day.year == now.year,
+          orElse: () => festivalDays.first,
+        );
+      } else {
+        selectedDay = lastSelectedDay;
+      }
     });
   }
 
@@ -55,14 +82,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No festival days found'));
         } else {
-          List<DateTime> festivalDays = snapshot.data!;
-          if (!festivalDays.contains(selectedDay)) {
-            selectedDay = festivalDays.first;
-          }
-
-          festivalDays = festivalDays
-              .where((date) => date.isBefore(DateTime(2024, 9, 5)))
-              .toList();
+          final List<DateTime> festivalDays = snapshot.data!;
 
           return Column(
             children: [
@@ -75,11 +95,14 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                       padding: const EdgeInsets.only(left: 16.0),
                       child: DropdownButton<DateTime>(
                         value: selectedDay,
-                        onChanged: (DateTime? newValue) {
-                          if (newValue != null) {
+                        onChanged: (DateTime? newValue) async {
+                          if (newValue != null && newValue != selectedDay) {
                             setState(() {
                               selectedDay = newValue;
                             });
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString('lastSelectedDay', newValue.toIso8601String());
+                            await prefs.setString('lastSelectedTime', DateTime.now().toIso8601String());
                           }
                         },
                         items: festivalDays.map((DateTime date) {
@@ -116,24 +139,19 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                   future: EventArtistService()
                       .getArtistsByEventIdAndDay(widget.event.id, selectedDay),
                   builder: (context, artistSnapshot) {
-                    if (artistSnapshot.connectionState ==
-                        ConnectionState.waiting) {
+                    if (artistSnapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (artistSnapshot.hasError) {
                       return Center(
                         child: Text('Error: ${artistSnapshot.error}'),
                       );
-                    } else if (!artistSnapshot.hasData ||
-                        artistSnapshot.data!.isEmpty) {
+                    } else if (!artistSnapshot.hasData || artistSnapshot.data!.isEmpty) {
                       return const Center(child: Text('No events found'));
                     } else {
                       eventArtists = artistSnapshot.data!;
 
                       final filteredArtists = eventArtists
-                          .where(
-                            (artist) =>
-                                selectedStages.contains(artist['stage']),
-                          )
+                          .where((artist) => selectedStages.contains(artist['stage']))
                           .toList();
 
                       if (filteredArtists.isEmpty) {
@@ -145,17 +163,16 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         );
                       }
 
-                      return FutureBuilder<Widget>(
-                        future: isGridView
-                            ? buildGridView(
-                                context,
-                                filteredArtists,
-                                selectedDay,
-                                stages,
-                                selectedStages,
-                                showOnlyFollowedArtists,
-                              )
-                            : buildListView(
+                      return isGridView
+                          ? GridViewWidget(
+                              eventArtists: filteredArtists,
+                              selectedDay: selectedDay,
+                              stages: stages,
+                              selectedStages: selectedStages,
+                              showOnlyFollowedArtists: showOnlyFollowedArtists,
+                            )
+                          : FutureBuilder<Widget>(
+                              future: buildListView(
                                 context,
                                 filteredArtists,
                                 selectedDay,
@@ -163,21 +180,20 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                                 selectedStages,
                                 showOnlyFollowedArtists,
                               ),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Center(
+                                    child: Text('Error: ${snapshot.error}'),
+                                  );
+                                } else {
+                                  return snapshot.data!;
+                                }
+                              },
                             );
-                          } else if (snapshot.hasError) {
-                            return Center(
-                              child: Text('Error: ${snapshot.error}'),
-                            );
-                          } else {
-                            return snapshot.data!;
-                          }
-                        },
-                      );
                     }
                   },
                 ),
@@ -203,7 +219,9 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         style: TextStyle(
                           color: showOnlyFollowedArtists
                               ? Colors.white
-                              : Colors.grey,
+                              : Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[300]
+                                  : Colors.grey[600],
                         ),
                       ),
                     ),
@@ -227,7 +245,9 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         style: TextStyle(
                           color: !showOnlyFollowedArtists
                               ? Colors.white
-                              : Colors.grey,
+                              : Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[300]
+                                  : Colors.grey[600],
                         ),
                       ),
                     ),
@@ -260,7 +280,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                 ),
                 Stack(
                   children: [
-                    Center(
+                    const Center(
                       child: Text(
                         'FILTERS',
                         style: TextStyle(
@@ -270,10 +290,11 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                       ),
                     ),
                     Align(
-                      alignment: Alignment.centerRight,
+                      alignment: Alignment.topRight,
                       child: Padding(
                         padding: const EdgeInsets.only(
-                            right: 8.0), // Adjust the padding value as needed
+                          right: 8.0,
+                        ),
                         child: IconButton(
                           icon: const Icon(Icons.refresh),
                           onPressed: () {
@@ -313,8 +334,8 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                       });
                     },
                     children: stages.asMap().entries.map((entry) {
-                      int idx = entry.key;
-                      String stage = entry.value;
+                      final int idx = entry.key;
+                      final String stage = entry.value;
                       return Column(
                         key: Key(stage),
                         children: [
@@ -334,9 +355,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                               },
                             ),
                           ),
-                          if (idx <
-                              stages.length -
-                                  1) // Add a divider between items, except the last one
+                          if (idx < stages.length - 1)
                             const Divider(
                               color: Colors.grey,
                               height: 1,

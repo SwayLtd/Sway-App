@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/artist.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
@@ -26,85 +25,34 @@ class GridViewWidget extends StatefulWidget {
 }
 
 class _GridViewWidgetState extends State<GridViewWidget> {
-  bool _isScrollInitialized = false;
-  double _lastHorizontalScrollOffset = 0.0;
-  double _lastVerticalScrollOffset = 0.0;
   late ScrollController _horizontalScrollController;
-  late ScrollController _verticalScrollController;
 
   @override
   void initState() {
     super.initState();
-    _loadLastScrollOffsets();
+    _initializeScrollController();
   }
 
-  Future<void> _loadLastScrollOffsets() async {
-    final prefs = await SharedPreferences.getInstance();
+  void _initializeScrollController() {
     final DateTime earliestTime = widget.eventArtists
         .map((e) => DateTime.parse(e['startTime'] as String))
         .reduce((a, b) => a.isBefore(b) ? a : b);
     final now = DateTime.now();
-    final initialHorizontalOffset = (now.hour - earliestTime.hour) * 200.0;
+    final initialOffset = (now.hour - earliestTime.hour) * 200.0;
 
-    _lastHorizontalScrollOffset =
-        prefs.getDouble('lastHorizontalScrollOffset') ??
-            initialHorizontalOffset;
-    _lastVerticalScrollOffset =
-        prefs.getDouble('lastVerticalScrollOffset') ?? 0.0;
-
-    final lastVisitedTime = prefs.getString('lastVisitedTime');
-    final shouldResetScroll = lastVisitedTime != null &&
-        DateTime.now().difference(DateTime.parse(lastVisitedTime)).inMinutes >
-            15;
-
-    if (shouldResetScroll) {
-      _lastHorizontalScrollOffset = initialHorizontalOffset;
-      _lastVerticalScrollOffset = 0.0;
-    }
-
-    _initializeScrollControllers();
-    setState(() {
-      _isScrollInitialized = true;
-    });
-  }
-
-  void _initializeScrollControllers() {
     _horizontalScrollController = ScrollController(
-      initialScrollOffset: _lastHorizontalScrollOffset,
+      initialScrollOffset: initialOffset,
     );
-    _horizontalScrollController.addListener(_saveScrollOffsets);
-
-    _verticalScrollController = ScrollController(
-      initialScrollOffset: _lastVerticalScrollOffset,
-    );
-    _verticalScrollController.addListener(_saveScrollOffsets);
-  }
-
-  Future<void> _saveScrollOffsets() async {
-    if (!_horizontalScrollController.hasClients ||
-        !_verticalScrollController.hasClients) return;
-    final prefs = await SharedPreferences.getInstance();
-    final horizontalOffset = _horizontalScrollController.offset;
-    final verticalOffset = _verticalScrollController.offset;
-    await prefs.setDouble('lastHorizontalScrollOffset', horizontalOffset);
-    await prefs.setDouble('lastVerticalScrollOffset', verticalOffset);
-    await prefs.setString('lastVisitedTime', DateTime.now().toIso8601String());
   }
 
   @override
   void dispose() {
-    _horizontalScrollController.removeListener(_saveScrollOffsets);
     _horizontalScrollController.dispose();
-    _verticalScrollController.removeListener(_saveScrollOffsets);
-    _verticalScrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_isScrollInitialized) {
-      return const Center(child: CircularProgressIndicator());
-    }
     return FutureBuilder<Widget>(
       future: _buildGridView(context),
       builder: (context, snapshot) {
@@ -139,8 +87,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
     final List<String> filteredStages = widget.stages
         .where((stage) => widget.selectedStages.contains(stage))
         .where(
-          (stage) => artistsToShow.any((artist) => artist['stage'] == stage),
-        )
+            (stage) => artistsToShow.any((artist) => artist['stage'] == stage))
         .toList();
 
     final DateTime earliestTime = widget.eventArtists
@@ -166,7 +113,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          controller: _verticalScrollController,
+          scrollDirection: Axis.vertical,
           child: Stack(
             children: [
               SingleChildScrollView(
@@ -253,8 +200,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                         alignment: Alignment.centerLeft,
                                         child: Padding(
                                           padding: const EdgeInsets.only(
-                                            left: 130.0,
-                                          ),
+                                              left: 130.0),
                                           child: Text(
                                             DateFormat.Hm().format(hour),
                                           ),
@@ -309,8 +255,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => ArtistScreen(
-                                              artistId: artist.id,
-                                            ),
+                                                artistId: artist.id),
                                           ),
                                         );
                                       },
@@ -355,7 +300,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                               color: isFollowing
                                                   ? Theme.of(context)
                                                       .primaryColor
-                                                  : Theme.of(context).cardColor,
+                                                  : null,
                                               shape: RoundedRectangleBorder(
                                                 side: BorderSide(
                                                   color: Theme.of(context)
