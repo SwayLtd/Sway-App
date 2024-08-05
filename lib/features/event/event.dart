@@ -13,9 +13,9 @@ import 'package:sway_events/features/event/services/event_promoter_service.dart'
 import 'package:sway_events/features/event/utils/timetable_utils.dart';
 import 'package:sway_events/features/event/widgets/event_appbar_item.dart';
 import 'package:sway_events/features/event/widgets/info_card.dart';
-import 'package:sway_events/features/event/widgets/timetable.dart';
-import 'package:sway_events/features/event/widgets/timetable_grid.dart';
-import 'package:sway_events/features/event/widgets/timetable_list.dart';
+import 'package:sway_events/features/event/widgets/timetable/timetable.dart';
+import 'package:sway_events/features/event/widgets/timetable/timetable_grid.dart';
+import 'package:sway_events/features/event/widgets/timetable/timetable_list.dart';
 import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/features/insight/insight.dart';
