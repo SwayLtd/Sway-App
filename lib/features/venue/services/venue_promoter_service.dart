@@ -5,7 +5,7 @@ import 'package:sway_events/features/promoter/services/promoter_service.dart';
 
 class VenuePromoterService {
   Future<List<Promoter>> getPromotersByVenueId(String venueId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/venue_promoters.json');
+    final String response = await rootBundle.loadString('assets/databases/join_table/venue_promoter.json');
     final List<dynamic> venuePromoterJson = json.decode(response) as List<dynamic>;
     final promoterIds = venuePromoterJson
         .where((entry) => entry['venueId'] == venueId)

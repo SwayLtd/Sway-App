@@ -65,7 +65,7 @@ class VenueService {
 
   Future<List<Promoter>> getPromotersByVenueId(String venueId) async {
     final String response = await rootBundle
-        .loadString('assets/databases/join_table/venue_promoters.json');
+        .loadString('assets/databases/join_table/venue_promoter.json');
     final List<dynamic> venuePromoterJson =
         json.decode(response) as List<dynamic>;
     final promoterIds = venuePromoterJson

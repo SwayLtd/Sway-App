@@ -73,7 +73,7 @@ flutter:
     - assets/databases/join_table/event_promoter.json
     - assets/databases/join_table/similar_artists.json
     - assets/databases/join_table/venue_genres.json
-    - assets/databases/join_table/venue_promoters.json
+    - assets/databases/join_table/venue_promoter.json
     - assets/databases/join_table/venue_resident_artists.json
     - assets/databases/join_table/user_follow_artist.json
     - assets/databases/join_table/user_follow_genre.json
