@@ -44,10 +44,32 @@ class _GridViewWidgetState extends State<GridViewWidget> {
 
   Future<void> _loadLastScrollOffsets() async {
     final prefs = await SharedPreferences.getInstance();
-    final DateTime earliestTime = widget.eventArtists
+    final UserFollowArtistService userFollowArtistService =
+        UserFollowArtistService();
+
+    List<Map<String, dynamic>> artistsToShow = widget.eventArtists;
+
+    if (widget.showOnlyFollowedArtists) {
+      artistsToShow = [];
+      for (final artistMap in widget.eventArtists) {
+        final List<Artist> artists = (artistMap['artists'] as List<dynamic>)
+            .map((artist) => artist as Artist)
+            .toList();
+        for (final artist in artists) {
+          final bool isFollowing =
+              await userFollowArtistService.isFollowingArtist(artist.id);
+          if (isFollowing) {
+            artistsToShow.add(artistMap);
+            break;
+          }
+        }
+      }
+    }
+
+    final DateTime earliestTime = artistsToShow
         .map((e) => DateTime.parse(e['startTime'] as String))
         .reduce((a, b) => a.isBefore(b) ? a : b);
-    final DateTime latestTime = widget.eventArtists
+    final DateTime latestTime = artistsToShow
         .map((e) => DateTime.parse(e['endTime'] as String))
         .reduce((a, b) => a.isAfter(b) ? a : b);
     final now = DateTime.now();
@@ -204,10 +226,10 @@ class _GridViewWidgetState extends State<GridViewWidget> {
         )
         .toList();
 
-    final DateTime earliestTime = widget.eventArtists
+    final DateTime earliestTime = artistsToShow
         .map((e) => DateTime.parse(e['startTime'] as String))
         .reduce((a, b) => a.isBefore(b) ? a : b);
-    final DateTime latestTime = widget.eventArtists
+    final DateTime latestTime = artistsToShow
         .map((e) => DateTime.parse(e['endTime'] as String))
         .reduce((a, b) => a.isAfter(b) ? a : b);
 

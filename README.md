@@ -41,17 +41,17 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Timetable v4.2 (fine-tuning operation)
 * Timetable v4 (multiple artist and custom names management, status management and artist image rotator widget)
 * Timetable v3 (automatic time scrolling and saving of scroll offset, automatic day selection and saving day selection)
 * Timetable v2 (filters, follow, new design)
 * Event ticketing v1
-* Advanced purchasing system back-end with sales orders, invoices, items
-* Discovery page with suggestions for all entity types based on follows
 
 ### Known Issues
+* (FIXED)(Timetable) Adjust grid view to display only followed artists' time range
+* (FIXED)(Timetable) Incorrect offset in timetable grid view when a stage scheduled earlier than other stages is hidden.
 * (FIXED)(Timetable) Fix timetable grid scrolling logic for after-midnight and post-event end times.
 * (FIXED)(Timetable) All festival days are not displayed using "calculateFestivalDays".
-* (Timetable) Offset artists displayed on the timetables grid view if a scene scheduled earlier than the other scenes is hidden.
 * Duplicate artists on Discovery screen
 
 See the [open issues](https://github.com/Sway/Sway-Events/issues) for a list of proposed features (and known issues).
