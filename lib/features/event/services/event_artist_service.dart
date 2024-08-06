@@ -36,13 +36,16 @@ class EventArtistService {
   }
 
   Future<List<Map<String, dynamic>>> getEventsByArtistId(
-      String artistId) async {
+    String artistId,
+  ) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/event_artist.json');
     final List<dynamic> eventArtistJson =
         json.decode(response) as List<dynamic>;
     final eventEntries = eventArtistJson
-        .where((entry) => (entry['artistIds'] as List<dynamic>).contains(artistId))
+        .where(
+          (entry) => (entry['artistIds'] as List<dynamic>).contains(artistId),
+        )
         .toList();
 
     final events = await EventService().getEvents();
@@ -68,7 +71,6 @@ class EventArtistService {
   ) async {
     final List<Map<String, dynamic>> artists =
         await getArtistsByEventId(eventId);
-    print('Total artists for event $eventId: ${artists.length}');
 
     // Obtenir l'heure de début du festival
     final DateTime? festivalStartTime =
@@ -82,32 +84,26 @@ class EventArtistService {
       dayStart = await _getPreviousDayEndTime(eventId, day);
     }
 
-    final DateTime dayEnd = dayStart.add(Duration(days: 1));
+    final DateTime dayEnd = dayStart.add(const Duration(days: 1));
 
-    List<Map<String, dynamic>> filteredArtists = artists.where((entry) {
+    final List<Map<String, dynamic>> filteredArtists = artists.where((entry) {
       final startTimeStr = entry['startTime'] as String?;
       final endTimeStr = entry['endTime'] as String?;
       if (startTimeStr != null && endTimeStr != null) {
-        try {
-          final startTime = DateTime.parse(startTimeStr);
-          final endTime = DateTime.parse(endTimeStr);
+        final startTime = DateTime.parse(startTimeStr);
+        final endTime = DateTime.parse(endTimeStr);
 
-          // Performance falls within the festival day window
-          final isWithinDay =
-              (startTime.isAfter(dayStart) && startTime.isBefore(dayEnd)) ||
-                  (endTime.isAfter(dayStart) && endTime.isBefore(dayEnd)) ||
-                  (startTime.isBefore(dayStart) && endTime.isAfter(dayStart));
+        // Performance falls within the festival day window
+        final isWithinDay =
+            (startTime.isAfter(dayStart) && startTime.isBefore(dayEnd)) ||
+                (endTime.isAfter(dayStart) && endTime.isBefore(dayEnd)) ||
+                (startTime.isBefore(dayStart) && endTime.isAfter(dayStart));
 
-          return isWithinDay;
-        } catch (e) {
-          print(
-              'Invalid date format for artist, StartTime: $startTimeStr, EndTime: $endTimeStr');
-        }
+        return isWithinDay;
       }
       return false;
     }).toList();
 
-    print('Loaded ${filteredArtists.length} artists for selected day: $day');
     return filteredArtists;
   }
 
@@ -115,24 +111,23 @@ class EventArtistService {
     final List<Map<String, dynamic>> artists =
         await getArtistsByEventId(eventId);
 
-    DateTime dayStart = DateTime(day.year, day.month, day.day, 6,
-        0); // Default start time for days after the first day
+    final DateTime dayStart = DateTime(
+      day.year,
+      day.month,
+      day.day,
+      6,
+    ); // Default start time for days after the first day
     DateTime previousDayEndTime = dayStart;
 
     for (var entry in artists) {
       final startTimeStr = entry['startTime'] as String?;
       final endTimeStr = entry['endTime'] as String?;
       if (startTimeStr != null && endTimeStr != null) {
-        try {
-          final startTime = DateTime.parse(startTimeStr);
-          final endTime = DateTime.parse(endTimeStr);
+        DateTime.parse(startTimeStr);
+        final endTime = DateTime.parse(endTimeStr);
 
-          if (endTime.isBefore(day) && endTime.isAfter(previousDayEndTime)) {
-            previousDayEndTime = endTime;
-          }
-        } catch (e) {
-          print(
-              'Invalid date format for artist, StartTime: $startTimeStr, EndTime: $endTimeStr');
+        if (endTime.isBefore(day) && endTime.isAfter(previousDayEndTime)) {
+          previousDayEndTime = endTime;
         }
       }
     }
