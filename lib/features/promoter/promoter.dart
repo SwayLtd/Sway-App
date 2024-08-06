@@ -21,7 +21,6 @@ class PromoterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("PromoterScreen opened with ID: $promoterId");
     return Scaffold(
       appBar: AppBar(
         title: const Text('Promoter'),

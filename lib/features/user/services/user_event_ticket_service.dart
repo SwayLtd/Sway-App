@@ -4,9 +4,12 @@ import 'package:sway_events/features/user/models/user_event_ticket_model.dart';
 
 class UserEventTicketService {
   Future<List<UserEventTicket>> getUserEventTickets() async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_event_ticket.json');
+    final String response = await rootBundle
+        .loadString('assets/databases/join_table/user_event_ticket.json');
     final List<dynamic> jsonList = json.decode(response) as List<dynamic>;
-    return jsonList.map((json) => UserEventTicket.fromJson(json as Map<String, dynamic>)).toList();
+    return jsonList
+        .map((json) => UserEventTicket.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> addUserEventTicket(UserEventTicket userEventTicket) async {
@@ -17,7 +20,8 @@ class UserEventTicketService {
 
   Future<void> updateUserEventTicket(UserEventTicket userEventTicket) async {
     final List<UserEventTicket> currentTickets = await getUserEventTickets();
-    final index = currentTickets.indexWhere((ticket) => ticket.id == userEventTicket.id);
+    final index =
+        currentTickets.indexWhere((ticket) => ticket.id == userEventTicket.id);
     if (index != -1) {
       currentTickets[index] = userEventTicket;
       await saveUserEventTickets(currentTickets);
@@ -31,7 +35,7 @@ class UserEventTicketService {
   }
 
   Future<void> saveUserEventTickets(List<UserEventTicket> tickets) async {
-    final String jsonString = json.encode(tickets.map((ticket) => ticket.toJson()).toList());
+    json.encode(tickets.map((ticket) => ticket.toJson()).toList());
     // Save jsonString to your database or local storage
   }
 

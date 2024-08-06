@@ -71,7 +71,7 @@ class NotificationsUtils {
             ),
           );
     } catch (e) {
-      print(e);
+      debugPrint('Error: $e');
     }
   }
 
@@ -111,23 +111,23 @@ class NotificationsUtils {
   Future<void> onActionReceived(ReceivedAction receivedAction) async {
     if (receivedAction.actionType == ActionType.SilentAction ||
         receivedAction.actionType == ActionType.SilentBackgroundAction) {
-      print(
+      debugPrint(
         'Message sent via notification input: "${receivedAction.buttonKeyInput}"',
       );
       await executeLongTaskInBackground();
     } else {
       if (receivePort == null) {
-        print('onActionReceived was called inside a parallel dart isolate.');
+        debugPrint('onActionReceived was called inside a parallel dart isolate.');
         final SendPort? sendPort =
             IsolateNameServer.lookupPortByName('notification_action_port');
 
         if (sendPort != null) {
-          print('Redirection the execution to the main isolate process.');
+          debugPrint('Redirection the execution to the main isolate process.');
           sendPort.send(receivedAction);
           return;
         }
       }
-      print('check data with receivedAction: $receivedAction');
+      debugPrint('check data with receivedAction: $receivedAction');
 
       return onActionReceivedImplementation(receivedAction);
     }
@@ -136,8 +136,8 @@ class NotificationsUtils {
   static Future<void> onActionReceivedImplementation(
     ReceivedAction receivedAction,
   ) async {
-    print('check data with receivedAction: ${rootNavigatorKey.currentState}');
-    print('check data with receivedAction: ${rootNavigatorKey.currentContext}');
+    debugPrint('check data with receivedAction: ${rootNavigatorKey.currentState}');
+    debugPrint('check data with receivedAction: ${rootNavigatorKey.currentContext}');
 
     if (receivedAction.buttonKeyInput == 'TEST1') {
     } else if (receivedAction.buttonKeyInput == 'TEST2') {
@@ -150,16 +150,16 @@ class NotificationsUtils {
   }
 
   static Future<void> executeLongTaskInBackground() async {
-    print('Executing long task in background...');
+    debugPrint('Executing long task in background...');
     await Future.delayed(const Duration(seconds: 5));
     final url = Uri.parse('http://www.google.com');
     final response = await http.get(url);
-    print(response.body);
-    print('Long task executed in background...');
+    debugPrint(response.body);
+    debugPrint('Long task executed in background...');
   }
 
   Future<void> startListeningNotificationEvents() async {
-    print("check data with start listening");
+    debugPrint("check data with start listening");
     AwesomeNotifications().setListeners(
       onActionReceivedMethod: onActionReceivedMethod,
       onNotificationCreatedMethod: onNotificationCreatedMethod,
@@ -172,7 +172,7 @@ class NotificationsUtils {
   static Future<void> onActionReceivedMethod(
     ReceivedAction receivedAction,
   ) async {
-    print('check data with onActionReceivedMethod');
+    debugPrint('check data with onActionReceivedMethod');
 
     // need to be implemented
 
@@ -183,7 +183,7 @@ class NotificationsUtils {
   static Future<void> onNotificationCreatedMethod(
     ReceivedNotification receivedNotification,
   ) async {
-    print('check data with onNotificationCreatedMethod');
+    debugPrint('check data with onNotificationCreatedMethod');
 
     // need to be implemented
   }
@@ -192,7 +192,7 @@ class NotificationsUtils {
   static Future<void> onNotificationDisplayedMethod(
     ReceivedNotification receivedNotification,
   ) async {
-    print('check data with onNotificationDisplayedMethod');
+    debugPrint('check data with onNotificationDisplayedMethod');
 
     // need to be implemented
   }
@@ -201,7 +201,7 @@ class NotificationsUtils {
   static Future<void> onDismissActionReceivedMethod(
     ReceivedAction receivedAction,
   ) async {
-    print('check data with onDismissActionReceivedMethod');
+    debugPrint('check data with onDismissActionReceivedMethod');
 
     // need to be implemented
   }

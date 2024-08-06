@@ -11,8 +11,10 @@ class UserAccessManagementScreen extends StatefulWidget {
   final String entityId;
   final String entityType;
 
-  const UserAccessManagementScreen(
-      {required this.entityId, required this.entityType,});
+  const UserAccessManagementScreen({
+    required this.entityId,
+    required this.entityType,
+  });
 
   @override
   _UserAccessManagementScreenState createState() =>
@@ -53,7 +55,9 @@ class _UserAccessManagementScreenState
   }
 
   Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, UserPermission permission,) async {
+    BuildContext context,
+    UserPermission permission,
+  ) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -72,7 +76,10 @@ class _UserAccessManagementScreenState
               child: const Text('Delete'),
               onPressed: () async {
                 await UserPermissionService().deleteUserPermission(
-                    permission.userId, widget.entityId, widget.entityType,);
+                  permission.userId,
+                  widget.entityId,
+                  widget.entityType,
+                );
                 Navigator.of(context).pop();
                 setState(() {});
               },
@@ -112,7 +119,9 @@ class _UserAccessManagementScreenState
           Expanded(
             child: FutureBuilder<List<UserPermission>>(
               future: UserPermissionService().getPermissionsByEntity(
-                  widget.entityId, widget.entityType,),
+                widget.entityId,
+                widget.entityType,
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -151,12 +160,16 @@ class _UserAccessManagementScreenState
                                   if (isCurrentUserAdmin)
                                     DropdownButton<String>(
                                       value: permission.permission,
-                                      items: <String>['admin', 'manager', 'user']
-                                          .map<DropdownMenuItem<String>>(
-                                              (String value) {
+                                      items: <String>[
+                                        'admin',
+                                        'manager',
+                                        'user',
+                                      ].map<DropdownMenuItem<String>>(
+                                          (String value) {
                                         return DropdownMenuItem<String>(
                                           value: value,
-                                          child: Text(value[0].toUpperCase() + value.substring(1)),
+                                          child: Text(value[0].toUpperCase() +
+                                              value.substring(1),),
                                         );
                                       }).toList(),
                                       onChanged: (String? newRole) {
@@ -165,7 +178,8 @@ class _UserAccessManagementScreenState
                                             permission.permission = newRole;
                                             UserPermissionService()
                                                 .saveUserPermissions(
-                                                    permissions,);
+                                              permissions,
+                                            );
                                           });
                                         }
                                       },
@@ -174,7 +188,9 @@ class _UserAccessManagementScreenState
                                     icon: const Icon(Icons.delete),
                                     onPressed: () {
                                       _showDeleteConfirmationDialog(
-                                          context, permission,);
+                                        context,
+                                        permission,
+                                      );
                                     },
                                   ),
                                 ],
