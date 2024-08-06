@@ -48,6 +48,9 @@ Coming soon
 * Event ticketing v1
 
 ### Known Issues
+* (Timetable) Sometimes the first load of the timetable widget doesn't get the data from the database.
+* (Timetable) The day selection show days without artists programmed.
+* (Timetable) If there is multiple artists programmed at the same time, the cells are overlapped. The timetable widget need to puts them on top of each other.
 * (FIXED)(Timetable) Adjust grid view to display only followed artists' time range
 * (FIXED)(Timetable) Incorrect offset in timetable grid view when a stage scheduled earlier than other stages is hidden.
 * (FIXED)(Timetable) Fix timetable grid scrolling logic for after-midnight and post-event end times.
