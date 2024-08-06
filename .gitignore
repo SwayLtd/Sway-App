@@ -47,3 +47,4 @@ app.*.map.json
 lib/main_timetable.dart
 lib/features/event/widgets/timetable/timetable_grid_savepos.dart
 lib/features/event/widgets/timetable/timetable_grid_autohour.dart
+lib/features/event/widgets/timetable/timetable_grid_2024-08-06-11am.dart
