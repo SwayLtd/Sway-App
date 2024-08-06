@@ -1,3 +1,5 @@
+// timetable_grid.dart
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -45,15 +47,66 @@ class _GridViewWidgetState extends State<GridViewWidget> {
     final DateTime earliestTime = widget.eventArtists
         .map((e) => DateTime.parse(e['startTime'] as String))
         .reduce((a, b) => a.isBefore(b) ? a : b);
+    final DateTime latestTime = widget.eventArtists
+        .map((e) => DateTime.parse(e['endTime'] as String))
+        .reduce((a, b) => a.isAfter(b) ? a : b);
     final now = DateTime.now();
-    final initialHorizontalOffset = (now.hour - earliestTime.hour) * 200.0;
 
+    // If current time is after the end time of the event, set it to the start time of the event
+    final DateTime currentTime = now.isAfter(latestTime) ? earliestTime : now;
+
+    // Extract hours and minutes for comparison
+    final int nowInMinutes = now.hour * 60 + now.minute;
+    final int latestTimeInMinutes = latestTime.hour * 60 + latestTime.minute;
+    final int earliestTimeInMinutes =
+        earliestTime.hour * 60 + earliestTime.minute;
+
+    // Handle cases after midnight
+    final bool isAfterMidnight = currentTime.isAfter(
+          DateTime(currentTime.year, currentTime.month, currentTime.day),
+        ) &&
+        currentTime.isBefore(
+          DateTime(
+            currentTime.year,
+            currentTime.month,
+            currentTime.day + 1,
+            latestTime.hour,
+            latestTime.minute,
+          ),
+        );
+
+    double initialHorizontalOffset;
+
+    if (nowInMinutes > latestTimeInMinutes) {
+      // If current time is after the end time of the event, set it to the start time of the event
+      initialHorizontalOffset = 0.0;
+      if (nowInMinutes >= earliestTimeInMinutes &&
+          nowInMinutes <= latestTimeInMinutes + 24 * 60) {
+        // If current time is within the event time frame including the next day after midnight
+        initialHorizontalOffset =
+            ((nowInMinutes - earliestTimeInMinutes) % (24 * 60)) * 200.0 / 60.0;
+      } else {
+        // Default to the start time of the event
+        initialHorizontalOffset = 0;
+      }
+    } else if (isAfterMidnight) {
+      // Calculate initial offset for times after midnight
+      initialHorizontalOffset =
+          (24 + currentTime.hour - earliestTime.hour) * 200.0 +
+              (currentTime.minute * 200.0 / 60.0);
+    } else {
+      // Default to the start time of the event
+      initialHorizontalOffset = 0;
+    }
+
+    // Set offsets
     _lastHorizontalScrollOffset =
         prefs.getDouble('lastHorizontalScrollOffset') ??
             initialHorizontalOffset;
     _lastVerticalScrollOffset =
         prefs.getDouble('lastVerticalScrollOffset') ?? 0.0;
 
+    // Check if scroll should be reset
     final lastVisitedTime = prefs.getString('lastVisitedTime');
     final shouldResetScroll = lastVisitedTime != null &&
         DateTime.now().difference(DateTime.parse(lastVisitedTime)).inMinutes >
@@ -64,6 +117,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
       _lastVerticalScrollOffset = 0.0;
     }
 
+    // Initialize scroll controllers
     _initializeScrollControllers();
     setState(() {
       _isScrollInitialized = true;

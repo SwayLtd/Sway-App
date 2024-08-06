@@ -49,8 +49,8 @@ Coming soon
 * Discovery page with suggestions for all entity types based on follows
 
 ### Known Issues
-* (Timetable) The automatic scroll to the right time on gird view doesn't take into account the fact that we're moving to the next day at midnight.
-* (FIXED)(Timetable) All festival days are not displayed correctly in "calculateFestivalDays". Warning "festivalDays = festivalDays.where((date) => date.isBefore(DateTime(2024, 9, 5))).toList();"
+* (FIXED)(Timetable) Fix timetable grid scrolling logic for after-midnight and post-event end times.
+* (FIXED)(Timetable) All festival days are not displayed using "calculateFestivalDays".
 * (Timetable) Offset artists displayed on the timetables grid view if a scene scheduled earlier than the other scenes is hidden.
 * Duplicate artists on Discovery screen
 
