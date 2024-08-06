@@ -17,3 +17,10 @@ String formatEventTime(DateTime dateTime) {
   final minute = dateTime.minute.toString().padLeft(2, '0');
   return '$hour:$minute';
 }
+
+String formatTime(String dateTime) {
+  final time = DateTime.parse(dateTime);
+  final formattedTime =
+      "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+  return formattedTime;
+}

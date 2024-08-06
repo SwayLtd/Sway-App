@@ -1,6 +1,7 @@
 // artist.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/utils/date_utils.dart';
 import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
@@ -113,26 +114,70 @@ class _ArtistScreenState extends State<ArtistScreen> {
                             child: Text('No upcoming events found'),
                           );
                         } else {
+                          // Filtrer pour ne garder qu'un événement unique
                           final eventEntries = eventSnapshot.data!;
+                          final uniqueEvents = eventEntries
+                              .fold<Map<String, Event>>(
+                                {},
+                                (map, entry) {
+                                  final event = entry['event'] as Event;
+                                  map[event.id] = event;
+                                  return map;
+                                },
+                              )
+                              .values
+                              .toList();
+
                           return Column(
-                            children: eventEntries.map((entry) {
-                              final event = entry['event'] as Event;
-                              final startTime = entry['startTime'] as String?;
-                              final endTime = entry['endTime'] as String?;
-                              final status = entry['status'] as String?;
+                            children: uniqueEvents.map((event) {
                               return ListTile(
                                 title: Text(event.title),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('From: ${event.dateTime} to $endTime'),
-                                    if (status != null && status != 'confirmed')
-                                      Text('Status: $status',
-                                          style: TextStyle(
-                                            color: status == 'cancelled'
-                                                ? Colors.red
-                                                : null,
-                                          )),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.access_time,
+                                          size: 16,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${formatEventTime(DateTime.parse(event.dateTime))} - ${formatEventTime(DateTime.parse(event.endDateTime))}',
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.location_on,
+                                          size: 16,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        FutureBuilder<Venue?>(
+                                          future: VenueService()
+                                              .getVenueById(event.venue),
+                                          builder: (context, venueSnapshot) {
+                                            if (venueSnapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return const Text('Loading...');
+                                            } else if (venueSnapshot.hasError ||
+                                                !venueSnapshot.hasData ||
+                                                venueSnapshot.data == null) {
+                                              return const Text(
+                                                'Venue not found',
+                                              );
+                                            } else {
+                                              final venue = venueSnapshot.data!;
+                                              return Text(venue.name);
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                                 onTap: () {

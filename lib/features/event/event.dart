@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sway_events/core/utils/date_utils.dart';
 import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/common_section_widget.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
@@ -10,19 +11,15 @@ import 'package:sway_events/features/event/screens/edit_event_screen.dart';
 import 'package:sway_events/features/event/services/event_artist_service.dart';
 import 'package:sway_events/features/event/services/event_genre_service.dart';
 import 'package:sway_events/features/event/services/event_promoter_service.dart';
-import 'package:sway_events/features/event/utils/timetable_utils.dart';
 import 'package:sway_events/features/event/widgets/event_appbar_item.dart';
 import 'package:sway_events/features/event/widgets/info_card.dart';
 import 'package:sway_events/features/event/widgets/timetable/timetable.dart';
-import 'package:sway_events/features/event/widgets/timetable/timetable_grid.dart';
-import 'package:sway_events/features/event/widgets/timetable/timetable_list.dart';
 import 'package:sway_events/features/genre/genre.dart';
 import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/features/insight/insight.dart';
 import 'package:sway_events/features/promoter/models/promoter_model.dart';
 import 'package:sway_events/features/promoter/promoter.dart';
 import 'package:sway_events/features/promoter/services/promoter_service.dart';
-import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 import 'package:sway_events/features/user/services/user_permission_service.dart';
@@ -337,7 +334,9 @@ class _EventScreenState extends State<EventScreen> {
               title: "LINE UP",
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: FutureBuilder<List<Map<String, dynamic>>>(
+                child: // event.dart
+
+                    FutureBuilder<List<Map<String, dynamic>>>(
                   future:
                       EventArtistService().getArtistsByEventId(widget.event.id),
                   builder: (context, artistSnapshot) {
@@ -351,40 +350,58 @@ class _EventScreenState extends State<EventScreen> {
                       return const Text('No artists found');
                     } else {
                       final artistEntries = artistSnapshot.data!;
-                      return Row(
-                        children: artistEntries.map((entry) {
-                          final artistData = entry['artist'];
-                          if (artistData == null) {
-                            return const SizedBox.shrink();
-                          }
-                          final artist = Artist.fromJson(
-                              artistData as Map<String, dynamic>);
-                          final startTime = entry['startTime'] as String?;
-                          final endTime = entry['endTime'] as String?;
-                          final status = entry['status'] as String?;
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      ArtistScreen(artistId: artist.id),
-                                ),
-                              );
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: status == 'cancelled'
-                                        ? ColorFiltered(
-                                            colorFilter: const ColorFilter.mode(
-                                              Colors.grey,
-                                              BlendMode.saturation,
-                                            ),
-                                            child: Image.network(
+                      final List<Widget> artistWidgets = [];
+
+                      for (final entry in artistEntries) {
+                        final List<dynamic> artists =
+                            entry['artists'] as List<dynamic>;
+                        final startTime = entry['startTime'] as String?;
+                        final endTime = entry['endTime'] as String?;
+                        final status = entry['status'] as String?;
+
+                        for (final artist in artists.cast<Artist>()) {
+                          artistWidgets.add(
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ArtistScreen(artistId: artist.id),
+                                  ),
+                                );
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: status == 'cancelled'
+                                          ? ColorFiltered(
+                                              colorFilter:
+                                                  const ColorFilter.mode(
+                                                Colors.grey,
+                                                BlendMode.saturation,
+                                              ),
+                                              child: Image.network(
+                                                artist.imageUrl,
+                                                width: 100,
+                                                height: 100,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (
+                                                  context,
+                                                  error,
+                                                  stackTrace,
+                                                ) {
+                                                  return const Icon(
+                                                    Icons.error,
+                                                    size: 100,
+                                                  );
+                                                },
+                                              ),
+                                            )
+                                          : Image.network(
                                               artist.imageUrl,
                                               width: 100,
                                               height: 100,
@@ -397,41 +414,35 @@ class _EventScreenState extends State<EventScreen> {
                                                 );
                                               },
                                             ),
-                                          )
-                                        : Image.network(
-                                            artist.imageUrl,
-                                            width: 100,
-                                            height: 100,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return const Icon(
-                                                Icons.error,
-                                                size: 100,
-                                              );
-                                            },
-                                          ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    artist.name,
-                                    style: TextStyle(
-                                      color: status == 'cancelled'
-                                          ? Colors.grey
-                                          : null,
                                     ),
-                                  ),
-                                  if (widget.event.type == 'festival' &&
-                                      startTime != null &&
-                                      endTime != null)
+                                    const SizedBox(height: 5),
                                     Text(
-                                      '${formatTime(startTime)} - ${formatTime(endTime)}',
+                                      artist.name,
+                                      style: TextStyle(
+                                        color: status == 'cancelled'
+                                            ? Colors.grey
+                                            : null,
+                                      ),
                                     ),
-                                ],
+                                    if (widget.event.type == 'festival' &&
+                                        startTime != null &&
+                                        endTime != null)
+                                      Text(
+                                        '${formatTime(startTime)} - ${formatTime(endTime)}',
+                                      ),
+                                  ],
+                                ),
                               ),
                             ),
                           );
-                        }).toList(),
+                        }
+                      }
+
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: artistWidgets,
+                        ),
                       );
                     }
                   },
@@ -470,9 +481,7 @@ class _EventScreenState extends State<EventScreen> {
                               );
                             } else if (!promoterDetailSnapshot.hasData ||
                                 promoterDetailSnapshot.data == null) {
-                              return const Text(
-                                'Promoter details not found',
-                              );
+                              return const Text('Promoter details not found');
                             } else {
                               final detailedPromoter =
                                   promoterDetailSnapshot.data!;
@@ -821,7 +830,6 @@ class _EventScreenState extends State<EventScreen> {
         UserInterestEventService().removeInterest(eventId);
         break;
     }
-    // Met à jour l'interface utilisateur en appelant setState
     (context as Element).markNeedsBuild();
   }
 
