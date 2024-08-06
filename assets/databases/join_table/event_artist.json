@@ -1,7 +1,7 @@
 [
   { "eventId": "1", "artistIds": ["1"], "startTime": "2024-09-01T14:00:00", "endTime": "2024-09-01T15:30:00", "status": "confirmed", "stage": "Main Stage" },
   { "eventId": "1", "artistIds": ["2"], "startTime": "2024-09-01T15:30:00", "endTime": "2024-09-01T16:15:00", "status": "confirmed", "stage": "Second Stage" },
-  { "eventId": "1", "artistIds": ["3", "1"], "customName": "Special Event 1", "startTime": "2024-09-01T16:15:00", "endTime": "2024-09-01T17:45:00", "status": "confirmed", "stage": "Third Stage" },
+  { "eventId": "1", "artistIds": ["1"], "customName": "Claydrum presents Nico Moreno", "startTime": "2024-09-01T16:15:00", "endTime": "2024-09-01T17:45:00", "status": "confirmed", "stage": "Third Stage" },
   { "eventId": "1", "artistIds": ["4", "2", "1"], "startTime": "2024-09-01T17:45:00", "endTime": "2024-09-01T19:15:00", "status": "tentative", "stage": "Main Stage" },
   { "eventId": "1", "artistIds": ["5"], "startTime": "2024-09-01T19:15:00", "endTime": "2024-09-01T20:00:00", "status": "confirmed", "stage": "Second Stage" },
   { "eventId": "1", "artistIds": ["6"], "startTime": "2024-09-01T20:00:00", "endTime": "2024-09-01T22:00:00", "status": "confirmed", "stage": "Third Stage" },
