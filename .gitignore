@@ -31,6 +31,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+devtools_options.yaml
 
 # Symbolication related
 app.*.symbols
@@ -46,8 +47,14 @@ app.*.map.json
 # Local Supabase configuration
 /supabase/
 
-# Test files
-lib/main_timetable.dart
-lib/features/event/widgets/timetable/timetable_grid_savepos.dart
-lib/features/event/widgets/timetable/timetable_grid_autohour.dart
-lib/features/event/widgets/timetable/timetable_grid_2024-08-06-11am.dart
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.backup
+*.orig
+*.rej
+*.merge_file_*
+
+# Working files
