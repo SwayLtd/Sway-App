@@ -6,11 +6,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sway_events/core/constants/app_theme.dart';
 import 'package:sway_events/core/constants/l10n.dart';
 import 'package:sway_events/core/routes.dart';
+import 'package:sway_events/core/services/notification_service.dart';
 import 'package:url_strategy/url_strategy.dart';
 
-void main() async {
+Future<void> main() async {
   setPathUrlStrategy(); // Remove # from URL
   WidgetsFlutterBinding.ensureInitialized();
+  // initializeAwesomeNotifications();
   runApp(const SwayEvents());
 }
 
