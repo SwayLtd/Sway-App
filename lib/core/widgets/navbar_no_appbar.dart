@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/constants/l10n.dart';
 import 'package:sway_events/core/routes.dart';
 
 class ScaffoldWithNavBarWithoutAppBar extends StatefulWidget {
@@ -28,12 +27,12 @@ class _ScaffoldWithNavBarWithoutAppBarState extends State<ScaffoldWithNavBarWith
         icon: Icon(Icons.local_library_outlined),
         label: "Discovery",
       ),
-      BottomNavigationBarItem(
-        icon: const Icon(Icons.search_outlined),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.search_outlined),
         label: "Search",
       ),
-      BottomNavigationBarItem(
-        icon: const Icon(Icons.local_activity_outlined),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.local_activity_outlined),
         label: "Tickets",
       ),
       const BottomNavigationBarItem(

@@ -13,7 +13,7 @@ class UserAccessSearchScreen extends StatefulWidget {
   const UserAccessSearchScreen(
       {required this.entityId,
       required this.entityType,
-      required this.isCurrentUserAdmin});
+      required this.isCurrentUserAdmin,});
 
   @override
   _UserAccessSearchScreenState createState() => _UserAccessSearchScreenState();

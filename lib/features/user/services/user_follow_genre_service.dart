@@ -16,7 +16,7 @@ class UserFollowGenreService {
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
     return followJson.any(
-        (follow) => follow['userId'] == userId && follow['genreId'] == genreId);
+        (follow) => follow['userId'] == userId && follow['genreId'] == genreId,);
   }
 
   Future<void> followGenre(String genreId) async {
@@ -36,7 +36,7 @@ class UserFollowGenreService {
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
     followJson.removeWhere(
-        (follow) => follow['userId'] == userId && follow['genreId'] == genreId);
+        (follow) => follow['userId'] == userId && follow['genreId'] == genreId,);
 
     // Save updated list back to the file (assuming you have a method for this)
     await saveUserFollowGenreData(followJson);

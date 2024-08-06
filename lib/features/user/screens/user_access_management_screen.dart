@@ -2,17 +2,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/models/user_permission_model.dart';
-import 'package:sway_events/features/user/services/user_service.dart';
 import 'package:sway_events/features/user/screens/user_access_search_screen.dart';
+import 'package:sway_events/features/user/services/user_permission_service.dart';
+import 'package:sway_events/features/user/services/user_service.dart';
 
 class UserAccessManagementScreen extends StatefulWidget {
   final String entityId;
   final String entityType;
 
   const UserAccessManagementScreen(
-      {required this.entityId, required this.entityType});
+      {required this.entityId, required this.entityType,});
 
   @override
   _UserAccessManagementScreenState createState() =>
@@ -53,7 +53,7 @@ class _UserAccessManagementScreenState
   }
 
   Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, UserPermission permission) async {
+      BuildContext context, UserPermission permission,) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -72,7 +72,7 @@ class _UserAccessManagementScreenState
               child: const Text('Delete'),
               onPressed: () async {
                 await UserPermissionService().deleteUserPermission(
-                    permission.userId, widget.entityId, widget.entityType);
+                    permission.userId, widget.entityId, widget.entityType,);
                 Navigator.of(context).pop();
                 setState(() {});
               },
@@ -112,7 +112,7 @@ class _UserAccessManagementScreenState
           Expanded(
             child: FutureBuilder<List<UserPermission>>(
               future: UserPermissionService().getPermissionsByEntity(
-                  widget.entityId, widget.entityType),
+                  widget.entityId, widget.entityType,),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -165,7 +165,7 @@ class _UserAccessManagementScreenState
                                             permission.permission = newRole;
                                             UserPermissionService()
                                                 .saveUserPermissions(
-                                                    permissions);
+                                                    permissions,);
                                           });
                                         }
                                       },
@@ -174,7 +174,7 @@ class _UserAccessManagementScreenState
                                     icon: const Icon(Icons.delete),
                                     onPressed: () {
                                       _showDeleteConfirmationDialog(
-                                          context, permission);
+                                          context, permission,);
                                     },
                                   ),
                                 ],

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sway_events/features/user/models/user_permission_model.dart';
+import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
+import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/services/venue_service.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
-import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
 
 class EditVenueScreen extends StatefulWidget {
   final Venue venue;
@@ -46,7 +46,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
   }
 
   Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, UserPermission permission) async {
+      BuildContext context, UserPermission permission,) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -65,7 +65,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
               child: const Text('Delete'),
               onPressed: () async {
                 await UserPermissionService().deleteUserPermission(
-                    permission.userId, widget.venue.id, 'venue');
+                    permission.userId, widget.venue.id, 'venue',);
                 Navigator.of(context).pop();
                 setState(() {});
               },
@@ -124,7 +124,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
             ),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                  widget.venue.id, 'venue', 'admin'),
+                  widget.venue.id, 'venue', 'admin',),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
@@ -143,7 +143,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                                 userId: 'currentUser',
                                 entityId: widget.venue.id,
                                 entityType: 'venue',
-                                permission: 'admin'));
+                                permission: 'admin',),);
                       },
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.red,

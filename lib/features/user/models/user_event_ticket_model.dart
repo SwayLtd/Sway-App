@@ -1,6 +1,5 @@
 // user_event_ticket_model.dart
 
-import 'package:uuid/uuid.dart';
 
 class UserEventTicket {
   final String id;

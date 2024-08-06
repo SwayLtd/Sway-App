@@ -57,7 +57,7 @@ class PromoterService {
 
     return promoterJson
         .map((json) =>
-            Promoter.fromJsonWithoutEvents(json as Map<String, dynamic>))
+            Promoter.fromJsonWithoutEvents(json as Map<String, dynamic>),)
         .toList();
   }
 
@@ -74,7 +74,7 @@ class PromoterService {
 
   Future<void> addPromoter(Promoter promoter) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
-        promoter.id, 'promoter', 'admin');
+        promoter.id, 'promoter', 'admin',);
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
@@ -83,7 +83,7 @@ class PromoterService {
 
   Future<void> updatePromoter(Promoter promoter) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
-        promoter.id, 'promoter', 'manager');
+        promoter.id, 'promoter', 'manager',);
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
@@ -92,7 +92,7 @@ class PromoterService {
 
   Future<void> deletePromoter(String promoterId) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
-        promoterId, 'promoter', 'admin');
+        promoterId, 'promoter', 'admin',);
     if (!hasPermission) {
       throw Exception('Permission denied');
     }

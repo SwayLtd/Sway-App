@@ -15,7 +15,7 @@ class EventArtistService {
         eventArtistJson.where((entry) => entry['eventId'] == eventId).toList();
 
     final artists = await ArtistService().getArtists();
-    final artistMap = {for (var artist in artists) artist.id: artist};
+    final artistMap = {for (final artist in artists) artist.id: artist};
 
     return artistEntries.map((entry) {
       final artistIds = (entry['artistIds'] as List<dynamic>)
@@ -49,7 +49,7 @@ class EventArtistService {
         .toList();
 
     final events = await EventService().getEvents();
-    final eventMap = {for (var event in events) event.id: event};
+    final eventMap = {for (final event in events) event.id: event};
 
     return eventEntries.map((entry) {
       final event = eventMap[entry['eventId']];
@@ -119,7 +119,7 @@ class EventArtistService {
     ); // Default start time for days after the first day
     DateTime previousDayEndTime = dayStart;
 
-    for (var entry in artists) {
+    for (final entry in artists) {
       final startTimeStr = entry['startTime'] as String?;
       final endTimeStr = entry['endTime'] as String?;
       if (startTimeStr != null && endTimeStr != null) {

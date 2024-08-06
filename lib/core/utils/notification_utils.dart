@@ -144,7 +144,7 @@ class NotificationsUtils {
     } else {
       rootNavigatorKey.currentState?.push(
         MaterialPageRoute(
-            builder: (context) => const ArtistScreen(artistId: '1')),
+            builder: (context) => const ArtistScreen(artistId: '1'),),
       );
     }
   }

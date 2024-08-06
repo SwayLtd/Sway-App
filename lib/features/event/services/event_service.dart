@@ -29,17 +29,17 @@ class EventService {
     return events.where((event) {
       final eventTitleLower = event.title.toLowerCase();
       final searchLower = query.toLowerCase();
-      bool matchesQuery = eventTitleLower.contains(searchLower);
+      final bool matchesQuery = eventTitleLower.contains(searchLower);
 
-      String? cityFilter = filters['city'] as String?;
-      DateTime? dateFilter = filters['date'] as DateTime?;
-      List<String>? genreFilter = (filters['genres'] as List<dynamic>?)?.cast<String>();
-      bool nearMeFilter = filters['nearMe'] as bool? ?? false;
+      final String? cityFilter = filters['city'] as String?;
+      final DateTime? dateFilter = filters['date'] as DateTime?;
+      final List<String>? genreFilter = (filters['genres'] as List<dynamic>?)?.cast<String>();
+      final bool nearMeFilter = filters['nearMe'] as bool? ?? false;
 
-      bool matchesCity = cityFilter == null || event.venue == cityFilter;
-      bool matchesDate = dateFilter == null || event.dateTime.startsWith(dateFilter.toString().split(' ')[0]);
-      bool matchesGenre = genreFilter == null || genreFilter.isEmpty || genreFilter.any((genre) => genres[event.id]?.contains(genre) == true);
-      bool matchesNearMe = !nearMeFilter; // Implement the "near me" logic later
+      final bool matchesCity = cityFilter == null || event.venue == cityFilter;
+      final bool matchesDate = dateFilter == null || event.dateTime.startsWith(dateFilter.toString().split(' ')[0]);
+      final bool matchesGenre = genreFilter == null || genreFilter.isEmpty || genreFilter.any((genre) => genres[event.id]?.contains(genre) == true);
+      final bool matchesNearMe = !nearMeFilter; // Implement the "near me" logic later
 
       return matchesQuery && matchesCity && matchesDate && matchesGenre && matchesNearMe;
     }).toList();
@@ -50,7 +50,7 @@ class EventService {
     final List<dynamic> genreJson = json.decode(response) as List<dynamic>;
     final Map<String, List<String>> eventGenres = {};
 
-    for (var entry in genreJson) {
+    for (final entry in genreJson) {
       final eventId = entry['eventId'] as String;
       final genreId = entry['genreId'] as String;
       eventGenres.putIfAbsent(eventId, () => []).add(genreId);

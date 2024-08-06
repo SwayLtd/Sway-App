@@ -1,11 +1,12 @@
 // user_follow_venue_service.dart
 
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/venue/models/venue_model.dart';
-import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
 import 'package:sway_events/features/user/services/user_service.dart';
+import 'package:sway_events/features/venue/models/venue_model.dart';
+import 'package:sway_events/features/venue/services/venue_service.dart';
 
 class UserFollowVenueService {
   final String userId = "3"; // L'ID de l'utilisateur actuel

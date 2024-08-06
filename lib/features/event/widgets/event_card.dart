@@ -2,13 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sway_events/features/event/services/event_genre_service.dart';
-import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/venue/services/venue_service.dart';
+import 'package:sway_events/features/event/services/event_genre_service.dart';
+import 'package:sway_events/features/genre/widgets/genre_chip.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
+import 'package:sway_events/features/venue/services/venue_service.dart';
 
 class EventCard extends StatelessWidget {
   final Event event;
@@ -258,8 +258,8 @@ class EventCard extends StatelessWidget {
   }
 
   Future<Map<String, bool>> _getEventStatus(String eventId) async {
-    bool isInterested = await UserInterestEventService().isInterestedInEvent(eventId);
-    bool isAttended = await UserInterestEventService().isAttendedEvent(eventId);
+    final bool isInterested = await UserInterestEventService().isInterestedInEvent(eventId);
+    final bool isAttended = await UserInterestEventService().isAttendedEvent(eventId);
     return {'isInterested': isInterested, 'isAttended': isAttended};
   }
 

@@ -417,7 +417,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   return Row(
                     children: [
                       const Icon(Icons.music_note,
-                          size: 16, color: Colors.grey),
+                          size: 16, color: Colors.grey,),
                       const SizedBox(width: 4),
                       Text(
                         snapshot.data!.map((genre) => genre.name).join(', '),

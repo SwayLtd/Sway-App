@@ -24,25 +24,23 @@ class UserEntitiesScreen extends StatelessWidget {
         .getPermissionsByUserIdAndType(userId, entityType);
   }
 
-  void _navigateToEntity(
-      BuildContext context, String entityType, String entityId) async {
+  Future<void> _navigateToEntity(
+      BuildContext context, String entityType, String entityId,) async {
     switch (entityType) {
       case 'event':
         final event = await EventService().getEventById(entityId);
-        if (event != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => EventScreen(event: event)),
-          );
-        }
-        break;
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => EventScreen(event: event)),
+        );
+              break;
       case 'venue':
         final venue = await VenueService().getVenueById(entityId);
         if (venue != null) {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => VenueScreen(venueId: venue.id)),
+                builder: (context) => VenueScreen(venueId: venue.id),),
           );
         }
         break;
@@ -54,33 +52,31 @@ class UserEntitiesScreen extends StatelessWidget {
             context,
             MaterialPageRoute(
                 builder: (context) =>
-                    PromoterScreen(promoterId: promoter.id)),
+                    PromoterScreen(promoterId: promoter.id),),
           );
         }
         break;
     }
   }
 
-  void _editEntity(
-      BuildContext context, String entityType, String entityId) async {
+  Future<void> _editEntity(
+      BuildContext context, String entityType, String entityId,) async {
     switch (entityType) {
       case 'event':
         final event = await EventService().getEventById(entityId);
-        if (event != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => EditEventScreen(event: event)),
-          );
-        }
-        break;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => EditEventScreen(event: event),),
+        );
+              break;
       case 'venue':
         final venue = await VenueService().getVenueById(entityId);
         if (venue != null) {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => EditVenueScreen(venue: venue)),
+                builder: (context) => EditVenueScreen(venue: venue),),
           );
         }
         break;
@@ -92,7 +88,7 @@ class UserEntitiesScreen extends StatelessWidget {
             context,
             MaterialPageRoute(
                 builder: (context) =>
-                    EditPromoterScreen(promoter: promoter)),
+                    EditPromoterScreen(promoter: promoter),),
           );
         }
         break;
@@ -147,10 +143,10 @@ class UserEntitiesScreen extends StatelessWidget {
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(
-                                    context, 'event', permission.entityId),
+                                    context, 'event', permission.entityId,),
                               ),
                               onTap: () => _navigateToEntity(
-                                  context, 'event', permission.entityId),
+                                  context, 'event', permission.entityId,),
                             );
                           }
                         },
@@ -198,10 +194,10 @@ class UserEntitiesScreen extends StatelessWidget {
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(
-                                    context, 'venue', permission.entityId),
+                                    context, 'venue', permission.entityId,),
                               ),
                               onTap: () => _navigateToEntity(
-                                  context, 'venue', permission.entityId),
+                                  context, 'venue', permission.entityId,),
                             );
                           }
                         },
@@ -249,10 +245,10 @@ class UserEntitiesScreen extends StatelessWidget {
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(
-                                    context, 'promoter', permission.entityId),
+                                    context, 'promoter', permission.entityId,),
                               ),
                               onTap: () => _navigateToEntity(
-                                  context, 'promoter', permission.entityId),
+                                  context, 'promoter', permission.entityId,),
                             );
                           }
                         },

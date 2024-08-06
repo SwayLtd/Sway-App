@@ -60,12 +60,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) {
         String inputText = '';
         return AlertDialog(
-          title: Text('Enter your text'),
+          title: const Text('Enter your text'),
           content: TextField(
             onChanged: (value) {
               inputText = value;
             },
-            decoration: InputDecoration(hintText: "Enter text here"),
+            decoration: const InputDecoration(hintText: "Enter text here"),
           ),
           actions: [
             TextButton(
@@ -74,10 +74,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 if (inputText.isNotEmpty) {
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) =>
-                          ScrollingTextScreen(text: inputText)));
+                          ScrollingTextScreen(text: inputText),),);
                 }
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -100,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
-              User? user = await UserService().getUserById(widget.userId);
+              final User? user = await UserService().getUserById(widget.userId);
               if (user != null) {
                 final updatedUser = await Navigator.push(
                   context,
@@ -162,13 +162,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Text(
                       user.username,
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold),
+                          fontSize: 24, fontWeight: FontWeight.bold,),
                     ),
                     const SizedBox(height: 5),
                     Text(
                       'Member since: ${user.createdAt.toLocal()}',
                       style: const TextStyle(
-                          fontSize: 16, fontStyle: FontStyle.italic),
+                          fontSize: 16, fontStyle: FontStyle.italic,),
                     ),
                     const SizedBox(height: 20),
                     FollowersCountWidget(
@@ -367,7 +367,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PromoterScreen(
-                                            promoterId: promoter.id),
+                                            promoterId: promoter.id,),
                                       ),
                                     );
                                   },

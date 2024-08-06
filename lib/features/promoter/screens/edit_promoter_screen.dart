@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sway_events/features/promoter/models/promoter_model.dart';
 import 'package:sway_events/features/promoter/services/promoter_service.dart';
 import 'package:sway_events/features/user/models/user_permission_model.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
 import 'package:sway_events/features/user/screens/user_access_management_screen.dart';
+import 'package:sway_events/features/user/services/user_permission_service.dart';
 
 class EditPromoterScreen extends StatefulWidget {
   final Promoter promoter;
@@ -46,7 +46,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
   }
 
   Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, UserPermission permission) async {
+      BuildContext context, UserPermission permission,) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -65,7 +65,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
               child: const Text('Delete'),
               onPressed: () async {
                 await UserPermissionService().deleteUserPermission(
-                    permission.userId, widget.promoter.id, 'promoter');
+                    permission.userId, widget.promoter.id, 'promoter',);
                 Navigator.of(context).pop();
                 setState(() {});
               },
@@ -119,7 +119,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
             const SizedBox(height: 20),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                  widget.promoter.id, 'promoter', 'admin'),
+                  widget.promoter.id, 'promoter', 'admin',),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
@@ -139,7 +139,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                                   userId: 'currentUser',
                                   entityId: widget.promoter.id,
                                   entityType: 'promoter',
-                                  permission: 'admin'));
+                                  permission: 'admin',),);
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.red,

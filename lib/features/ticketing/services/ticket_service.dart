@@ -33,7 +33,7 @@ class TicketService {
     int? maxPurchases,
   }) async {
     final now = DateTime.now();
-    final id = Uuid().v4();
+    final id = const Uuid().v4();
 
     final ticket = Ticket(
       id: id,

@@ -7,12 +7,12 @@ class EventAppBarItem extends StatelessWidget {
   final int selectedIndex;
 
   const EventAppBarItem({
-    Key? key,
+    super.key,
     required this.title,
     required this.index,
     required this.onTap,
     required this.selectedIndex,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

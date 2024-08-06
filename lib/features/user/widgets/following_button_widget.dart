@@ -12,7 +12,7 @@ class FollowingButtonWidget extends StatelessWidget {
   final String entityType; // 'venue', 'promoter', 'artist', 'user', 'genre'
 
   const FollowingButtonWidget(
-      {required this.entityId, required this.entityType});
+      {required this.entityId, required this.entityType,});
 
   Future<bool> _isFollowing() {
     switch (entityType) {

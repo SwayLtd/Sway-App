@@ -24,17 +24,17 @@ class UserPermissionService {
   }
 
   Future<List<UserPermission>> getPermissionsByEntity(
-      String entityId, String entityType) async {
+      String entityId, String entityType,) async {
     final permissions = await getUserPermissions();
     return permissions
         .where((permission) =>
             permission.entityId == entityId &&
-            permission.entityType == entityType)
+            permission.entityType == entityType,)
         .toList();
   }
 
   Future<List<UserPermission>> getPermissionsByUserIdAndType(
-      String userId, String entityType) async {
+      String userId, String entityType,) async {
     final permissions = await getPermissionsByUserId(userId);
     return permissions
         .where((permission) => permission.entityType == entityType)
@@ -42,7 +42,7 @@ class UserPermissionService {
   }
 
   Future<bool> hasPermission(String userId, String entityId, String entityType,
-      String requiredPermission) async {
+      String requiredPermission,) async {
     final permissions = await getPermissionsByUserId(userId);
     return permissions.any((permission) =>
         permission.entityId == entityId &&
@@ -54,37 +54,37 @@ class UserPermissionService {
             (requiredPermission == 'insight' &&
                 (permission.permission == 'admin' ||
                     permission.permission == 'manager' ||
-                    permission.permission == 'user'))));
+                    permission.permission == 'user'))),);
   }
 
   Future<bool> hasPermissionForCurrentUser(
-      String entityId, String entityType, String requiredPermission) async {
+      String entityId, String entityType, String requiredPermission,) async {
     final currentUser = await UserService().getCurrentUser();
     if (currentUser == null) {
       return false;
     }
     return hasPermission(
-        currentUser.id, entityId, entityType, requiredPermission);
+        currentUser.id, entityId, entityType, requiredPermission,);
   }
 
   Future<void> addUserPermission(String userId, String entityId,
-      String entityType, String permission) async {
+      String entityType, String permission,) async {
     final permissions = await getUserPermissions();
     permissions.add(UserPermission(
         userId: userId,
         entityId: entityId,
         entityType: entityType,
-        permission: permission));
+        permission: permission,),);
     await saveUserPermissions(permissions);
   }
 
   Future<void> deleteUserPermission(
-      String userId, String entityId, String entityType) async {
+      String userId, String entityId, String entityType,) async {
     final permissions = await getUserPermissions();
     permissions.removeWhere((permission) =>
         permission.userId == userId &&
         permission.entityId == entityId &&
-        permission.entityType == entityType);
+        permission.entityType == entityType,);
     await saveUserPermissions(permissions);
   }
 

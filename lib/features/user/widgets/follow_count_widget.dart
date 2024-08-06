@@ -3,9 +3,9 @@ import 'package:sway_events/features/user/screens/followers_screen.dart';
 import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
 import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
 import 'package:sway_events/features/user/services/user_follow_promoter_service.dart';
+import 'package:sway_events/features/user/services/user_follow_user_service.dart';
 import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
-import 'package:sway_events/features/user/services/user_follow_user_service.dart';
 
 class FollowersCountWidget extends StatelessWidget {
   final String entityId;
@@ -36,7 +36,6 @@ class FollowersCountWidget extends StatelessWidget {
                         builder: (context) => FollowersScreen(
                           entityId: entityId,
                           entityType: entityType,
-                          initialTabIndex: 0, // Interested tab
                         ),
                       ),
                     );
@@ -113,7 +112,6 @@ class FollowersCountWidget extends StatelessWidget {
                         builder: (context) => FollowersScreen(
                           entityId: entityId,
                           entityType: 'user',
-                          initialTabIndex: 0, // Followers tab
                         ),
                       ),
                     );

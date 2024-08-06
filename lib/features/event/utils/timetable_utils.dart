@@ -90,7 +90,7 @@ void showArtistsBottomSheet(BuildContext context, List<Artist> artists) {
                 );
               },
             );
-          }).toList(),
+          }),
         ],
       );
     },

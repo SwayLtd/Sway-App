@@ -33,7 +33,7 @@ class InsightScreen extends StatelessWidget {
       child: ListTile(
         leading: Icon(icon, size: 40),
         title: Text(title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
         subtitle: Text(value, style: const TextStyle(fontSize: 16)),
       ),
     );
@@ -44,15 +44,15 @@ class InsightScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildInsightCard(
-            'Total Visitors', insight.totalVisitors.toString(), Icons.people),
+            'Total Visitors', insight.totalVisitors.toString(), Icons.people,),
         _buildInsightCard('Average Rating',
-            insight.averageRating.toStringAsFixed(1), Icons.star),
+            insight.averageRating.toStringAsFixed(1), Icons.star,),
         _buildInsightCard(
-            'Upcoming Events', insight.upcomingEvents.toString(), Icons.event),
+            'Upcoming Events', insight.upcomingEvents.toString(), Icons.event,),
         _buildInsightCard('Revenue', '\$${insight.revenue.toStringAsFixed(2)}',
-            Icons.attach_money),
+            Icons.attach_money,),
         _buildInsightCard(
-            'Capacity', insight.capacity.toString(), Icons.account_balance),
+            'Capacity', insight.capacity.toString(), Icons.account_balance,),
       ],
     );
   }
@@ -62,15 +62,15 @@ class InsightScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildInsightCard('Total Events', insight.totalEvents.toString(),
-            Icons.event_available),
+            Icons.event_available,),
         _buildInsightCard('Average Rating',
-            insight.averageRating.toStringAsFixed(1), Icons.star),
+            insight.averageRating.toStringAsFixed(1), Icons.star,),
         _buildInsightCard(
-            'Followers', insight.followers.toString(), Icons.group),
+            'Followers', insight.followers.toString(), Icons.group,),
         _buildInsightCard('Revenue', '\$${insight.revenue.toStringAsFixed(2)}',
-            Icons.attach_money),
+            Icons.attach_money,),
         _buildInsightCard(
-            'Partnerships', insight.partnerships.toString(), Icons.handshake),
+            'Partnerships', insight.partnerships.toString(), Icons.handshake,),
       ],
     );
   }
@@ -80,15 +80,15 @@ class InsightScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildInsightCard(
-            'Attendees', insight.attendees.toString(), Icons.people),
+            'Attendees', insight.attendees.toString(), Icons.people,),
         _buildInsightCard('Ticket Sales',
-            '\$${insight.ticketSales.toStringAsFixed(2)}', Icons.attach_money),
+            '\$${insight.ticketSales.toStringAsFixed(2)}', Icons.attach_money,),
         _buildInsightCard('Average Rating',
-            insight.averageRating.toStringAsFixed(1), Icons.star),
+            insight.averageRating.toStringAsFixed(1), Icons.star,),
         _buildInsightCard(
-            'Feedbacks', insight.feedbacks.toString(), Icons.feedback),
+            'Feedbacks', insight.feedbacks.toString(), Icons.feedback,),
         _buildInsightCard('Social Media Mentions',
-            insight.socialMediaMentions.toString(), Icons.share),
+            insight.socialMediaMentions.toString(), Icons.share,),
       ],
     );
   }

@@ -74,7 +74,7 @@ class _VenueScreenState extends State<VenueScreen> {
           ),
           FutureBuilder<bool>(
             future: UserPermissionService().hasPermissionForCurrentUser(
-                widget.venueId, 'venue', 'insight'),
+                widget.venueId, 'venue', 'insight',),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox.shrink();
