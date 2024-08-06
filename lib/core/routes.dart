@@ -14,8 +14,8 @@ import 'package:sway_events/features/search/search.dart';
 import 'package:sway_events/features/ticketing/ticketing.dart';
 import 'package:sway_events/features/user/profile.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
+final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 List routes = [
   {
@@ -45,12 +45,12 @@ List routes = [
 ];
 
 final GoRouter router = GoRouter(
-  navigatorKey: _rootNavigatorKey,
+  navigatorKey: rootNavigatorKey,
   initialLocation: '/',
   // routerNeglect: false, // Stop the router from adding the pages to the browser history > Setting for user privacy
   routes: [
     ShellRoute(
-      navigatorKey: _shellNavigatorKey,
+      navigatorKey: shellNavigatorKey,
       builder: (BuildContext context, GoRouterState state, Widget child) {
         // Localizing road names
         routes[0]['name'] = context.loc.routesNameHome;
