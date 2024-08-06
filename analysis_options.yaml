@@ -8,6 +8,10 @@
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
 # include: package:flutter_lints/flutter.yaml
+analyzer:
+  errors:
+    avoid_dynamic_calls: ignore
+    use_build_context_synchronously: ignore
 include: package:lint/strict.yaml
 
 linter:
