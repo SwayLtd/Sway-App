@@ -46,6 +46,7 @@ app.*.map.json
 
 # Local Supabase configuration
 /supabase/
+.env
 
 # Temporary files
 *.tmp
