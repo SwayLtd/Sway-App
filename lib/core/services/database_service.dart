@@ -5,10 +5,7 @@ Future<void> initializeSupabase() async {
   await dotenv.load();
 
   await Supabase.initialize(
-<<<<<<< HEAD
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
-=======
->>>>>>> parent of c502bb8 (Test database credentials (decrepated))
   );
 }
