@@ -24,6 +24,12 @@ jobs:
     - name: Install CocoaPods
       run: sudo gem install cocoapods
 
+    - name: Create Xcode project
+      run: |
+        mkdir -p ios
+        cd ios
+        xcodebuild -create-xcodeproj -project Runner.xcodeproj
+
     - name: Install dependencies
       run: pod install --project-directory=ios
 
