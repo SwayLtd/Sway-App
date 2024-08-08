@@ -1,6 +1,7 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:sway_events/core/constants/app_theme.dart';
 import 'package:sway_events/core/constants/l10n.dart';
@@ -10,6 +11,7 @@ import 'package:sway_events/core/services/notification_service.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 Future<void> main() async {
+  await dotenv.load();
   setPathUrlStrategy(); // Remove # from URL
   WidgetsFlutterBinding.ensureInitialized();
   initializeSupabase();
