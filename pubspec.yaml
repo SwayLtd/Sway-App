@@ -11,8 +11,10 @@ environment:
 dependencies:
   adaptive_theme: ^3.6.0
   awesome_notifications: ^0.9.3+1 # redundant with OneSignal?
+  bloc: ^8.1.4
   crypto: ^3.0.3
   cupertino_icons: ^1.0.8
+  equatable: ^2.0.5
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.5
