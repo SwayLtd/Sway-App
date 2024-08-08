@@ -29,6 +29,8 @@ class NotificationService {
 
       OneSignal.Notifications.clearAll();
 
+      OneSignal.Notifications.requestPermission(true);
+
       OneSignal.User.pushSubscription.addObserver((state) {
         print(OneSignal.User.pushSubscription.optedIn);
         print(OneSignal.User.pushSubscription.id);
