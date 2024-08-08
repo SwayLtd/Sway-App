@@ -64,3 +64,4 @@ tsconfig.json
 *.merge_file_*
 
 # Working files
+.github/workflows/ios_build.yml
