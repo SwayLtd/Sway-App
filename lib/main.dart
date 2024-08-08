@@ -15,8 +15,7 @@ Future<void> main() async {
   setPathUrlStrategy(); // Remove # from URL
   WidgetsFlutterBinding.ensureInitialized();
   initializeSupabase();
-  initializeOneSignal();
-  // initializeAwesomeNotifications();
+  NotificationService().initialize();
   runApp(const SwayEvents());
 }
 
