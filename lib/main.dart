@@ -14,7 +14,7 @@ Future<void> main() async {
   await dotenv.load();
   setPathUrlStrategy(); // Remove # from URL
   WidgetsFlutterBinding.ensureInitialized();
-  initializeSupabase();
+  DatabaseService().initialize();
   NotificationService().initialize();
   runApp(const SwayEvents());
 }
