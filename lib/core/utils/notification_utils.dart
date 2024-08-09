@@ -334,15 +334,18 @@ class OneSignalButtonState extends State<OneSignalButton> {
 }
 
 Future<void> sendNotification(String userId, String message) async {
-  final response =
-      await Supabase.instance.client.rpc('send_notification', params: {
-    'user_id': userId,
-    'message': message,
-  });
+  final response = await Supabase.instance.client.rpc(
+    'send_notification',
+    params: {
+      'user_id': userId,
+      'message': message,
+    },
+  );
 
   if (response.error != null) {
     print(
-        'Erreur lors de l\'envoi de la notification: ${response.error!.message}');
+      "Erreur lors de l'envoi de la notification: ${response.error!.message}",
+    );
   } else {
     print('Notification envoyée avec succès');
   }
