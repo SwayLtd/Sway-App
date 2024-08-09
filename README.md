@@ -27,7 +27,7 @@ Coming soon
 * **Rating system**: Rate venues, promoters and maybe artists
 
 ### Implemented Features
-* Timetable v4 (multiple artists, list and grid view, filters, follow, design, status management)
+* Timetable v4.6 (multiple artists, list and grid view, filters, follow, design, status management)
 * Event ticketing
 * Purchasing system v0.5 (sales orders, invoices, items - only backend)
 * Discovery suggestions v1
@@ -41,6 +41,8 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Timetable v4.6 (fixing issues, sorting artists by start time, overlapping artists)
+* Notification system v1 (only backend)
 * Timetable v4.2 (fine-tuning operation)
 * Timetable v4 (multiple artist and custom names management, status management and artist image rotator widget)
 * Timetable v3 (automatic time scrolling and saving of scroll offset, automatic day selection and saving day selection)
@@ -48,14 +50,11 @@ Coming soon
 * Event ticketing v1
 
 ### Known Issues
-* (Timetable) Sometimes the first load of the timetable widget doesn't get the data from the database.
 * (Timetable) The day selection show days without artists programmed.
 * (Timetable) If there is multiple artists programmed at the same time, the cells are overlapped. The timetable widget need to puts them on top of each other.
-* (FIXED)(Timetable) Adjust grid view to display only followed artists' time range
-* (FIXED)(Timetable) Incorrect offset in timetable grid view when a stage scheduled earlier than other stages is hidden.
-* (FIXED)(Timetable) Fix timetable grid scrolling logic for after-midnight and post-event end times.
-* (FIXED)(Timetable) All festival days are not displayed using "calculateFestivalDays".
-* Duplicate artists on Discovery screen
+* (FIXED)(Timetable) Artists are now correctly sorted by their start times, ensuring proper chronological order in timetable views.
+* (FIXED)(Timetable) Fixed an AssertionError in the _initializeSelectedDay function by ensuring the selected day is always valid and falls within the available festival days.
+* (FIXED)(Timetable) Sometimes the first load of the timetable widget doesn't get the data from the database.
 
 See the [open issues](https://github.com/Sway/Sway-Events/issues) for a list of proposed features (and known issues).
 
