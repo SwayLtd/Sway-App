@@ -67,9 +67,14 @@ deno.lock
 
 # Supabase
 *.branches
+supabase/.gitignore
+supabase/seed.sql
 
 # Supabase secrets and keys
 /supabase/.supabase
+
+# Supabase project files
+/supabase/config.toml
 
 # Supabase build artifacts
 /build/
