@@ -5,6 +5,7 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway_events/core/services/notification_service.dart';
 
 class NotificationUtils extends StatefulWidget {
@@ -239,7 +240,9 @@ class _NotificationUtilsState extends State<NotificationUtils> {
       if (_liveActivityId == null) return;
       print("Entering live activity");
       OneSignal.LiveActivities.enterLiveActivity(
-          _liveActivityId!, "FAKE_TOKEN",);
+        _liveActivityId!,
+        "FAKE_TOKEN",
+      );
     } catch (e) {
       print('Error entering live activity: $e');
     }
@@ -327,5 +330,20 @@ class OneSignalButtonState extends State<OneSignalButton> {
         ),
       ],
     );
+  }
+}
+
+Future<void> sendNotification(String userId, String message) async {
+  final response =
+      await Supabase.instance.client.rpc('send_notification', params: {
+    'user_id': userId,
+    'message': message,
+  });
+
+  if (response.error != null) {
+    print(
+        'Erreur lors de l\'envoi de la notification: ${response.error!.message}');
+  } else {
+    print('Notification envoyée avec succès');
   }
 }
