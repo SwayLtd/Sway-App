@@ -1,3 +1,5 @@
+// timetable.dart
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,14 +34,22 @@ class _TimetableWidgetState extends State<TimetableWidget> {
   }
 
   Future<void> _initializeStages() async {
-    final artists = await EventArtistService().getArtistsByEventId(widget.event.id);
+    final artists =
+        await EventArtistService().getArtistsByEventId(widget.event.id);
     final stageSet = artists.map((e) => e['stage'] as String).toSet().toList();
+
     setState(() {
       stages = stageSet;
       selectedStages = List.from(stageSet);
       initialStages = List.from(stageSet); // Save initial order of stages
     });
+
     await _initializeSelectedDay();
+
+    // Forcer la mise à jour de la vue après l'initialisation des artistes
+    setState(() {
+      eventArtists = artists;
+    });
   }
 
   Future<void> _initializeSelectedDay() async {
@@ -48,9 +58,13 @@ class _TimetableWidgetState extends State<TimetableWidget> {
     final festivalDays = await calculateFestivalDays(widget.event);
 
     final lastSelectedDayString = prefs.getString('lastSelectedDay');
-    final lastSelectedDay = lastSelectedDayString != null ? DateTime.parse(lastSelectedDayString) : null;
+    final lastSelectedDay = lastSelectedDayString != null
+        ? DateTime.parse(lastSelectedDayString)
+        : null;
     final lastSelectedTimeString = prefs.getString('lastSelectedTime');
-    final lastSelectedTime = lastSelectedTimeString != null ? DateTime.parse(lastSelectedTimeString) : null;
+    final lastSelectedTime = lastSelectedTimeString != null
+        ? DateTime.parse(lastSelectedTimeString)
+        : null;
 
     final shouldResetDay = lastSelectedTime == null ||
         now.difference(lastSelectedTime).inMinutes > 15;
@@ -64,6 +78,8 @@ class _TimetableWidgetState extends State<TimetableWidget> {
               day.year == now.year,
           orElse: () => festivalDays.first,
         );
+      } else if (!festivalDays.contains(lastSelectedDay)) {
+        selectedDay = festivalDays.first;
       } else {
         selectedDay = lastSelectedDay;
       }
@@ -84,6 +100,13 @@ class _TimetableWidgetState extends State<TimetableWidget> {
         } else {
           final List<DateTime> festivalDays = snapshot.data!;
 
+          // Assurez-vous que `selectedDay` est valide
+          if (!festivalDays.contains(selectedDay)) {
+            setState(() {
+              selectedDay = festivalDays.first;
+            });
+          }
+
           return Column(
             children: [
               Padding(
@@ -101,8 +124,10 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                               selectedDay = newValue;
                             });
                             final prefs = await SharedPreferences.getInstance();
-                            await prefs.setString('lastSelectedDay', newValue.toIso8601String());
-                            await prefs.setString('lastSelectedTime', DateTime.now().toIso8601String());
+                            await prefs.setString(
+                                'lastSelectedDay', newValue.toIso8601String(),);
+                            await prefs.setString('lastSelectedTime',
+                                DateTime.now().toIso8601String(),);
                           }
                         },
                         items: festivalDays.map((DateTime date) {
@@ -139,19 +164,22 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                   future: EventArtistService()
                       .getArtistsByEventIdAndDay(widget.event.id, selectedDay),
                   builder: (context, artistSnapshot) {
-                    if (artistSnapshot.connectionState == ConnectionState.waiting) {
+                    if (artistSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (artistSnapshot.hasError) {
                       return Center(
                         child: Text('Error: ${artistSnapshot.error}'),
                       );
-                    } else if (!artistSnapshot.hasData || artistSnapshot.data!.isEmpty) {
+                    } else if (!artistSnapshot.hasData ||
+                        artistSnapshot.data!.isEmpty) {
                       return const Center(child: Text('No events found'));
                     } else {
                       eventArtists = artistSnapshot.data!;
 
                       final filteredArtists = eventArtists
-                          .where((artist) => selectedStages.contains(artist['stage']))
+                          .where((artist) =>
+                              selectedStages.contains(artist['stage']),)
                           .toList();
 
                       if (filteredArtists.isEmpty) {
@@ -181,7 +209,8 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                                 showOnlyFollowedArtists,
                               ),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
                                   return const Center(
                                     child: CircularProgressIndicator(),
                                   );
@@ -366,7 +395,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                   ),
                 ),
                 SwitchListTile(
-                  title: const Text('Only Followed Artists'),
+                  title: const Text('Only followed artists'),
                   value: showOnlyFollowedArtists,
                   onChanged: (bool value) {
                     setState(() {

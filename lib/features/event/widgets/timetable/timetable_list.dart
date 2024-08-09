@@ -45,6 +45,15 @@ Future<Widget> buildListView(
     }
   }
 
+  // Trier les artistes par heure de début pour chaque stage
+  for (final stage in artistsByStage.keys) {
+    artistsByStage[stage]!.sort((a, b) {
+      final startTimeA = DateTime.parse(a['startTime'] as String);
+      final startTimeB = DateTime.parse(b['startTime'] as String);
+      return startTimeA.compareTo(startTimeB);
+    });
+  }
+
   final List<String> filteredStages = stages
       .where((stage) => selectedStages.contains(stage))
       .where((stage) => artistsByStage[stage]?.isNotEmpty ?? false)
