@@ -1,6 +1,5 @@
 # Miscellaneous
 *.class
-*.log
 *.pyc
 *.swp
 .DS_Store
@@ -9,6 +8,17 @@
 .history
 .svn/
 migrate_working_dir/
+/coverage/
+
+# Logs and database backups
+*.log
+*.sqlite
+*.db
+
+# Environment files
+*.env
+*.env.local
+*.env.*.local
 
 # IntelliJ related
 *.iml
@@ -48,16 +58,29 @@ app.*.map.json
 deno.d.ts
 tsconfig.json
 
+# Deno cache directory
+/.deno/
+/deno-dir/
 
-# Local Supabase configuration
-/supabase/
-.env
+# Deno dependencies lock file
+deno.lock
+
+# Supabase
+*.branches
+
+# Supabase secrets and keys
+/supabase/.supabase
+
+# Supabase build artifacts
+/build/
+/dist/
 
 # Temporary files
 *.tmp
 *.temp
 *.bak
 *.swp
+*.swo
 *.backup
 *.orig
 *.rej
