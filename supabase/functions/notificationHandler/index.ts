@@ -1,3 +1,7 @@
+// https://chatgpt.com/share/6dbed696-9f8c-475e-92b1-4f85bf5fe0a5
+// https://github.com/orgs/supabase/discussions/15961
+// https://flutterflowvip.notion.site/OneSignal-Supabase-Integration-5121b124665341b2b7cfc9beaf05dc99
+
 // Import necessary modules
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { _OnesignalAppId_, _OnesignalRestApiKey_ } from "../_utils/config.ts";
