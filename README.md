@@ -27,6 +27,7 @@ Coming soon
 * **Rating system**: Rate venues, promoters and maybe artists
 
 ### Implemented Features
+* Security integration using environment variables, root and jailbreak detection, and secure storage
 * Timetable v4.6 (multiple artists, list and grid view, filters, follow, design, status management)
 * Event ticketing
 * Purchasing system v0.5 (sales orders, invoices, items - only backend)
@@ -42,6 +43,7 @@ Coming soon
 
 ### Last Updates
 * Timetable v4.6 (fixing issues, sorting artists by start time, overlapping artists)
+* Security integration using environment variables, root and jailbreak detection, and secure storage
 * Notification system v1 (only backend)
 * Timetable v4.2 (fine-tuning operation)
 * Timetable v4 (multiple artist and custom names management, status management and artist image rotator widget)
