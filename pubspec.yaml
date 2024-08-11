@@ -3,7 +3,7 @@ description: Sway Events is a mobile event management application that helps use
 
 publish_to: "none"
 
-version: 0.1.5 # Integration bewteen Supabse and OneSignal + notification types
+version: 0.1.5 # Integration bewteen Supabase and OneSignal
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
