@@ -10,12 +10,13 @@ import 'package:sway_events/core/constants/l10n.dart';
 import 'package:sway_events/core/routes.dart';
 import 'package:sway_events/core/services/database_service.dart';
 import 'package:sway_events/core/services/notification_service.dart';
+import 'package:sway_events/features/security/utils/security_utils.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 Future<void> main() async {
-  await dotenv.load();
   setPathUrlStrategy(); // Remove # from URL
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
   DatabaseService().initialize();
   NotificationService().initialize();
   runApp(const SwayEvents());
@@ -43,6 +44,20 @@ class SwayEvents extends StatelessWidget {
               routerConfig: router,
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
+              builder: (context, child) {
+                return Stack(
+                  children: [
+                    child!,
+                    // Encapsulating SecurityUtils in a Positioned widget to ensure it doesn't visually affect the application.
+                    const Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child:
+                          SecurityUtils(), // Instantiating SecurityUtils to execute checkDetection for root and jailbreak detection.
+                    ),
+                  ],
+                );
+              },
             ),
           );
         },
