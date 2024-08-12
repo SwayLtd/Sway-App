@@ -3,7 +3,7 @@ description: Sway Events is a mobile event management application that helps use
 
 publish_to: "none"
 
-version: 0.1.6 # Security integration using environment variables, root and jailbreak detection, and secure storage
+version: 0.1.7 # Prevent overlapping artist cards in the timetable by showing an "OVERLAP" indicator
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
