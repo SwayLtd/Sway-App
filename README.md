@@ -42,18 +42,15 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
-* Timetable v4.6 (fixing issues, sorting artists by start time, overlapping artists)
+* Timetable v4.6 (fixing issues, overlapping artists)
 * Security integration using environment variables, root and jailbreak detection, and secure storage
 * Notification system v1 (only backend)
 * Timetable v4.2 (fine-tuning operation)
 * Timetable v4 (multiple artist and custom names management, status management and artist image rotator widget)
-* Timetable v3 (automatic time scrolling and saving of scroll offset, automatic day selection and saving day selection)
-* Timetable v2 (filters, follow, new design)
-* Event ticketing v1
 
 ### Known Issues
 * (Timetable) The day selection show days without artists programmed.
-* (Timetable) If there is multiple artists programmed at the same time, the cells are overlapped. The timetable widget need to puts them on top of each other.
+* (FIXED)(Timetable) Overlapping artist cells in the timetable caused layout issues. The solution now displays an overlay warning of overlaps without showing the overlapping artists, keeping the layout intact.
 * (FIXED)(Timetable) Artists are now correctly sorted by their start times, ensuring proper chronological order in timetable views.
 * (FIXED)(Timetable) Fixed an AssertionError in the _initializeSelectedDay function by ensuring the selected day is always valid and falls within the available festival days.
 * (FIXED)(Timetable) Sometimes the first load of the timetable widget doesn't get the data from the database.

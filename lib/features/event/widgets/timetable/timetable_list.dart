@@ -90,6 +90,26 @@ Future<Widget> buildListView(
                 final endTime = entry['endTime'] as String?;
                 final status = entry['status'] as String?;
 
+                // Check for overlap
+                bool isOverlap = false;
+
+                for (final otherEntry in artistsByStage[stage]!) {
+                  if (entry == otherEntry) continue;
+
+                  final otherStartTime = DateTime.parse(
+                    otherEntry['startTime'] as String,
+                  );
+                  final otherEndTime = DateTime.parse(
+                    otherEntry['endTime'] as String,
+                  );
+
+                  if (DateTime.parse(startTime!).isBefore(otherEndTime) &&
+                      DateTime.parse(endTime!).isAfter(otherStartTime)) {
+                    isOverlap = true;
+                    break;
+                  }
+                }
+
                 return FutureBuilder<bool>(
                   future: Future.wait(
                     artists
@@ -148,95 +168,134 @@ Future<Widget> buildListView(
                           vertical: 4.0,
                           horizontal: 8.0,
                         ),
-                        child: ListTile(
-                          leading: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                formatTime(startTime ?? ''),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        child: Stack(
+                          children: [
+                            ListTile(
+                              leading: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    formatTime(startTime ?? ''),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    formatTime(endTime ?? ''),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                formatTime(endTime ?? ''),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
+                              title: Row(
+                                children: [
+                                  if (artists.length == 1) ...[
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: ImageWithErrorHandler(
+                                        imageUrl: artists.first.imageUrl,
+                                        width: 40,
+                                        height: 40,
+                                      ),
+                                    ),
+                                  ] else ...[
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: ArtistImageRotator(
+                                        artists: artists,
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(width: 8.0),
+                                  Expanded(
+                                    child: Text(
+                                      customName ??
+                                          artists
+                                              .map((artist) => artist.name)
+                                              .join(' B2B '),
+                                      style: TextStyle(
+                                        color: status == 'cancelled'
+                                            ? Colors.redAccent
+                                            : null,
+                                        fontWeight: isFollowing
+                                            ? FontWeight.bold
+                                            : null,
+                                        decoration: status == 'cancelled'
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          title: Row(
-                            children: [
-                              if (artists.length == 1) ...[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: ImageWithErrorHandler(
-                                    imageUrl: artists.first.imageUrl,
-                                    width: 40,
-                                    height: 40,
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    isFollowing
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                  ),
+                                  const SizedBox(width: 8.0),
+                                  const Icon(Icons.add_alert_outlined),
+                                ],
+                              ),
+                              onTap: () {
+                                if (artists.length > 1) {
+                                  showArtistsBottomSheet(
+                                    context,
+                                    artists,
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ArtistScreen(
+                                        artistId: artists.first.id,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                            if (isOverlap)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    border: Border.all(
+                                      color: Colors.blue,
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.warning,
+                                        color: Colors.white,
+                                        size: 30.0,
+                                      ),
+                                      SizedBox(
+                                          width:
+                                              8.0,), // Un peu d'espace entre l'icône et le texte
+                                      Text(
+                                        "OVERLAP",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16.0,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ] else ...[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: ArtistImageRotator(
-                                    artists: artists,
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(width: 8.0),
-                              Expanded(
-                                child: Text(
-                                  customName ??
-                                      artists
-                                          .map((artist) => artist.name)
-                                          .join(' B2B '),
-                                  style: TextStyle(
-                                    color: status == 'cancelled'
-                                        ? Colors.redAccent
-                                        : null,
-                                    fontWeight:
-                                        isFollowing ? FontWeight.bold : null,
-                                    decoration: status == 'cancelled'
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                  ),
-                                ),
                               ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isFollowing
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                              ),
-                              const SizedBox(width: 8.0),
-                              const Icon(Icons.add_alert_outlined),
-                            ],
-                          ),
-                          onTap: () {
-                            if (artists.length > 1) {
-                              showArtistsBottomSheet(
-                                context,
-                                artists,
-                              );
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ArtistScreen(
-                                    artistId: artists.first.id,
-                                  ),
-                                ),
-                              );
-                            }
-                          },
+                          ],
                         ),
                       );
                     }

@@ -355,6 +355,8 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                               ];
 
                               double accumulatedOffset = 0;
+                              DateTime?
+                                  lastEndTime; // Track end time of the last added artist
 
                               for (final artistMap in artistsToShow
                                   .where((e) => e['stage'] == stage)) {
@@ -380,6 +382,22 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                     accumulatedOffset;
                                 final status = artistMap['status'] as String?;
 
+                                // Skip if overlaps with previous artist
+                                if (lastEndTime != null &&
+                                    startTime.isBefore(lastEndTime)) {
+                                  continue;
+                                }
+
+                                if (offsetInHours > 0) {
+                                  stageRow.add(
+                                    SizedBox(
+                                      width: 200 * offsetInHours,
+                                      height: 100,
+                                    ),
+                                  );
+                                }
+
+                                // This part of the code should be within the for-loop where artists are being processed
                                 bool isOverlap = false;
 
                                 for (final otherArtistMap in artistsToShow
@@ -400,212 +418,232 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                   }
                                 }
 
-                                if (offsetInHours > 0) {
-                                  stageRow.add(
-                                    SizedBox(
-                                      width: 200 * offsetInHours,
-                                      height: 100,
-                                    ),
-                                  );
-                                }
-
+                                // Continue to add the artist widget
                                 stageRow.add(
-                                  Positioned(
-                                    top: 100 * offsetInHours,
-                                    child: FutureBuilder<bool>(
-                                      future: Future.wait(
-                                        artists
-                                            .map(
-                                              (artist) =>
-                                                  userFollowArtistService
-                                                      .isFollowingArtist(
-                                                artist.id,
-                                              ),
-                                            )
-                                            .toList(),
-                                      ).then(
-                                        (results) => results
-                                            .any((isFollowing) => isFollowing),
-                                      ),
-                                      builder: (context, snapshot) {
-                                        final bool isFollowing =
-                                            snapshot.data ?? false;
-
-                                        return Stack(
-                                          children: [
-                                            SizedBox(
-                                              width: 200 * durationInHours,
-                                              height: 100,
-                                              child: GestureDetector(
-                                                onTap: () {
-                                                  if (artists.length > 1) {
-                                                    showArtistsBottomSheet(
-                                                      context,
-                                                      artists,
-                                                    );
-                                                  } else {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            ArtistScreen(
-                                                          artistId:
-                                                              artists.first.id,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  }
-                                                },
-                                                child: Card(
-                                                  color: isFollowing
-                                                      ? Theme.of(context)
-                                                          .primaryColor
-                                                      : Theme.of(context)
-                                                          .cardColor,
-                                                  shape: RoundedRectangleBorder(
-                                                    side: BorderSide(
-                                                      color: Theme.of(context)
-                                                          .primaryColor,
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                      10.0,
-                                                    ),
+                                  SizedBox(
+                                    width: 200 * durationInHours,
+                                    height: 100,
+                                    child: Stack(
+                                      children: [
+                                        FutureBuilder<bool>(
+                                          future: Future.wait(
+                                            artists
+                                                .map(
+                                                  (artist) =>
+                                                      userFollowArtistService
+                                                          .isFollowingArtist(
+                                                    artist.id,
                                                   ),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                      horizontal: 8.0,
-                                                    ),
-                                                    child: Row(
-                                                      children: [
-                                                        if (100 *
-                                                                durationInHours >=
-                                                            100)
-                                                          ClipRRect(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                              8.0,
-                                                            ),
-                                                            child: artists
-                                                                        .length ==
-                                                                    1
-                                                                ? ImageWithErrorHandler(
-                                                                    imageUrl: artists
-                                                                        .first
-                                                                        .imageUrl,
-                                                                    width: 40,
-                                                                    height: 40,
-                                                                  )
-                                                                : ArtistImageRotator(
-                                                                    artists:
-                                                                        artists,
-                                                                  ),
-                                                          ),
-                                                        const SizedBox(
-                                                          width: 8.0,
-                                                        ),
-                                                        Expanded(
-                                                          child: Column(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              Text(
-                                                                customName ??
-                                                                    artists
-                                                                        .map(
-                                                                          (artist) =>
-                                                                              artist.name,
-                                                                        )
-                                                                        .join(
-                                                                          ' B2B ',
-                                                                        ),
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: status ==
-                                                                          'cancelled'
-                                                                      ? Colors
-                                                                          .red
-                                                                      : isFollowing
-                                                                          ? Colors
-                                                                              .black
-                                                                          : Theme.of(context)
-                                                                              .textTheme
-                                                                              .bodyMedium
-                                                                              ?.color,
-                                                                  decoration: status ==
-                                                                          'cancelled'
-                                                                      ? TextDecoration
-                                                                          .lineThrough
-                                                                      : null,
-                                                                ),
-                                                              ),
-                                                              Text(
-                                                                '${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}',
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontSize:
-                                                                      12.0,
-                                                                  color: isFollowing
-                                                                      ? Colors.grey[
-                                                                          800]
-                                                                      : Colors
-                                                                          .grey,
-                                                                ),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                        const Padding(
-                                                          padding:
-                                                              EdgeInsets.only(
-                                                            right: 8.0,
-                                                          ),
-                                                          child: Icon(
-                                                            Icons
-                                                                .add_alert_outlined,
-                                                            size: 20.0,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
+                                                )
+                                                .toList(),
+                                          ).then(
+                                            (results) => results.any(
+                                              (isFollowing) => isFollowing,
                                             ),
-                                            if (isOverlap)
-                                              Container(
-                                                width: 200 * durationInHours,
-                                                height: 100,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.purple
-                                                      .withOpacity(0.3),
+                                          ),
+                                          builder: (context, snapshot) {
+                                            final bool isFollowing =
+                                                snapshot.data ?? false;
+
+                                            return GestureDetector(
+                                              onTap: () {
+                                                if (artists.length > 1) {
+                                                  showArtistsBottomSheet(
+                                                    context,
+                                                    artists,
+                                                  );
+                                                } else {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          ArtistScreen(
+                                                        artistId:
+                                                            artists.first.id,
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                              child: Card(
+                                                color: isFollowing
+                                                    ? Theme.of(context)
+                                                        .primaryColor
+                                                    : Theme.of(context)
+                                                        .cardColor,
+                                                shape: RoundedRectangleBorder(
+                                                  side: BorderSide(
+                                                    color: Theme.of(context)
+                                                        .primaryColor,
+                                                  ),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                     10.0,
                                                   ),
                                                 ),
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    horizontal: 8.0,
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      if (100 *
+                                                              durationInHours >=
+                                                          100)
+                                                        ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                            8.0,
+                                                          ),
+                                                          child: artists
+                                                                      .length ==
+                                                                  1
+                                                              ? ImageWithErrorHandler(
+                                                                  imageUrl: artists
+                                                                      .first
+                                                                      .imageUrl,
+                                                                  width: 40,
+                                                                  height: 40,
+                                                                )
+                                                              : ArtistImageRotator(
+                                                                  artists:
+                                                                      artists,
+                                                                ),
+                                                        ),
+                                                      const SizedBox(
+                                                        width: 8.0,
+                                                      ),
+                                                      Expanded(
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              customName ??
+                                                                  artists
+                                                                      .map(
+                                                                        (artist) =>
+                                                                            artist.name,
+                                                                      )
+                                                                      .join(
+                                                                        ' B2B ',
+                                                                      ),
+                                                              style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: status ==
+                                                                        'cancelled'
+                                                                    ? Colors.red
+                                                                    : isFollowing
+                                                                        ? Colors
+                                                                            .black
+                                                                        : Theme.of(context)
+                                                                            .textTheme
+                                                                            .bodyMedium
+                                                                            ?.color,
+                                                                decoration: status ==
+                                                                        'cancelled'
+                                                                    ? TextDecoration
+                                                                        .lineThrough
+                                                                    : null,
+                                                              ),
+                                                            ),
+                                                            Text(
+                                                              '${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}',
+                                                              style: TextStyle(
+                                                                fontSize: 12.0,
+                                                                color: isFollowing
+                                                                    ? Colors.grey[
+                                                                        800]
+                                                                    : Colors
+                                                                        .grey,
+                                                              ),
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      const Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                          right: 8.0,
+                                                        ),
+                                                        child: Icon(
+                                                          Icons
+                                                              .add_alert_outlined,
+                                                          size: 20.0,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                               ),
-                                          ],
-                                        );
-                                      },
+                                            );
+                                          },
+                                        ),
+                                        // Add a semi-transparent overlay if there's an overlap
+                                        if (isOverlap)
+                                          Padding(
+                                            padding: const EdgeInsets.all(
+                                              4.0,
+                                            ),
+                                            child: Container(
+                                              width: 200 * durationInHours,
+                                              height: 100,
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.withOpacity(
+                                                  0.5,
+                                                ), // Blue color with reduced opacity
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                                border: Border.all(
+                                                  color: Colors
+                                                      .blue, // Full opacity border matching the overlay color
+                                                  width: 2.0,
+                                                ),
+                                              ),
+                                              child: const Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    Icons
+                                                        .warning, // Icon to indicate overlap
+                                                    color: Colors.white,
+                                                    size: 30.0,
+                                                  ),
+                                                  SizedBox(height: 4.0),
+                                                  Text(
+                                                    "OVERLAP",
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16.0,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
                                 );
 
                                 accumulatedOffset +=
                                     offsetInHours + durationInHours;
+                                lastEndTime =
+                                    endTime; // Update the last end time
                               }
 
                               return Padding(
