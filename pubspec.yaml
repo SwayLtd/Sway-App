@@ -3,7 +3,7 @@ description: Sway Events is a mobile event management application that helps use
 
 publish_to: "none"
 
-version: 0.1.7 # Prevent overlapping artist cards in the timetable by showing an "OVERLAP" indicator
+version: 0.1.8 # Add notification types with cross-platform parameters and user/group targeting
 
 environment:
   sdk: ">=2.18.5 <4.0.0"

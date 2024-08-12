@@ -17,7 +17,7 @@ class NotificationService {
       OneSignal.consentRequired(requireConsent);
 
       OneSignal.initialize(
-        dotenv.env['ONE_SIGNAL_APP_ID']!,
+        dotenv.env['ONESIGNAL_APP_ID']!,
       );
 
       OneSignal.LiveActivities.setupDefault();

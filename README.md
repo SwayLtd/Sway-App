@@ -42,6 +42,7 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Notification types
 * Timetable v4.6 (fixing issues, overlapping artists)
 * Security integration using environment variables, root and jailbreak detection, and secure storage
 * Notification system v1 (only backend)
@@ -49,7 +50,9 @@ Coming soon
 * Timetable v4 (multiple artist and custom names management, status management and artist image rotator widget)
 
 ### Known Issues
+* (Notification) The notification images and maybe other parameters are not collected correctly.
 * (Timetable) The day selection show days without artists programmed.
+* (FIXED)(Notification) User and group specific notifications are sent to all users.
 * (FIXED)(Timetable) Overlapping artist cells in the timetable caused layout issues. The solution now displays an overlay warning of overlaps without showing the overlapping artists, keeping the layout intact.
 * (FIXED)(Timetable) Artists are now correctly sorted by their start times, ensuring proper chronological order in timetable views.
 * (FIXED)(Timetable) Fixed an AssertionError in the _initializeSelectedDay function by ensuring the selected day is always valid and falls within the available festival days.

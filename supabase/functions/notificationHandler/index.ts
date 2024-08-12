@@ -2,6 +2,8 @@
 // https://github.com/orgs/supabase/discussions/15961
 // https://flutterflowvip.notion.site/OneSignal-Supabase-Integration-5121b124665341b2b7cfc9beaf05dc99
 
+// supabase/functions/notificationHandler/index.ts
+
 // Import necessary modules
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { _OnesignalAppId_, _OnesignalRestApiKey_ } from "../_utils/config.ts";
@@ -36,13 +38,21 @@ serve(async (req) => {
     // Define notification parameters, using defaults if specific values are missing
     const title = record.title || "New Notification";
     const content = record.content || "This is a new notification";
-    const bigPicture = record["bigPicture"] ||
+    const bigPicture = record.big_picture ||
       "https://example.com/default-image.jpg";
+    const thumbnail = record.thumbnail || ""; // Small icon or thumbnail image
+    const url = record.url || ""; // URL or deep link for the notification
+    const groupId = record.group_id || null; // Group ID if applicable
+    const sendTime = record.send_time
+      ? new Date(record.send_time).toISOString()
+      : null; // Scheduled send time
+    const expirationTime = record.expiration_time
+      ? new Date(record.expiration_time).toISOString()
+      : null; // Expiration time
 
     // Construct the OneSignal notification body using the parsed payload data
-    const oneSignalBody = {
+    const oneSignalBody: any = {
       app_id: _OnesignalAppId_, // Set the OneSignal app ID
-      included_segments: ["Total Subscriptions"], // Target all subscribed users
       contents: {
         en: content, // Set the notification content in English
       },
@@ -50,13 +60,44 @@ serve(async (req) => {
         en: title, // Set the notification title in English
       },
       big_picture: bigPicture, // Include a large image in the notification, or use a default image
-      name: "INTERNAL_CAMPAIGN_NAME", // Set the internal campaign name for tracking
+      small_icon: thumbnail, // Set the small icon or thumbnail
+      url: url, // Include a URL or deep link
+      name: record.campaign_name || "INTERNAL_CAMPAIGN_NAME", // Set the internal campaign name for tracking
       data: {
         type: record.type, // Pass additional data, such as the type of notification
+        category: record.category, // Include the notification category
         table: record.table, // Include the table reference if applicable
         record: record.record, // Include the record data from the payload
       },
     };
+
+    // Include send time and expiration time if defined
+    if (sendTime) {
+      oneSignalBody.send_after = sendTime;
+    }
+
+    if (expirationTime) {
+      oneSignalBody.expiration_time = expirationTime;
+    }
+
+    // Handle targeting based on the user_id or group_id
+    if (record.user_id) {
+      oneSignalBody.include_external_user_ids = [record.user_id]; // Target a specific user
+    } else if (groupId) {
+      oneSignalBody.included_segments = [`Group_${groupId}`]; // Target a specific group
+    } else {
+      oneSignalBody.included_segments = ["Total Subscriptions"]; // Target all subscribed users
+    }
+
+    // Set priority if it's provided
+    if (record.priority) {
+      oneSignalBody.priority = record.priority; // Set notification priority
+    }
+
+    // Set the status if it's provided
+    if (record.status) {
+      oneSignalBody.status = record.status; // Set the initial status of the notification
+    }
 
     // Attempt to send the notification to OneSignal using the constructed body
     try {
@@ -100,12 +141,6 @@ serve(async (req) => {
         { headers: { "Content-Type": "application/json" }, status: 500 },
       );
     }
-
-    // Uncomment the following line if you prefer to use the OneSignal SDK directly to send notifications
-    // const onesignalApiRes = await onesignal.createNotification(notification);
-    // This method is currently commented out in favor of using fetch, which allows for more control over the HTTP request,
-    // such as adding custom headers or handling the response in a specific way. The SDK method is simpler but abstracts
-    // away some of the details that might be necessary in more complex scenarios.
   } catch (err) {
     // Log any errors that occur during the initial handling of the request
     console.error("Failed to create OneSignal notification", err);
