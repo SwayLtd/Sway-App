@@ -48,18 +48,42 @@ dev_dependencies:
   lint: ^2.3.0
   plausible_analytics: ^0.3.0
 
-flutter_icons:
-  android: "launcher_icon"
+# flutter_icons:
+#   android: "launcher_icon"
+#   ios: true
+#   image_path: "assets/images/icon.png"
+#   web:
+#     generate: true
+#     image_path: "assets/images/icon.png"
+#     background_color: "#800020"
+#     theme_color: "#hexcode"
+#   windows:
+#     generate: true
+#     image_path: "assets/images/icon.png"
+#   macos:
+#     generate: true
+#     image_path: "assets/images/icon.png"
+
+flutter_launcher_icons:
+  image_path_android: "assets/images/icon.png"
+  image_path_ios: "assets/images/icon.png"
+  android: true
   ios: true
-  image_path: "assets/images/icon.png"
+  adaptative_icon_background: "assets/images/icon.png"
+  adaptative_icon_foreground: "assets/images/icon.png"
+  adaptative_icon_monochrome: "assets/images/icon.png"
+  min_sdk_version: 21 # android min sdk min:16, default 21
+  remove_alpha_ios: true
+  background_color_ios: "#FEBF1E"
   web:
     generate: true
     image_path: "assets/images/icon.png"
-    background_color: "#800020"
-    theme_color: "#hexcode"
+    background_color: "#FEBF1E"
+    theme_color: "#FEBF1E"
   windows:
     generate: true
     image_path: "assets/images/icon.png"
+    icon_size: 48 # min:48, max:256, default: 48
   macos:
     generate: true
     image_path: "assets/images/icon.png"
