@@ -2,7 +2,7 @@
 
 // ignore_for_file: avoid_print
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+/* import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class NotificationService {
@@ -130,3 +130,4 @@ class NotificationService {
     }
   }
 }
+*/

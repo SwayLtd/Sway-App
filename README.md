@@ -42,6 +42,7 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Launcher icons migration, url strategy migration, OneSignal removed, clean of Android and iOS, remove of useless widgets (sidebar, appbar and timetable), upgrade of jailbreak and root detection
 * Notification types
 * Timetable v4.6 (fixing issues, overlapping artists)
 * Security integration using environment variables, root and jailbreak detection, and secure storage
