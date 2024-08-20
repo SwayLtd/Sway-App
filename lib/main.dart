@@ -11,10 +11,10 @@ import 'package:sway_events/core/routes.dart';
 import 'package:sway_events/core/services/database_service.dart';
 // import 'package:sway_events/core/services/notification_service.dart';
 import 'package:sway_events/features/security/utils/security_utils.dart';
-import 'package:url_strategy/url_strategy.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 Future<void> main() async {
-  setPathUrlStrategy(); // Remove # from URL
+  usePathUrlStrategy(); // Remove # from URL
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   DatabaseService().initialize();
