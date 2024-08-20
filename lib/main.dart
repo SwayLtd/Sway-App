@@ -9,7 +9,7 @@ import 'package:sway_events/core/constants/app_theme.dart';
 import 'package:sway_events/core/constants/l10n.dart';
 import 'package:sway_events/core/routes.dart';
 import 'package:sway_events/core/services/database_service.dart';
-import 'package:sway_events/core/services/notification_service.dart';
+// import 'package:sway_events/core/services/notification_service.dart';
 import 'package:sway_events/features/security/utils/security_utils.dart';
 import 'package:url_strategy/url_strategy.dart';
 
@@ -18,7 +18,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   DatabaseService().initialize();
-  NotificationService().initialize();
+  // NotificationService().initialize();
   runApp(const SwayEvents());
 }
 

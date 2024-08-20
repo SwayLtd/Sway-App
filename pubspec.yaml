@@ -1,9 +1,12 @@
+# https://stackoverflow.com/questions/51809421/flutter-is-not-able-to-install-the-apk-into-the-real-device-suddenly
+# flutter build apk --obfuscate --split-debug-info=SwayEvents/debug_info
+
 name: sway_events
 description: Sway Events is a mobile event management application that helps users discover, organize, and manage events effortlessly. Sway Events aims to provide a seamless and intuitive experience for both event attendees and promoters.
 
 publish_to: "none"
 
-version: 0.1.8 # Add notification types with cross-platform parameters and user/group targeting
+version: 0.1.9 # Migrating from flutter_jailbreak_detection to root_jailbreak_sniffer. Remote notification temporarily removed: cancellation of OneSignal use.
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
@@ -18,7 +21,7 @@ dependencies:
     sdk: flutter
   flutter_bloc: ^8.1.5
   flutter_dotenv: ^5.0.2
-  flutter_jailbreak_detection: ^1.10.0
+  root_jailbreak_sniffer: ^1.0.6
   flutter_localizations:
     sdk: flutter
   flutter_secure_storage: ^9.2.2
@@ -29,7 +32,7 @@ dependencies:
   intl: ^0.19.0
   # isar: ^3.1.0+1 # Super Fast Cross-Platform Database - For bigger projects with more complex data structures - https://isar.dev/ - https://pub.dev/packages/isar
   lemon_squeezy: ^1.0.3
-  onesignal_flutter: ^5.2.2
+  # onesignal_flutter: ^5.2.2
   qr_flutter: ^4.1.0
   responsive_framework: ^1.4.0
   share_plus: ^10.0.0
@@ -69,7 +72,7 @@ flutter_launcher_icons:
   image_path_ios: "assets/images/icon.png"
   android: true
   ios: true
-  adaptative_icon_background: "assets/images/icon.png"
+  adaptative_icon_background: "#07191D"
   adaptative_icon_foreground: "assets/images/icon.png"
   adaptative_icon_monochrome: "assets/images/icon.png"
   min_sdk_version: 21 # android min sdk min:16, default 21

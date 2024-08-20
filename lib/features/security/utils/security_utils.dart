@@ -5,7 +5,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
+import 'package:root_jailbreak_sniffer/rjsniffer.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecurityUtils extends StatefulWidget {
@@ -16,8 +16,9 @@ class SecurityUtils extends StatefulWidget {
 }
 
 class _SecurityUtilsState extends State<SecurityUtils> {
-  late bool jailbroken;
-  late bool developerMode;
+  late bool amICompromised;
+  late bool amIEmulator;
+  late bool amIDebugged;
 
   @override
   void initState() {
@@ -28,12 +29,16 @@ class _SecurityUtilsState extends State<SecurityUtils> {
   /// [checkOSDetection] Checks for Root and Jailbreak Detection
   Future<void> checkOSDetection() async {
     try {
-      jailbroken = await FlutterJailbreakDetection.jailbroken;
-      developerMode =
-          await FlutterJailbreakDetection.developerMode; // Android only
+      amICompromised =
+          await Rjsniffer.amICompromised() ?? false; //Detect JailBreak and Root
+      amIEmulator =
+          await Rjsniffer.amIEmulator() ?? false; //Detect Emulator Environment
+      amIDebugged =
+          await Rjsniffer.amIDebugged() ?? false; //Detect being Debugged
     } on PlatformException {
-      jailbroken = true;
-      developerMode = true;
+      amICompromised = true;
+      amIEmulator = true;
+      amIDebugged = true;
     }
 
     // If the widget was removed from the tree while the asynchronous platform
