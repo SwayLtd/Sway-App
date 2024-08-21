@@ -45,6 +45,7 @@ class _ScaffoldWithNavBarWithoutAppBarState extends State<ScaffoldWithNavBarWith
       key: _scaffoldKey,
       body: widget.child,
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         selectedItemColor: selectedIndex() >= items.length
             ? Theme.of(context).disabledColor
             : Theme.of(context)
