@@ -13,10 +13,10 @@ class Genre {
 
   factory Genre.fromJson(Map<String, dynamic> json) {
     return Genre(
-      id: json['id'] as String,
+      id: json['id'].toString(), // Conversion explicite en String
       name: json['name'] as String,
       description: json['description'] as String,
-      bpmRange: json['bpmRange'] as String,
+      bpmRange: json['bpm_range'].toString(), // Conversion explicite en String
     );
   }
 }

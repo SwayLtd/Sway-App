@@ -1,43 +1,43 @@
-// genre_service.dart
-
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway_events/features/genre/models/genre_model.dart';
 
 class GenreService {
+  final _supabase = Supabase.instance.client;
+
   Future<List<Genre>> searchGenres(String query) async {
-    final String response =
-        await rootBundle.loadString('assets/databases/genres.json');
-    final List<dynamic> genreJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('genres')
+        .select()
+        .ilike('name', '%$query%');
 
-    final genres = genreJson.map((json) {
-      return Genre.fromJson(json as Map<String, dynamic>);
-    }).toList();
+    if (response.isEmpty) {
+      throw Exception('No genres found.');
+    }
 
-    final results = genres.where((genre) {
-      final matches = genre.name.toLowerCase().contains(query.toLowerCase());
-      return matches;
-    }).toList();
-
-    return results;
+    return response.map<Genre>((json) => Genre.fromJson(json)).toList();
   }
 
   Future<List<Genre>> getGenres() async {
-    final String response =
-        await rootBundle.loadString('assets/databases/genres.json');
-    final List<dynamic> genreJson = json.decode(response) as List<dynamic>;
-    return genreJson
-        .map((json) => Genre.fromJson(json as Map<String, dynamic>))
-        .toList();
+    final response = await _supabase.from('genres').select();
+
+    if (response.isEmpty) {
+      throw Exception('No genres found.');
+    }
+
+    return response.map<Genre>((json) => Genre.fromJson(json)).toList();
   }
 
   Future<Genre?> getGenreById(String genreId) async {
-    final List<Genre> genres = await getGenres();
-    try {
-      final Genre genre = genres.firstWhere((genre) => genre.id == genreId);
-      return genre;
-    } catch (e) {
+    final response = await _supabase
+        .from('genres')
+        .select()
+        .eq('id', genreId)
+        .maybeSingle();
+
+    if (response == null) {
       return null;
     }
+
+    return Genre.fromJson(response);
   }
 }
