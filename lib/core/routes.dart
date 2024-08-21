@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:sway_events/core/constants/l10n.dart';
 import 'package:sway_events/core/utils/error/error_not_found.dart';
-import 'package:sway_events/core/widgets/navbar_no_appbar.dart';
+import 'package:sway_events/core/widgets/bottom_navigation_bar.dart';
 import 'package:sway_events/features/discovery/discovery.dart';
 import 'package:sway_events/features/search/search.dart';
 import 'package:sway_events/features/ticketing/ticketing.dart';
