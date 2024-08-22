@@ -1,5 +1,5 @@
 class Venue {
-  final String id;
+  final int id;
   final String name;
   final String imageUrl;
   final String description;
@@ -15,7 +15,7 @@ class Venue {
 
   factory Venue.fromJson(Map<String, dynamic> json) {
     return Venue(
-      id: json['id'] as String? ?? '',
+      id: json['id'],
       name: json['name'] as String? ?? '',
       imageUrl: json['imageUrl'] as String? ?? '',
       description: json['description'] as String? ?? '',

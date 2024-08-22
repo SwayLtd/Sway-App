@@ -4,16 +4,16 @@ import 'package:sway_events/features/user/models/user_model.dart';
 import 'package:sway_events/features/user/services/user_service.dart';
 
 class UserFollowUserService {
-  final String userId = "3"; // L'ID de l'utilisateur actuel
+  final int userId = 3; // L'ID de l'utilisateur actuel
 
-  Future<bool> isFollowingUser(String targetUserId) async {
+  Future<bool> isFollowingUser(int targetUserId) async {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_user.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
     return followJson.any((follow) => follow['followerId'] == userId && follow['followedId'] == targetUserId);
   }
 
-  Future<void> followUser(String targetUserId) async {
+  Future<void> followUser(int targetUserId) async {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_user.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
@@ -23,7 +23,7 @@ class UserFollowUserService {
     await saveUserFollowUserData(followJson);
   }
 
-  Future<void> unfollowUser(String targetUserId) async {
+  Future<void> unfollowUser(int targetUserId) async {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_user.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
@@ -37,39 +37,39 @@ class UserFollowUserService {
     // Implement saving logic here, depending on how you manage your local storage
   }
 
-  Future<int> getFollowersCount(String targetUserId) async {
+  Future<int> getFollowersCount(int targetUserId) async {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_user.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
     return followJson.where((follow) => follow['followedId'] == targetUserId).length;
   }
 
-  Future<int> getFollowingCount(String userId) async {
+  Future<int> getFollowingCount(int userId) async {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_user.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
     return followJson.where((follow) => follow['followerId'] == userId).length;
   }
 
-  Future<List<User>> getFollowersForUser(String targetUserId) async {
+  Future<List<User>> getFollowersForUser(int targetUserId) async {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_user.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
-    final List<String> followerIds = followJson
+    final List followerIds = followJson
         .where((follow) => follow['followedId'] == targetUserId)
-        .map<String>((follow) => follow['followerId'] as String)
+        .map<int>((follow) => follow['followerId'])
         .toList();
 
     return await UserService().getUsersByIds(followerIds);
   }
 
-  Future<List<User>> getFollowingForUser(String userId) async {
+  Future<List<User>> getFollowingForUser(int userId) async {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_user.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
-    final List<String> followingIds = followJson
+    final List followingIds = followJson
         .where((follow) => follow['followerId'] == userId)
-        .map<String>((follow) => follow['followedId'] as String)
+        .map<int>((follow) => follow['followedId'])
         .toList();
 
     return await UserService().getUsersByIds(followingIds);

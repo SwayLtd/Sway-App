@@ -27,7 +27,7 @@ class GenreService {
     return response.map<Genre>((json) => Genre.fromJson(json)).toList();
   }
 
-  Future<Genre?> getGenreById(String genreId) async {
+  Future<Genre?> getGenreById(int genreId) async {
     final response = await _supabase
         .from('genres')
         .select()

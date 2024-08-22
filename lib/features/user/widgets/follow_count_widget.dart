@@ -8,7 +8,7 @@ import 'package:sway_events/features/user/services/user_follow_venue_service.dar
 import 'package:sway_events/features/user/services/user_interest_event_service.dart';
 
 class FollowersCountWidget extends StatelessWidget {
-  final String entityId;
+  final int entityId;
   final String entityType; // 'venue', 'promoter', 'event', 'artist', 'user', 'genre'
 
   const FollowersCountWidget({required this.entityId, required this.entityType});

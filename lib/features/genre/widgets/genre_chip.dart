@@ -3,7 +3,7 @@ import 'package:sway_events/features/genre/models/genre_model.dart';
 import 'package:sway_events/features/genre/services/genre_service.dart';
 
 class GenreChip extends StatelessWidget {
-  final String genreId;
+  final int genreId;
 
   const GenreChip({required this.genreId});
 

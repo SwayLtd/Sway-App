@@ -1,12 +1,12 @@
 [
-    { "venueId": "1", "genreId": "1" },
-    { "venueId": "1", "genreId": "5" },
-    { "venueId": "2", "genreId": "1" },
-    { "venueId": "2", "genreId": "2" },
-    { "venueId": "2", "genreId": "3" },
-    { "venueId": "3", "genreId": "1" },
-    { "venueId": "3", "genreId": "6" },
-    { "venueId": "4", "genreId": "1" },
-    { "venueId": "4", "genreId": "4" }
+    { "venueId": 1, "genreId": 1 },
+    { "venueId": 1, "genreId": 5 },
+    { "venueId": 2, "genreId": 1 },
+    { "venueId": 2, "genreId": 2 },
+    { "venueId": 2, "genreId": 3 },
+    { "venueId": 3, "genreId": 1 },
+    { "venueId": 3, "genreId": 6 },
+    { "venueId": 4, "genreId": 1 },
+    { "venueId": 4, "genreId": 4 }
   ]
   

@@ -8,7 +8,7 @@ import 'package:sway_events/features/user/services/user_follow_user_service.dart
 import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
 
 class FollowingButtonWidget extends StatelessWidget {
-  final String entityId;
+  final int entityId;
   final String entityType; // 'venue', 'promoter', 'artist', 'user', 'genre'
 
   const FollowingButtonWidget(

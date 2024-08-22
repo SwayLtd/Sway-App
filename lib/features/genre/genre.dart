@@ -12,7 +12,7 @@ import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 
 class GenreScreen extends StatefulWidget {
-  final String genreId;
+  final int genreId;
 
   const GenreScreen({required this.genreId});
 

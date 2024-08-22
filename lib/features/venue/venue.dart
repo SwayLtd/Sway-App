@@ -23,7 +23,7 @@ import 'package:sway_events/features/venue/services/venue_resident_artists_servi
 import 'package:sway_events/features/venue/services/venue_service.dart';
 
 class VenueScreen extends StatefulWidget {
-  final String venueId;
+  final int venueId;
 
   const VenueScreen({required this.venueId});
 
@@ -401,7 +401,7 @@ class _VenueScreenState extends State<VenueScreen> {
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    FutureBuilder<List<String>>(
+                    FutureBuilder<List>(
                       future: VenueGenreService().getGenresByVenueId(venue.id),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==

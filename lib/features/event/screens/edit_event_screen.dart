@@ -20,9 +20,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   late TextEditingController _priceController;
-  late List<String> _selectedGenres;
-  late List<String> _selectedArtists;
-  late List<String> _selectedPromoters;
+  late List _selectedGenres;
+  late List _selectedArtists;
+  late List _selectedPromoters;
   late String _selectedType;
 
   @override
@@ -32,9 +32,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _descriptionController =
         TextEditingController(text: widget.event.description);
     _priceController = TextEditingController(text: widget.event.price);
-    _selectedGenres = List<String>.from(widget.event.genres);
-    _selectedArtists = List<String>.from(widget.event.artists);
-    _selectedPromoters = List<String>.from(widget.event.promoters);
+    _selectedGenres = List.from(widget.event.genres);
+    _selectedArtists = List.from(widget.event.artists);
+    _selectedPromoters = List.from(widget.event.promoters);
     _selectedType = widget.event.type;
   }
 
@@ -169,7 +169,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
               children: _selectedGenres
                   .map(
                     (genre) => Chip(
-                      label: Text(genre),
+                      label: Text(genre as String),
                       onDeleted: () {
                         setState(() {
                           _selectedGenres.remove(genre);
@@ -184,7 +184,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
               children: _selectedArtists
                   .map(
                     (artist) => Chip(
-                      label: Text(artist),
+                      label: Text(artist as String),
                       onDeleted: () {
                         setState(() {
                           _selectedArtists.remove(artist);
@@ -199,7 +199,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
               children: _selectedPromoters
                   .map(
                     (promoter) => Chip(
-                      label: Text(promoter),
+                      label: Text(promoter as String),
                       onDeleted: () {
                         setState(() {
                           _selectedPromoters.remove(promoter);
@@ -231,7 +231,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                           _showDeleteConfirmationDialog(
                             context,
                             UserPermission(
-                              userId: 'currentUser',
+                              userId: 3,
                               entityId: widget.event.id,
                               entityType: 'event',
                               permission: 'admin',

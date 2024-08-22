@@ -39,7 +39,7 @@ class PromoterService {
         .toList();
   }
 
-  Future<Promoter?> getPromoterByIdWithEvents(String id) async {
+  Future<Promoter?> getPromoterByIdWithEvents(int id) async {
     final List<Promoter> promoters = await getPromotersWithEvents();
     try {
       final Promoter promoter =
@@ -61,7 +61,7 @@ class PromoterService {
         .toList();
   }
 
-  Future<Promoter?> getPromoterById(String id) async {
+  Future<Promoter?> getPromoterById(int id) async {
     final List<Promoter> promoters = await getPromoters();
     try {
       final Promoter promoter =
@@ -90,7 +90,7 @@ class PromoterService {
     // Logic to update promoter
   }
 
-  Future<void> deletePromoter(String promoterId) async {
+  Future<void> deletePromoter(int promoterId) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
         promoterId, 'promoter', 'admin',);
     if (!hasPermission) {

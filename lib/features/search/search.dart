@@ -192,7 +192,7 @@ class _SearchScreenState extends State<SearchScreen> {
     }
     if (_filters['genres'] != null && (_filters['genres'] as List).isNotEmpty) {
       filterWidgets.addAll(
-        (_filters['genres'] as List<String>)
+        (_filters['genres'] as List)
             .map(
               (genreId) => FutureBuilder<Genre?>(
                 future: _genreService.getGenreById(genreId),
@@ -443,7 +443,7 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Future<List<Genre>> _getEventGenres(String eventId) async {
+  Future<List<Genre>> _getEventGenres(int eventId) async {
     final genreIds = await _eventGenreService.getGenresByEventId(eventId);
     final genres =
         await Future.wait(genreIds.map((id) => _genreService.getGenreById(id)));

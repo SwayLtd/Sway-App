@@ -1,7 +1,7 @@
 [
   {
-    "id": "101",
-    "eventId": "1",
+    "id": 101,
+    "eventId": 1,
     "ticketType": "Door",
     "price": "€10.99",
     "status": "active",
@@ -10,8 +10,8 @@
     "maxPurchases": null
   },
   {
-    "id": "102",
-    "eventId": "1",
+    "id": 102,
+    "eventId": 1,
     "ticketType": "VIP",
     "price": "€15.00",
     "status": "active",
@@ -20,8 +20,8 @@
     "maxPurchases": null
   },
   {
-    "id": "103",
-    "eventId": "2",
+    "id": 103,
+    "eventId": 2,
     "ticketType": "General Admission",
     "price": "€20.00",
     "status": "active",
@@ -30,8 +30,8 @@
     "maxPurchases": null
   },
   {
-    "id": "104",
-    "eventId": "3",
+    "id": 104,
+    "eventId": 3,
     "ticketType": "Door",
     "price": "€12.00",
     "status": "resold",
@@ -40,8 +40,8 @@
     "maxPurchases": null
   },
   {
-    "id": "105",
-    "eventId": "4",
+    "id": 105,
+    "eventId": 4,
     "ticketType": "VIP",
     "price": "€18.00",
     "status": "active",
@@ -50,8 +50,8 @@
     "maxPurchases": null
   },
   {
-    "id": "106",
-    "eventId": "5",
+    "id": 106,
+    "eventId": 5,
     "ticketType": "General Admission",
     "price": "€14.50",
     "status": "active",
@@ -60,8 +60,8 @@
     "maxPurchases": null
   },
   {
-    "id": "107",
-    "eventId": "6",
+    "id": 107,
+    "eventId": 6,
     "ticketType": "Standard",
     "price": "€16.50",
     "status": "active",

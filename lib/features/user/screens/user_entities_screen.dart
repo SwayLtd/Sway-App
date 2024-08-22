@@ -15,7 +15,7 @@ import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
 
 class UserEntitiesScreen extends StatelessWidget {
-  final String userId;
+  final int userId;
 
   const UserEntitiesScreen({required this.userId});
 
@@ -25,7 +25,7 @@ class UserEntitiesScreen extends StatelessWidget {
   }
 
   Future<void> _navigateToEntity(
-      BuildContext context, String entityType, String entityId,) async {
+      BuildContext context, String entityType, int entityId,) async {
     switch (entityType) {
       case 'event':
         final event = await EventService().getEventById(entityId);
@@ -60,7 +60,7 @@ class UserEntitiesScreen extends StatelessWidget {
   }
 
   Future<void> _editEntity(
-      BuildContext context, String entityType, String entityId,) async {
+      BuildContext context, String entityType, int entityId,) async {
     switch (entityType) {
       case 'event':
         final event = await EventService().getEventById(entityId);

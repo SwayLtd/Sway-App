@@ -26,7 +26,7 @@ class TicketingScreen extends StatelessWidget {
           ),
         ),
         body: FutureBuilder<List<UserEventTicket>>(
-          future: _userEventTicketService.getUserTicketsByUserId("3"), // Replace with actual user ID fetching logic
+          future: _userEventTicketService.getUserTicketsByUserId(3), // Replace with actual user ID fetching logic
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());

@@ -1,5 +1,5 @@
 class Genre {
-  final String id;
+  final int id;
   final String name;
   final String description;
   final String bpmRange;
@@ -13,7 +13,7 @@ class Genre {
 
   factory Genre.fromJson(Map<String, dynamic> json) {
     return Genre(
-      id: json['id'].toString(), // Conversion explicite en String
+      id: json['id'],
       name: json['name'] as String,
       description: json['description'] as String,
       bpmRange: json['bpm_range'].toString(), // Conversion explicite en String

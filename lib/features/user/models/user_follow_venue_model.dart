@@ -1,13 +1,13 @@
 class UserFollowVenue {
-  final String userId;
-  final String venueId;
+  final int userId;
+  final int venueId;
 
   UserFollowVenue({required this.userId, required this.venueId});
 
   factory UserFollowVenue.fromJson(Map<String, dynamic> json) {
     return UserFollowVenue(
-      userId: json['userId'] as String,
-      venueId: json['venueId'] as String,
+      userId: json['userId'],
+      venueId: json['venueId'],
     );
   }
 

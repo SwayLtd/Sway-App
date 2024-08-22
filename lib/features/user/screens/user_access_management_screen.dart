@@ -8,7 +8,7 @@ import 'package:sway_events/features/user/services/user_permission_service.dart'
 import 'package:sway_events/features/user/services/user_service.dart';
 
 class UserAccessManagementScreen extends StatefulWidget {
-  final String entityId;
+  final int entityId;
   final String entityType;
 
   const UserAccessManagementScreen({

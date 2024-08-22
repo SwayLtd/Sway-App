@@ -140,7 +140,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                         _showDeleteConfirmationDialog(
                             context,
                             UserPermission(
-                                userId: 'currentUser',
+                                userId: 3,
                                 entityId: widget.venue.id,
                                 entityType: 'venue',
                                 permission: 'admin',),);

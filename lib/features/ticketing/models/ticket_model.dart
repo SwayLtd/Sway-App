@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 class Ticket {
-  final String id;
-  final String eventId;
+  final int id;
+  final int eventId;
   final String ticketType;
   final String price;
   final String status;
@@ -25,8 +25,8 @@ class Ticket {
 
   factory Ticket.fromJson(Map<String, dynamic> json) {
     return Ticket(
-      id: json['id'] as String,
-      eventId: json['eventId'] as String,
+      id: json['id'],
+      eventId: json['eventId'],
       ticketType: json['ticketType'] as String,
       price: json['price'] as String,
       status: json['status'] as String,
@@ -49,7 +49,7 @@ class Ticket {
     };
   }
 
-  String generateQRCode(String userId, DateTime timestamp) {
+  String generateQRCode(int userId, DateTime timestamp) {
     final data = '$id-$userId-${timestamp.toIso8601String()}';
     return sha256.convert(utf8.encode(data)).toString();
   }

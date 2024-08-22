@@ -1,13 +1,13 @@
 // artist_model.dart
 
 class Artist {
-  final String id;
+  final int id;
   final String name;
   final String imageUrl;
   final String description;
-  final List<String> genres; // IDs of genres
-  final List<String> upcomingEvents;
-  final List<String> similarArtists;
+  final List genres; // IDs of genres
+  final List upcomingEvents;
+  final List similarArtists;
   final Map<String, String> links;
   final int followers;
   final bool isFollowing;
@@ -27,26 +27,26 @@ class Artist {
 
   factory Artist.fromJson(Map<String, dynamic> json) {
     return Artist(
-      id: json['id'] as String,
+      id: json['id'],
       name: json['name'] as String,
       imageUrl: json['imageUrl'] as String,
       description: json['description'] as String? ?? '',
-      genres: (json['genres'] as List<dynamic>?)
-              ?.map((e) => e as String)
+      genres: (json['genres'])
+              ?.map((e) => e)
               .toList() ??
           [],
-      upcomingEvents: (json['upcomingEvents'] as List<dynamic>?)
-              ?.map((e) => e as String)
+      upcomingEvents: (json['upcomingEvents'])
+              ?.map((e) => e)
               .toList() ??
           [],
-      similarArtists: (json['similarArtists'] as List<dynamic>?)
-              ?.map((e) => e as String)
+      similarArtists: (json['similarArtists'])
+              ?.map((e) => e)
               .toList() ??
           [],
       links: (json['links'] as Map<String, dynamic>?)
               ?.map((key, value) => MapEntry(key, value as String)) ??
           {},
-      followers: json['followers'] as int? ?? 0,
+      followers: json['followers'] ?? 0,
       isFollowing: json['isFollowing'] as bool? ?? false,
     );
   }

@@ -150,7 +150,7 @@ class DiscoveryScreen extends StatelessWidget {
     );
   }
 
-  Future<Map<String, dynamic>> _fetchUserRecommendations(String userId) async {
+  Future<Map<String, dynamic>> _fetchUserRecommendations(int userId) async {
     final followedArtists =
         await _userFollowArtistService.getFollowedArtistsByUserId(userId);
     final followedGenres =

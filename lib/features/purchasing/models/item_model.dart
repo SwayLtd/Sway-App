@@ -1,7 +1,7 @@
 // item_model.dart
 
 class Item {
-  final String id;
+  final int id;
   final String name;
   final String price;
   final String type; // Type de l'article (ticket, token, merchandise, etc.)
@@ -15,7 +15,7 @@ class Item {
 
   factory Item.fromJson(Map<String, dynamic> json) {
     return Item(
-      id: json['id'] as String,
+      id: json['id'],
       name: json['name'] as String,
       price: json['price'] as String,
       type: json['type'] as String,

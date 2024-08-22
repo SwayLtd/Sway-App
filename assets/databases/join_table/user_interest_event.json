@@ -1,8 +1,8 @@
 [
-  { "userId": "1", "eventId": "1", "status": "interested" },
-  { "userId": "1", "eventId": "2", "status": "interested" },
-  { "userId": "2", "eventId": "3", "status": "interested" },
-  { "userId": "2", "eventId": "1", "status": "going" },
-  { "userId": "3", "eventId": "2", "status": "going" },
-  { "userId": "3", "eventId": "1", "status": "interested" }
+  { "userId": 1, "eventId": 1, "status": "interested" },
+  { "userId": 1, "eventId": 2, "status": "interested" },
+  { "userId": 2, "eventId": 3, "status": "interested" },
+  { "userId": 2, "eventId": 1, "status": "going" },
+  { "userId": 3, "eventId": 2, "status": "going" },
+  { "userId": 3, "eventId": 1, "status": "interested" }
 ]

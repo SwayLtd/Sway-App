@@ -31,7 +31,7 @@ class ArtistService {
         .toList();
   }
 
-  Future<Artist?> getArtistById(String artistId) async {
+  Future<Artist?> getArtistById(int artistId) async {
     final List<Artist> artists = await getArtists();
     try {
       final Artist artist =
@@ -42,14 +42,14 @@ class ArtistService {
     }
   }
 
-  Future<List<Artist>> getTopArtistsByGenreId(String genreId) async {
+  Future<List<Artist>> getTopArtistsByGenreId(int genreId) async {
     final String artistGenreResponse = await rootBundle
         .loadString('assets/databases/join_table/artist_genre.json');
     final List<dynamic> artistGenreJson =
         json.decode(artistGenreResponse) as List<dynamic>;
     final artistIds = artistGenreJson
         .where((entry) => entry['genreId'] == genreId)
-        .map((entry) => entry['artistId'] as String)
+        .map((entry) => entry['artistId'])
         .toList();
 
     final List<Artist> allArtists = await getArtists();

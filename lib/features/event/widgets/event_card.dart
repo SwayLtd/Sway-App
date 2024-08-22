@@ -230,7 +230,7 @@ class EventCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  FutureBuilder<List<String>>(
+                  FutureBuilder<List>(
                     future: EventGenreService().getGenresByEventId(event.id),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -257,13 +257,13 @@ class EventCard extends StatelessWidget {
     );
   }
 
-  Future<Map<String, bool>> _getEventStatus(String eventId) async {
+  Future<Map<String, bool>> _getEventStatus(int eventId) async {
     final bool isInterested = await UserInterestEventService().isInterestedInEvent(eventId);
     final bool isAttended = await UserInterestEventService().isAttendedEvent(eventId);
     return {'isInterested': isInterested, 'isAttended': isAttended};
   }
 
-  void _handleMenuSelection(String value, String eventId, bool isInterested, bool isAttended) {
+  void _handleMenuSelection(String value, int eventId, bool isInterested, bool isAttended) {
     switch (value) {
       case 'interested':
         UserInterestEventService().addInterest(eventId);

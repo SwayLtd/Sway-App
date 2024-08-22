@@ -20,7 +20,7 @@ class EventTicketsScreen extends StatefulWidget {
 class _EventTicketsScreenState extends State<EventTicketsScreen> {
   int _currentIndex = 0;
   List<Ticket> tickets = [];
-  String userId = "3"; // Assuming user ID is 3 for demonstration
+  int userId = 3; // Assuming user ID is 3 for demonstration
 
   @override
   void initState() {

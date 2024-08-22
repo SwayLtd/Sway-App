@@ -1,6 +1,6 @@
 class UserFollowPromoter {
-  final int userId;
-  final int promoterId;
+  final int userId; // Changement de String à int
+  final int promoterId; // Changement de String à int
 
   UserFollowPromoter({
     required this.userId,
@@ -9,8 +9,8 @@ class UserFollowPromoter {
 
   factory UserFollowPromoter.fromJson(Map<String, dynamic> json) {
     return UserFollowPromoter(
-      userId: json['userId'],
-      promoterId: json['promoterId'],
+      userId: json['userId'], // Utilisation de int
+      promoterId: json['promoterId'], // Utilisation de int
     );
   }
 

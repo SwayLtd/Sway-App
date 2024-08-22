@@ -28,7 +28,7 @@ class UserEventTicketService {
     }
   }
 
-  Future<void> deleteUserEventTicket(String id) async {
+  Future<void> deleteUserEventTicket(int id) async {
     final List<UserEventTicket> currentTickets = await getUserEventTickets();
     currentTickets.removeWhere((ticket) => ticket.id == id);
     await saveUserEventTickets(currentTickets);
@@ -39,12 +39,12 @@ class UserEventTicketService {
     // Save jsonString to your database or local storage
   }
 
-  Future<List<UserEventTicket>> getUserTicketsByUserId(String userId) async {
+  Future<List<UserEventTicket>> getUserTicketsByUserId(int userId) async {
     final List<UserEventTicket> allTickets = await getUserEventTickets();
     return allTickets.where((ticket) => ticket.userId == userId).toList();
   }
 
-  Future<List<UserEventTicket>> getTicketsByEventId(String eventId) async {
+  Future<List<UserEventTicket>> getTicketsByEventId(int eventId) async {
     final List<UserEventTicket> allTickets = await getUserEventTickets();
     return allTickets.where((ticket) => ticket.eventId == eventId).toList();
   }

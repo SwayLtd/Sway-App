@@ -1,6 +1,6 @@
 class OrderItem {
-  final String orderId;
-  final String itemId;
+  final int orderId;
+  final int itemId;
   final String itemType;
   final int quantity;
   final String price;
@@ -15,8 +15,8 @@ class OrderItem {
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
-      orderId: json['orderId'] as String,
-      itemId: json['itemId'] as String,
+      orderId: json['orderId'],
+      itemId: json['itemId'],
       itemType: json['itemType'] as String,
       quantity: json['quantity'] as int,
       price: json['price'] as String,

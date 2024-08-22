@@ -136,7 +136,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                           _showDeleteConfirmationDialog(
                               context,
                               UserPermission(
-                                  userId: 'currentUser',
+                                  userId: 3,
                                   entityId: widget.promoter.id,
                                   entityType: 'promoter',
                                   permission: 'admin',),);

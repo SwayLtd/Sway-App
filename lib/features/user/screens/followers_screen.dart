@@ -9,7 +9,7 @@ import 'package:sway_events/features/user/services/user_interest_event_service.d
 import 'package:sway_events/features/user/user.dart';
 
 class FollowersScreen extends StatefulWidget {
-  final String entityId;
+  final int entityId;
   final String
       entityType; // 'venue', 'promoter', 'event', 'artist', 'user', 'genre'
   final int initialTabIndex;

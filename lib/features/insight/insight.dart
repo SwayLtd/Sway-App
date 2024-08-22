@@ -5,7 +5,7 @@ import 'package:sway_events/features/insight/models/insight_model.dart';
 import 'package:sway_events/features/insight/services/insight_service.dart';
 
 class InsightScreen extends StatelessWidget {
-  final String entityId;
+  final int entityId;
   final String entityType;
 
   const InsightScreen({

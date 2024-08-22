@@ -1,21 +1,21 @@
 [
-  { "userId": "1", "entityId": "1", "entityType": "event", "permission": "admin" },
-  { "userId": "1", "entityId": "2", "entityType": "venue", "permission": "manager" },
-  { "userId": "1", "entityId": "3", "entityType": "promoter", "permission": "user" },
+  { "userId": 1, "entityId": 1, "entityType": "event", "permission": "admin" },
+  { "userId": 1, "entityId": 2, "entityType": "venue", "permission": "manager" },
+  { "userId": 1, "entityId": 3, "entityType": "promoter", "permission": "user" },
 
-  { "userId": "2", "entityId": "1", "entityType": "venue", "permission": "admin" },
-  { "userId": "2", "entityId": "2", "entityType": "event", "permission": "manager" },
-  { "userId": "2", "entityId": "3", "entityType": "promoter", "permission": "user" },
+  { "userId": 2, "entityId": 1, "entityType": "venue", "permission": "admin" },
+  { "userId": 2, "entityId": 2, "entityType": "event", "permission": "manager" },
+  { "userId": 2, "entityId": 3, "entityType": "promoter", "permission": "user" },
 
-  { "userId": "3", "entityId": "1", "entityType": "promoter", "permission": "admin" },
-  { "userId": "3", "entityId": "1", "entityType": "venue", "permission": "admin" },
-  { "userId": "3", "entityId": "2", "entityType": "event", "permission": "manager" },
+  { "userId": 3, "entityId": 1, "entityType": "promoter", "permission": "admin" },
+  { "userId": 3, "entityId": 1, "entityType": "venue", "permission": "admin" },
+  { "userId": 3, "entityId": 2, "entityType": "event", "permission": "manager" },
 
-  { "userId": "4", "entityId": "1", "entityType": "event", "permission": "user" },
-  { "userId": "4", "entityId": "2", "entityType": "venue", "permission": "admin" },
-  { "userId": "4", "entityId": "3", "entityType": "promoter", "permission": "manager" },
+  { "userId": 4, "entityId": 1, "entityType": "event", "permission": "user" },
+  { "userId": 4, "entityId": 2, "entityType": "venue", "permission": "admin" },
+  { "userId": 4, "entityId": 3, "entityType": "promoter", "permission": "manager" },
 
-  { "userId": "5", "entityId": "1", "entityType": "event", "permission": "manager" },
-  { "userId": "5", "entityId": "2", "entityType": "venue", "permission": "user" },
-  { "userId": "5", "entityId": "3", "entityType": "promoter", "permission": "admin" }
+  { "userId": 5, "entityId": 1, "entityType": "event", "permission": "manager" },
+  { "userId": 5, "entityId": 2, "entityType": "venue", "permission": "user" },
+  { "userId": 5, "entityId": 3, "entityType": "promoter", "permission": "admin" }
 ]

@@ -1,6 +1,6 @@
 [
   {
-    "id": "1",
+    "id": 1,
     "name": "Nico Moreno",
     "imageUrl": "https://i1.sndcdn.com/avatars-Y0jw5fjsLyn8Gq04-lz9G0w-t500x500.jpg",
     "description": "Nico Moreno is known for his hard-hitting techno beats that energize any crowd.",
@@ -11,7 +11,7 @@
     }
   },
   {
-    "id": "2",
+    "id": 2,
     "name": "Sara Landry",
     "imageUrl": "https://i1.sndcdn.com/avatars-F4h1XET0m0ycYOUP-8CchDA-t500x500.jpg",
     "description": "Sara Landry's powerful sets are a blend of dark, hard-hitting techno sounds.",
@@ -22,7 +22,7 @@
     }
   },
   {
-    "id": "3",
+    "id": 3,
     "name": "Perc",
     "imageUrl": "https://i1.sndcdn.com/avatars-cxIIB1VA1d6A42nm-k4LAoQ-t500x500.jpg",
     "description": "Perc's intense and industrial techno sets are known to captivate audiences worldwide.",
@@ -33,7 +33,7 @@
     }
   },
   {
-    "id": "4",
+    "id": 4,
     "name": "Amelie Lens",
     "imageUrl": "https://i1.sndcdn.com/avatars-LUP6VZluDJVDX9Im-zArVxw-t500x500.jpg",
     "description": "Amelie Lens is a Belgian electronic music DJ, record producer, and admin of the Lenske record label.",
@@ -44,7 +44,7 @@
     }
   },
   {
-    "id": "5",
+    "id": 5,
     "name": "Charlotte de Witte",
     "imageUrl": "https://i1.sndcdn.com/avatars-bLEApVPxHAZwITIy-KHyFuA-t500x500.jpg",
     "description": "Charlotte de Witte is a Belgian DJ and record producer known for her dark and stripped-back brand of techno.",
@@ -55,7 +55,7 @@
     }
   },
   {
-    "id": "6",
+    "id": 6,
     "name": "Dax J",
     "imageUrl": "https://i1.sndcdn.com/avatars-pwu7N1QZSLUvge0z-xbBL7A-t500x500.jpg",
     "description": "Dax J is a British DJ and producer known for his deep, dark, and powerful techno beats.",

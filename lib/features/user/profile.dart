@@ -26,7 +26,7 @@ import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/venue.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final String userId;
+  final int userId;
 
   const ProfileScreen({required this.userId});
 
@@ -72,9 +72,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 if (inputText.isNotEmpty) {
-                  Navigator.of(context).push(MaterialPageRoute(
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
                       builder: (context) =>
-                          ScrollingTextScreen(text: inputText),),);
+                          ScrollingTextScreen(text: inputText),
+                    ),
+                  );
                 }
               },
               child: const Text('OK'),
@@ -162,13 +165,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Text(
                       user.username,
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold,),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 5),
                     Text(
                       'Member since: ${user.createdAt.toLocal()}',
                       style: const TextStyle(
-                          fontSize: 16, fontStyle: FontStyle.italic,),
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     FollowersCountWidget(
@@ -204,12 +211,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          GenreScreen(genreId: genre.id),
+                                      builder: (context) => GenreScreen(
+                                          genreId: genre
+                                              .id), // Assurez-vous que genre.id est bien un int
                                     ),
                                   );
                                 },
-                                child: GenreChip(genreId: genre.id),
+                                child: GenreChip(
+                                    genreId: genre
+                                        .id), // GenreChip doit accepter un int pour genreId
                               );
                             }).toList(),
                           );
@@ -246,8 +256,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            ArtistScreen(artistId: artist.id),
+                                        builder: (context) => ArtistScreen(
+                                            artistId: artist
+                                                .id), // Assurez-vous que artist.id est un int
                                       ),
                                     );
                                   },
@@ -306,8 +317,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            VenueScreen(venueId: venue.id),
+                                        builder: (context) => VenueScreen(
+                                            venueId: venue
+                                                .id), // Assurez-vous que venue.id est un int
                                       ),
                                     );
                                   },
@@ -367,7 +379,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PromoterScreen(
-                                            promoterId: promoter.id,),
+                                            promoterId: promoter
+                                                .id), // Assurez-vous que promoter.id est un int
                                       ),
                                     );
                                   },
@@ -426,8 +439,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          EventScreen(event: event),
+                                      builder: (context) => EventScreen(
+                                          event:
+                                              event), // Assurez-vous que event.id est un int
                                     ),
                                   );
                                 },
@@ -455,7 +469,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           return Text('Error: ${eventSnapshot.error}');
                         } else if (!eventSnapshot.hasData ||
                             eventSnapshot.data!.isEmpty) {
-                          return const Text('No attended events found');
+                          return const Text('No interested events found');
                         } else {
                           final events = eventSnapshot.data!;
                           return Column(
@@ -467,8 +481,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          EventScreen(event: event),
+                                      builder: (context) => EventScreen(
+                                          event:
+                                              event), // Assurez-vous que event.id est un int
                                     ),
                                   );
                                 },
