@@ -17,7 +17,7 @@ class EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final DateTime eventDateTime = DateTime.parse(event.dateTime);
+    final DateTime eventDateTime = event.dateTime;
 
     return GestureDetector(
       onTap: () {

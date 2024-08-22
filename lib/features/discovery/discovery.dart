@@ -192,7 +192,7 @@ class DiscoveryScreen extends StatelessWidget {
     final upcomingEvents = await _eventService.getEvents();
     final now = DateTime.now();
     final filteredEvents = upcomingEvents.where((event) {
-      final eventDate = DateTime.parse(event.dateTime);
+      final eventDate = event.dateTime;
       final isFutureEvent = eventDate.isAfter(now);
       final isToday = eventDate.day == now.day &&
           eventDate.month == now.month &&

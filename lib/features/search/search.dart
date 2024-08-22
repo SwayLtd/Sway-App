@@ -374,7 +374,7 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 const Icon(Icons.date_range, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(result.dateTime),
+                Text(result.dateTime as String),
               ],
             ),
             const SizedBox(height: 4),

@@ -4,8 +4,8 @@ class Event {
   final int id;
   final String title;
   final String type;
-  final String dateTime;
-  final String endDateTime;
+  final DateTime dateTime;
+  final DateTime endDateTime;
   final int venue;
   final String description;
   final String imageUrl;
@@ -36,8 +36,8 @@ class Event {
       id: json['id'],
       title: json['title'] as String? ?? '',
       type: json['type'] as String? ?? '',
-      dateTime: json['dateTime'] as String? ?? '',
-      endDateTime: json['endDateTime'] as String? ?? '',
+      dateTime: DateTime.parse(json['dateTime']),
+      endDateTime: DateTime.parse(json['endDateTime']),
       venue: json['venue'] ?? 0,
       description: json['description'] as String? ?? '',
       imageUrl: json['imageUrl'] as String? ?? '',

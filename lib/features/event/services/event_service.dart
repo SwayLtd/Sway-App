@@ -23,27 +23,32 @@ class EventService {
   }
 
   Future<List<Event>> searchEvents(String query, Map<String, dynamic> filters) async {
-    final events = await getEvents();
-    final genres = await _getEventGenres();
+  final events = await getEvents();
+  final genres = await _getEventGenres();
 
-    return events.where((event) {
-      final eventTitleLower = event.title.toLowerCase();
-      final searchLower = query.toLowerCase();
-      final bool matchesQuery = eventTitleLower.contains(searchLower);
+  return events.where((event) {
+    final eventTitleLower = event.title.toLowerCase();
+    final searchLower = query.toLowerCase();
+    final bool matchesQuery = eventTitleLower.contains(searchLower);
 
-      final String? cityFilter = filters['city'] as String?;
-      final DateTime? dateFilter = filters['date'] as DateTime?;
-      final List? genreFilter = (filters['genres'] as List<dynamic>?)?.cast<int>();
-      final bool nearMeFilter = filters['nearMe'] as bool? ?? false;
+    final String? cityFilter = filters['city'] as String?;
+    final DateTime? dateFilter = filters['date'] as DateTime?;
+    final List<int>? genreFilter = (filters['genres'] as List<dynamic>?)?.cast<int>();
+    final bool nearMeFilter = filters['nearMe'] as bool? ?? false;
 
-      final bool matchesCity = cityFilter == null || event.venue == cityFilter;
-      final bool matchesDate = dateFilter == null || event.dateTime.startsWith(dateFilter.toString().split(' ')[0]);
-      final bool matchesGenre = genreFilter == null || genreFilter.isEmpty || genreFilter.any((genre) => genres[event.id]?.contains(genre) == true);
-      final bool matchesNearMe = !nearMeFilter; // Implement the "near me" logic later
+    final bool matchesCity = cityFilter == null || event.venue == cityFilter;
+    final bool matchesDate = dateFilter == null || _isSameDate(event.dateTime, dateFilter);
+    final bool matchesGenre = genreFilter == null || genreFilter.isEmpty || genreFilter.any((genre) => genres[event.id]?.contains(genre) == true);
+    final bool matchesNearMe = !nearMeFilter; // Implement the "near me" logic later
 
-      return matchesQuery && matchesCity && matchesDate && matchesGenre && matchesNearMe;
-    }).toList();
-  }
+    return matchesQuery && matchesCity && matchesDate && matchesGenre && matchesNearMe;
+  }).toList();
+}
+
+bool _isSameDate(DateTime date1, DateTime date2) {
+  return date1.year == date2.year && date1.month == date2.month && date1.day == date2.day;
+}
+
 
   Future<Map<String, List>> _getEventGenres() async {
     final String response = await rootBundle.loadString('assets/databases/join_table/event_genre.json');

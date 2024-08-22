@@ -258,8 +258,8 @@ class _EventScreenState extends State<EventScreen> {
   }
 
   Widget _buildOverview() {
-    final DateTime eventDateTime = DateTime.parse(widget.event.dateTime);
-    final DateTime eventEndDateTime = DateTime.parse(widget.event.endDateTime);
+    final DateTime eventDateTime = widget.event.dateTime;
+    final DateTime eventEndDateTime = widget.event.endDateTime;
 
     return SingleChildScrollView(
       child: Padding(
@@ -355,8 +355,16 @@ class _EventScreenState extends State<EventScreen> {
                       for (final entry in artistEntries) {
                         final List<dynamic> artists =
                             entry['artists'] as List<dynamic>;
-                        final startTime = entry['startTime'] as String?;
-                        final endTime = entry['endTime'] as String?;
+
+                        // Conversion des dates en DateTime si nécessaire
+                        final DateTime startTime = entry['startTime'] is String
+                            ? DateTime.parse(entry['startTime'] as String)
+                            : entry['startTime'] as DateTime;
+
+                        final DateTime endTime = entry['endTime'] is String
+                            ? DateTime.parse(entry['endTime'] as String)
+                            : entry['endTime'] as DateTime;
+
                         final status = entry['status'] as String?;
 
                         for (final artist in artists.cast<Artist>()) {
@@ -389,11 +397,8 @@ class _EventScreenState extends State<EventScreen> {
                                                 width: 100,
                                                 height: 100,
                                                 fit: BoxFit.cover,
-                                                errorBuilder: (
-                                                  context,
-                                                  error,
-                                                  stackTrace,
-                                                ) {
+                                                errorBuilder: (context, error,
+                                                    stackTrace) {
                                                   return const Icon(
                                                     Icons.error,
                                                     size: 100,
@@ -424,9 +429,7 @@ class _EventScreenState extends State<EventScreen> {
                                             : null,
                                       ),
                                     ),
-                                    if (widget.event.type == 'festival' &&
-                                        startTime != null &&
-                                        endTime != null)
+                                    if (widget.event.type == 'festival')
                                       Text(
                                         '${formatTime(startTime)} - ${formatTime(endTime)}',
                                       ),

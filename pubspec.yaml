@@ -6,7 +6,7 @@ description: Sway Events is a mobile event management application that helps use
 
 publish_to: "none"
 
-version: 0.2.1 # Refactor: Migrate all entity IDs from String to int
+version: 0.2.1+1 # Refactor (Intermediate Step): Migrate event dates from String to DateTime
 
 
 environment:

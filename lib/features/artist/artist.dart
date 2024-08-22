@@ -144,7 +144,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '${formatEventTime(DateTime.parse(event.dateTime))} - ${formatEventTime(DateTime.parse(event.endDateTime))}',
+                                          '${formatEventTime(event.dateTime)} - ${formatEventTime(event.endDateTime)}',
                                         ),
                                       ],
                                     ),
