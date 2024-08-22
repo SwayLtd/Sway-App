@@ -27,12 +27,14 @@ class Ticket {
     return Ticket(
       id: json['id'],
       eventId: json['eventId'],
-      ticketType: json['ticketType'] as String,
-      price: json['price'] as String,
-      status: json['status'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      waveEndDate: json['waveEndDate'] != null ? DateTime.parse(json['waveEndDate'] as String) : null,
-      maxPurchases: json['maxPurchases'] as int?,
+      ticketType: json['ticketType'],
+      price: json['price'],
+      status: json['status'],
+      createdAt: DateTime.parse(json['createdAt']),
+      waveEndDate: json['waveEndDate'] != null
+          ? DateTime.parse(json['waveEndDate'])
+          : null,
+      maxPurchases: json['maxPurchases'],
     );
   }
 

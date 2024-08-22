@@ -26,12 +26,12 @@ class Invoice {
       id: json['id'],
       orderId: json['orderId'],
       userId: json['userId'],
-      invoiceNumber: json['invoiceNumber'] as String,
-      invoiceDate: DateTime.parse(json['invoiceDate'] as String),
-      totalAmount: json['totalAmount'] as String,
-      status: json['status'] as String,
-      billingAddress: json['billingAddress'] as String,
-      vatNumber: json['vatNumber'] as String,
+      invoiceNumber: json['invoiceNumber'],
+      invoiceDate: DateTime.parse(json['invoiceDate']),
+      totalAmount: json['totalAmount'],
+      status: json['status'],
+      billingAddress: json['billingAddress'],
+      vatNumber: json['vatNumber'],
     );
   }
 
