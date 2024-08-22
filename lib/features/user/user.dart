@@ -26,7 +26,7 @@ import 'package:sway_events/features/venue/models/venue_model.dart';
 import 'package:sway_events/features/venue/venue.dart';
 
 class UserScreen extends StatelessWidget {
-  final String userId;
+  final int userId;
 
   const UserScreen({required this.userId});
 

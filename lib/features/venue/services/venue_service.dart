@@ -39,7 +39,7 @@ class VenueService {
         .toList();
   }
 
-  Future<Venue?> getVenueById(String venueId) async {
+  Future<Venue?> getVenueById(int venueId) async {
     final List<Venue> venues = await getVenues();
     try {
       final Venue venue = venues.firstWhere((venue) => venue.id == venueId);
@@ -49,28 +49,28 @@ class VenueService {
     }
   }
 
-  Future<List<Artist>> getResidentArtistsByVenueId(String venueId) async {
+  Future<List<Artist>> getResidentArtistsByVenueId(int venueId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/venue_resident_artists.json');
     final List<dynamic> venueArtistJson =
         json.decode(response) as List<dynamic>;
     final artistIds = venueArtistJson
         .where((entry) => entry['venueId'] == venueId)
-        .map((entry) => entry['artistId'] as String)
+        .map((entry) => entry['artistId'])
         .toList();
 
     final artists = await ArtistService().getArtists();
     return artists.where((artist) => artistIds.contains(artist.id)).toList();
   }
 
-  Future<List<Promoter>> getPromotersByVenueId(String venueId) async {
+  Future<List<Promoter>> getPromotersByVenueId(int venueId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/venue_promoter.json');
     final List<dynamic> venuePromoterJson =
         json.decode(response) as List<dynamic>;
     final promoterIds = venuePromoterJson
         .where((entry) => entry['venueId'] == venueId)
-        .map((entry) => entry['promoterId'] as String)
+        .map((entry) => entry['promoterId'])
         .toList();
 
     final promoters = await PromoterService().getPromoters();
@@ -79,14 +79,14 @@ class VenueService {
         .toList();
   }
 
-  Future<List<Venue>> getVenuesByArtistId(String artistId) async {
+  Future<List<Venue>> getVenuesByArtistId(int artistId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/venue_resident_artists.json');
     final List<dynamic> venueArtistJson =
         json.decode(response) as List<dynamic>;
     final venueIds = venueArtistJson
         .where((entry) => entry['artistId'] == artistId)
-        .map((entry) => entry['venueId'] as String)
+        .map((entry) => entry['venueId'])
         .toList();
 
     final venues = await getVenues();
@@ -111,7 +111,7 @@ class VenueService {
     // Logic to update venue
   }
 
-  Future<void> deleteVenue(String venueId) async {
+  Future<void> deleteVenue(int venueId) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
         venueId, 'venue', 'admin',);
     if (!hasPermission) {

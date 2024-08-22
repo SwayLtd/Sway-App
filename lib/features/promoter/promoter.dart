@@ -15,7 +15,7 @@ import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
 import 'package:sway_events/features/user/widgets/following_button_widget.dart';
 
 class PromoterScreen extends StatelessWidget {
-  final String promoterId;
+  final int promoterId;
 
   const PromoterScreen({required this.promoterId});
 

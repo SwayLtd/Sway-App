@@ -16,7 +16,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
   late List<String> _selectedCities;
   late DateTime? _selectedDate;
   late List<String> _selectedVenueTypes;
-  late List<String> _selectedGenres;
+  late List _selectedGenres;
   late bool _nearMe;
 
   final List<String> venueTypes = [
@@ -37,7 +37,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
     _selectedCities = List<String>.from((widget.filters['cities'] ?? []) as Iterable);
     _selectedDate = widget.filters['date'] as DateTime?;
     _selectedVenueTypes = List<String>.from((widget.filters['venueTypes'] ?? []) as Iterable);
-    _selectedGenres = List<String>.from((widget.filters['genres'] ?? []) as Iterable);
+    _selectedGenres = List.from((widget.filters['genres'] ?? []) as Iterable);
     _nearMe = widget.filters['nearMe'] as bool;
   }
 

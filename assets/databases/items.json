@@ -1,18 +1,18 @@
 [
     {
-      "id": "item_1",
+      "id": 1,
       "name": "Festival Hat",
       "price": "€10.00",
       "type": "merchandise"
     },
     {
-      "id": "item_2",
+      "id": 2,
       "name": "Parking Pass",
       "price": "€5.00",
       "type": "service"
     },
     {
-      "id": "item_3",
+      "id": 3,
       "name": "Event Ticket",
       "price": "€20.00",
       "type": "ticket"

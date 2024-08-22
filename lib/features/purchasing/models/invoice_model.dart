@@ -1,7 +1,7 @@
 class Invoice {
-  final String id;
-  final String orderId;
-  final String userId;
+  final int id;
+  final int orderId;
+  final int userId;
   final String invoiceNumber;
   final DateTime invoiceDate;
   final String totalAmount;
@@ -23,9 +23,9 @@ class Invoice {
 
   factory Invoice.fromJson(Map<String, dynamic> json) {
     return Invoice(
-      id: json['id'] as String,
-      orderId: json['orderId'] as String,
-      userId: json['userId'] as String,
+      id: json['id'],
+      orderId: json['orderId'],
+      userId: json['userId'],
       invoiceNumber: json['invoiceNumber'] as String,
       invoiceDate: DateTime.parse(json['invoiceDate'] as String),
       totalAmount: json['totalAmount'] as String,

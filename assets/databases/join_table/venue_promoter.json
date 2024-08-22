@@ -1,8 +1,8 @@
 [
-    { "venueId": "1", "promoterId": "2" },
-    { "venueId": "2", "promoterId": "1" },
-    { "venueId": "2", "promoterId": "3" },
-    { "venueId": "3", "promoterId": "3" },
-    { "venueId": "4", "promoterId": "4" }
+    { "venueId": 1, "promoterId": 2 },
+    { "venueId": 2, "promoterId": 1 },
+    { "venueId": 2, "promoterId": 3 },
+    { "venueId": 3, "promoterId": 3 },
+    { "venueId": 4, "promoterId": 4 }
   ]
   

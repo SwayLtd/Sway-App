@@ -2,10 +2,10 @@
 
 
 class UserEventTicket {
-  final String id;
-  final String userId;
-  final String eventId;
-  final String ticketId;
+  final int id;
+  final int userId;
+  final int eventId;
+  final int ticketId;
   final String status;
 
   UserEventTicket({
@@ -18,10 +18,10 @@ class UserEventTicket {
 
   factory UserEventTicket.fromJson(Map<String, dynamic> json) {
     return UserEventTicket(
-      id: json['id'] as String? ?? '',
-      userId: json['userId'] as String? ?? '',
-      eventId: json['eventId'] as String? ?? '',
-      ticketId: json['ticketId'] as String? ?? '',
+      id: json['id'],
+      userId: json['userId'] ?? 0,
+      eventId: json['eventId'] ?? 0,
+      ticketId: json['ticketId'] ?? 0,
       status: json['status'] as String? ?? '',
     );
   }

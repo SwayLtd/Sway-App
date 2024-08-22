@@ -17,7 +17,7 @@ class EventService {
     return eventJson.map((json) => Event.fromJson(json as Map<String, dynamic>)).toList();
   }
 
-  Future<Event> getEventById(String eventId) async {
+  Future<Event> getEventById(int eventId) async {
     final events = await getEvents();
     return events.firstWhere((event) => event.id == eventId);
   }
@@ -33,7 +33,7 @@ class EventService {
 
       final String? cityFilter = filters['city'] as String?;
       final DateTime? dateFilter = filters['date'] as DateTime?;
-      final List<String>? genreFilter = (filters['genres'] as List<dynamic>?)?.cast<String>();
+      final List? genreFilter = (filters['genres'] as List<dynamic>?)?.cast<int>();
       final bool nearMeFilter = filters['nearMe'] as bool? ?? false;
 
       final bool matchesCity = cityFilter == null || event.venue == cityFilter;
@@ -45,14 +45,14 @@ class EventService {
     }).toList();
   }
 
-  Future<Map<String, List<String>>> _getEventGenres() async {
+  Future<Map<String, List>> _getEventGenres() async {
     final String response = await rootBundle.loadString('assets/databases/join_table/event_genre.json');
     final List<dynamic> genreJson = json.decode(response) as List<dynamic>;
-    final Map<String, List<String>> eventGenres = {};
+    final Map<String, List> eventGenres = {};
 
     for (final entry in genreJson) {
-      final eventId = entry['eventId'] as String;
-      final genreId = entry['genreId'] as String;
+      final eventId = entry['eventId'];
+      final genreId = entry['genreId'];
       eventGenres.putIfAbsent(eventId, () => []).add(genreId);
     }
 
@@ -75,7 +75,7 @@ class EventService {
     // Logic to update event
   }
 
-  Future<void> deleteEvent(String eventId) async {
+  Future<void> deleteEvent(int eventId) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(eventId, 'event', 'admin');
     if (!hasPermission) {
       throw Exception('Permission denied');
@@ -83,17 +83,17 @@ class EventService {
     // Logic to delete event
   }
 
-  Future<List<UserEventTicket>> getUserTicketsForEvent(String eventId) async {
+  Future<List<UserEventTicket>> getUserTicketsForEvent(int eventId) async {
     return await _userEventTicketService.getTicketsByEventId(eventId);
   }
 
   // Ajout de la méthode getEventsByIds
-  Future<List<Event>> getEventsByIds(List<String> eventIds) async {
+  Future<List<Event>> getEventsByIds(List eventIds) async {
     final events = await getEvents();
     return events.where((event) => eventIds.contains(event.id)).toList();
   }
 
-  Future<DateTime?> getFestivalStartTime(String eventId) async {
+  Future<DateTime?> getFestivalStartTime(int eventId) async {
   final String response = await rootBundle.loadString('assets/databases/events.json');
   final List<dynamic> eventsJson = json.decode(response) as List<dynamic>;
 

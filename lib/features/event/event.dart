@@ -601,7 +601,7 @@ class _EventScreenState extends State<EventScreen> {
             const SizedBox(height: 20),
             CommonSectionWidget(
               title: "MOOD",
-              child: FutureBuilder<List<String>>(
+              child: FutureBuilder<List>(
                 future: EventGenreService().getGenresByEventId(widget.event.id),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -806,7 +806,7 @@ class _EventScreenState extends State<EventScreen> {
     );
   }
 
-  Future<Map<String, bool>> _getEventStatus(String eventId) async {
+  Future<Map<String, bool>> _getEventStatus(int eventId) async {
     final bool isInterested =
         await UserInterestEventService().isInterestedInEvent(eventId);
     final bool isAttended =
@@ -816,7 +816,7 @@ class _EventScreenState extends State<EventScreen> {
 
   void _handleMenuSelection(
     String value,
-    String eventId,
+    int eventId,
     BuildContext context,
   ) {
     switch (value) {

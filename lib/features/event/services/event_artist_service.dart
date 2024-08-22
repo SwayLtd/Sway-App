@@ -6,7 +6,7 @@ import 'package:sway_events/features/artist/services/artist_service.dart';
 import 'package:sway_events/features/event/services/event_service.dart';
 
 class EventArtistService {
-  Future<List<Map<String, dynamic>>> getArtistsByEventId(String eventId) async {
+  Future<List<Map<String, dynamic>>> getArtistsByEventId(int eventId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/event_artist.json');
     final List<dynamic> eventArtistJson =
@@ -36,7 +36,7 @@ class EventArtistService {
   }
 
   Future<List<Map<String, dynamic>>> getEventsByArtistId(
-    String artistId,
+    int artistId,
   ) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/event_artist.json');
@@ -66,7 +66,7 @@ class EventArtistService {
   }
 
   Future<List<Map<String, dynamic>>> getArtistsByEventIdAndDay(
-    String eventId,
+    int eventId,
     DateTime day,
   ) async {
     final List<Map<String, dynamic>> artists =
@@ -107,7 +107,7 @@ class EventArtistService {
     return filteredArtists;
   }
 
-  Future<DateTime> _getPreviousDayEndTime(String eventId, DateTime day) async {
+  Future<DateTime> _getPreviousDayEndTime(int eventId, DateTime day) async {
     final List<Map<String, dynamic>> artists =
         await getArtistsByEventId(eventId);
 

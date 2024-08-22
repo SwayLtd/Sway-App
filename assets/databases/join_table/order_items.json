@@ -1,20 +1,20 @@
 [
     {
-      "id": "1",
-      "orderId": "201",
-      "itemId": "item_1",
+      "id": 1,
+      "orderId": 201,
+      "itemId": 1,
       "quantity": 1
     },
     {
-      "id": "2",
-      "orderId": "202",
-      "itemId": "item_2",
+      "id": 2,
+      "orderId": 202,
+      "itemId": 2,
       "quantity": 1
     },
     {
-      "id": "3",
-      "orderId": "203",
-      "itemId": "item_3",
+      "id": 3,
+      "orderId": 203,
+      "itemId": 3,
       "quantity": 1
     }
   ]

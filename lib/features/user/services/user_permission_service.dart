@@ -16,7 +16,7 @@ class UserPermissionService {
         .toList();
   }
 
-  Future<List<UserPermission>> getPermissionsByUserId(String userId) async {
+  Future<List<UserPermission>> getPermissionsByUserId(int userId) async {
     final permissions = await getUserPermissions();
     return permissions
         .where((permission) => permission.userId == userId)
@@ -24,7 +24,7 @@ class UserPermissionService {
   }
 
   Future<List<UserPermission>> getPermissionsByEntity(
-      String entityId, String entityType,) async {
+      int entityId, String entityType,) async {
     final permissions = await getUserPermissions();
     return permissions
         .where((permission) =>
@@ -34,14 +34,14 @@ class UserPermissionService {
   }
 
   Future<List<UserPermission>> getPermissionsByUserIdAndType(
-      String userId, String entityType,) async {
+      int userId, String entityType,) async {
     final permissions = await getPermissionsByUserId(userId);
     return permissions
         .where((permission) => permission.entityType == entityType)
         .toList();
   }
 
-  Future<bool> hasPermission(String userId, String entityId, String entityType,
+  Future<bool> hasPermission(int userId, int entityId, String entityType,
       String requiredPermission,) async {
     final permissions = await getPermissionsByUserId(userId);
     return permissions.any((permission) =>
@@ -58,7 +58,7 @@ class UserPermissionService {
   }
 
   Future<bool> hasPermissionForCurrentUser(
-      String entityId, String entityType, String requiredPermission,) async {
+      int entityId, String entityType, String requiredPermission,) async {
     final currentUser = await UserService().getCurrentUser();
     if (currentUser == null) {
       return false;
@@ -67,7 +67,7 @@ class UserPermissionService {
         currentUser.id, entityId, entityType, requiredPermission,);
   }
 
-  Future<void> addUserPermission(String userId, String entityId,
+  Future<void> addUserPermission(int userId, int entityId,
       String entityType, String permission,) async {
     final permissions = await getUserPermissions();
     permissions.add(UserPermission(
@@ -79,7 +79,7 @@ class UserPermissionService {
   }
 
   Future<void> deleteUserPermission(
-      String userId, String entityId, String entityType,) async {
+      int userId, int entityId, String entityType,) async {
     final permissions = await getUserPermissions();
     permissions.removeWhere((permission) =>
         permission.userId == userId &&

@@ -1,8 +1,8 @@
 // order_model.dart
 
 class Order {
-  final String id;
-  final String userId;
+  final int id;
+  final int userId;
   final String totalPrice;
   final DateTime orderDate;
   final String status;
@@ -21,8 +21,8 @@ class Order {
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
-      id: json['id'] as String,
-      userId: json['userId'] as String,
+      id: json['id'],
+      userId: json['userId'],
       totalPrice: json['totalPrice'] as String,
       orderDate: DateTime.parse(json['orderDate'] as String),
       status: json['status'] as String,

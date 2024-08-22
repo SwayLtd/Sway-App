@@ -1,6 +1,6 @@
 class UserPermission {
-  final String userId;
-  final String entityId;
+  final int userId;
+  final int entityId;
   final String entityType;
   String permission; // Change from final to mutable
 
@@ -13,8 +13,8 @@ class UserPermission {
 
   factory UserPermission.fromJson(Map<String, dynamic> json) {
     return UserPermission(
-      userId: json['userId'] as String,
-      entityId: json['entityId'] as String,
+      userId: json['userId'],
+      entityId: json['entityId'],
       entityType: json['entityType'] as String,
       permission: json['permission'] as String,
     );

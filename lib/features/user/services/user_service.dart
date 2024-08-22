@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:sway_events/features/user/models/user_model.dart';
 
 class UserService {
-  Future<User?> getUserById(String userId) async {
+  Future<User?> getUserById(int userId) async {
     final String response =
         await rootBundle.loadString('assets/databases/users.json');
     final List<dynamic> userJson = json.decode(response) as List<dynamic>;
@@ -34,7 +34,7 @@ class UserService {
     return results;
   }
 
-  Future<List<User>> getUsersByIds(List<String> userIds) async {
+  Future<List<User>> getUsersByIds(List userIds) async {
     final String response =
         await rootBundle.loadString('assets/databases/users.json');
     final List<dynamic> usersJson = json.decode(response) as List<dynamic>;
@@ -65,7 +65,7 @@ class UserService {
   // Nouvelle méthode pour obtenir l'utilisateur actuellement connecté
   Future<User?> getCurrentUser() async {
     // Logic to get current user ID, for now, assuming we store current user ID in local storage
-    const currentUserId = "3"; // Utilisateur actuel avec ID 3
+    const currentUserId = 3; // Utilisateur actuel avec ID 3
 
     return getUserById(currentUserId);
   }

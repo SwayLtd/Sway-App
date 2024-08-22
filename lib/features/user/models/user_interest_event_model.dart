@@ -1,6 +1,6 @@
 class UserInterestEvent {
-  final String userId;
-  final String eventId;
+  final int userId;
+  final int eventId;
   final String status; // "interested" or "going"
 
   UserInterestEvent({
@@ -11,8 +11,8 @@ class UserInterestEvent {
 
   factory UserInterestEvent.fromJson(Map<String, dynamic> json) {
     return UserInterestEvent(
-      userId: json['userId'] as String,
-      eventId: json['eventId'] as String,
+      userId: json['userId'],
+      eventId: json['eventId'],
       status: json['status'] as String,
     );
   }

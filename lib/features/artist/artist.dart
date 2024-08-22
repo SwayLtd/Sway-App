@@ -20,7 +20,7 @@ import 'package:sway_events/features/venue/services/venue_service.dart';
 import 'package:sway_events/features/venue/venue.dart';
 
 class ArtistScreen extends StatefulWidget {
-  final String artistId;
+  final int artistId;
 
   const ArtistScreen({required this.artistId});
 
@@ -117,7 +117,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                           // Filtrer pour ne garder qu'un événement unique
                           final eventEntries = eventSnapshot.data!;
                           final uniqueEvents = eventEntries
-                              .fold<Map<String, Event>>(
+                              .fold<Map<int, Event>>(
                                 {},
                                 (map, entry) {
                                   final event = entry['event'] as Event;
@@ -210,7 +210,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    FutureBuilder<List<String>>(
+                    FutureBuilder<List>(
                       future: ArtistGenreService()
                           .getGenresByArtistId(widget.artistId),
                       builder: (context, genreSnapshot) {
@@ -298,7 +298,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
-                    FutureBuilder<List<String>>(
+                    FutureBuilder<List>(
                       future: SimilarArtistService()
                           .getSimilarArtistsByArtistId(widget.artistId),
                       builder: (context, similarArtistSnapshot) {

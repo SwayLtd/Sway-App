@@ -1,11 +1,11 @@
 [
-    { "venueId": "1", "artistId": "1" },
-    { "venueId": "1", "artistId": "4" },
-    { "venueId": "1", "artistId": "5" },
-    { "venueId": "2", "artistId": "1" },
-    { "venueId": "2", "artistId": "2" },
-    { "venueId": "2", "artistId": "3" },
-    { "venueId": "3", "artistId": "6" },
-    { "venueId": "4", "artistId": "3" }
+    { "venueId": 1, "artistId": 1 },
+    { "venueId": 1, "artistId": 4 },
+    { "venueId": 1, "artistId": 5 },
+    { "venueId": 2, "artistId": 1 },
+    { "venueId": 2, "artistId": 2 },
+    { "venueId": 2, "artistId": 3 },
+    { "venueId": 3, "artistId": 6 },
+    { "venueId": 4, "artistId": 3 }
   ]
   

@@ -1,11 +1,11 @@
 import 'package:sway_events/features/event/models/event_model.dart';
 
 class Promoter {
-  final String id;
+  final int id;
   final String name;
   final String imageUrl;
   final String description;
-  final List<String> upcomingEvents;
+  final List upcomingEvents;
 
   Promoter({
     required this.id,
@@ -20,7 +20,7 @@ class Promoter {
     final promoterEvents = events.where((event) => event.promoters.contains(json['id'])).map((e) => e.id).toList();
 
     return Promoter(
-      id: json['id'] as String,
+      id: json['id'],
       name: json['name'] as String,
       imageUrl: json['imageUrl'] as String,
       description: json['description'] as String? ?? '',
@@ -30,7 +30,7 @@ class Promoter {
 
   factory Promoter.fromJsonWithoutEvents(Map<String, dynamic> json) {
     return Promoter(
-      id: json['id'] as String,
+      id: json['id'],
       name: json['name'] as String,
       imageUrl: json['imageUrl'] as String,
       description: json['description'] as String? ?? '',

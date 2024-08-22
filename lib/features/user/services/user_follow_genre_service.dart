@@ -8,9 +8,9 @@ import 'package:sway_events/features/user/models/user_model.dart';
 import 'package:sway_events/features/user/services/user_service.dart';
 
 class UserFollowGenreService {
-  final String userId = "3"; // L'ID de l'utilisateur actuel
+  final int userId = 3; // L'ID de l'utilisateur actuel
 
-  Future<bool> isFollowingGenre(String genreId) async {
+  Future<bool> isFollowingGenre(int genreId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/user_follow_genre.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
@@ -19,7 +19,7 @@ class UserFollowGenreService {
         (follow) => follow['userId'] == userId && follow['genreId'] == genreId,);
   }
 
-  Future<void> followGenre(String genreId) async {
+  Future<void> followGenre(int genreId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/user_follow_genre.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
@@ -30,7 +30,7 @@ class UserFollowGenreService {
     await saveUserFollowGenreData(followJson);
   }
 
-  Future<void> unfollowGenre(String genreId) async {
+  Future<void> unfollowGenre(int genreId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/user_follow_genre.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
@@ -46,7 +46,7 @@ class UserFollowGenreService {
     // Implement saving logic here, depending on how you manage your local storage
   }
 
-  Future<int> getGenreFollowersCount(String genreId) async {
+  Future<int> getGenreFollowersCount(int genreId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/user_follow_genre.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
@@ -54,14 +54,14 @@ class UserFollowGenreService {
     return followJson.where((follow) => follow['genreId'] == genreId).length;
   }
 
-  Future<List<Genre>> getFollowedGenresByUserId(String userId) async {
+  Future<List<Genre>> getFollowedGenresByUserId(int userId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/user_follow_genre.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
-    final List<String> followedGenreIds = followJson
+    final List followedGenreIds = followJson
         .where((follow) => follow['userId'] == userId)
-        .map<String>((follow) => follow['genreId'] as String)
+        .map<int>((follow) => follow['genreId'])
         .toList();
 
     final List<Genre> allGenres = await GenreService().getGenres();
@@ -71,14 +71,14 @@ class UserFollowGenreService {
         .toList();
   }
 
-  Future<List<User>> getUsersFollowingGenre(String genreId) async {
+  Future<List<User>> getUsersFollowingGenre(int genreId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/user_follow_genre.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
-    final List<String> userIds = followJson
+    final List userIds = followJson
         .where((follow) => follow['genreId'] == genreId)
-        .map<String>((follow) => follow['userId'] as String)
+        .map<int>((follow) => follow['userId'])
         .toList();
 
     return await UserService().getUsersByIds(userIds);

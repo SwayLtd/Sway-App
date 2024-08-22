@@ -1,6 +1,6 @@
 class UserFollowGenre {
-  final String userId;
-  final String genreId;
+  final int userId;
+  final int genreId;
 
   UserFollowGenre({
     required this.userId,
@@ -9,8 +9,8 @@ class UserFollowGenre {
 
   factory UserFollowGenre.fromJson(Map<String, dynamic> json) {
     return UserFollowGenre(
-      userId: json['userId'] as String,
-      genreId: json['genreId'] as String,
+      userId: json['userId'],
+      genreId: json['genreId'],
     );
   }
 

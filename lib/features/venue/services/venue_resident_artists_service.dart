@@ -4,7 +4,7 @@ import 'package:sway_events/features/artist/models/artist_model.dart';
 import 'package:sway_events/features/artist/services/artist_service.dart';
 
 class VenueResidentArtistsService {
-  Future<List<Artist>> getArtistsByVenueId(String venueId) async {
+  Future<List<Artist>> getArtistsByVenueId(int venueId) async {
     
     try {
       final String response = await rootBundle.loadString('assets/databases/join_table/venue_resident_artists.json');
@@ -13,7 +13,7 @@ class VenueResidentArtistsService {
 
       final artistIds = venueArtistJson
           .where((entry) => entry['venueId'] == venueId)
-          .map((entry) => entry['artistId'] as String)
+          .map((entry) => entry['artistId'])
           .toList();
 
       final artists = await ArtistService().getArtists();
