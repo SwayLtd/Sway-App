@@ -42,7 +42,7 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
-* Refactor (Intermediate Step): Migrate event dates from String to DateTime
+* Refactor: Migrate all date fields from String to DateTime
 * Refactor: Migrate all entity IDs from String to int
 * Database migration #1 - Refactor genre data retrieval to use Supabase instead of local JSON storage
 * Launcher icons migration, url strategy migration, OneSignal removed, clean of Android and iOS, remove of useless widgets (sidebar, appbar and timetable), upgrade of jailbreak and root detection

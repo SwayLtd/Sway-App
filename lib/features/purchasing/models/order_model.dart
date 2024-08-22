@@ -23,11 +23,13 @@ class Order {
     return Order(
       id: json['id'],
       userId: json['userId'],
-      totalPrice: json['totalPrice'] as String,
-      orderDate: DateTime.parse(json['orderDate'] as String),
-      status: json['status'] as String,
-      paymentMethod: json['paymentMethod'] as String,
-      completedAt: json['completedAt'] != null ? DateTime.parse(json['completedAt'] as String) : null,
+      totalPrice: json['totalPrice'],
+      orderDate: DateTime.parse(json['orderDate']),
+      status: json['status'],
+      paymentMethod: json['paymentMethod'],
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'])
+          : null,
     );
   }
 

@@ -16,10 +16,10 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
-      username: json['username'] as String? ?? '',
-      email: json['email'] as String? ?? '',
-      profilePictureUrl: json['profilePictureUrl'] as String? ?? '',
-      createdAt: DateTime.parse(json['createdAt'] as String? ?? ''),
+      username: json['username'] ?? '',
+      email: json['email'] ?? '',
+      profilePictureUrl: json['profilePictureUrl'] ?? '',
+      createdAt: DateTime.parse(json['createdAt']),
     );
   }
 
