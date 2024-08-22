@@ -1,6 +1,7 @@
 // promoter.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/utils/date_utils.dart';
 import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/event/event.dart';
@@ -183,7 +184,7 @@ class PromoterScreen extends StatelessWidget {
                           debugPrint("Displaying event: ${event.title}");
                           return ListTile(
                             title: Text(event.title),
-                            subtitle: Text(event.dateTime),
+                            subtitle: Text(formatEventDate(event.dateTime)),
                             onTap: () {
                               Navigator.push(
                                 context,

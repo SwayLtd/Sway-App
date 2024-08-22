@@ -1,6 +1,7 @@
 // user.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/utils/date_utils.dart';
 import 'package:sway_events/core/utils/share_util.dart';
 import 'package:sway_events/core/widgets/common_section_widget.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
@@ -309,7 +310,7 @@ class UserScreen extends StatelessWidget {
                               children: events.map((event) {
                                 return ListTile(
                                   title: Text(event.title),
-                                  subtitle: Text(event.dateTime),
+                                  subtitle: Text(formatEventDate(event.dateTime)),
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -343,7 +344,7 @@ class UserScreen extends StatelessWidget {
                               children: events.map((event) {
                                 return ListTile(
                                   title: Text(event.title),
-                                  subtitle: Text(event.dateTime),
+                                  subtitle: Text(formatEventDate(event.dateTime)),
                                   onTap: () {
                                     Navigator.push(
                                       context,

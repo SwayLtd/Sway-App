@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:sway_events/core/utils/date_utils.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/features/event/event.dart';
 import 'package:sway_events/features/event/models/event_model.dart';
@@ -126,8 +127,7 @@ class _EventTicketsScreenState extends State<EventTicketsScreen> {
                                     .color,
                               ),
                             ), // Smaller text for ticket ID and price
-                            Text(
-                              widget.event.dateTime,
+                            Text(formatEventDate( widget.event.dateTime),
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,

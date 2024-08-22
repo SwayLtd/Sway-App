@@ -96,7 +96,7 @@ class UserInterestEventService {
     final List<Event> allEvents = await EventService().getEvents();
     final DateTime now = DateTime.now();
 
-    return allEvents.where((event) => interestedEventIds.contains(event.id) && DateTime.parse(event.dateTime).isAfter(now)).toList();
+    return allEvents.where((event) => interestedEventIds.contains(event.id) && event.dateTime.isAfter(now)).toList();
   }
 
   Future<List<Event>> getGoingEventsByUserId(int userId) async {
@@ -111,7 +111,7 @@ class UserInterestEventService {
     final List<Event> allEvents = await EventService().getEvents();
     final DateTime now = DateTime.now();
 
-    return allEvents.where((event) => goingEventIds.contains(event.id) && DateTime.parse(event.dateTime).isBefore(now)).toList();
+    return allEvents.where((event) => goingEventIds.contains(event.id) && event.dateTime.isBefore(now)).toList();
   }
 
   Future<List<Event>> getAttendedEventsByUserId(int userId) async {
@@ -126,7 +126,7 @@ class UserInterestEventService {
     final List<Event> allEvents = await EventService().getEvents();
     final DateTime now = DateTime.now();
 
-    return allEvents.where((event) => attendedEventIds.contains(event.id) && DateTime.parse(event.dateTime).isBefore(now)).toList();
+    return allEvents.where((event) => attendedEventIds.contains(event.id) && event.dateTime.isBefore(now)).toList();
   }
 
   Future<void> saveUserInterestEventData(List<dynamic> data) async {

@@ -18,9 +18,9 @@ String formatEventTime(DateTime dateTime) {
   return '$hour:$minute';
 }
 
-String formatTime(String dateTime) {
-  final time = DateTime.parse(dateTime);
+String formatTime(DateTime dateTime) {
   final formattedTime =
-      "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+      "${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
   return formattedTime;
 }
+

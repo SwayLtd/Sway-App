@@ -1,6 +1,7 @@
 // profile.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway_events/core/utils/date_utils.dart';
 import 'package:sway_events/core/widgets/image_with_error_handler.dart';
 import 'package:sway_events/core/widgets/scrolling_text_screen.dart';
 import 'package:sway_events/features/artist/artist.dart';
@@ -434,7 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: events.map((event) {
                               return ListTile(
                                 title: Text(event.title),
-                                subtitle: Text(event.dateTime),
+                                subtitle: Text(formatEventDate(event.dateTime)),
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -476,7 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: events.map((event) {
                               return ListTile(
                                 title: Text(event.title),
-                                subtitle: Text(event.dateTime),
+                                subtitle: Text(formatEventDate(event.dateTime)),
                                 onTap: () {
                                   Navigator.push(
                                     context,

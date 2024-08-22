@@ -17,8 +17,7 @@ Future<Widget> buildListView(
   bool showOnlyFollowedArtists,
 ) async {
   final Map<String, List<Map<String, dynamic>>> artistsByStage = {};
-  final UserFollowArtistService userFollowArtistService =
-      UserFollowArtistService();
+  final UserFollowArtistService userFollowArtistService = UserFollowArtistService();
 
   for (final entry in eventArtists) {
     final stage = entry['stage'] as String?;
@@ -48,8 +47,14 @@ Future<Widget> buildListView(
   // Trier les artistes par heure de début pour chaque stage
   for (final stage in artistsByStage.keys) {
     artistsByStage[stage]!.sort((a, b) {
-      final startTimeA = DateTime.parse(a['startTime'] as String);
-      final startTimeB = DateTime.parse(b['startTime'] as String);
+      final startTimeA = a['startTime'] is String
+          ? DateTime.parse(a['startTime'] as String)
+          : a['startTime'] as DateTime;
+
+      final startTimeB = b['startTime'] is String
+          ? DateTime.parse(b['startTime'] as String)
+          : b['startTime'] as DateTime;
+
       return startTimeA.compareTo(startTimeB);
     });
   }
@@ -64,8 +69,7 @@ Future<Widget> buildListView(
       ...filteredStages.map((stage) {
         return SliverStickyHeader(
           header: Container(
-            color: Theme.of(context)
-                .scaffoldBackgroundColor, // Match app background
+            color: Theme.of(context).scaffoldBackgroundColor, // Match app background
             padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
             child: Text(
               stage,
@@ -86,8 +90,14 @@ Future<Widget> buildListView(
                     .map((artist) => artist as Artist)
                     .toList();
                 final customName = entry['customName'] as String?;
-                final startTime = entry['startTime'] as String?;
-                final endTime = entry['endTime'] as String?;
+                final startTime = entry['startTime'] is String
+                    ? DateTime.parse(entry['startTime'] as String)
+                    : entry['startTime'] as DateTime;
+
+                final endTime = entry['endTime'] is String
+                    ? DateTime.parse(entry['endTime'] as String)
+                    : entry['endTime'] as DateTime;
+
                 final status = entry['status'] as String?;
 
                 // Check for overlap
@@ -96,15 +106,16 @@ Future<Widget> buildListView(
                 for (final otherEntry in artistsByStage[stage]!) {
                   if (entry == otherEntry) continue;
 
-                  final otherStartTime = DateTime.parse(
-                    otherEntry['startTime'] as String,
-                  );
-                  final otherEndTime = DateTime.parse(
-                    otherEntry['endTime'] as String,
-                  );
+                  final otherStartTime = otherEntry['startTime'] is String
+                      ? DateTime.parse(otherEntry['startTime'] as String)
+                      : otherEntry['startTime'] as DateTime;
 
-                  if (DateTime.parse(startTime!).isBefore(otherEndTime) &&
-                      DateTime.parse(endTime!).isAfter(otherStartTime)) {
+                  final otherEndTime = otherEntry['endTime'] is String
+                      ? DateTime.parse(otherEntry['endTime'] as String)
+                      : otherEntry['endTime'] as DateTime;
+
+                  if (startTime.isBefore(otherEndTime) &&
+                      endTime.isAfter(otherStartTime)) {
                     isOverlap = true;
                     break;
                   }
@@ -113,10 +124,8 @@ Future<Widget> buildListView(
                 return FutureBuilder<bool>(
                   future: Future.wait(
                     artists
-                        .map(
-                          (artist) => userFollowArtistService
-                              .isFollowingArtist(artist.id),
-                        )
+                        .map((artist) =>
+                            userFollowArtistService.isFollowingArtist(artist.id))
                         .toList(),
                   ).then(
                     (results) => results.any((isFollowing) => isFollowing),
@@ -127,8 +136,8 @@ Future<Widget> buildListView(
                         leading: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(formatTime(startTime ?? '')),
-                            Text(formatTime(endTime ?? '')),
+                            Text(formatTime(startTime)),
+                            Text(formatTime(endTime)),
                           ],
                         ),
                         title: Text(
@@ -142,8 +151,8 @@ Future<Widget> buildListView(
                         leading: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(formatTime(startTime ?? '')),
-                            Text(formatTime(endTime ?? '')),
+                            Text(formatTime(startTime)),
+                            Text(formatTime(endTime)),
                           ],
                         ),
                         title: Text(
@@ -175,14 +184,14 @@ Future<Widget> buildListView(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    formatTime(startTime ?? ''),
+                                    formatTime(startTime),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
-                                    formatTime(endTime ?? ''),
+                                    formatTime(endTime),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,
@@ -280,9 +289,7 @@ Future<Widget> buildListView(
                                         color: Colors.white,
                                         size: 30.0,
                                       ),
-                                      SizedBox(
-                                          width:
-                                              8.0,), // Un peu d'espace entre l'icône et le texte
+                                      SizedBox(width: 8.0),
                                       Text(
                                         "OVERLAP",
                                         style: TextStyle(
@@ -310,3 +317,4 @@ Future<Widget> buildListView(
     ],
   );
 }
+

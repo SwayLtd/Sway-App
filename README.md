@@ -42,15 +42,10 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Refactor (Intermediate Step): Migrate event dates from String to DateTime
 * Refactor: Migrate all entity IDs from String to int
 * Database migration #1 - Refactor genre data retrieval to use Supabase instead of local JSON storage
 * Launcher icons migration, url strategy migration, OneSignal removed, clean of Android and iOS, remove of useless widgets (sidebar, appbar and timetable), upgrade of jailbreak and root detection
-* Notification types
-* Timetable v4.6 (fixing issues, overlapping artists)
-* Security integration using environment variables, root and jailbreak detection, and secure storage
-* Notification system v1 (only backend)
-* Timetable v4.2 (fine-tuning operation)
-* Timetable v4 (multiple artist and custom names management, status management and artist image rotator widget)
 
 ### Known Issues
 * (Notification) The notification images and maybe other parameters are not collected correctly.
