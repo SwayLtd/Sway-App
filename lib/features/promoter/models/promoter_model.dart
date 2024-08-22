@@ -16,23 +16,28 @@ class Promoter {
   });
 
   factory Promoter.fromJson(Map<String, dynamic> json, List<Event> events) {
-    // Filtrer les événements par promoterId
-    final promoterEvents = events.where((event) => event.promoters.contains(json['id'])).map((e) => e.id).toList();
+    final promoterEvents = events
+        .where((event) => event.promoters.contains(json['id']))
+        .map((e) => e.id)
+        .toList();
 
     return Promoter(
-      id: json['id'],
-      name: json['name'] as String,
-      imageUrl: json['imageUrl'] as String,
-      description: json['description'] as String? ?? '',
+      id: json['id'] ?? 0, // Assure-toi que l'id ne soit pas null
+      name: json['name'] as String? ??
+          '', // Si le nom est null, remplace-le par une chaîne vide
+      imageUrl:
+          json['image_url'] as String? ?? '', // Remplace null par une URL vide
+      description: json['description'] as String? ??
+          '', // Remplace null par une chaîne vide
       upcomingEvents: promoterEvents,
     );
   }
 
   factory Promoter.fromJsonWithoutEvents(Map<String, dynamic> json) {
     return Promoter(
-      id: json['id'],
-      name: json['name'] as String,
-      imageUrl: json['imageUrl'] as String,
+      id: json['id'] ?? 0,
+      name: json['name'] as String? ?? '',
+      imageUrl: json['image_url'] as String? ?? '',
       description: json['description'] as String? ?? '',
       upcomingEvents: [],
     );

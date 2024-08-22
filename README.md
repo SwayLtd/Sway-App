@@ -42,6 +42,7 @@ Coming soon
 * Responsive design with light and dark theme integration.
 
 ### Last Updates
+* Database migration #2 - Refactor promoter data retrieval to use Supabase instead of local JSON storage
 * Refactor: Migrate all date fields from String to DateTime
 * Refactor: Migrate all entity IDs from String to int
 * Database migration #1 - Refactor genre data retrieval to use Supabase instead of local JSON storage
