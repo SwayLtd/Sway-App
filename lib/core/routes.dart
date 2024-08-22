@@ -40,7 +40,7 @@ List routes = [
     'name': 'Profile',
     'path': '/profile/:id',
     'index': 3,
-    'screen': const ProfileScreen(userId: '3',),
+    'screen': const ProfileScreen(userId: 3,),
   },
 ];
 
@@ -138,7 +138,7 @@ int selectedIndex() {
     (route) => route['path'] == router.routerDelegate.currentConfiguration.fullPath,
     orElse: () => routes.first,
   );
-  return route['index'] as int;
+  return route['index'];
 }
 
 // Navigate to the screen corresponding to the index
