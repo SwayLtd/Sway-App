@@ -16,10 +16,10 @@ class VenueService {
   Future<List<Venue>> searchVenues(String query) async {
     final String response =
         await rootBundle.loadString('assets/databases/venues.json');
-    final List<dynamic> venueJson = json.decode(response) as List<dynamic>;
+    final List venueJson = json.decode(response);
 
     final venues = venueJson.map((json) {
-      return Venue.fromJson(json as Map<String, dynamic>);
+      return Venue.fromJson(json);
     }).toList();
 
     final results = venues.where((venue) {
@@ -33,9 +33,9 @@ class VenueService {
   Future<List<Venue>> getVenues() async {
     final String response =
         await rootBundle.loadString('assets/databases/venues.json');
-    final List<dynamic> venueJson = json.decode(response) as List<dynamic>;
+    final List venueJson = json.decode(response);
     return venueJson
-        .map((json) => Venue.fromJson(json as Map<String, dynamic>))
+        .map((json) => Venue.fromJson(json))
         .toList();
   }
 
@@ -52,8 +52,8 @@ class VenueService {
   Future<List<Artist>> getResidentArtistsByVenueId(int venueId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/venue_resident_artists.json');
-    final List<dynamic> venueArtistJson =
-        json.decode(response) as List<dynamic>;
+    final List venueArtistJson =
+        json.decode(response);
     final artistIds = venueArtistJson
         .where((entry) => entry['venueId'] == venueId)
         .map((entry) => entry['artistId'])
@@ -66,8 +66,8 @@ class VenueService {
   Future<List<Promoter>> getPromotersByVenueId(int venueId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/venue_promoter.json');
-    final List<dynamic> venuePromoterJson =
-        json.decode(response) as List<dynamic>;
+    final List venuePromoterJson =
+        json.decode(response);
     final promoterIds = venuePromoterJson
         .where((entry) => entry['venueId'] == venueId)
         .map((entry) => entry['promoterId'])
@@ -82,8 +82,8 @@ class VenueService {
   Future<List<Venue>> getVenuesByArtistId(int artistId) async {
     final String response = await rootBundle
         .loadString('assets/databases/join_table/venue_resident_artists.json');
-    final List<dynamic> venueArtistJson =
-        json.decode(response) as List<dynamic>;
+    final List venueArtistJson =
+        json.decode(response);
     final venueIds = venueArtistJson
         .where((entry) => entry['artistId'] == artistId)
         .map((entry) => entry['venueId'])

@@ -15,7 +15,8 @@ class PromoterService {
         .ilike('name', '%$query%');
 
     if (response.isEmpty) {
-      throw Exception('No promoters found.');
+      print('No promoters found.');
+      // throw Exception('No promoters found.');
     }
 
     return response.map<Promoter>((json) => Promoter.fromJsonWithoutEvents(json)).toList();

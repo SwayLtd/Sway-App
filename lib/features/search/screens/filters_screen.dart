@@ -37,7 +37,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
     _selectedCities = List<String>.from((widget.filters['cities'] ?? []) as Iterable);
     _selectedDate = widget.filters['date'] as DateTime?;
     _selectedVenueTypes = List<String>.from((widget.filters['venueTypes'] ?? []) as Iterable);
-    _selectedGenres = List.from((widget.filters['genres'] ?? []) as Iterable);
+    _selectedGenres = List.from((widget.filters['genres'] ?? []));
     _nearMe = widget.filters['nearMe'] as bool;
   }
 

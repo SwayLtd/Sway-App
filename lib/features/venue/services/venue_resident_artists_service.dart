@@ -9,7 +9,7 @@ class VenueResidentArtistsService {
     try {
       final String response = await rootBundle.loadString('assets/databases/join_table/venue_resident_artists.json');
 
-      final List<dynamic> venueArtistJson = json.decode(response) as List<dynamic>;
+      final List venueArtistJson = json.decode(response);
 
       final artistIds = venueArtistJson
           .where((entry) => entry['venueId'] == venueId)
