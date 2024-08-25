@@ -27,9 +27,9 @@ class Artist {
 
   factory Artist.fromJson(Map<String, dynamic> json) {
     return Artist(
-      id: json['id'],
+      id: json['id'] ?? 0,
       name: json['name'] as String,
-      imageUrl: json['imageUrl'] as String,
+      imageUrl: json['image_url'] as String,
       description: json['description'] as String? ?? '',
       genres: (json['genres'])
               ?.map((e) => e)

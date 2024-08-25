@@ -1,64 +1,82 @@
 // artist_service.dart
 
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway_events/features/artist/models/artist_model.dart';
 
 class ArtistService {
+  final _supabase = Supabase.instance.client;
+
   Future<List<Artist>> searchArtists(String query) async {
-    final String response =
-        await rootBundle.loadString('assets/databases/artists.json');
-    final List<dynamic> artistJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('artists')
+        .select()
+        .ilike('name', '%$query%');
 
-    final artists = artistJson.map((json) {
-      return Artist.fromJson(json as Map<String, dynamic>);
-    }).toList();
+    if (response.isEmpty) {
+      throw Exception('No artists found.');
+    }
 
-    final results = artists.where((artist) {
-      final matches = artist.name.toLowerCase().contains(query.toLowerCase());
-      return matches;
-    }).toList();
-
-    return results;
+    return response.map<Artist>((json) => Artist.fromJson(json)).toList();
   }
 
   Future<List<Artist>> getArtists() async {
-    final String response =
-        await rootBundle.loadString('assets/databases/artists.json');
-    final List<dynamic> artistJson = json.decode(response) as List<dynamic>;
-    return artistJson
-        .map((json) => Artist.fromJson(json as Map<String, dynamic>))
-        .toList();
+    final response = await _supabase.from('artists').select();
+
+    if (response.isEmpty) {
+      throw Exception('No artists found.');
+    }
+
+    return response.map<Artist>((json) => Artist.fromJson(json)).toList();
   }
 
   Future<Artist?> getArtistById(int artistId) async {
-    final List<Artist> artists = await getArtists();
-    try {
-      final Artist artist =
-          artists.firstWhere((artist) => artist.id == artistId);
-      return artist;
-    } catch (e) {
+    final response = await _supabase
+        .from('artists')
+        .select()
+        .eq('id', artistId)
+        .maybeSingle();
+
+    if (response == null) {
       return null;
     }
+
+    return Artist.fromJson(response);
   }
 
   Future<List<Artist>> getTopArtistsByGenreId(int genreId) async {
-    final String artistGenreResponse = await rootBundle
-        .loadString('assets/databases/join_table/artist_genre.json');
-    final List<dynamic> artistGenreJson =
-        json.decode(artistGenreResponse) as List<dynamic>;
-    final artistIds = artistGenreJson
-        .where((entry) => entry['genreId'] == genreId)
-        .map((entry) => entry['artistId'])
-        .toList();
+    // Récupérer les relations artist-genre
+    final artistGenreResponse = await _supabase
+        .from('artist_genre')
+        .select('artist_id')
+        .eq('genre_id', genreId);
 
-    final List<Artist> allArtists = await getArtists();
-    final List<Artist> filteredArtists =
-        allArtists.where((artist) => artistIds.contains(artist.id)).toList();
+    if (artistGenreResponse.isEmpty) {
+      return [];
+    }
 
-    // Tri des artistes par nombre de followers
-    filteredArtists.sort((a, b) => b.followers.compareTo(a.followers));
+    final artistIds = artistGenreResponse.map<int>((entry) => entry['artist_id'] as int).toList();
 
-    return filteredArtists;
+    if (artistIds.isEmpty) {
+      return [];
+    }
+
+    // Construire un filtre "OR" pour obtenir les artistes par leurs IDs
+    final filter = artistIds.map((id) => 'id.eq.$id').join(',');
+
+    final response = await _supabase
+        .from('artists')
+        .select()
+        .or(filter);
+
+    if (response.isEmpty) {
+      return [];
+    }
+
+    final artists = response.map<Artist>((json) => Artist.fromJson(json)).toList();
+
+    // Trier les artistes par nombre de followers
+    artists.sort((a, b) => b.followers.compareTo(a.followers));
+
+    return artists;
   }
 }
