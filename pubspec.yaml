@@ -6,7 +6,7 @@ description: Sway Events is a mobile event management application that helps use
 
 publish_to: "none"
 
-version: 0.2.3 # Database migration #2 - Refactor promoter data retrieval to use Supabase instead of local JSON storage
+version: 0.2.3 # Database migration #3 - Refactor artist data retrieval to use Supabase instead of local JSON storage
 
 
 environment:
