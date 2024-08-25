@@ -13,7 +13,8 @@ class GenreService {
         .ilike('name', '%$query%');
 
     if (response.isEmpty) {
-      throw Exception('No genres found.');
+      print('No genres found.');
+      // throw Exception('No genres found.');
     }
 
     return response.map<Genre>((json) => Genre.fromJson(json)).toList();

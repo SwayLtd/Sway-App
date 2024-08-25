@@ -15,7 +15,7 @@ class Venue {
 
   factory Venue.fromJson(Map<String, dynamic> json) {
     return Venue(
-      id: json['id'],
+      id: json['id'] ?? 0,
       name: json['name'] as String? ?? '',
       imageUrl: json['imageUrl'] as String? ?? '',
       description: json['description'] as String? ?? '',

@@ -50,10 +50,10 @@ bool _isSameDate(DateTime date1, DateTime date2) {
 }
 
 
-  Future<Map<String, List>> _getEventGenres() async {
+  Future<Map<int, List>> _getEventGenres() async {
     final String response = await rootBundle.loadString('assets/databases/join_table/event_genre.json');
     final List<dynamic> genreJson = json.decode(response) as List<dynamic>;
-    final Map<String, List> eventGenres = {};
+    final Map<int, List> eventGenres = {};
 
     for (final entry in genreJson) {
       final eventId = entry['eventId'];

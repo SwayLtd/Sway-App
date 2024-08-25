@@ -43,7 +43,7 @@ class _SearchScreenState extends State<SearchScreen> {
     'city': null,
     'date': null,
     'venueType': null,
-    'genres': <String>[],
+    'genres': [],
     'nearMe': false,
   };
 
@@ -374,7 +374,7 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 const Icon(Icons.date_range, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(result.dateTime as String),
+                Text(result.dateTime.toString()),
               ],
             ),
             const SizedBox(height: 4),
