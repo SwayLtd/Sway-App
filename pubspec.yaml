@@ -1,8 +1,8 @@
 # https://stackoverflow.com/questions/51809421/flutter-is-not-able-to-install-the-apk-into-the-real-device-suddenly
-# flutter build apk --obfuscate --split-debug-info=SwayEvents/debug_info
+# flutter build apk --obfuscate --split-debug-info=Sway/debug_info
 
-name: sway_events
-description: Sway Events is a mobile event management application that helps users discover, organize, and manage events effortlessly. Sway Events aims to provide a seamless and intuitive experience for both event attendees and promoters.
+name: sway
+description: Sway is a mobile event management application that helps users discover, organize, and manage events effortlessly. Sway aims to provide a seamless and intuitive experience for both event attendees and promoters.
 
 publish_to: "none"
 
@@ -72,9 +72,9 @@ flutter_launcher_icons:
   image_path_ios: "assets/images/icon.png"
   android: "launcher_icon"
   ios: true
-  adaptative_icon_background: "#07191D"
+  adaptative_icon_background: "#assets/images/icon_background.png"
   adaptative_icon_foreground: "assets/images/icon.png"
-  adaptative_icon_monochrome: "assets/images/icon.png"
+  adaptative_icon_monochrome: "assets/images/icon_monochrome.png"
   min_sdk_version: 21 # android min sdk min:16, default 21
   remove_alpha_ios: true
   background_color_ios: "#FEBF1E"

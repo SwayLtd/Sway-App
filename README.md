@@ -1,7 +1,7 @@
-# Sway Events
+# Sway
 
 ## Project Description
-Sway Events is a mobile event management application that helps users discover, organize, and manage events effortlessly. Sway Events aims to provide a seamless and intuitive experience for both event attendees and promoters.
+Sway is a mobile event management application that helps users discover, organize, and manage events effortlessly. Sway aims to provide a seamless and intuitive experience for both event attendees and promoters.
 
 ## Screenshots
 Coming soon
@@ -25,7 +25,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 * (FIXED)(Timetable) Fixed an AssertionError in the _initializeSelectedDay function by ensuring the selected day is always valid and falls within the available festival days.
 * (FIXED)(Timetable) Sometimes the first load of the timetable widget doesn't get the data from the database.
 
-See the [open issues](https://github.com/SwayLtd/Sway-Events/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/SwayLtd/Sway-App/issues) for a list of proposed features (and known issues).
 
 ## Multi-platform
 Currently under development for Android and iOS. A Web, MacOS, iPadOS, Windows version will be adapted in the future.
