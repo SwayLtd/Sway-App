@@ -2,7 +2,7 @@
 
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/user/models/user_model.dart';
+import 'package:sway/features/user/models/user_model.dart';
 
 class UserService {
   Future<User?> getUserById(int userId) async {

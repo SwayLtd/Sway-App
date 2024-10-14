@@ -1,8 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/event/services/event_service.dart';
-import 'package:sway_events/features/promoter/models/promoter_model.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/promoter/models/promoter_model.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
 
 class PromoterService {
   final _supabase = Supabase.instance.client;
@@ -84,7 +84,7 @@ class PromoterService {
     final response = await _supabase.from('promoters').insert({
       'id': promoter.id,
       'name': promoter.name,
-      'imageUrl': promoter.imageUrl,
+      'image_url': promoter.imageUrl,
       'description': promoter.description,
     });
 
@@ -103,7 +103,7 @@ class PromoterService {
 
     final response = await _supabase.from('promoters').update({
       'name': promoter.name,
-      'imageUrl': promoter.imageUrl,
+      'image_url': promoter.imageUrl,
       'description': promoter.description,
     }).eq('id', promoter.id);
 

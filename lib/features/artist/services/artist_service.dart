@@ -1,7 +1,7 @@
 // artist_service.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sway_events/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
 
 class ArtistService {
   final _supabase = Supabase.instance.client;

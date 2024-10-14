@@ -9,15 +9,15 @@ class UserFollowPromoter {
 
   factory UserFollowPromoter.fromJson(Map<String, dynamic> json) {
     return UserFollowPromoter(
-      userId: json['userId'],
-      promoterId: json['promoterId'],
+      userId: json['user_id'],
+      promoterId: json['promoter_id'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'userId': userId,
-      'promoterId': promoterId,
+      'user_id': userId,
+      'promoter_id': promoterId,
     };
   }
 }

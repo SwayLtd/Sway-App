@@ -2,8 +2,8 @@
 
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/artist/services/artist_service.dart';
-import 'package:sway_events/features/event/services/event_service.dart';
+import 'package:sway/features/artist/services/artist_service.dart';
+import 'package:sway/features/event/services/event_service.dart';
 
 class EventArtistService {
   Future<List<Map<String, dynamic>>> getArtistsByEventId(int eventId) async {
@@ -12,23 +12,23 @@ class EventArtistService {
     final List<dynamic> eventArtistJson =
         json.decode(response) as List<dynamic>;
     final artistEntries =
-        eventArtistJson.where((entry) => entry['eventId'] == eventId).toList();
+        eventArtistJson.where((entry) => entry['event_id'] == eventId).toList();
 
     final artists = await ArtistService().getArtists();
     final artistMap = {for (final artist in artists) artist.id: artist};
 
     return artistEntries.map((entry) {
-      final artistIds = (entry['artistIds'] as List<dynamic>)
+      final artistIds = (entry['artist_id'] as List<dynamic>)
           .map((id) => artistMap[id])
           .toList();
       final validArtists = artistIds.where((artist) => artist != null).toList();
       return {
         'artists': validArtists,
-        'customName': entry['customName'] as String?,
-        'startTime':
-            (entry['startTime'] is String) ? entry['startTime'] as String : '',
-        'endTime':
-            (entry['endTime'] is String) ? entry['endTime'] as String : '',
+        'custom_name': entry['custom_name'] as String?,
+        'start_time':
+            DateTime.parse(entry['start_time']),
+        'end_time':
+            DateTime.parse(entry['end_time']),
         'status': (entry['status'] as String?) ?? '',
         'stage': (entry['stage'] as String?) ?? '',
       };
@@ -44,7 +44,7 @@ class EventArtistService {
         json.decode(response) as List<dynamic>;
     final eventEntries = eventArtistJson
         .where(
-          (entry) => (entry['artistIds'] as List<dynamic>).contains(artistId),
+          (entry) => (entry['artist_id'] as List<dynamic>).contains(artistId),
         )
         .toList();
 
@@ -52,13 +52,13 @@ class EventArtistService {
     final eventMap = {for (final event in events) event.id: event};
 
     return eventEntries.map((entry) {
-      final event = eventMap[entry['eventId']];
+      final event = eventMap[entry['event_id']];
       return {
         'event': event,
-        'startTime':
-            (entry['startTime'] is String) ? entry['startTime'] as String : '',
-        'endTime':
-            (entry['endTime'] is String) ? entry['endTime'] as String : '',
+        'start_time':
+            entry['start_time'],
+        'end_time':
+            entry['end_time'],
         'status': (entry['status'] as String?) ?? '',
         'stage': (entry['stage'] as String?) ?? '',
       };
@@ -87,8 +87,8 @@ class EventArtistService {
     final DateTime dayEnd = dayStart.add(const Duration(days: 1));
 
     final List<Map<String, dynamic>> filteredArtists = artists.where((entry) {
-      final startTimeStr = entry['startTime'] as String?;
-      final endTimeStr = entry['endTime'] as String?;
+      final startTimeStr = entry['start_time'] as String?;
+      final endTimeStr = entry['end_time'] as String?;
       if (startTimeStr != null && endTimeStr != null) {
         final startTime = DateTime.parse(startTimeStr);
         final endTime = DateTime.parse(endTimeStr);
@@ -120,8 +120,8 @@ class EventArtistService {
     DateTime previousDayEndTime = dayStart;
 
     for (final entry in artists) {
-      final startTimeStr = entry['startTime'] as String?;
-      final endTimeStr = entry['endTime'] as String?;
+      final startTimeStr = entry['start_time'] as String?;
+      final endTimeStr = entry['end_time'] as String?;
       if (startTimeStr != null && endTimeStr != null) {
         DateTime.parse(startTimeStr);
         final endTime = DateTime.parse(endTimeStr);

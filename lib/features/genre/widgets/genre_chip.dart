@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/genre/models/genre_model.dart';
-import 'package:sway_events/features/genre/services/genre_service.dart';
+import 'package:sway/features/genre/models/genre_model.dart';
+import 'package:sway/features/genre/services/genre_service.dart';
 
 class GenreChip extends StatelessWidget {
   final int genreId;

@@ -6,8 +6,8 @@ class VenueGenreService {
     final String response = await rootBundle.loadString('assets/databases/join_table/venue_genres.json');
     final List venueGenreJson = json.decode(response);
     return venueGenreJson
-        .where((entry) => entry['venueId'] == venueId)
-        .map((entry) => entry['genreId'])
+        .where((entry) => entry['venue_id'] == venueId)
+        .map((entry) => entry['genre_id'])
         .toList();
   }
 }

@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sway_events/core/utils/date_utils.dart';
-import 'package:sway_events/core/utils/share_util.dart';
-import 'package:sway_events/core/widgets/common_section_widget.dart';
-import 'package:sway_events/core/widgets/image_with_error_handler.dart';
-import 'package:sway_events/features/artist/artist.dart';
-import 'package:sway_events/features/artist/models/artist_model.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/event/screens/edit_event_screen.dart';
-import 'package:sway_events/features/event/services/event_artist_service.dart';
-import 'package:sway_events/features/event/services/event_genre_service.dart';
-import 'package:sway_events/features/event/services/event_promoter_service.dart';
-import 'package:sway_events/features/event/widgets/event_appbar_item.dart';
-import 'package:sway_events/features/event/widgets/info_card.dart';
-import 'package:sway_events/features/event/widgets/timetable/timetable.dart';
-import 'package:sway_events/features/genre/genre.dart';
-import 'package:sway_events/features/genre/widgets/genre_chip.dart';
-import 'package:sway_events/features/insight/insight.dart';
-import 'package:sway_events/features/promoter/models/promoter_model.dart';
-import 'package:sway_events/features/promoter/promoter.dart';
-import 'package:sway_events/features/promoter/services/promoter_service.dart';
-import 'package:sway_events/features/user/services/user_follow_promoter_service.dart';
-import 'package:sway_events/features/user/services/user_interest_event_service.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
-import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
-import 'package:sway_events/features/venue/models/venue_model.dart';
-import 'package:sway_events/features/venue/services/venue_service.dart';
-import 'package:sway_events/features/venue/venue.dart';
+import 'package:sway/core/utils/date_utils.dart';
+import 'package:sway/core/utils/share_util.dart';
+import 'package:sway/core/widgets/common_section_widget.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/artist/artist.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/screens/edit_event_screen.dart';
+import 'package:sway/features/event/services/event_artist_service.dart';
+import 'package:sway/features/event/services/event_genre_service.dart';
+import 'package:sway/features/event/services/event_promoter_service.dart';
+import 'package:sway/features/event/widgets/event_appbar_item.dart';
+import 'package:sway/features/event/widgets/info_card.dart';
+import 'package:sway/features/event/widgets/timetable/timetable.dart';
+import 'package:sway/features/genre/genre.dart';
+import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/insight/insight.dart';
+import 'package:sway/features/promoter/models/promoter_model.dart';
+import 'package:sway/features/promoter/promoter.dart';
+import 'package:sway/features/promoter/services/promoter_service.dart';
+import 'package:sway/features/user/services/user_follow_promoter_service.dart';
+import 'package:sway/features/user/services/user_interest_event_service.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
+import 'package:sway/features/user/widgets/follow_count_widget.dart';
+import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:sway/features/venue/services/venue_service.dart';
+import 'package:sway/features/venue/venue.dart';
 
 class EventScreen extends StatefulWidget {
   final Event event;
@@ -356,14 +356,9 @@ class _EventScreenState extends State<EventScreen> {
                         final List<dynamic> artists =
                             entry['artists'] as List<dynamic>;
 
-                        // Conversion des dates en DateTime si nécessaire
-                        final DateTime startTime = entry['startTime'] is String
-                            ? DateTime.parse(entry['startTime'] as String)
-                            : entry['startTime'] as DateTime;
+                        final DateTime startTime = entry['start_time'];
 
-                        final DateTime endTime = entry['endTime'] is String
-                            ? DateTime.parse(entry['endTime'] as String)
-                            : entry['endTime'] as DateTime;
+                        final DateTime endTime = entry['end_time'] as DateTime;
 
                         final status = entry['status'] as String?;
 

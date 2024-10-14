@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/user/models/user_event_ticket_model.dart';
+import 'package:sway/features/user/models/user_event_ticket_model.dart';
 
 class UserEventTicketService {
   Future<List<UserEventTicket>> getUserEventTickets() async {

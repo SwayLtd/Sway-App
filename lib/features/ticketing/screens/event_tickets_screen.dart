@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:sway_events/core/utils/date_utils.dart';
-import 'package:sway_events/core/widgets/image_with_error_handler.dart';
-import 'package:sway_events/features/event/event.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/ticketing/models/ticket_model.dart';
-import 'package:sway_events/features/ticketing/services/ticket_service.dart';
-import 'package:sway_events/features/user/models/user_event_ticket_model.dart';
-import 'package:sway_events/features/user/services/user_event_ticket_service.dart';
+import 'package:sway/core/utils/date_utils.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/event/event.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/ticketing/models/ticket_model.dart';
+import 'package:sway/features/ticketing/services/ticket_service.dart';
+import 'package:sway/features/user/models/user_event_ticket_model.dart';
+import 'package:sway/features/user/services/user_event_ticket_service.dart';
 
 class EventTicketsScreen extends StatefulWidget {
   final Event event;

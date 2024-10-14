@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/ticketing/models/ticket_model.dart';
+import 'package:sway/features/ticketing/models/ticket_model.dart';
 import 'package:uuid/uuid.dart';
 
 class TicketService {

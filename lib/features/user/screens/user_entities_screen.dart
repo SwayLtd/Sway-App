@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/event/event.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/event/screens/edit_event_screen.dart';
-import 'package:sway_events/features/event/services/event_service.dart';
-import 'package:sway_events/features/promoter/models/promoter_model.dart';
-import 'package:sway_events/features/promoter/promoter.dart';
-import 'package:sway_events/features/promoter/screens/edit_promoter_screen.dart';
-import 'package:sway_events/features/promoter/services/promoter_service.dart';
-import 'package:sway_events/features/user/models/user_permission_model.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
-import 'package:sway_events/features/venue/models/venue_model.dart';
-import 'package:sway_events/features/venue/screens/edit_venue_screen.dart';
-import 'package:sway_events/features/venue/services/venue_service.dart';
-import 'package:sway_events/features/venue/venue.dart';
+import 'package:sway/features/event/event.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/screens/edit_event_screen.dart';
+import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/promoter/models/promoter_model.dart';
+import 'package:sway/features/promoter/promoter.dart';
+import 'package:sway/features/promoter/screens/edit_promoter_screen.dart';
+import 'package:sway/features/promoter/services/promoter_service.dart';
+import 'package:sway/features/user/models/user_permission_model.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
+import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:sway/features/venue/screens/edit_venue_screen.dart';
+import 'package:sway/features/venue/services/venue_service.dart';
+import 'package:sway/features/venue/venue.dart';
 
 class UserEntitiesScreen extends StatelessWidget {
   final int userId;

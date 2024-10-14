@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sway_events/core/services/database_service.dart';
-import 'package:sway_events/core/widgets/database_widgets.dart';
+import 'package:sway/core/services/database_service.dart';
+import 'package:sway/core/widgets/database_widgets.dart';
 
 class DatabaseUtils extends StatefulWidget {
   const DatabaseUtils({super.key});

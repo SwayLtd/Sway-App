@@ -42,7 +42,7 @@ migrate_working_dir/
 .pub/
 /build/
 devtools_options.yaml
-/SwayEvents/
+/SwayApp/
 
 # Symbolication related
 app.*.symbols

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/user/models/user_model.dart';
-import 'package:sway_events/features/user/services/user_service.dart';
+import 'package:sway/features/user/models/user_model.dart';
+import 'package:sway/features/user/services/user_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User user;

@@ -11,16 +11,16 @@ class UserInterestEvent {
 
   factory UserInterestEvent.fromJson(Map<String, dynamic> json) {
     return UserInterestEvent(
-      userId: json['userId'],
-      eventId: json['eventId'],
+      userId: json['user_id'],
+      eventId: json['event_id'],
       status: json['status'] as String,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'userId': userId,
-      'eventId': eventId,
+      'user_id': userId,
+      'event_id': eventId,
       'status': status,
     };
   }

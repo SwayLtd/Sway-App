@@ -1,9 +1,9 @@
 [
-    { "userId": 1, "promoterId": 1 },
-    { "userId": 1, "promoterId": 2 },
-    { "userId": 2, "promoterId": 3 },
-    { "userId": 2, "promoterId": 4 },
-    { "userId": 3, "promoterId": 1 },
-    { "userId": 3, "promoterId": 2 }
+    { "user_id": 1, "promoter_id": 1 },
+    { "user_id": 1, "promoter_id": 2 },
+    { "user_id": 2, "promoter_id": 3 },
+    { "user_id": 2, "promoter_id": 4 },
+    { "user_id": 3, "promoter_id": 1 },
+    { "user_id": 3, "promoter_id": 2 }
   ]
   

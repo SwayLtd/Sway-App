@@ -22,13 +22,13 @@ class Order {
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
       id: json['id'],
-      userId: json['userId'],
-      totalPrice: json['totalPrice'],
-      orderDate: DateTime.parse(json['orderDate']),
+      userId: json['user_id'],
+      totalPrice: json['total_price'],
+      orderDate: DateTime.parse(json['order_date']),
       status: json['status'],
-      paymentMethod: json['paymentMethod'],
-      completedAt: json['completedAt'] != null
-          ? DateTime.parse(json['completedAt'])
+      paymentMethod: json['payment_method'],
+      completedAt: json['completed_at'] != null
+          ? DateTime.parse(json['completed_at'])
           : null,
     );
   }
@@ -36,12 +36,12 @@ class Order {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'userId': userId,
-      'totalPrice': totalPrice,
-      'orderDate': orderDate.toIso8601String(),
+      'user_id': userId,
+      'total_price': totalPrice,
+      'order_date': orderDate.toIso8601String(),
       'status': status,
-      'paymentMethod': paymentMethod,
-      'completedAt': completedAt?.toIso8601String(),
+      'payment_method': paymentMethod,
+      'completed_at': completedAt?.toIso8601String(),
     };
   }
 }

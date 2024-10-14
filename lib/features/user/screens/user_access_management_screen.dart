@@ -1,11 +1,11 @@
 // user_access_management_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/user/models/user_model.dart';
-import 'package:sway_events/features/user/models/user_permission_model.dart';
-import 'package:sway_events/features/user/screens/user_access_search_screen.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
-import 'package:sway_events/features/user/services/user_service.dart';
+import 'package:sway/features/user/models/user_model.dart';
+import 'package:sway/features/user/models/user_permission_model.dart';
+import 'package:sway/features/user/screens/user_access_search_screen.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
+import 'package:sway/features/user/services/user_service.dart';
 
 class UserAccessManagementScreen extends StatefulWidget {
   final int entityId;

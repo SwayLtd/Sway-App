@@ -3,70 +3,70 @@
     "id": 1,
     "username": "john_doe",
     "email": "john_doe@example.com",
-    "profilePictureUrl": "https://via.placeholder.com/150",
-    "createdAt": "2023-01-01 12:00:00Z"
+    "profile_picture_url": "https://via.placeholder.com/150",
+    "created_at": "2023-01-01 12:00:00Z"
   },
   {
     "id": 2,
     "username": "jane_smith",
     "email": "jane_smith@example.com",
-    "profilePictureUrl": "https://via.placeholder.com/150",
-    "createdAt": "2023-02-01 12:00:00Z"
+    "profile_picture_url": "https://via.placeholder.com/150",
+    "created_at": "2023-02-01 12:00:00Z"
   },
   {
     "id": 3,
     "username": "bob_jones",
     "email": "bob_jones@example.com",
-    "profilePictureUrl": "https://via.placeholder.com/150",
-    "createdAt": "2023-03-01 12:00:00Z"
+    "profile_picture_url": "https://via.placeholder.com/150",
+    "created_at": "2023-03-01 12:00:00Z"
   },
   {
     "id": 4,
     "username": "alice_doe",
     "email": "alice_doe@example.com",
-    "profilePictureUrl": "https://via.placeholder.com/150",
-    "createdAt": "2023-04-01 12:00:00Z"
+    "profile_picture_url": "https://via.placeholder.com/150",
+    "created_at": "2023-04-01 12:00:00Z"
   },
   {
     "id": 5,
     "username": "charlie_smith",
     "email": "charlie_smith@example.com",
-    "profilePictureUrl": "https://via.placeholder.com/150",
-    "createdAt": "2023-05-01 12:00:00Z"
+    "profile_picture_url": "https://via.placeholder.com/150",
+    "created_at": "2023-05-01 12:00:00Z"
   },
   {
     "id": 6,
     "username": "david_jones",
     "email": "david_jones@example.com",
-    "profilePictureUrl": "https://via.placeholder.com/150",
-    "createdAt": "2023-06-01 12:00:00Z"
+    "profile_picture_url": "https://via.placeholder.com/150",
+    "created_at": "2023-06-01 12:00:00Z"
   },
   {
     "id": 7,
     "username": "emily_clark",
     "email": "emily_clark@example.com",
-    "profilePictureUrl": "https://via.placeholder.com/150",
-    "createdAt": "2023-07-01 12:00:00Z"
+    "profile_picture_url": "https://via.placeholder.com/150",
+    "created_at": "2023-07-01 12:00:00Z"
   },
   {
     "id": 8,
     "username": "frank_moore",
     "email": "frank_moore@example.com",
-    "profilePictureUrl": "https://via.placeholder.com/150",
-    "createdAt": "2023-08-01 12:00:00Z"
+    "profile_picture_url": "https://via.placeholder.com/150",
+    "created_at": "2023-08-01 12:00:00Z"
   },
   {
     "id": 9,
     "username": "grace_kim",
     "email": "grace_kim@example.com",
-    "profilePictureUrl": "https://via.placeholder.com/150",
-    "createdAt": "2023-09-01 12:00:00Z"
+    "profile_picture_url": "https://via.placeholder.com/150",
+    "created_at": "2023-09-01 12:00:00Z"
   },
   {
     "id": 10,
     "username": "harry_potter",
     "email": "harry_potter@example.com",
-    "profilePictureUrl": "https://via.placeholder.com/150",
-    "createdAt": "2023-10-01 12:00:00Z"
+    "profile_picture_url": "https://via.placeholder.com/150",
+    "created_at": "2023-10-01 12:00:00Z"
   }
 ]

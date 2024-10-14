@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/purchasing/models/invoice_model.dart';
+import 'package:sway/features/purchasing/models/invoice_model.dart';
 
 class InvoiceService {
   Future<List<Invoice>> getInvoicesByUser(int userId) async {

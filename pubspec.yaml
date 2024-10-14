@@ -45,7 +45,7 @@ dev_dependencies:
   firebase_crashlytics: ^4.0.3
   flutter_driver:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.1
   flutter_test:
     sdk: flutter
   lint: ^2.3.0

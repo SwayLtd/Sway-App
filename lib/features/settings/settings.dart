@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sway_events/core/constants/l10n.dart';
+import 'package:sway/core/constants/l10n.dart';
 
 class Settings extends StatelessWidget {
   @override

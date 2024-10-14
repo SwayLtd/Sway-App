@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/purchasing/models/item_model.dart';
+import 'package:sway/features/purchasing/models/item_model.dart';
 
 class ItemService {
   Future<List<Item>> getItems() async {

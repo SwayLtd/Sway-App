@@ -15,9 +15,9 @@ class OrderItem {
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
-      orderId: json['orderId'],
-      itemId: json['itemId'],
-      itemType: json['itemType'] as String,
+      orderId: json['order_id'],
+      itemId: json['item_id'],
+      itemType: json['item_type'] as String,
       quantity: json['quantity'] as int,
       price: json['price'] as String,
     );
@@ -25,9 +25,9 @@ class OrderItem {
 
   Map<String, dynamic> toJson() {
     return {
-      'orderId': orderId,
-      'itemId': itemId,
-      'itemType': itemType,
+      'order_id': orderId,
+      'item_id': itemId,
+      'item_type': itemType,
       'quantity': quantity,
       'price': price,
     };

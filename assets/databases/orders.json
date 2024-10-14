@@ -1,56 +1,56 @@
 [
   {
     "id": 201,
-    "userId": 3,
-    "totalPrice": "€10.99",
+    "user_id": 3,
+    "total_price": "€10.99",
     "status": "completed",
-    "orderDate": "2024-01-01 12:00:00",
-    "paymentMethod": "Credit Card",
-    "completedAt": "2024-01-01 12:30:00"
+    "order_date": "2024-01-01 12:00:00",
+    "payment_method": "Credit Card",
+    "completed_at": "2024-01-01 12:30:00"
   },
   {
     "id": 202,
-    "userId": 3,
-    "totalPrice": "€15.00",
+    "user_id": 3,
+    "total_price": "€15.00",
     "status": "completed",
-    "orderDate": "2024-01-02 12:00:00",
-    "paymentMethod": "PayPal",
-    "completedAt": "2024-01-02 12:30:00"
+    "order_date": "2024-01-02 12:00:00",
+    "payment_method": "PayPal",
+    "completed_at": "2024-01-02 12:30:00"
   },
   {
     "id": 203,
-    "userId": 3,
-    "totalPrice": "€20.00",
+    "user_id": 3,
+    "total_price": "€20.00",
     "status": "completed",
-    "orderDate": "2024-01-03 12:00:00",
-    "paymentMethod": "Credit Card",
-    "completedAt": "2024-01-03 12:30:00"
+    "order_date": "2024-01-03 12:00:00",
+    "payment_method": "Credit Card",
+    "completed_at": "2024-01-03 12:30:00"
   },
   {
     "id": 204,
-    "userId": 3,
-    "totalPrice": "€12.00",
+    "user_id": 3,
+    "total_price": "€12.00",
     "status": "completed",
-    "orderDate": "2024-01-04 12:00:00",
-    "paymentMethod": "PayPal",
-    "completedAt": "2024-01-04 12:30:00"
+    "order_date": "2024-01-04 12:00:00",
+    "payment_method": "PayPal",
+    "completed_at": "2024-01-04 12:30:00"
   },
   {
     "id": 205,
-    "userId": 3,
-    "totalPrice": "€18.00",
+    "user_id": 3,
+    "total_price": "€18.00",
     "status": "completed",
-    "orderDate": "2024-01-05 12:00:00",
-    "paymentMethod": "Credit Card",
-    "completedAt": "2024-01-05 12:30:00"
+    "order_date": "2024-01-05 12:00:00",
+    "payment_method": "Credit Card",
+    "completed_at": "2024-01-05 12:30:00"
   },
   {
     "id": 206,
-    "userId": 3,
-    "totalPrice": "€14.50",
+    "user_id": 3,
+    "total_price": "€14.50",
     "status": "completed",
-    "orderDate": "2024-01-06 12:00:00",
-    "paymentMethod": "PayPal",
-    "completedAt": "2024-01-06 12:30:00"
+    "order_date": "2024-01-06 12:00:00",
+    "payment_method": "PayPal",
+    "completed_at": "2024-01-06 12:30:00"
   }
 ]
