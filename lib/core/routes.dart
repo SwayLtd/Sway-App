@@ -6,13 +6,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:sway_events/core/constants/l10n.dart';
-import 'package:sway_events/core/utils/error/error_not_found.dart';
-import 'package:sway_events/core/widgets/bottom_navigation_bar.dart';
-import 'package:sway_events/features/discovery/discovery.dart';
-import 'package:sway_events/features/search/search.dart';
-import 'package:sway_events/features/ticketing/ticketing.dart';
-import 'package:sway_events/features/user/profile.dart';
+import 'package:sway/core/constants/l10n.dart';
+import 'package:sway/core/utils/error/error_not_found.dart';
+import 'package:sway/core/widgets/bottom_navigation_bar.dart';
+import 'package:sway/features/discovery/discovery.dart';
+import 'package:sway/features/search/search.dart';
+import 'package:sway/features/ticketing/ticketing.dart';
+import 'package:sway/features/user/profile.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');

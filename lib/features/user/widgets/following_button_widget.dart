@@ -1,11 +1,11 @@
 // following_button_widget.dart
 
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
-import 'package:sway_events/features/user/services/user_follow_genre_service.dart';
-import 'package:sway_events/features/user/services/user_follow_promoter_service.dart';
-import 'package:sway_events/features/user/services/user_follow_user_service.dart';
-import 'package:sway_events/features/user/services/user_follow_venue_service.dart';
+import 'package:sway/features/user/services/user_follow_artist_service.dart';
+import 'package:sway/features/user/services/user_follow_genre_service.dart';
+import 'package:sway/features/user/services/user_follow_promoter_service.dart';
+import 'package:sway/features/user/services/user_follow_user_service.dart';
+import 'package:sway/features/user/services/user_follow_venue_service.dart';
 
 class FollowingButtonWidget extends StatelessWidget {
   final int entityId;

@@ -9,8 +9,8 @@ class UserFollowArtist {
 
   factory UserFollowArtist.fromJson(Map<String, dynamic> json) {
     return UserFollowArtist(
-      userId: json['userId'],
-      artistId: json['artistId'],
+      userId: json['user_id'],
+      artistId: json['artist_id'],
     );
   }
 }

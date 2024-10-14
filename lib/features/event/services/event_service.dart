@@ -2,10 +2,10 @@
 
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/user/models/user_event_ticket_model.dart';
-import 'package:sway_events/features/user/services/user_event_ticket_service.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/user/models/user_event_ticket_model.dart';
+import 'package:sway/features/user/services/user_event_ticket_service.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
 
 class EventService {
   final UserPermissionService _permissionService = UserPermissionService();
@@ -34,7 +34,7 @@ class EventService {
     final String? cityFilter = filters['city'] as String?;
     final DateTime? dateFilter = filters['date'] as DateTime?;
     final List<int>? genreFilter = (filters['genres'] as List<dynamic>?)?.cast<int>();
-    final bool nearMeFilter = filters['nearMe'] as bool? ?? false;
+    final bool nearMeFilter = filters['near_me'] as bool? ?? false;
 
     final bool matchesCity = cityFilter == null || event.venue == cityFilter;
     final bool matchesDate = dateFilter == null || _isSameDate(event.dateTime, dateFilter);
@@ -56,8 +56,8 @@ bool _isSameDate(DateTime date1, DateTime date2) {
     final Map<int, List> eventGenres = {};
 
     for (final entry in genreJson) {
-      final eventId = entry['eventId'];
-      final genreId = entry['genreId'];
+      final eventId = entry['event_id'];
+      final genreId = entry['genre_id'];
       eventGenres.putIfAbsent(eventId, () => []).add(genreId);
     }
 
@@ -104,7 +104,7 @@ bool _isSameDate(DateTime date1, DateTime date2) {
 
   final event = eventsJson.firstWhere((event) => event['id'] == eventId, orElse: () => null);
   if (event != null) {
-    return DateTime.parse(event['dateTime'] as String);
+    return DateTime.parse(event['date_time'] as String);
   }
   return null;
 }

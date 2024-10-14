@@ -6,15 +6,15 @@ class UserFollowVenue {
 
   factory UserFollowVenue.fromJson(Map<String, dynamic> json) {
     return UserFollowVenue(
-      userId: json['userId'],
-      venueId: json['venueId'],
+      userId: json['user_id'],
+      venueId: json['venue_id'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'userId': userId,
-      'venueId': venueId,
+      'user_id': userId,
+      'venue_id': venueId,
     };
   }
 }

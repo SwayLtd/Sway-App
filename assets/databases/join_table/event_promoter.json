@@ -1,7 +1,7 @@
 [
-    { "eventId": 1, "promoterId": 1 },
-    { "eventId": 1, "promoterId": 3 },
-    { "eventId": 2, "promoterId": 2 },
-    { "eventId": 3, "promoterId": 3 }
+    { "event_id": 1, "promoter_id": 1 },
+    { "event_id": 1, "promoter_id": 3 },
+    { "event_id": 2, "promoter_id": 2 },
+    { "event_id": 3, "promoter_id": 3 }
   ]
   

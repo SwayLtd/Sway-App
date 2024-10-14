@@ -2,8 +2,8 @@
 
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/user/models/user_permission_model.dart';
-import 'package:sway_events/features/user/services/user_service.dart'; // Assurez-vous que vous avez un service pour obtenir l'utilisateur actuel
+import 'package:sway/features/user/models/user_permission_model.dart';
+import 'package:sway/features/user/services/user_service.dart'; // Assurez-vous que vous avez un service pour obtenir l'utilisateur actuel
 
 class UserPermissionService {
   Future<List<UserPermission>> getUserPermissions() async {

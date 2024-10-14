@@ -3,10 +3,10 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/user/models/user_model.dart';
-import 'package:sway_events/features/user/services/user_service.dart';
-import 'package:sway_events/features/venue/models/venue_model.dart';
-import 'package:sway_events/features/venue/services/venue_service.dart';
+import 'package:sway/features/user/models/user_model.dart';
+import 'package:sway/features/user/services/user_service.dart';
+import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:sway/features/venue/services/venue_service.dart';
 
 class UserFollowVenueService {
   final int userId = 3; // L'ID de l'utilisateur actuel
@@ -15,14 +15,14 @@ class UserFollowVenueService {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_venue.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
-    return followJson.any((follow) => follow['userId'] == userId && follow['venueId'] == venueId);
+    return followJson.any((follow) => follow['user_id'] == userId && follow['venue_id'] == venueId);
   }
 
   Future<void> followVenue(int venueId) async {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_venue.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
-    followJson.add({'userId': userId, 'venueId': venueId});
+    followJson.add({'user_id': userId, 'venue_id': venueId});
 
     // Save updated list back to the file (assuming you have a method for this)
     await saveUserFollowVenueData(followJson);
@@ -32,7 +32,7 @@ class UserFollowVenueService {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_venue.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
-    followJson.removeWhere((follow) => follow['userId'] == userId && follow['venueId'] == venueId);
+    followJson.removeWhere((follow) => follow['user_id'] == userId && follow['venue_id'] == venueId);
 
     // Save updated list back to the file (assuming you have a method for this)
     await saveUserFollowVenueData(followJson);
@@ -46,7 +46,7 @@ class UserFollowVenueService {
     final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_venue.json');
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
-    return followJson.where((follow) => follow['venueId'] == venueId).length;
+    return followJson.where((follow) => follow['venue_id'] == venueId).length;
   }
 
   Future<List<Venue>> getFollowedVenuesByUserId(int userId) async {
@@ -54,8 +54,8 @@ class UserFollowVenueService {
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
     final List followedVenueIds = followJson
-        .where((follow) => follow['userId'] == userId)
-        .map<int>((follow) => follow['venueId'])
+        .where((follow) => follow['user_id'] == userId)
+        .map<int>((follow) => follow['venue_id'])
         .toList();
 
     final List<Venue> allVenues = await VenueService().getVenues();
@@ -68,8 +68,8 @@ class UserFollowVenueService {
     final List<dynamic> followJson = json.decode(response) as List<dynamic>;
 
     final List followerIds = followJson
-        .where((follow) => follow['venueId'] == venueId)
-        .map<int>((follow) => follow['userId'])
+        .where((follow) => follow['venue_id'] == venueId)
+        .map<int>((follow) => follow['user_id'])
         .toList();
 
     return await UserService().getUsersByIds(followerIds);

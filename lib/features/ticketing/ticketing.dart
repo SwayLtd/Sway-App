@@ -1,12 +1,12 @@
 // ticketing.dart
 
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/utils/date_utils.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/event/services/event_service.dart';
-import 'package:sway_events/features/ticketing/screens/event_tickets_screen.dart';
-import 'package:sway_events/features/user/models/user_event_ticket_model.dart';
-import 'package:sway_events/features/user/services/user_event_ticket_service.dart';
+import 'package:sway/core/utils/date_utils.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/ticketing/screens/event_tickets_screen.dart';
+import 'package:sway/features/user/models/user_event_ticket_model.dart';
+import 'package:sway/features/user/services/user_event_ticket_service.dart';
 
 class TicketingScreen extends StatelessWidget {
   final EventService _eventService = EventService();

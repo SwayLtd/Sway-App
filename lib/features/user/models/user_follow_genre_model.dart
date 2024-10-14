@@ -9,15 +9,15 @@ class UserFollowGenre {
 
   factory UserFollowGenre.fromJson(Map<String, dynamic> json) {
     return UserFollowGenre(
-      userId: json['userId'],
-      genreId: json['genreId'],
+      userId: json['user_id'],
+      genreId: json['genre_id'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'userId': userId,
-      'genreId': genreId,
+      'user_id': userId,
+      'genre_id': genreId,
     };
   }
 }

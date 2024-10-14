@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/artist/models/artist_model.dart';
-import 'package:sway_events/features/artist/services/artist_service.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/services/artist_service.dart';
 
 class VenueResidentArtistsService {
   Future<List<Artist>> getArtistsByVenueId(int venueId) async {
@@ -12,8 +12,8 @@ class VenueResidentArtistsService {
       final List venueArtistJson = json.decode(response);
 
       final artistIds = venueArtistJson
-          .where((entry) => entry['venueId'] == venueId)
-          .map((entry) => entry['artistId'])
+          .where((entry) => entry['venue_id'] == venueId)
+          .map((entry) => entry['artist_id'])
           .toList();
 
       final artists = await ArtistService().getArtists();

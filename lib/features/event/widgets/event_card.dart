@@ -2,13 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sway_events/core/widgets/image_with_error_handler.dart';
-import 'package:sway_events/features/event/event.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/event/services/event_genre_service.dart';
-import 'package:sway_events/features/genre/widgets/genre_chip.dart';
-import 'package:sway_events/features/user/services/user_interest_event_service.dart';
-import 'package:sway_events/features/venue/services/venue_service.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/event/event.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/services/event_genre_service.dart';
+import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/user/services/user_interest_event_service.dart';
+import 'package:sway/features/venue/services/venue_service.dart';
 
 class EventCard extends StatelessWidget {
   final Event event;

@@ -17,7 +17,7 @@ class Venue {
     return Venue(
       id: json['id'] ?? 0,
       name: json['name'] as String? ?? '',
-      imageUrl: json['imageUrl'] as String? ?? '',
+      imageUrl: json['image_url'] as String? ?? '',
       description: json['description'] as String? ?? '',
       location: json['location'] as String? ?? '',
     );

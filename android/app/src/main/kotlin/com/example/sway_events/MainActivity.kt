@@ -1,4 +1,4 @@
-package app.sway.events
+package app.sway.main
 
 import io.flutter.embedding.android.FlutterActivity
 

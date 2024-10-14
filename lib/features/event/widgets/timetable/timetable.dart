@@ -3,11 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/event/services/event_artist_service.dart';
-import 'package:sway_events/features/event/utils/timetable_utils.dart';
-import 'package:sway_events/features/event/widgets/timetable/timetable_grid.dart';
-import 'package:sway_events/features/event/widgets/timetable/timetable_list.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/services/event_artist_service.dart';
+import 'package:sway/features/event/utils/timetable_utils.dart';
+import 'package:sway/features/event/widgets/timetable/timetable_grid.dart';
+import 'package:sway/features/event/widgets/timetable/timetable_list.dart';
 
 class TimetableWidget extends StatefulWidget {
   final Event event;

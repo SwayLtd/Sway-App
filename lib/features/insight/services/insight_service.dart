@@ -1,6 +1,6 @@
 // insight_service.dart
 
-import 'package:sway_events/features/insight/models/insight_model.dart';
+import 'package:sway/features/insight/models/insight_model.dart';
 
 class InsightService {
   Future<VenueInsight> generateVenueInsight() async {

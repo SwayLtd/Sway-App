@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/constants/l10n.dart';
+import 'package:sway/core/constants/l10n.dart';
 
 class TestScreen extends StatefulWidget {
   const TestScreen({super.key});

@@ -2,28 +2,28 @@
   {
     "id": 1,
     "name": "Fuse Club",
-    "imageUrl": "https://via.placeholder.com/150",
+    "image_url": "https://via.placeholder.com/150",
     "description": "Fuse Club is a legendary techno club known for its top-notch artists and unforgettable nights.",
     "location": "Brussels"
   },
   {
     "id": 2,
     "name": "Barrio Cafe",
-    "imageUrl": "https://via.placeholder.com/150",
+    "image_url": "https://via.placeholder.com/150",
     "description": "Barrio Cafe offers an eclectic mix of music and a vibrant atmosphere.",
     "location": "Brussels"
   },
   {
     "id": 3,
     "name": "C12",
-    "imageUrl": "https://via.placeholder.com/150",
+    "image_url": "https://via.placeholder.com/150",
     "description": "C12 is an underground venue known for its cutting-edge electronic music.",
     "location": "Brussels"
   },
   {
     "id": 4,
     "name": "Tour & Taxis",
-    "imageUrl": "https://via.placeholder.com/150",
+    "image_url": "https://via.placeholder.com/150",
     "description": "Tour & Taxis is a versatile venue hosting a variety of events, including the Voltage Festival.",
     "location": "Brussels"
   }

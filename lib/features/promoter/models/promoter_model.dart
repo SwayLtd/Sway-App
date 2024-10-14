@@ -1,4 +1,4 @@
-import 'package:sway_events/features/event/models/event_model.dart';
+import 'package:sway/features/event/models/event_model.dart';
 
 class Promoter {
   final int id;

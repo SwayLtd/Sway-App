@@ -26,28 +26,28 @@ class Ticket {
   factory Ticket.fromJson(Map<String, dynamic> json) {
     return Ticket(
       id: json['id'],
-      eventId: json['eventId'],
-      ticketType: json['ticketType'],
+      eventId: json['event_id'],
+      ticketType: json['ticket_type'],
       price: json['price'],
       status: json['status'],
-      createdAt: DateTime.parse(json['createdAt']),
-      waveEndDate: json['waveEndDate'] != null
-          ? DateTime.parse(json['waveEndDate'])
+      createdAt: DateTime.parse(json['created_at']),
+      waveEndDate: json['wave_end_date'] != null
+          ? DateTime.parse(json['wave_end_date'])
           : null,
-      maxPurchases: json['maxPurchases'],
+      maxPurchases: json['max_purchases'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'eventId': eventId,
-      'ticketType': ticketType,
+      'event_id': eventId,
+      'ticket_type': ticketType,
       'price': price,
       'status': status,
-      'createdAt': createdAt.toIso8601String(),
-      'waveEndDate': waveEndDate?.toIso8601String(),
-      'maxPurchases': maxPurchases,
+      'created_at': createdAt.toIso8601String(),
+      'wave_end_date': waveEndDate?.toIso8601String(),
+      'max_purchases': maxPurchases,
     };
   }
 

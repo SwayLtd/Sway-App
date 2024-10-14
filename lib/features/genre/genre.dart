@@ -1,15 +1,15 @@
 // genre.dart
 
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/utils/share_util.dart';
-import 'package:sway_events/core/widgets/image_with_error_handler.dart';
-import 'package:sway_events/features/artist/artist.dart';
-import 'package:sway_events/features/artist/models/artist_model.dart';
-import 'package:sway_events/features/artist/services/artist_service.dart';
-import 'package:sway_events/features/genre/models/genre_model.dart';
-import 'package:sway_events/features/genre/services/genre_service.dart';
-import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
-import 'package:sway_events/features/user/widgets/following_button_widget.dart';
+import 'package:sway/core/utils/share_util.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/artist/artist.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/services/artist_service.dart';
+import 'package:sway/features/genre/models/genre_model.dart';
+import 'package:sway/features/genre/services/genre_service.dart';
+import 'package:sway/features/user/widgets/follow_count_widget.dart';
+import 'package:sway/features/user/widgets/following_button_widget.dart';
 
 class GenreScreen extends StatefulWidget {
   final int genreId;

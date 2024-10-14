@@ -1,11 +1,9 @@
-// timetable_utils.dart
-
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/widgets/image_with_error_handler.dart';
-import 'package:sway_events/features/artist/artist.dart';
-import 'package:sway_events/features/artist/models/artist_model.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/event/services/event_artist_service.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/artist/artist.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/services/event_artist_service.dart';
 
 Future<List<DateTime>> calculateFestivalDays(Event event) async {
   final List<Map<String, dynamic>> artists =
@@ -15,8 +13,8 @@ Future<List<DateTime>> calculateFestivalDays(Event event) async {
   final Map<DateTime, List<Map<String, dynamic>>> artistsByDay = {};
 
   for (final entry in artists) {
-    final startTime = DateTime.parse(entry['startTime'] as String);
-    final endTime = DateTime.parse(entry['endTime'] as String);
+    final DateTime startTime = entry['start_time'];
+    final DateTime endTime = entry['end_time'];
 
     final startDay = DateTime(startTime.year, startTime.month, startTime.day);
     final endDay = DateTime(endTime.year, endTime.month, endTime.day);
@@ -30,20 +28,18 @@ Future<List<DateTime>> calculateFestivalDays(Event event) async {
   for (final day in artistsByDay.keys.toList()..sort()) {
     final dayArtists = artistsByDay[day]!;
     dayArtists.sort((a, b) {
-      return DateTime.parse(a['startTime'] as String)
-          .compareTo(DateTime.parse(b['startTime'] as String));
+      return (a['start_time']).compareTo(b['start_time']);
     });
 
     bool isContinuation = false;
 
     for (int i = 0; i < dayArtists.length; i++) {
-      final artistStartTime =
-          DateTime.parse(dayArtists[i]['startTime'] as String);
+      final DateTime artistStartTime = dayArtists[i]['start_time'];
 
       if (artistStartTime.hour < 5) {
         if (i > 0) {
-          final previousArtistEndTime =
-              DateTime.parse(dayArtists[i - 1]['endTime'] as String);
+          final DateTime previousArtistEndTime =
+              dayArtists[i - 1]['end_time'];
 
           if (artistStartTime.difference(previousArtistEndTime).inMinutes <=
               60) {
@@ -56,8 +52,8 @@ Future<List<DateTime>> calculateFestivalDays(Event event) async {
           final previousDay = day.subtract(const Duration(days: 1));
           final previousDayArtists = artistsByDay[previousDay];
           if (previousDayArtists != null && previousDayArtists.isNotEmpty) {
-            final lastArtistPreviousDayEndTime =
-                DateTime.parse(previousDayArtists.last['endTime'] as String);
+            final DateTime lastArtistPreviousDayEndTime =
+                previousDayArtists.last['end_time'];
 
             if (artistStartTime
                     .difference(lastArtistPreviousDayEndTime)
@@ -76,7 +72,7 @@ Future<List<DateTime>> calculateFestivalDays(Event event) async {
 
     // Ne pas ajouter le jour s'il n'a que des événements qui sont une continuation de la veille
     if (!isContinuation || artistsByDay[day]!.any((artist) {
-      final artistStartTime = DateTime.parse(artist['startTime'] as String);
+      final DateTime artistStartTime = artist['start_time'];
       return artistStartTime.hour >= 5;
     })) {
       daysWithArtists.add(day);
@@ -85,7 +81,6 @@ Future<List<DateTime>> calculateFestivalDays(Event event) async {
 
   return daysWithArtists.toList()..sort();
 }
-
 
 void showArtistsBottomSheet(BuildContext context, List<Artist> artists) {
   showModalBottomSheet(

@@ -13,18 +13,18 @@ class UserPermission {
 
   factory UserPermission.fromJson(Map<String, dynamic> json) {
     return UserPermission(
-      userId: json['userId'],
-      entityId: json['entityId'],
-      entityType: json['entityType'] as String,
+      userId: json['user_id'],
+      entityId: json['entity_id'],
+      entityType: json['entity_type'] as String,
       permission: json['permission'] as String,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'userId': userId,
-      'entityId': entityId,
-      'entityType': entityType,
+      'user_id': userId,
+      'entity_id': entityId,
+      'entity_type': entityType,
       'permission': permission,
     };
   }

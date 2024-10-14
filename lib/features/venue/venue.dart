@@ -1,26 +1,26 @@
 // venue.dart
 
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/utils/share_util.dart';
-import 'package:sway_events/core/widgets/image_with_error_handler.dart';
-import 'package:sway_events/features/artist/artist.dart';
-import 'package:sway_events/features/artist/models/artist_model.dart';
-import 'package:sway_events/features/genre/genre.dart';
-import 'package:sway_events/features/genre/widgets/genre_chip.dart';
-import 'package:sway_events/features/insight/insight.dart';
-import 'package:sway_events/features/promoter/models/promoter_model.dart';
-import 'package:sway_events/features/promoter/promoter.dart';
-import 'package:sway_events/features/promoter/services/promoter_service.dart';
-import 'package:sway_events/features/user/services/user_follow_promoter_service.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
-import 'package:sway_events/features/user/widgets/follow_count_widget.dart';
-import 'package:sway_events/features/user/widgets/following_button_widget.dart';
-import 'package:sway_events/features/venue/models/venue_model.dart';
-import 'package:sway_events/features/venue/screens/edit_venue_screen.dart';
-import 'package:sway_events/features/venue/services/venue_genre_service.dart';
-import 'package:sway_events/features/venue/services/venue_promoter_service.dart';
-import 'package:sway_events/features/venue/services/venue_resident_artists_service.dart';
-import 'package:sway_events/features/venue/services/venue_service.dart';
+import 'package:sway/core/utils/share_util.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/artist/artist.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/genre/genre.dart';
+import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/insight/insight.dart';
+import 'package:sway/features/promoter/models/promoter_model.dart';
+import 'package:sway/features/promoter/promoter.dart';
+import 'package:sway/features/promoter/services/promoter_service.dart';
+import 'package:sway/features/user/services/user_follow_promoter_service.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
+import 'package:sway/features/user/widgets/follow_count_widget.dart';
+import 'package:sway/features/user/widgets/following_button_widget.dart';
+import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:sway/features/venue/screens/edit_venue_screen.dart';
+import 'package:sway/features/venue/services/venue_genre_service.dart';
+import 'package:sway/features/venue/services/venue_promoter_service.dart';
+import 'package:sway/features/venue/services/venue_resident_artists_service.dart';
+import 'package:sway/features/venue/services/venue_service.dart';
 
 class VenueScreen extends StatefulWidget {
   final int venueId;

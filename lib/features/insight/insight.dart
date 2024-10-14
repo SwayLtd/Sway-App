@@ -1,8 +1,8 @@
 // insight_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/insight/models/insight_model.dart';
-import 'package:sway_events/features/insight/services/insight_service.dart';
+import 'package:sway/features/insight/models/insight_model.dart';
+import 'package:sway/features/insight/services/insight_service.dart';
 
 class InsightScreen extends StatelessWidget {
   final int entityId;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:sway_events/features/genre/models/genre_model.dart';
-import 'package:sway_events/features/genre/services/genre_service.dart';
+import 'package:sway/features/genre/models/genre_model.dart';
+import 'package:sway/features/genre/services/genre_service.dart';
 
 class FiltersScreen extends StatefulWidget {
   final Map<String, dynamic> filters;
@@ -38,7 +38,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
     _selectedDate = widget.filters['date'] as DateTime?;
     _selectedVenueTypes = List<String>.from((widget.filters['venueTypes'] ?? []) as Iterable);
     _selectedGenres = List.from((widget.filters['genres'] ?? []));
-    _nearMe = widget.filters['nearMe'] as bool;
+    _nearMe = widget.filters['near_me'] as bool;
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -238,7 +238,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                 'date': _selectedDate,
                 'venueTypes': _selectedVenueTypes,
                 'genres': _selectedGenres,
-                'nearMe': _nearMe,
+                'near_me': _nearMe,
               });
             },
           ),

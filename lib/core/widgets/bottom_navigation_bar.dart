@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sway_events/core/routes.dart';
+import 'package:sway/core/routes.dart';
 
 class ScaffoldWithNavBarWithoutAppBar extends StatefulWidget {
   const ScaffoldWithNavBarWithoutAppBar({super.key, required this.child});

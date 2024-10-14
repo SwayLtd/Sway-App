@@ -3,12 +3,12 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/artist/models/artist_model.dart';
-import 'package:sway_events/features/artist/services/artist_service.dart';
-import 'package:sway_events/features/promoter/models/promoter_model.dart';
-import 'package:sway_events/features/promoter/services/promoter_service.dart';
-import 'package:sway_events/features/user/services/user_permission_service.dart';
-import 'package:sway_events/features/venue/models/venue_model.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/services/artist_service.dart';
+import 'package:sway/features/promoter/models/promoter_model.dart';
+import 'package:sway/features/promoter/services/promoter_service.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
+import 'package:sway/features/venue/models/venue_model.dart';
 
 class VenueService {
   final UserPermissionService _permissionService = UserPermissionService();
@@ -55,8 +55,8 @@ class VenueService {
     final List venueArtistJson =
         json.decode(response);
     final artistIds = venueArtistJson
-        .where((entry) => entry['venueId'] == venueId)
-        .map((entry) => entry['artistId'])
+        .where((entry) => entry['venue_id'] == venueId)
+        .map((entry) => entry['artist_id'])
         .toList();
 
     final artists = await ArtistService().getArtists();
@@ -69,8 +69,8 @@ class VenueService {
     final List venuePromoterJson =
         json.decode(response);
     final promoterIds = venuePromoterJson
-        .where((entry) => entry['venueId'] == venueId)
-        .map((entry) => entry['promoterId'])
+        .where((entry) => entry['venue_id'] == venueId)
+        .map((entry) => entry['promoter_id'])
         .toList();
 
     final promoters = await PromoterService().getPromoters();
@@ -85,8 +85,8 @@ class VenueService {
     final List venueArtistJson =
         json.decode(response);
     final venueIds = venueArtistJson
-        .where((entry) => entry['artistId'] == artistId)
-        .map((entry) => entry['venueId'])
+        .where((entry) => entry['artist_id'] == artistId)
+        .map((entry) => entry['venue_id'])
         .toList();
 
     final venues = await getVenues();

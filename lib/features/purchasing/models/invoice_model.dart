@@ -24,28 +24,28 @@ class Invoice {
   factory Invoice.fromJson(Map<String, dynamic> json) {
     return Invoice(
       id: json['id'],
-      orderId: json['orderId'],
-      userId: json['userId'],
-      invoiceNumber: json['invoiceNumber'],
-      invoiceDate: DateTime.parse(json['invoiceDate']),
-      totalAmount: json['totalAmount'],
+      orderId: json['order_id'],
+      userId: json['user_id'],
+      invoiceNumber: json['invoice_number'],
+      invoiceDate: DateTime.parse(json['invoice_date']),
+      totalAmount: json['total_amount'],
       status: json['status'],
-      billingAddress: json['billingAddress'],
-      vatNumber: json['vatNumber'],
+      billingAddress: json['billing_address'],
+      vatNumber: json['vat_number'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'orderId': orderId,
-      'userId': userId,
-      'invoiceNumber': invoiceNumber,
-      'invoiceDate': invoiceDate.toIso8601String(),
-      'totalAmount': totalAmount,
+      'order_id': orderId,
+      'user_id': userId,
+      'invoice_number': invoiceNumber,
+      'invoice_date': invoiceDate.toIso8601String(),
+      'total_amount': totalAmount,
       'status': status,
-      'billingAddress': billingAddress,
-      'vatNumber': vatNumber,
+      'billing_address': billingAddress,
+      'vat_number': vatNumber,
     };
   }
 }

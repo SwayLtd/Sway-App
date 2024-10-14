@@ -19,9 +19,9 @@ class UserEventTicket {
   factory UserEventTicket.fromJson(Map<String, dynamic> json) {
     return UserEventTicket(
       id: json['id'],
-      userId: json['userId'] ?? 0,
-      eventId: json['eventId'] ?? 0,
-      ticketId: json['ticketId'] ?? 0,
+      userId: json['user_id'] ?? 0,
+      eventId: json['event_id'] ?? 0,
+      ticketId: json['ticket_id'] ?? 0,
       status: json['status'] as String? ?? '',
     );
   }
@@ -29,9 +29,9 @@ class UserEventTicket {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'userId': userId,
-      'eventId': eventId,
-      'ticketId': ticketId,
+      'user_id': userId,
+      'event_id': eventId,
+      'ticket_id': ticketId,
       'status': status,
     };
   }

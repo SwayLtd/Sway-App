@@ -1,26 +1,26 @@
 // search.dart
 
 import 'package:flutter/material.dart';
-import 'package:sway_events/features/artist/artist.dart';
-import 'package:sway_events/features/artist/models/artist_model.dart';
-import 'package:sway_events/features/artist/services/artist_service.dart';
-import 'package:sway_events/features/event/event.dart';
-import 'package:sway_events/features/event/models/event_model.dart';
-import 'package:sway_events/features/event/services/event_genre_service.dart';
-import 'package:sway_events/features/event/services/event_service.dart';
-import 'package:sway_events/features/genre/genre.dart';
-import 'package:sway_events/features/genre/models/genre_model.dart';
-import 'package:sway_events/features/genre/services/genre_service.dart';
-import 'package:sway_events/features/promoter/models/promoter_model.dart';
-import 'package:sway_events/features/promoter/promoter.dart';
-import 'package:sway_events/features/promoter/services/promoter_service.dart';
-import 'package:sway_events/features/search/screens/filters_screen.dart';
-import 'package:sway_events/features/user/models/user_model.dart';
-import 'package:sway_events/features/user/services/user_service.dart';
-import 'package:sway_events/features/user/user.dart';
-import 'package:sway_events/features/venue/models/venue_model.dart';
-import 'package:sway_events/features/venue/services/venue_service.dart';
-import 'package:sway_events/features/venue/venue.dart';
+import 'package:sway/features/artist/artist.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/services/artist_service.dart';
+import 'package:sway/features/event/event.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/services/event_genre_service.dart';
+import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/genre/genre.dart';
+import 'package:sway/features/genre/models/genre_model.dart';
+import 'package:sway/features/genre/services/genre_service.dart';
+import 'package:sway/features/promoter/models/promoter_model.dart';
+import 'package:sway/features/promoter/promoter.dart';
+import 'package:sway/features/promoter/services/promoter_service.dart';
+import 'package:sway/features/search/screens/filters_screen.dart';
+import 'package:sway/features/user/models/user_model.dart';
+import 'package:sway/features/user/services/user_service.dart';
+import 'package:sway/features/user/user.dart';
+import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:sway/features/venue/services/venue_service.dart';
+import 'package:sway/features/venue/venue.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -44,7 +44,7 @@ class _SearchScreenState extends State<SearchScreen> {
     'date': null,
     'venueType': null,
     'genres': [],
-    'nearMe': false,
+    'near_me': false,
   };
 
   @override
@@ -129,13 +129,13 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildSelectedFilters() {
     final List<Widget> filterWidgets = [];
 
-    if (_filters['nearMe'] == true) {
+    if (_filters['near_me'] == true) {
       filterWidgets.add(
         Chip(
           label: const Text('Near Me'),
           onDeleted: () {
             setState(() {
-              _filters['nearMe'] = false;
+              _filters['near_me'] = false;
               _performSearch(_searchController.text);
             });
           },

@@ -18,8 +18,8 @@ class User {
       id: json['id'],
       username: json['username'] ?? '',
       email: json['email'] ?? '',
-      profilePictureUrl: json['profilePictureUrl'] ?? '',
-      createdAt: DateTime.parse(json['createdAt']),
+      profilePictureUrl: json['profile_picture_url'] ?? '',
+      createdAt: DateTime.parse(json['created_at']),
     );
   }
 
@@ -28,8 +28,8 @@ class User {
       'id': id,
       'username': username,
       'email': email,
-      'profilePictureUrl': profilePictureUrl,
-      'createdAt': createdAt.toIso8601String(),
+      'profile_picture_url': profilePictureUrl,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 

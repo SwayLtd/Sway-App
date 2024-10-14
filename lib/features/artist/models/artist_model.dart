@@ -55,7 +55,7 @@ class Artist {
     return {
       'id': id,
       'name': name,
-      'imageUrl': imageUrl,
+      'image_url': imageUrl,
       'description': description,
       'genres': genres,
       'upcomingEvents': upcomingEvents,

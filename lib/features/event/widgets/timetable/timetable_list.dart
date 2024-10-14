@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
-import 'package:sway_events/core/utils/date_utils.dart';
-import 'package:sway_events/core/widgets/image_with_error_handler.dart';
-import 'package:sway_events/features/artist/artist.dart';
-import 'package:sway_events/features/artist/models/artist_model.dart';
-import 'package:sway_events/features/event/utils/timetable_utils.dart';
-import 'package:sway_events/features/event/widgets/timetable/artist_image_rotator.dart';
-import 'package:sway_events/features/user/services/user_follow_artist_service.dart';
+import 'package:sway/core/utils/date_utils.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/artist/artist.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/event/utils/timetable_utils.dart';
+import 'package:sway/features/event/widgets/timetable/artist_image_rotator.dart';
+import 'package:sway/features/user/services/user_follow_artist_service.dart';
 
 Future<Widget> buildListView(
   BuildContext context,
@@ -47,13 +47,13 @@ Future<Widget> buildListView(
   // Trier les artistes par heure de début pour chaque stage
   for (final stage in artistsByStage.keys) {
     artistsByStage[stage]!.sort((a, b) {
-      final startTimeA = a['startTime'] is String
-          ? DateTime.parse(a['startTime'] as String)
-          : a['startTime'] as DateTime;
+      final startTimeA = a['start_time'] is String
+          ? DateTime.parse(a['start_time'] as String)
+          : a['start_time'] as DateTime;
 
-      final startTimeB = b['startTime'] is String
-          ? DateTime.parse(b['startTime'] as String)
-          : b['startTime'] as DateTime;
+      final startTimeB = b['start_time'] is String
+          ? DateTime.parse(b['start_time'] as String)
+          : b['start_time'] as DateTime;
 
       return startTimeA.compareTo(startTimeB);
     });
@@ -89,14 +89,14 @@ Future<Widget> buildListView(
                 final List<Artist> artists = (entry['artists'] as List<dynamic>)
                     .map((artist) => artist as Artist)
                     .toList();
-                final customName = entry['customName'] as String?;
-                final startTime = entry['startTime'] is String
-                    ? DateTime.parse(entry['startTime'] as String)
-                    : entry['startTime'] as DateTime;
+                final customName = entry['custom_name'] as String?;
+                final startTime = entry['start_time'] is String
+                    ? DateTime.parse(entry['start_time'] as String)
+                    : entry['start_time'] as DateTime;
 
-                final endTime = entry['endTime'] is String
-                    ? DateTime.parse(entry['endTime'] as String)
-                    : entry['endTime'] as DateTime;
+                final endTime = entry['end_time'] is String
+                    ? DateTime.parse(entry['end_time'] as String)
+                    : entry['end_time'] as DateTime;
 
                 final status = entry['status'] as String?;
 
@@ -106,13 +106,13 @@ Future<Widget> buildListView(
                 for (final otherEntry in artistsByStage[stage]!) {
                   if (entry == otherEntry) continue;
 
-                  final otherStartTime = otherEntry['startTime'] is String
-                      ? DateTime.parse(otherEntry['startTime'] as String)
-                      : otherEntry['startTime'] as DateTime;
+                  final otherStartTime = otherEntry['start_time'] is String
+                      ? DateTime.parse(otherEntry['start_time'] as String)
+                      : otherEntry['start_time'] as DateTime;
 
-                  final otherEndTime = otherEntry['endTime'] is String
-                      ? DateTime.parse(otherEntry['endTime'] as String)
-                      : otherEntry['endTime'] as DateTime;
+                  final otherEndTime = otherEntry['end_time'] is String
+                      ? DateTime.parse(otherEntry['end_time'] as String)
+                      : otherEntry['end_time'] as DateTime;
 
                   if (startTime.isBefore(otherEndTime) &&
                       endTime.isAfter(otherStartTime)) {
@@ -317,4 +317,3 @@ Future<Widget> buildListView(
     ],
   );
 }
-

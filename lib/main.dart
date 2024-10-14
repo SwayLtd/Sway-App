@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:sway_events/core/constants/app_theme.dart';
-import 'package:sway_events/core/constants/l10n.dart';
-import 'package:sway_events/core/routes.dart';
-import 'package:sway_events/core/services/database_service.dart';
-// import 'package:sway_events/core/services/notification_service.dart';
-import 'package:sway_events/features/security/utils/security_utils.dart';
+import 'package:sway/core/constants/app_theme.dart';
+import 'package:sway/core/constants/l10n.dart';
+import 'package:sway/core/routes.dart';
+import 'package:sway/core/services/database_service.dart';
+// import 'package:sway/core/services/notification_service.dart';
+import 'package:sway/features/security/utils/security_utils.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 
 Future<void> main() async {
@@ -19,11 +19,11 @@ Future<void> main() async {
   await dotenv.load();
   DatabaseService().initialize();
   // NotificationService().initialize();
-  runApp(const SwayEvents());
+  runApp(const SwayApp());
 }
 
-class SwayEvents extends StatelessWidget {
-  const SwayEvents({super.key});
+class SwayApp extends StatelessWidget {
+  const SwayApp({super.key});
 
   @override
   Widget build(BuildContext context) {

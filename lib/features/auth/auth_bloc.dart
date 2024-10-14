@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sway_events/features/auth/auth_event.dart';
-import 'package:sway_events/features/auth/auth_state.dart' as auth_state;
+import 'package:sway/features/auth/auth_event.dart';
+import 'package:sway/features/auth/auth_state.dart' as auth_state;
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc() : super(auth_state.AuthInitial() as AuthState) {

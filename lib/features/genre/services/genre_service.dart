@@ -1,7 +1,7 @@
 // genre_service.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sway_events/features/genre/models/genre_model.dart';
+import 'package:sway/features/genre/models/genre_model.dart';
 
 class GenreService {
   final _supabase = Supabase.instance.client;

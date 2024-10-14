@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:sway_events/features/purchasing/models/order_model.dart';
+import 'package:sway/features/purchasing/models/order_model.dart';
 
 class OrderService {
   Future<List<Order>> getOrdersByUser(int userId) async {
