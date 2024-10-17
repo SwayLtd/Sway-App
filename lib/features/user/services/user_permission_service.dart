@@ -1,49 +1,61 @@
 // user_permission_service.dart
 
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/user/models/user_permission_model.dart';
-import 'package:sway/features/user/services/user_service.dart'; // Assurez-vous que vous avez un service pour obtenir l'utilisateur actuel
+import 'package:sway/features/user/services/user_service.dart';
 
 class UserPermissionService {
+  final _supabase = Supabase.instance.client;
+
   Future<List<UserPermission>> getUserPermissions() async {
-    final String response = await rootBundle
-        .loadString('assets/databases/join_table/user_permissions.json');
-    final List<dynamic> permissionsJson =
-        json.decode(response) as List<dynamic>;
-    return permissionsJson
-        .map((json) => UserPermission.fromJson(json as Map<String, dynamic>))
+    final response = await _supabase.from('user_permissions').select();
+
+    return response
+        .map((json) => UserPermission.fromJson(json))
         .toList();
   }
 
   Future<List<UserPermission>> getPermissionsByUserId(int userId) async {
-    final permissions = await getUserPermissions();
-    return permissions
-        .where((permission) => permission.userId == userId)
+    final response = await _supabase
+        .from('user_permissions')
+        .select()
+        .eq('user_id', userId);
+
+    return response
+        .map((json) => UserPermission.fromJson(json))
         .toList();
   }
 
   Future<List<UserPermission>> getPermissionsByEntity(
-      int entityId, String entityType,) async {
-    final permissions = await getUserPermissions();
-    return permissions
-        .where((permission) =>
-            permission.entityId == entityId &&
-            permission.entityType == entityType,)
+      int entityId, String entityType) async {
+    final response = await _supabase
+        .from('user_permissions')
+        .select()
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType);
+
+    return response
+        .map((json) => UserPermission.fromJson(json))
         .toList();
   }
 
   Future<List<UserPermission>> getPermissionsByUserIdAndType(
-      int userId, String entityType,) async {
-    final permissions = await getPermissionsByUserId(userId);
-    return permissions
-        .where((permission) => permission.entityType == entityType)
+      int userId, String entityType) async {
+    final response = await _supabase
+        .from('user_permissions')
+        .select()
+        .eq('user_id', userId)
+        .eq('entity_type', entityType);
+
+    return response
+        .map((json) => UserPermission.fromJson(json))
         .toList();
   }
 
   Future<bool> hasPermission(int userId, int entityId, String entityType,
-      String requiredPermission,) async {
+      String requiredPermission) async {
     final permissions = await getPermissionsByUserId(userId);
+
     return permissions.any((permission) =>
         permission.entityId == entityId &&
         permission.entityType == entityType &&
@@ -54,38 +66,37 @@ class UserPermissionService {
             (requiredPermission == 'insight' &&
                 (permission.permission == 'admin' ||
                     permission.permission == 'manager' ||
-                    permission.permission == 'user'))),);
+                    permission.permission == 'user'))));
   }
 
   Future<bool> hasPermissionForCurrentUser(
-      int entityId, String entityType, String requiredPermission,) async {
+      int entityId, String entityType, String requiredPermission) async {
     final currentUser = await UserService().getCurrentUser();
     if (currentUser == null) {
       return false;
     }
     return hasPermission(
-        currentUser.id, entityId, entityType, requiredPermission,);
+        currentUser.id, entityId, entityType, requiredPermission);
   }
 
-  Future<void> addUserPermission(int userId, int entityId,
-      String entityType, String permission,) async {
-    final permissions = await getUserPermissions();
-    permissions.add(UserPermission(
-        userId: userId,
-        entityId: entityId,
-        entityType: entityType,
-        permission: permission,),);
-    await saveUserPermissions(permissions);
+  Future<void> addUserPermission(int userId, int entityId, String entityType,
+      String permission) async {
+    await _supabase.from('user_permissions').insert({
+      'user_id': userId,
+      'entity_id': entityId,
+      'entity_type': entityType,
+      'permission': permission,
+    });
   }
 
   Future<void> deleteUserPermission(
-      int userId, int entityId, String entityType,) async {
-    final permissions = await getUserPermissions();
-    permissions.removeWhere((permission) =>
-        permission.userId == userId &&
-        permission.entityId == entityId &&
-        permission.entityType == entityType,);
-    await saveUserPermissions(permissions);
+      int userId, int entityId, String entityType) async {
+    await _supabase
+        .from('user_permissions')
+        .delete()
+        .eq('user_id', userId)
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType);
   }
 
   Future<void> saveUserPermissions(List<UserPermission> permissions) async {

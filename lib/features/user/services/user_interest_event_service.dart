@@ -1,159 +1,168 @@
-// user_follow_event_service.dart
+// user_interest_event_service.dart
 
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
-import 'package:sway/features/user/models/user_model.dart';
+import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/services/user_service.dart';
 
 class UserInterestEventService {
-  final int userId = 3; // L'ID de l'utilisateur actuel
+  final _supabase = Supabase.instance.client;
+  final int userId = 3;
 
   Future<bool> isInterestedInEvent(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('user_interest_event')
+        .select()
+        .eq('user_id', userId)
+        .eq('event_id', eventId)
+        .eq('status', 'interested');
 
-    return interestJson.any((interest) => interest['user_id'] == userId && interest['event_id'] == eventId && interest['status'] == "interested");
+    return response.isNotEmpty;
   }
 
   Future<void> addInterest(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
-
-    interestJson.add({'user_id': userId, 'event_id': eventId, 'status': "interested"});
-
-    // Save updated list back to the file (assuming you have a method for this)
-    await saveUserInterestEventData(interestJson);
+    await _supabase.from('user_interest_event').insert({
+      'user_id': userId,
+      'event_id': eventId,
+      'status': 'interested',
+    });
   }
 
   Future<void> removeInterest(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
-
-    interestJson.removeWhere((interest) => interest['user_id'] == userId && interest['event_id'] == eventId && interest['status'] == "interested");
-
-    // Save updated list back to the file (assuming you have a method for this)
-    await saveUserInterestEventData(interestJson);
+    await _supabase
+        .from('user_interest_event')
+        .delete()
+        .eq('user_id', userId)
+        .eq('event_id', eventId)
+        .eq('status', 'interested');
   }
 
   Future<void> markEventAsGoing(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
-
-    interestJson.removeWhere((interest) => interest['user_id'] == userId && interest['event_id'] == eventId && interest['status'] == "interested");
-    interestJson.add({'user_id': userId, 'event_id': eventId, 'status': "going"});
-
-    // Save updated list back to the file (assuming you have a method for this)
-    await saveUserInterestEventData(interestJson);
+    await _supabase
+        .from('user_interest_event')
+        .update({'status': 'going'})
+        .eq('user_id', userId)
+        .eq('event_id', eventId);
   }
 
   Future<void> markEventAsAttended(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
-
-    interestJson.removeWhere((interest) => interest['user_id'] == userId && interest['event_id'] == eventId && interest['status'] == "interested");
-    interestJson.add({'user_id': userId, 'event_id': eventId, 'status': "going"});
-
-    // Save updated list back to the file (assuming you have a method for this)
-    await saveUserInterestEventData(interestJson);
+    await _supabase
+        .from('user_interest_event')
+        .update({'status': 'attended'})
+        .eq('user_id', userId)
+        .eq('event_id', eventId);
   }
 
   Future<int> getEventInterestCount(int eventId, String status) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('user_interest_event')
+        .select('user_id')
+        .eq('event_id', eventId)
+        .eq('status', status);
 
-    if (status == "both") {
-      return interestJson.where((interest) => interest['event_id'] == eventId && (interest['status'] == "interested" || interest['status'] == "going")).length;
-    } else {
-      return interestJson.where((interest) => interest['event_id'] == eventId && interest['status'] == status).length;
-    }
+    return response.length;
   }
 
   Future<bool> isGoingToEvent(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('user_interest_event')
+        .select()
+        .eq('user_id', userId)
+        .eq('event_id', eventId)
+        .eq('status', 'going');
 
-    return interestJson.any((interest) => interest['user_id'] == userId && interest['event_id'] == eventId && interest['status'] == "going");
+    return response.isNotEmpty;
   }
 
   Future<bool> isAttendedEvent(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('user_interest_event')
+        .select()
+        .eq('user_id', userId)
+        .eq('event_id', eventId)
+        .eq('status', 'attended');
 
-    return interestJson.any((interest) => interest['user_id'] == userId && interest['event_id'] == eventId && interest['status'] == "going");
+    return response.isNotEmpty;
   }
 
   Future<List<Event>> getInterestedEventsByUserId(int userId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('user_interest_event')
+        .select('event_id')
+        .eq('user_id', userId)
+        .filter('status', 'in', '("interested","going")');
 
-    final List interestedEventIds = interestJson
-        .where((interest) => interest['user_id'] == userId && (interest['status'] == "interested" || interest['status'] == "going"))
-        .map<int>((interest) => interest['event_id'])
-        .toList();
+    final List<int> eventIds =
+        response.map((item) => item['event_id'] as int).toList();
 
     final List<Event> allEvents = await EventService().getEvents();
     final DateTime now = DateTime.now();
 
-    return allEvents.where((event) => interestedEventIds.contains(event.id) && event.dateTime.isAfter(now)).toList();
+    return allEvents
+        .where((event) => eventIds.contains(event.id) && event.dateTime.isAfter(now))
+        .toList();
   }
 
   Future<List<Event>> getGoingEventsByUserId(int userId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('user_interest_event')
+        .select('event_id')
+        .eq('user_id', userId)
+        .eq('status', 'going');
 
-    final List goingEventIds = interestJson
-        .where((interest) => interest['user_id'] == userId && interest['status'] == "going")
-        .map<int>((interest) => interest['event_id'])
-        .toList();
+    final List<int> eventIds =
+        response.map((item) => item['event_id'] as int).toList();
 
     final List<Event> allEvents = await EventService().getEvents();
     final DateTime now = DateTime.now();
 
-    return allEvents.where((event) => goingEventIds.contains(event.id) && event.dateTime.isBefore(now)).toList();
+    return allEvents
+        .where((event) => eventIds.contains(event.id) && event.dateTime.isBefore(now))
+        .toList();
   }
 
   Future<List<Event>> getAttendedEventsByUserId(int userId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('user_interest_event')
+        .select('event_id')
+        .eq('user_id', userId)
+        .eq('status', 'attended');
 
-    final List attendedEventIds = interestJson
-        .where((interest) => interest['user_id'] == userId && interest['status'] == "going")
-        .map<int>((interest) => interest['event_id'])
-        .toList();
+    final List<int> eventIds =
+        response.map((item) => item['event_id'] as int).toList();
 
     final List<Event> allEvents = await EventService().getEvents();
     final DateTime now = DateTime.now();
 
-    return allEvents.where((event) => attendedEventIds.contains(event.id) && event.dateTime.isBefore(now)).toList();
-  }
-
-  Future<void> saveUserInterestEventData(List<dynamic> data) async {
-    // Implement saving logic here, depending on how you manage your local storage
-  }
-
-  Future<List<User>> getInterestedUsersForEvent(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
-
-    final List interestedUserIds = interestJson
-        .where((interest) => interest['event_id'] == eventId && interest['status'] == "interested")
-        .map<int>((interest) => interest['user_id'])
+    return allEvents
+        .where((event) => eventIds.contains(event.id) && event.dateTime.isBefore(now))
         .toList();
-
-    return await UserService().getUsersByIds(interestedUserIds);
   }
 
-  Future<List<User>> getGoingUsersForEvent(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_interest_event.json');
-    final List<dynamic> interestJson = json.decode(response) as List<dynamic>;
+  Future<List<AppUser.User>> getInterestedUsersForEvent(int eventId) async {
+    final response = await _supabase
+        .from('user_interest_event')
+        .select('user_id')
+        .eq('event_id', eventId)
+        .eq('status', 'interested');
 
-    final List goingUserIds = interestJson
-        .where((interest) => interest['event_id'] == eventId && interest['status'] == "going")
-        .map<int>((interest) => interest['user_id'])
-        .toList();
+    final List<int> userIds =
+        response.map((item) => item['user_id'] as int).toList();
 
-    return await UserService().getUsersByIds(goingUserIds);
+    return await UserService().getUsersByIds(userIds);
+  }
+
+  Future<List<AppUser.User>> getGoingUsersForEvent(int eventId) async {
+    final response = await _supabase
+        .from('user_interest_event')
+        .select('user_id')
+        .eq('event_id', eventId)
+        .eq('status', 'going');
+
+    final List<int> userIds =
+        response.map((item) => item['user_id'] as int).toList();
+
+    return await UserService().getUsersByIds(userIds);
   }
 }

@@ -1,72 +1,75 @@
 // user_service.dart
 
-import 'dart:convert';
-import 'package:flutter/services.dart';
-import 'package:sway/features/user/models/user_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sway/features/user/models/user_model.dart' as AppUser;
 
 class UserService {
-  Future<User?> getUserById(int userId) async {
-    final String response =
-        await rootBundle.loadString('assets/databases/users.json');
-    final List<dynamic> userJson = json.decode(response) as List<dynamic>;
-    try {
-      final user = userJson.firstWhere((user) => user['id'] == userId);
-      return User.fromJson(user as Map<String, dynamic>);
-    } catch (e) {
+  final _supabase = Supabase.instance.client;
+
+  Future<AppUser.User?> getUserById(int userId) async {
+    final response = await _supabase
+        .from('users')
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (response == null) {
       return null;
     }
+
+    return AppUser.User.fromJson(response);
   }
 
-  Future<List<User>> searchUsers(String query) async {
-    final String response =
-        await rootBundle.loadString('assets/databases/users.json');
-    final List<dynamic> userJson = json.decode(response) as List<dynamic>;
+  Future<List<AppUser.User>> searchUsers(String query) async {
+    final response = await _supabase
+        .from('users')
+        .select()
+        .ilike('username', '%$query%');
 
-    final users = userJson.map((json) {
-      return User.fromJson(json as Map<String, dynamic>);
-    }).toList();
+    if (response.isEmpty) {
+      print('No users found.');
+    }
 
-    final results = users.where((user) {
-      final matches = user.username.toLowerCase().contains(query.toLowerCase());
-      return matches;
-    }).toList();
-
-    return results;
-  }
-
-  Future<List<User>> getUsersByIds(List userIds) async {
-    final String response =
-        await rootBundle.loadString('assets/databases/users.json');
-    final List<dynamic> usersJson = json.decode(response) as List<dynamic>;
-
-    return usersJson
-        .map((userJson) => User.fromJson(userJson as Map<String, dynamic>))
-        .where((user) => userIds.contains(user.id))
+    return response
+        .map<AppUser.User>((json) => AppUser.User.fromJson(json))
         .toList();
   }
 
-  Future<void> updateUser(User updatedUser) async {
-    final String response =
-        await rootBundle.loadString('assets/databases/users.json');
-    final List<dynamic> usersJson = json.decode(response) as List<dynamic>;
+  Future<List<AppUser.User>> getUsersByIds(List<int> userIds) async {
+    if (userIds.isEmpty) {
+      return [];
+    }
 
-    final index = usersJson.indexWhere((user) => user['id'] == updatedUser.id);
-    if (index != -1) {
-      usersJson[index] = updatedUser.toJson();
-      // Save updated list back to the file (assuming you have a method for this)
-      await saveUserData(usersJson);
+    final ids = userIds.join(',');
+
+    final response = await _supabase
+        .from('users')
+        .select()
+        .filter('id', 'in', '($ids)');
+
+    if (response.isEmpty) {
+      print('No users found.');
+    }
+
+    return response
+        .map<AppUser.User>((json) => AppUser.User.fromJson(json))
+        .toList();
+  }
+
+  Future<void> updateUser(AppUser.User updatedUser) async {
+    final response = await _supabase
+        .from('users')
+        .update(updatedUser.toJson())
+        .eq('id', updatedUser.id);
+
+    if (response == null || response.isEmpty) {
+      print('Failed to update user.');
     }
   }
 
-  Future<void> saveUserData(List<dynamic> data) async {
-    // Implement saving logic here, depending on how you manage your local storage
-  }
-
-  // Nouvelle méthode pour obtenir l'utilisateur actuellement connecté
-  Future<User?> getCurrentUser() async {
-    // Logic to get current user ID, for now, assuming we store current user ID in local storage
+  // Méthode pour obtenir l'utilisateur actuellement connecté
+  Future<AppUser.User?> getCurrentUser() async {
     const currentUserId = 3; // Utilisateur actuel avec ID 3
-
     return getUserById(currentUserId);
   }
 }

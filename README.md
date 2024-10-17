@@ -10,6 +10,7 @@ Coming soon
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* Database migration #4 - Refactor user data retrieval to use Supabase instead of local JSON storage
 * Database migration #3 - Refactor artist data retrieval to use Supabase instead of local JSON storage
 * Database migration #2 - Refactor promoter data retrieval to use Supabase instead of local JSON storage
 * Refactor: Migrate all date fields from String to DateTime
