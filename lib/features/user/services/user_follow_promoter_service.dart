@@ -1,75 +1,73 @@
 // user_follow_promoter_service.dart
 
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
-import 'package:sway/features/user/models/user_model.dart';
+import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/services/user_service.dart';
 
 class UserFollowPromoterService {
-  final int userId = 3; // L'ID de l'utilisateur actuel
+  final _supabase = Supabase.instance.client;
+  final int userId = 3;
 
   Future<bool> isFollowingPromoter(int promoterId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_promoter.json');
-    final List<dynamic> followJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('user_follow_promoter')
+        .select()
+        .eq('user_id', userId)
+        .eq('promoter_id', promoterId);
 
-    return followJson.any((follow) => follow['user_id'] == userId && follow['promoter_id'] == promoterId);
+    return response.isNotEmpty;
   }
 
   Future<void> followPromoter(int promoterId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_promoter.json');
-    final List<dynamic> followJson = json.decode(response) as List<dynamic>;
-
-    followJson.add({'user_id': userId, 'promoter_id': promoterId});
-
-    // Save updated list back to the file (assuming you have a method for this)
-    await saveUserFollowPromoterData(followJson);
+    await _supabase.from('user_follow_promoter').insert({
+      'user_id': userId,
+      'promoter_id': promoterId,
+    });
   }
 
   Future<void> unfollowPromoter(int promoterId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_promoter.json');
-    final List<dynamic> followJson = json.decode(response) as List<dynamic>;
-
-    followJson.removeWhere((follow) => follow['user_id'] == userId && follow['promoter_id'] == promoterId);
-
-    // Save updated list back to the file (assuming you have a method for this)
-    await saveUserFollowPromoterData(followJson);
-  }
-
-  Future<void> saveUserFollowPromoterData(List<dynamic> data) async {
-    // Implement saving logic here, depending on how you manage your local storage
+    await _supabase
+        .from('user_follow_promoter')
+        .delete()
+        .eq('user_id', userId)
+        .eq('promoter_id', promoterId);
   }
 
   Future<int> getPromoterFollowersCount(int promoterId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_promoter.json');
-    final List<dynamic> followJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('user_follow_promoter')
+        .select('user_id')
+        .eq('promoter_id', promoterId);
 
-    return followJson.where((follow) => follow['promoter_id'] == promoterId).length;
+    return response.length;
   }
 
   Future<List<Promoter>> getFollowedPromotersByUserId(int userId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_promoter.json');
-    final List<dynamic> followJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase
+        .from('user_follow_promoter')
+        .select('promoter_id')
+        .eq('user_id', userId);
 
-    final List followedPromoterIds = followJson
-        .where((follow) => follow['user_id'] == userId)
-        .map<int>((follow) => follow['promoter_id'])
-        .toList();
+    final List<int> followedPromoterIds =
+        response.map((item) => item['promoter_id'] as int).toList();
 
     final List<Promoter> allPromoters = await PromoterService().getPromoters();
 
-    return allPromoters.where((promoter) => followedPromoterIds.contains(promoter.id)).toList();
+    return allPromoters
+        .where((promoter) => followedPromoterIds.contains(promoter.id))
+        .toList();
   }
 
-  Future<List<User>> getFollowersForPromoter(int promoterId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/user_follow_promoter.json');
-    final List<dynamic> followJson = json.decode(response) as List<dynamic>;
+  Future<List<AppUser.User>> getFollowersForPromoter(int promoterId) async {
+    final response = await _supabase
+        .from('user_follow_promoter')
+        .select('user_id')
+        .eq('promoter_id', promoterId);
 
-    final List followerIds = followJson
-        .where((follow) => follow['promoter_id'] == promoterId)
-        .map<int>((follow) => follow['user_id'])
-        .toList();
+    final List<int> followerIds =
+        response.map((item) => item['user_id'] as int).toList();
 
     return await UserService().getUsersByIds(followerIds);
   }

@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.2.4 # Database migration #3 - Refactor artist data retrieval to use Supabase instead of local JSON storage
+version: 0.2.4 # Database migration #4 - Refactor user data retrieval to use Supabase instead of local JSON storage
 
 
 environment:
@@ -26,7 +26,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_secure_storage: ^9.2.2
-  flutter_sticky_header: ^0.6.5
+  flutter_sticky_header: ^0.7.0
   go_router: ^14.2.1 # ^6.5.9 important
   google_fonts: ^6.2.1
   http: ^1.2.2

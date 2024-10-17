@@ -18,7 +18,6 @@ class UserAccessSearchScreen extends StatefulWidget {
   @override
   _UserAccessSearchScreenState createState() => _UserAccessSearchScreenState();
 }
-
 class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<User> _searchResults = [];
