@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.2.4 # Database migration #4 - Refactor user data retrieval to use Supabase instead of local JSON storage
+version: 0.2.5 # Database migration #5 - Refactor promoter data management to use Supabase with updated data types
 
 
 environment:

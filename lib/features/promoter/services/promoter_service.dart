@@ -1,25 +1,26 @@
+// lib/features/promoter/services/promoter_service.dart
+
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
 
 class PromoterService {
-  final _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase = Supabase.instance.client;
   final UserPermissionService _permissionService = UserPermissionService();
 
   Future<List<Promoter>> searchPromoters(String query) async {
-    final response = await _supabase
-        .from('promoters')
-        .select()
-        .ilike('name', '%$query%');
+    final response =
+        await _supabase.from('promoters').select().ilike('name', '%$query%');
 
     if (response.isEmpty) {
       print('No promoters found.');
-      // throw Exception('No promoters found.');
+      return [];
     }
 
-    return response.map<Promoter>((json) => Promoter.fromJsonWithoutEvents(json)).toList();
+    return response
+        .map<Promoter>((json) => Promoter.fromJsonWithoutEvents(json))
+        .toList();
   }
 
   Future<List<Promoter>> getPromotersWithEvents() async {
@@ -28,18 +29,16 @@ class PromoterService {
       throw Exception('No promoters found.');
     }
 
-    final eventsResponse = await EventService().getEvents();
-    final List<Event> events = eventsResponse;
+    final events = await EventService().getEvents();
 
-    return response.map<Promoter>((json) => Promoter.fromJson(json, events)).toList();
+    return response
+        .map<Promoter>((json) => Promoter.fromJson(json, events))
+        .toList();
   }
 
   Future<Promoter?> getPromoterByIdWithEvents(int id) async {
-    final response = await _supabase
-        .from('promoters')
-        .select()
-        .eq('id', id)
-        .maybeSingle();
+    final response =
+        await _supabase.from('promoters').select().eq('id', id).maybeSingle();
 
     if (response == null) {
       return null;
@@ -56,15 +55,14 @@ class PromoterService {
       throw Exception('No promoters found.');
     }
 
-    return response.map<Promoter>((json) => Promoter.fromJsonWithoutEvents(json)).toList();
+    return response
+        .map<Promoter>((json) => Promoter.fromJsonWithoutEvents(json))
+        .toList();
   }
 
   Future<Promoter?> getPromoterById(int id) async {
-    final response = await _supabase
-        .from('promoters')
-        .select()
-        .eq('id', id)
-        .maybeSingle();
+    final response =
+        await _supabase.from('promoters').select().eq('id', id).maybeSingle();
 
     if (response == null) {
       return null;
@@ -75,18 +73,16 @@ class PromoterService {
 
   Future<void> addPromoter(Promoter promoter) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
-      promoter.id, 'promoter', 'admin',
+      promoter.id,
+      'promoter',
+      'admin',
     );
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
 
-    final response = await _supabase.from('promoters').insert({
-      'id': promoter.id,
-      'name': promoter.name,
-      'image_url': promoter.imageUrl,
-      'description': promoter.description,
-    });
+    final response =
+        await _supabase.from('promoters').insert(promoter.toJson());
 
     if (response.error != null) {
       throw Exception('Failed to add promoter: ${response.error!.message}');
@@ -95,17 +91,18 @@ class PromoterService {
 
   Future<void> updatePromoter(Promoter promoter) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
-      promoter.id, 'promoter', 'manager',
+      promoter.id,
+      'promoter',
+      'manager',
     );
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
 
-    final response = await _supabase.from('promoters').update({
-      'name': promoter.name,
-      'image_url': promoter.imageUrl,
-      'description': promoter.description,
-    }).eq('id', promoter.id);
+    final response = await _supabase
+        .from('promoters')
+        .update(promoter.toJson())
+        .eq('id', promoter.id);
 
     if (response.error != null) {
       throw Exception('Failed to update promoter: ${response.error!.message}');
@@ -114,16 +111,16 @@ class PromoterService {
 
   Future<void> deletePromoter(int promoterId) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
-      promoterId, 'promoter', 'admin',
+      promoterId,
+      'promoter',
+      'admin',
     );
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
 
-    final response = await _supabase
-        .from('promoters')
-        .delete()
-        .eq('id', promoterId);
+    final response =
+        await _supabase.from('promoters').delete().eq('id', promoterId);
 
     if (response.error != null) {
       throw Exception('Failed to delete promoter: ${response.error!.message}');
