@@ -79,4 +79,26 @@ class ArtistService {
 
     return artists;
   }
+
+  Future<List<Artist>> getArtistsByIds(List<int> artistIds) async {
+    if (artistIds.isEmpty) {
+      return [];
+    }
+
+    // Construire une chaîne de filtres 'or' pour chaque ID
+    final String orFilter = artistIds.map((id) => 'id.eq.$id').join(',');
+
+    final response = await _supabase
+        .from('artists')
+        .select()
+        .or(orFilter); // Utilisation de .or() au lieu de .filter()
+
+    if (response.isEmpty) {
+      return [];
+    }
+
+    return response
+        .map<Artist>((json) => Artist.fromJson(json))
+        .toList();
+  }
 }

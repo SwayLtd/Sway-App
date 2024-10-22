@@ -84,8 +84,8 @@ class PromoterService {
     final response =
         await _supabase.from('promoters').insert(promoter.toJson());
 
-    if (response.error != null) {
-      throw Exception('Failed to add promoter: ${response.error!.message}');
+    if (response.isEmpty) {
+      throw Exception('Failed to add promoter.');
     }
   }
 
@@ -104,8 +104,8 @@ class PromoterService {
         .update(promoter.toJson())
         .eq('id', promoter.id);
 
-    if (response.error != null) {
-      throw Exception('Failed to update promoter: ${response.error!.message}');
+    if (response.isEmpty) {
+      throw Exception('Failed to update promoter.');
     }
   }
 
@@ -122,8 +122,27 @@ class PromoterService {
     final response =
         await _supabase.from('promoters').delete().eq('id', promoterId);
 
-    if (response.error != null) {
-      throw Exception('Failed to delete promoter: ${response.error!.message}');
+    if (response.isEmpty) {
+      throw Exception('Failed to delete promoter.');
     }
+  }
+
+  Future<List<Promoter>> getPromotersByIds(List<int> promoterIds) async {
+    if (promoterIds.isEmpty) {
+      return [];
+    }
+
+    final response = await _supabase
+        .from('promoters')
+        .select()
+        .filter('id', 'in', promoterIds); // Utilisation de .filter au lieu de .in_
+
+    if (response.isEmpty) {
+      return [];
+    }
+
+    return response
+        .map<Promoter>((json) => Promoter.fromJsonWithoutEvents(json))
+        .toList();
   }
 }
