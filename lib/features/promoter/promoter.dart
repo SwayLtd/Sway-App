@@ -73,7 +73,9 @@ class PromoterScreen extends StatelessWidget {
                   !snapshot.data!) {
                 return const SizedBox.shrink();
               } else {
-                return IconButton(
+                return const SizedBox.shrink();
+                // TODO Implement insights for promoters
+                /*return IconButton(
                   icon: const Icon(Icons.insights),
                   onPressed: () {
                     Navigator.push(
@@ -86,11 +88,12 @@ class PromoterScreen extends StatelessWidget {
                       ),
                     );
                   },
-                );
+                );*/
               }
             },
           ),
-          IconButton(
+          // TODO Implement sharing system for promoters
+          /*IconButton(
             icon: const Icon(Icons.share),
             onPressed: () async {
               final promoter =
@@ -99,7 +102,7 @@ class PromoterScreen extends StatelessWidget {
                 shareEntity('promoter', promoterId, promoter.name);
               }
             },
-          ),
+          ),*/
           FollowingButtonWidget(
             entityId: promoterId,
             entityType: 'promoter',
@@ -119,10 +122,6 @@ class PromoterScreen extends StatelessWidget {
             return const Center(child: Text('Promoter not found'));
           } else {
             final promoter = snapshot.data!;
-            debugPrint("Displaying Promoter: ${promoter.id}");
-            debugPrint(
-              "Promoter upcoming events: ${promoter.upcomingEvents}",
-            );
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(

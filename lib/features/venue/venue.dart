@@ -83,7 +83,9 @@ class _VenueScreenState extends State<VenueScreen> {
                   !snapshot.data!) {
                 return const SizedBox.shrink();
               } else {
-                return IconButton(
+                return const SizedBox.shrink();
+                // TODO Implement insights for promoters
+                /*return IconButton(
                   icon: const Icon(Icons.insights),
                   onPressed: () {
                     Navigator.push(
@@ -96,16 +98,17 @@ class _VenueScreenState extends State<VenueScreen> {
                       ),
                     );
                   },
-                );
+                );*/
               }
             },
           ),
-          IconButton(
+          // TODO Implement sharing system for venues
+          /*IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
               shareEntity('venue', widget.venueId, venueName);
             },
-          ),
+          ),*/
           FollowingButtonWidget(
             entityId: widget.venueId,
             entityType: 'venue',

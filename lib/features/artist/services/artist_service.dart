@@ -12,10 +12,6 @@ class ArtistService {
         .select()
         .ilike('name', '%$query%');
 
-    if (response.isEmpty) {
-      throw Exception('No artists found.');
-    }
-
     return response.map<Artist>((json) => Artist.fromJson(json)).toList();
   }
 

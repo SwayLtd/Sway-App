@@ -37,12 +37,13 @@ class _ArtistScreenState extends State<ArtistScreen> {
       appBar: AppBar(
         title: Text('$artistName Details'),
         actions: [
-          IconButton(
+          // TODO Implement sharing system for artists
+          /*IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
               shareEntity('artist', widget.artistId, artistName);
             },
-          ),
+          ),*/
           FollowingButtonWidget(
             entityId: widget.artistId,
             entityType: 'artist',

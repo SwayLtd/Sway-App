@@ -29,12 +29,13 @@ class _GenreScreenState extends State<GenreScreen> {
       appBar: AppBar(
         title: Text('$genreName Details'),
         actions: [
-          IconButton(
+          // TODO Implement sharing system for genres
+          /*IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
               shareEntity('genre', widget.genreId, genreName);
             },
-          ),
+          ),*/
           FollowingButtonWidget(entityId: widget.genreId, entityType: 'genre'),
         ],
       ),

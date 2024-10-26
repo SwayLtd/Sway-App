@@ -63,12 +63,13 @@ class _EventScreenState extends State<EventScreen> {
       appBar: AppBar(
         title: Text(widget.event.title),
         actions: [
-          IconButton(
+          // TODO Implement sharing system for events
+          /*IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
               shareEntity('event', widget.event.id, widget.event.title);
             },
-          ),
+          ),*/
           FutureBuilder<Map<String, bool>>(
             future: _getEventStatus(widget.event.id),
             builder: (context, snapshot) {
@@ -168,7 +169,9 @@ class _EventScreenState extends State<EventScreen> {
                   !snapshot.data!) {
                 return const SizedBox.shrink();
               } else {
-                return IconButton(
+                return const SizedBox.shrink();
+                // TODO Implement insights for events
+                /*return IconButton(
                   icon: const Icon(Icons.insights),
                   onPressed: () {
                     Navigator.push(
@@ -181,12 +184,13 @@ class _EventScreenState extends State<EventScreen> {
                       ),
                     );
                   },
-                );
+                );*/
               }
             },
           ),
         ],
-        bottom: widget.event.type == 'festival'
+        // TODO Implement tabs feature with timetables for bigger events
+        /*bottom: widget.event.type == 'festival'
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(36),
                 child: SizedBox(
@@ -239,17 +243,17 @@ class _EventScreenState extends State<EventScreen> {
                   ),
                 ),
               )
-            : null,
+            : null,*/
       ),
       body: IndexedStack(
         index: _selectedTabIndex,
         children: [
           _buildOverview(),
-          TimetableWidget(event: widget.event),
+          /*TimetableWidget(event: widget.event),
           _buildWallet(),
           _buildStore(),
           _buildMap(),
-          _buildCommunity(),
+          _buildCommunity(),*/
         ],
       ),
     );
@@ -685,7 +689,7 @@ class _EventScreenState extends State<EventScreen> {
     );
   }
 
-  Widget _buildWallet() {
+  /*Widget _buildWallet() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -709,17 +713,17 @@ class _EventScreenState extends State<EventScreen> {
         ],
       ),
     );
-  }
+  }*/
 
-  Widget _buildTransaction(String description, String amount, String status) {
+  /*Widget _buildTransaction(String description, String amount, String status) {
     return ListTile(
       title: Text(description),
       subtitle: Text(status),
       trailing: Text(amount),
     );
-  }
+  }*/
 
-  Widget _buildStore() {
+  /*Widget _buildStore() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -744,9 +748,9 @@ class _EventScreenState extends State<EventScreen> {
         ],
       ),
     );
-  }
+  }*/
 
-  Widget _buildStoreItem(String title, String imageUrl, String price) {
+  /*Widget _buildStoreItem(String title, String imageUrl, String price) {
     return Card(
       child: ListTile(
         leading: Image.asset(imageUrl),
@@ -754,9 +758,9 @@ class _EventScreenState extends State<EventScreen> {
         trailing: Text(price),
       ),
     );
-  }
+  }*/
 
-  Widget _buildMap() {
+  /*Widget _buildMap() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -771,9 +775,9 @@ class _EventScreenState extends State<EventScreen> {
         ],
       ),
     );
-  }
+  }*/
 
-  Widget _buildCommunity() {
+  /*Widget _buildCommunity() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -793,14 +797,14 @@ class _EventScreenState extends State<EventScreen> {
         ],
       ),
     );
-  }
+  }*/
 
-  Widget _buildCommunityPost(String username, String message) {
+  /*Widget _buildCommunityPost(String username, String message) {
     return ListTile(
       title: Text(username),
       subtitle: Text(message),
     );
-  }
+  }*/
 
   Future<Map<String, bool>> _getEventStatus(int eventId) async {
     final bool isInterested =

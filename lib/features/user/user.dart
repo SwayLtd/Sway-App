@@ -45,13 +45,15 @@ class UserScreen extends StatelessWidget {
               } else if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
                 return const SizedBox.shrink();
               } else {
-                final user = snapshot.data!;
+                return const SizedBox.shrink();
+                // TODO Implement sharing system for users
+                /*final user = snapshot.data!;
                 return IconButton(
                   icon: const Icon(Icons.share),
                   onPressed: () {
                     shareEntity('user', userId, user.username);
                   },
-                );
+                );*/
               }
             },
           ),

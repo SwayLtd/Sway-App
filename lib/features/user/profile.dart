@@ -95,12 +95,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('User Profile'),
         actions: [
-          IconButton(
+          // TODO Implement sharing system for user profile
+          /*IconButton(
             icon: const Icon(Icons.qr_code),
             onPressed: () {
               // Share action with QR code
             },
-          ),
+          ),*/
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
