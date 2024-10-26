@@ -10,6 +10,7 @@ Coming soon
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* Database migration #7 - Refactor event data retrieval to use Supabase instead of local JSON storage
 * Database migration #6 - Refactor venue data retrieval to use Supabase instead of local JSON storage
 * Database migration #5 - Refactor promoter data management to use Supabase with updated data types
 * Database migration #4 - Refactor user data retrieval to use Supabase instead of local JSON storage

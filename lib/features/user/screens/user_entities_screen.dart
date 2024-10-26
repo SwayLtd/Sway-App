@@ -1,3 +1,5 @@
+// lib/features/user/screens/user_entities_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
@@ -25,22 +27,36 @@ class UserEntitiesScreen extends StatelessWidget {
   }
 
   Future<void> _navigateToEntity(
-      BuildContext context, String entityType, int entityId,) async {
+    BuildContext context,
+    String entityType,
+    int entityId,
+  ) async {
     switch (entityType) {
       case 'event':
         final event = await EventService().getEventById(entityId);
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => EventScreen(event: event)),
-        );
-              break;
+        if (event != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => EventScreen(event: event)),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Event not found')),
+          );
+        }
+        break;
       case 'venue':
         final venue = await VenueService().getVenueById(entityId);
         if (venue != null) {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => VenueScreen(venueId: venue.id),),
+              builder: (context) => VenueScreen(venueId: venue.id),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Venue not found')),
           );
         }
         break;
@@ -51,32 +67,55 @@ class UserEntitiesScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) =>
-                    PromoterScreen(promoterId: promoter.id),),
+              builder: (context) => PromoterScreen(promoterId: promoter.id),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Promoter not found')),
           );
         }
         break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unknown entity type')),
+        );
     }
   }
 
   Future<void> _editEntity(
-      BuildContext context, String entityType, int entityId,) async {
+    BuildContext context,
+    String entityType,
+    int entityId,
+  ) async {
     switch (entityType) {
       case 'event':
         final event = await EventService().getEventById(entityId);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => EditEventScreen(event: event),),
-        );
-              break;
+        if (event != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditEventScreen(event: event),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Event not found')),
+          );
+        }
+        break;
       case 'venue':
         final venue = await VenueService().getVenueById(entityId);
         if (venue != null) {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => EditVenueScreen(venue: venue),),
+              builder: (context) => EditVenueScreen(venue: venue),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Venue not found')),
           );
         }
         break;
@@ -87,11 +126,19 @@ class UserEntitiesScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) =>
-                    EditPromoterScreen(promoter: promoter),),
+              builder: (context) => EditPromoterScreen(promoter: promoter),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Promoter not found')),
           );
         }
         break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unknown entity type')),
+        );
     }
   }
 
@@ -105,6 +152,7 @@ class UserEntitiesScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Events Section
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
@@ -139,14 +187,15 @@ class UserEntitiesScreen extends StatelessWidget {
                             final event = eventSnapshot.data!;
                             return ListTile(
                               title: Text(event.title),
-                              subtitle: Text('Role: ${permission.permission}'),
+                              subtitle:
+                                  Text('Role: ${permission.permission}'),
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(
-                                    context, 'event', permission.entityId,),
+                                    context, 'event', permission.entityId),
                               ),
                               onTap: () => _navigateToEntity(
-                                  context, 'event', permission.entityId,),
+                                  context, 'event', permission.entityId),
                             );
                           }
                         },
@@ -156,6 +205,7 @@ class UserEntitiesScreen extends StatelessWidget {
                 }
               },
             ),
+            // Venues Section
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
@@ -190,14 +240,15 @@ class UserEntitiesScreen extends StatelessWidget {
                             final venue = venueSnapshot.data!;
                             return ListTile(
                               title: Text(venue.name),
-                              subtitle: Text('Role: ${permission.permission}'),
+                              subtitle:
+                                  Text('Role: ${permission.permission}'),
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(
-                                    context, 'venue', permission.entityId,),
+                                    context, 'venue', permission.entityId),
                               ),
                               onTap: () => _navigateToEntity(
-                                  context, 'venue', permission.entityId,),
+                                  context, 'venue', permission.entityId),
                             );
                           }
                         },
@@ -207,6 +258,7 @@ class UserEntitiesScreen extends StatelessWidget {
                 }
               },
             ),
+            // Promoters Section
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
@@ -241,14 +293,15 @@ class UserEntitiesScreen extends StatelessWidget {
                             final promoter = promoterSnapshot.data!;
                             return ListTile(
                               title: Text(promoter.name),
-                              subtitle: Text('Role: ${permission.permission}'),
+                              subtitle:
+                                  Text('Role: ${permission.permission}'),
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(
-                                    context, 'promoter', permission.entityId,),
+                                    context, 'promoter', permission.entityId),
                               ),
                               onTap: () => _navigateToEntity(
-                                  context, 'promoter', permission.entityId,),
+                                  context, 'promoter', permission.entityId),
                             );
                           }
                         },

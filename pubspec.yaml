@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.2.6 # Database migration #6 - Refactor venue data retrieval to use Supabase instead of local JSON storage
+version: 0.2.7 # Database migration #7 - Refactor event data retrieval to use Supabase instead of local JSON storage
 
 
 environment:
@@ -98,32 +98,5 @@ flutter:
     - .env
     - assets/
     - assets/images/icon.png
-    - assets/databases/events.json
-    - assets/databases/artists.json
-    - assets/databases/promoters.json
-    - assets/databases/venues.json
-    - assets/databases/genres.json
-    - assets/databases/users.json
-    - assets/databases/tickets.json
-    - assets/databases/orders.json
-    - assets/databases/invoices.json
-    - assets/databases/items.json
-    - assets/databases/join_table/user_permissions.json
-    - assets/databases/join_table/artist_genre.json
-    - assets/databases/join_table/event_artist.json
-    - assets/databases/join_table/event_genre.json
-    - assets/databases/join_table/event_promoter.json
-    - assets/databases/join_table/similar_artists.json
-    - assets/databases/join_table/venue_genres.json
-    - assets/databases/join_table/venue_promoter.json
-    - assets/databases/join_table/venue_resident_artists.json
-    - assets/databases/join_table/user_follow_artist.json
-    - assets/databases/join_table/user_follow_genre.json
-    - assets/databases/join_table/user_follow_venue.json
-    - assets/databases/join_table/user_follow_promoter.json
-    - assets/databases/join_table/user_follow_user.json
-    - assets/databases/join_table/user_interest_event.json
-    - assets/databases/join_table/user_event_ticket.json
-    - assets/databases/join_table/order_items.json
 
   generate: true

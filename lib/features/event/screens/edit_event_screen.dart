@@ -20,9 +20,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   late TextEditingController _priceController;
-  late List _selectedGenres;
-  late List _selectedArtists;
-  late List _selectedPromoters;
+  late List<int> _selectedGenres;
+  late List<int> _selectedArtists;
+  late List<int> _selectedPromoters;
   late String _selectedType;
 
   @override

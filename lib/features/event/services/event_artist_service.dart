@@ -1,70 +1,167 @@
-// event_artist_service.dart
+// lib/features/event/services/event_artist_service.dart
 
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
+import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
 
 class EventArtistService {
+  final SupabaseClient _supabase = Supabase.instance.client;
+  final ArtistService _artistService = ArtistService();
+  final EventService _eventService = EventService();
+
+  /// Retrieves artists associated with a specific event.
   Future<List<Map<String, dynamic>>> getArtistsByEventId(int eventId) async {
-    final String response = await rootBundle
-        .loadString('assets/databases/join_table/event_artist.json');
-    final List<dynamic> eventArtistJson =
-        json.decode(response) as List<dynamic>;
-    final artistEntries =
-        eventArtistJson.where((entry) => entry['event_id'] == eventId).toList();
+  final response =
+      await _supabase.from('event_artist').select().eq('event_id', eventId);
 
-    final artists = await ArtistService().getArtists();
-    final artistMap = {for (final artist in artists) artist.id: artist};
-
-    return artistEntries.map((entry) {
-      final artistIds = (entry['artist_id'] as List<dynamic>)
-          .map((id) => artistMap[id])
-          .toList();
-      final validArtists = artistIds.where((artist) => artist != null).toList();
-      return {
-        'artists': validArtists,
-        'custom_name': entry['custom_name'] as String?,
-        'start_time':
-            DateTime.parse(entry['start_time']),
-        'end_time':
-            DateTime.parse(entry['end_time']),
-        'status': (entry['status'] as String?) ?? '',
-        'stage': (entry['stage'] as String?) ?? '',
-      };
-    }).toList();
+  if (response.isEmpty) {
+    return [];
   }
 
-  Future<List<Map<String, dynamic>>> getEventsByArtistId(
-    int artistId,
-  ) async {
-    final String response = await rootBundle
-        .loadString('assets/databases/join_table/event_artist.json');
-    final List<dynamic> eventArtistJson =
-        json.decode(response) as List<dynamic>;
-    final eventEntries = eventArtistJson
-        .where(
-          (entry) => (entry['artist_id'] as List<dynamic>).contains(artistId),
-        )
-        .toList();
+  // Extract artist IDs
+  final Set<int> artistIds = {};
 
-    final events = await EventService().getEvents();
-    final eventMap = {for (final event in events) event.id: event};
+  for (final entry in response) {
+    final artistIdField = entry['artist_id'];
+    if (artistIdField is int) {
+      artistIds.add(artistIdField);
+    } else if (artistIdField is List) {
+      artistIds.addAll(artistIdField.cast<int>());
+    } else if (artistIdField is String) {
+      final ids = artistIdField
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .split(',')
+          .map((id) => int.parse(id.trim()))
+          .toList();
+      artistIds.addAll(ids);
+    } else {
+      continue;
+    }
+  }
 
-    return eventEntries.map((entry) {
-      final event = eventMap[entry['event_id']];
+  final List<Artist> artists =
+      await _artistService.getArtistsByIds(artistIds.toList());
+
+  return response.map<Map<String, dynamic>>((entry) {
+    final artistIdField = entry['artist_id'];
+    List<Artist> associatedArtists = [];
+
+    if (artistIdField is int) {
+      associatedArtists =
+          artists.where((artist) => artist.id == artistIdField).toList();
+    } else if (artistIdField is List) {
+      final ids = artistIdField.cast<int>();
+      associatedArtists =
+          artists.where((artist) => ids.contains(artist.id)).toList();
+    } else if (artistIdField is String) {
+      final ids = artistIdField
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .split(',')
+          .map((id) => int.parse(id.trim()))
+          .toList();
+      associatedArtists =
+          artists.where((artist) => ids.contains(artist.id)).toList();
+    }
+
+    return {
+      'artists': associatedArtists,
+      'custom_name': entry['custom_name'] as String?,
+      'start_time': entry['start_time'] != null
+          ? DateTime.parse(entry['start_time'])
+          : null,
+      'end_time': entry['end_time'] != null
+          ? DateTime.parse(entry['end_time'])
+          : null,
+      'status': entry['status'] as String? ?? '',
+      'stage': entry['stage'] as String? ?? '',
+    };
+  }).toList();
+}
+
+
+  /// Retrieves events associated with a specific artist.
+  Future<List<Map<String, dynamic>>> getEventsByArtistId(int artistId) async {
+    final response = await _supabase.from('event_artist').select();
+
+    if (response.isEmpty) {
+      return [];
+    }
+
+    final Set<int> eventIds = {};
+
+    for (final entry in response) {
+      final artistIdField = entry['artist_id'];
+
+      bool artistMatches = false;
+
+      if (artistIdField is int) {
+        artistMatches = artistIdField == artistId;
+      } else if (artistIdField is List) {
+        artistMatches = artistIdField.contains(artistId);
+      } else if (artistIdField is String) {
+        // Gérer le cas où artist_id est une chaîne, ex: "[1]"
+        final ids = artistIdField
+            .replaceAll('[', '')
+            .replaceAll(']', '')
+            .split(',')
+            .map((id) => int.parse(id.trim()))
+            .toList();
+        artistMatches = ids.contains(artistId);
+      }
+
+      if (artistMatches) {
+        eventIds.add(entry['event_id'] as int);
+      }
+    }
+
+    if (eventIds.isEmpty) {
+      return [];
+    }
+
+    final List<Event> events =
+        await _eventService.getEventsByIds(eventIds.toList());
+
+    return response.where((entry) {
+      final artistIdField = entry['artist_id'];
+
+      bool artistMatches = false;
+
+      if (artistIdField is int) {
+        artistMatches = artistIdField == artistId;
+      } else if (artistIdField is List) {
+        artistMatches = artistIdField.contains(artistId);
+      } else if (artistIdField is String) {
+        final ids = artistIdField
+            .replaceAll('[', '')
+            .replaceAll(']', '')
+            .split(',')
+            .map((id) => int.parse(id.trim()))
+            .toList();
+        artistMatches = ids.contains(artistId);
+      }
+
+      return artistMatches;
+    }).map<Map<String, dynamic>>((entry) {
+      final int eventId = entry['event_id'] as int;
+      final matchingEvents = events.where((e) => e.id == eventId);
+      final Event? event =
+          matchingEvents.isNotEmpty ? matchingEvents.first : null;
+
       return {
         'event': event,
-        'start_time':
-            entry['start_time'],
-        'end_time':
-            entry['end_time'],
-        'status': (entry['status'] as String?) ?? '',
-        'stage': (entry['stage'] as String?) ?? '',
+        'start_time': entry['start_time'] as String?,
+        'end_time': entry['end_time'] as String?,
+        'status': entry['status'] as String? ?? '',
+        'stage': entry['stage'] as String? ?? '',
       };
     }).toList();
   }
 
+  /// Retrieves artists associated with a specific event and within a specific day.
   Future<List<Map<String, dynamic>>> getArtistsByEventIdAndDay(
     int eventId,
     DateTime day,
@@ -72,13 +169,17 @@ class EventArtistService {
     final List<Map<String, dynamic>> artists =
         await getArtistsByEventId(eventId);
 
-    // Obtenir l'heure de début du festival
+    // Get the festival start time
     final DateTime? festivalStartTime =
-        await EventService().getFestivalStartTime(eventId);
+        await _eventService.getFestivalStartTime(eventId);
 
-    // Définir l'heure de début du jour de festival en fonction du jour précédent
+    if (festivalStartTime == null) {
+      return [];
+    }
+
+    // Define the start time of the festival day based on the previous day
     DateTime dayStart;
-    if (day.isAtSameMomentAs(festivalStartTime!)) {
+    if (day.isAtSameMomentAs(festivalStartTime)) {
       dayStart = festivalStartTime;
     } else {
       dayStart = await _getPreviousDayEndTime(eventId, day);
@@ -87,14 +188,12 @@ class EventArtistService {
     final DateTime dayEnd = dayStart.add(const Duration(days: 1));
 
     final List<Map<String, dynamic>> filteredArtists = artists.where((entry) {
-      final startTimeStr = entry['start_time'] as String?;
-      final endTimeStr = entry['end_time'] as String?;
-      if (startTimeStr != null && endTimeStr != null) {
-        final startTime = DateTime.parse(startTimeStr);
-        final endTime = DateTime.parse(endTimeStr);
+      final DateTime? startTime = entry['start_time'] as DateTime?;
+      final DateTime? endTime = entry['end_time'] as DateTime?;
 
+      if (startTime != null && endTime != null) {
         // Performance falls within the festival day window
-        final isWithinDay =
+        final bool isWithinDay =
             (startTime.isAfter(dayStart) && startTime.isBefore(dayEnd)) ||
                 (endTime.isAfter(dayStart) && endTime.isBefore(dayEnd)) ||
                 (startTime.isBefore(dayStart) && endTime.isAfter(dayStart));
@@ -107,6 +206,7 @@ class EventArtistService {
     return filteredArtists;
   }
 
+  /// Helper method to get the end time of the previous day.
   Future<DateTime> _getPreviousDayEndTime(int eventId, DateTime day) async {
     final List<Map<String, dynamic>> artists =
         await getArtistsByEventId(eventId);
@@ -120,15 +220,13 @@ class EventArtistService {
     DateTime previousDayEndTime = dayStart;
 
     for (final entry in artists) {
-      final startTimeStr = entry['start_time'] as String?;
-      final endTimeStr = entry['end_time'] as String?;
-      if (startTimeStr != null && endTimeStr != null) {
-        DateTime.parse(startTimeStr);
-        final endTime = DateTime.parse(endTimeStr);
-
-        if (endTime.isBefore(day) && endTime.isAfter(previousDayEndTime)) {
-          previousDayEndTime = endTime;
-        }
+      final DateTime? endTime = entry['end_time'] != null
+          ? DateTime.parse(entry['end_time'] as String)
+          : null;
+      if (endTime != null &&
+          endTime.isBefore(day) &&
+          endTime.isAfter(previousDayEndTime)) {
+        previousDayEndTime = endTime;
       }
     }
 

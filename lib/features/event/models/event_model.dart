@@ -1,4 +1,4 @@
-// event_model.dart
+// lib/features/event/models/event_model.dart
 
 class Event {
   final int id;
@@ -11,9 +11,9 @@ class Event {
   final String imageUrl;
   final String distance;
   final String price;
-  final List promoters;
-  final List genres;
-  final List artists;
+  final List<int> promoters;
+  final List<int> genres;
+  final List<int> artists;
 
   Event({
     required this.id,
@@ -33,19 +33,46 @@ class Event {
 
   factory Event.fromJson(Map<String, dynamic> json) {
     return Event(
-      id: json['id'],
+      id: json['id'] as int,
       title: json['title'] as String? ?? '',
       type: json['type'] as String? ?? '',
-      dateTime: DateTime.parse(json['date_time']),
-      endDateTime: DateTime.parse(json['end_date_time']),
-      venue: json['venue'] ?? 0,
+      dateTime: DateTime.parse(json['date_time'] as String),
+      endDateTime: DateTime.parse(json['end_date_time'] as String),
+      venue: json['venue'] as int? ?? 0,
       description: json['description'] as String? ?? '',
       imageUrl: json['image_url'] as String? ?? '',
       distance: json['distance'] as String? ?? '',
       price: json['price'] as String? ?? '',
-      promoters: (json['promoters'] as List?)?.map((e) => e).toList() ?? [],
-      genres: (json['genres'] as List?)?.map((e) => e).toList() ?? [],
-      artists: (json['artists'] as List?)?.map((e) => e).toList() ?? [],
+      promoters: (json['promoters'] as List<dynamic>?)
+              ?.map((e) => e as int)
+              .toList() ??
+          [],
+      genres: (json['genres'] as List<dynamic>?)
+              ?.map((e) => e as int)
+              .toList() ??
+          [],
+      artists: (json['artists'] as List<dynamic>?)
+              ?.map((e) => e as int)
+              .toList() ??
+          [],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'type': type,
+      'date_time': dateTime.toIso8601String(),
+      'end_date_time': endDateTime.toIso8601String(),
+      'venue': venue,
+      'description': description,
+      'image_url': imageUrl,
+      'distance': distance,
+      'price': price,
+      'promoters': promoters,
+      'genres': genres,
+      'artists': artists,
+    };
   }
 }

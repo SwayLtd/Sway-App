@@ -11,9 +11,7 @@ import 'package:sway/features/event/screens/edit_event_screen.dart';
 import 'package:sway/features/event/services/event_artist_service.dart';
 import 'package:sway/features/event/services/event_genre_service.dart';
 import 'package:sway/features/event/services/event_promoter_service.dart';
-import 'package:sway/features/event/widgets/event_appbar_item.dart';
 import 'package:sway/features/event/widgets/info_card.dart';
-import 'package:sway/features/event/widgets/timetable/timetable.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/insight/insight.dart';
@@ -358,7 +356,7 @@ class _EventScreenState extends State<EventScreen> {
 
                         final DateTime startTime = entry['start_time'];
 
-                        final DateTime endTime = entry['end_time'] as DateTime;
+                        final DateTime endTime = entry['end_time'];
 
                         final status = entry['status'] as String?;
 

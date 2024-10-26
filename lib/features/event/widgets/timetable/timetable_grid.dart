@@ -66,17 +66,19 @@ class _GridViewWidgetState extends State<GridViewWidget> {
 
     // Sort artists by start time
     artistsToShow.sort((a, b) {
-      final startTimeA = DateTime.parse(a['start_time'] as String);
-      final startTimeB = DateTime.parse(b['start_time'] as String);
-      return startTimeA.compareTo(startTimeB);
+      final DateTime? startTimeA = a['start_time'];
+      final DateTime? startTimeB = b['start_time'];
+      return startTimeA!.compareTo(startTimeB!);
     });
 
     final DateTime earliestTime = artistsToShow
-        .map((e) => DateTime.parse(e['start_time'] as String))
+        .map((e) => e['start_time'])
         .reduce((a, b) => a.isBefore(b) ? a : b);
+
     final DateTime latestTime = artistsToShow
-        .map((e) => DateTime.parse(e['end_time'] as String))
+        .map((e) => e['end_time'])
         .reduce((a, b) => a.isAfter(b) ? a : b);
+
     final now = DateTime.now();
 
     final DateTime currentTime = now.isAfter(latestTime) ? earliestTime : now;
@@ -215,8 +217,8 @@ class _GridViewWidgetState extends State<GridViewWidget> {
 
     // Sort artists by start time
     artistsToShow.sort((a, b) {
-      final startTimeA = DateTime.parse(a['start_time'] as String);
-      final startTimeB = DateTime.parse(b['start_time'] as String);
+      final startTimeA = DateTime.parse(a['start_time']);
+      final startTimeB = DateTime.parse(b['start_time']);
       return startTimeA.compareTo(startTimeB);
     });
 
@@ -228,10 +230,10 @@ class _GridViewWidgetState extends State<GridViewWidget> {
         .toList();
 
     final DateTime earliestTime = artistsToShow
-        .map((e) => DateTime.parse(e['start_time'] as String))
+        .map((e) => DateTime.parse(e['start_time']))
         .reduce((a, b) => a.isBefore(b) ? a : b);
     final DateTime latestTime = artistsToShow
-        .map((e) => DateTime.parse(e['end_time'] as String))
+        .map((e) => DateTime.parse(e['end_time']))
         .reduce((a, b) => a.isAfter(b) ? a : b);
 
     final List<DateTime> hours = [];
@@ -364,14 +366,11 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                     (artistMap['artists'] as List<dynamic>)
                                         .map((artist) => artist as Artist)
                                         .toList();
-                                final customName =
-                                    artistMap['custom_name'] as String?;
-                                final startTime = DateTime.parse(
-                                  artistMap['start_time'] as String,
-                                );
-                                final endTime = DateTime.parse(
-                                  artistMap['end_time'] as String,
-                                );
+                                final customName = artistMap['custom_name'];
+                                final DateTime startTime =
+                                    artistMap['start_time'];
+                                final DateTime endTime = artistMap['end_time'];
+
                                 final durationInHours =
                                     endTime.difference(startTime).inMinutes /
                                         60.0;
@@ -380,7 +379,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                             .inMinutes /
                                         60.0 -
                                     accumulatedOffset;
-                                final status = artistMap['status'] as String?;
+                                final status = artistMap['status'];
 
                                 // Skip if overlaps with previous artist
                                 if (lastEndTime != null &&
@@ -404,17 +403,18 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                     .where((e) => e['stage'] == stage)) {
                                   if (artistMap == otherArtistMap) continue;
 
-                                  final otherStartTime = DateTime.parse(
-                                    otherArtistMap['start_time'] as String,
-                                  );
-                                  final otherEndTime = DateTime.parse(
-                                    otherArtistMap['end_time'] as String,
-                                  );
+                                  final DateTime? otherStartTime =
+                                      otherArtistMap['start_time'];
+                                  final DateTime? otherEndTime =
+                                      otherArtistMap['end_time'];
 
-                                  if (startTime.isBefore(otherEndTime) &&
-                                      endTime.isAfter(otherStartTime)) {
-                                    isOverlap = true;
-                                    break;
+                                  if (otherStartTime != null &&
+                                      otherEndTime != null) {
+                                    if (startTime.isBefore(otherEndTime) &&
+                                        endTime.isAfter(otherStartTime)) {
+                                      isOverlap = true;
+                                      break;
+                                    }
                                   }
                                 }
 

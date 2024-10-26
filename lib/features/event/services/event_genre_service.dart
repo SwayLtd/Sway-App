@@ -1,13 +1,31 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
+// lib/features/event/services/event_genre_service.dart
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class EventGenreService {
-  Future<List> getGenresByEventId(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/event_genre.json');
-    final List<dynamic> eventGenreJson = json.decode(response) as List<dynamic>;
-    return eventGenreJson
-        .where((entry) => entry['event_id'] == eventId)
-        .map((entry) => entry['genre_id'])
-        .toList();
+  final SupabaseClient _supabase = Supabase.instance.client;
+
+  /// Retrieves genres associated with a specific event.
+  Future<List<int>> getGenresByEventId(int eventId) async {
+    try {
+      // Fetch event_genre relations from Supabase
+      final response = await _supabase
+          .from('event_genre')
+          .select('genre_id')
+          .eq('event_id', eventId);
+
+      // Log the response
+      print('getGenresByEventId Response: $response');
+
+      if (response.isEmpty) {
+        return [];
+      }
+
+      // Extract genre IDs
+      return response.map<int>((entry) => entry['genre_id'] as int).toList();
+    } catch (e) {
+      print('Error in getGenresByEventId: $e');
+      rethrow;
+    }
   }
 }

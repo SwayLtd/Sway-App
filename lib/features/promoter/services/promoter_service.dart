@@ -1,6 +1,7 @@
 // lib/features/promoter/services/promoter_service.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
@@ -44,8 +45,34 @@ class PromoterService {
       return null;
     }
 
-    final events = await EventService().getEvents();
-    return Promoter.fromJson(response, events);
+    // Récupérer les IDs des événements associés au promoteur
+    final eventPromoterResponse = await _supabase
+        .from('event_promoter')
+        .select('event_id')
+        .eq('promoter_id', id);
+
+    final List<int> eventIds = eventPromoterResponse
+        .map<int>((entry) => entry['event_id'] as int)
+        .toList();
+
+    if (eventIds.isEmpty) {
+      // Aucun événement associé
+      return Promoter.fromJson(response, []);
+    }
+
+    // Filtrer les événements à venir
+    final now = DateTime.now();
+    final upcomingEventsResponse = await _supabase
+        .from('events')
+        .select()
+        .filter('id', 'in', eventIds)
+        .gte('date_time', now.toIso8601String());
+
+    final List<Event> upcomingEvents = upcomingEventsResponse
+        .map<Event>((entry) => Event.fromJson(entry))
+        .toList();
+
+    return Promoter.fromJson(response, upcomingEvents);
   }
 
   Future<List<Promoter>> getPromoters() async {

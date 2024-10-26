@@ -1,111 +1,202 @@
-// event_service.dart
+// lib/features/event/services/event_service.dart
 
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/user/models/user_event_ticket_model.dart';
 import 'package:sway/features/user/services/user_event_ticket_service.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
 
 class EventService {
+  final SupabaseClient _supabase = Supabase.instance.client;
   final UserPermissionService _permissionService = UserPermissionService();
   final UserEventTicketService _userEventTicketService = UserEventTicketService();
 
+  /// Retrieves all events from Supabase.
   Future<List<Event>> getEvents() async {
-    final String response = await rootBundle.loadString('assets/databases/events.json');
-    final List<dynamic> eventJson = json.decode(response) as List<dynamic>;
-    return eventJson.map((json) => Event.fromJson(json as Map<String, dynamic>)).toList();
+    final response = await _supabase.from('events').select();
+
+    if (response.isEmpty) {
+      throw Exception('No events found.');
+    }
+
+    return response.map<Event>((json) => Event.fromJson(json)).toList();
   }
 
-  Future<Event> getEventById(int eventId) async {
-    final events = await getEvents();
-    return events.firstWhere((event) => event.id == eventId);
+  /// Retrieves a single event by its ID from Supabase.
+  Future<Event?> getEventById(int eventId) async {
+    final response = await _supabase.from('events').select().eq('id', eventId).maybeSingle();
+
+    if (response == null) {
+      return null;
+    }
+
+    return Event.fromJson(response);
   }
 
+  /// Searches for events based on a query and additional filters.
   Future<List<Event>> searchEvents(String query, Map<String, dynamic> filters) async {
-  final events = await getEvents();
-  final genres = await _getEventGenres();
+    // Initialize the query builder.
+    var builder = _supabase.from('events').select();
 
-  return events.where((event) {
-    final eventTitleLower = event.title.toLowerCase();
-    final searchLower = query.toLowerCase();
-    final bool matchesQuery = eventTitleLower.contains(searchLower);
+    // Apply title filter using ILIKE for case-insensitive search.
+    if (query.isNotEmpty) {
+      builder = builder.ilike('title', '%$query%');
+    }
 
-    final String? cityFilter = filters['city'] as String?;
-    final DateTime? dateFilter = filters['date'] as DateTime?;
-    final List<int>? genreFilter = (filters['genres'] as List<dynamic>?)?.cast<int>();
-    final bool nearMeFilter = filters['near_me'] as bool? ?? false;
+    // Apply date filter if provided.
+    if (filters.containsKey('date') && filters['date'] is DateTime) {
+      DateTime dateFilter = filters['date'] as DateTime;
+      String startOfDay = DateTime(dateFilter.year, dateFilter.month, dateFilter.day).toIso8601String();
+      String endOfDay = DateTime(dateFilter.year, dateFilter.month, dateFilter.day, 23, 59, 59).toIso8601String();
+      builder = builder.gte('date_time', startOfDay).lte('date_time', endOfDay);
+    }
 
-    final bool matchesCity = cityFilter == null || event.venue == cityFilter;
-    final bool matchesDate = dateFilter == null || _isSameDate(event.dateTime, dateFilter);
-    final bool matchesGenre = genreFilter == null || genreFilter.isEmpty || genreFilter.any((genre) => genres[event.id]?.contains(genre) == true);
-    final bool matchesNearMe = !nearMeFilter; // Implement the "near me" logic later
+    // Apply genre filter if provided.
+    if (filters.containsKey('genres') && filters['genres'] is List<int>) {
+      List<int> genreFilter = filters['genres'] as List<int>;
+      if (genreFilter.isNotEmpty) {
+        String orFilter = genreFilter.map((genreId) => 'genre_id.eq.$genreId').join(',');
+        builder = builder.or(orFilter);
+      }
+    }
 
-    return matchesQuery && matchesCity && matchesDate && matchesGenre && matchesNearMe;
-  }).toList();
-}
+    // Apply city filter if provided.
+    if (filters.containsKey('city') && filters['city'] is String) {
+      String cityFilter = filters['city'] as String;
+      // Assuming there is a foreign key relationship set up in Supabase between events and venues.
+      // Replace 'venues.city' with the actual field path if different.
+      builder = builder.eq('venue.city', cityFilter);
+    }
 
-bool _isSameDate(DateTime date1, DateTime date2) {
-  return date1.year == date2.year && date1.month == date2.month && date1.day == date2.day;
-}
+    // Apply 'near_me' filter if needed (implementation pending).
+    if (filters.containsKey('near_me') && filters['near_me'] is bool) {
+      bool nearMeFilter = filters['near_me'] as bool;
+      if (nearMeFilter) {
+        // Implement the "near me" logic here.
+        // This might involve geolocation queries which require additional setup.
+      }
+    }
 
+    final response = await builder;
 
-  Future<Map<int, List>> _getEventGenres() async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/event_genre.json');
-    final List<dynamic> genreJson = json.decode(response) as List<dynamic>;
-    final Map<int, List> eventGenres = {};
+    if (response.isEmpty) {
+      return [];
+    }
 
-    for (final entry in genreJson) {
-      final eventId = entry['event_id'];
-      final genreId = entry['genre_id'];
+    return response.map<Event>((json) => Event.fromJson(json)).toList();
+  }
+
+  /// Helper method to check if two dates are on the same day.
+  bool _isSameDate(DateTime date1, DateTime date2) {
+    return date1.year == date2.year && date1.month == date2.month && date1.day == date2.day;
+  }
+
+  /// Retrieves event genres from the 'event_genre' join table.
+  Future<Map<int, List<int>>> _getEventGenres() async {
+    final response = await _supabase.from('event_genre').select();
+
+    if (response.isEmpty) {
+      return {};
+    }
+
+    final Map<int, List<int>> eventGenres = {};
+
+    for (final entry in response) {
+      final int eventId = entry['event_id'] as int;
+      final int genreId = entry['genre_id'] as int;
       eventGenres.putIfAbsent(eventId, () => []).add(genreId);
     }
 
     return eventGenres;
   }
 
+  /// Adds a new event to Supabase.
   Future<void> addEvent(Event event) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(event.id, 'event', 'admin');
+    final bool hasPermission = await _permissionService.hasPermissionForCurrentUser(
+      event.id,
+      'event',
+      'admin',
+    );
+
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
-    // Logic to add event
+
+    final response = await _supabase.from('events').insert(event.toJson());
+
+    if (response.isEmpty) {
+      throw Exception('Failed to add event.');
+    }
   }
 
+  /// Updates an existing event in Supabase.
   Future<void> updateEvent(Event event) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(event.id, 'event', 'manager');
+    final bool hasPermission = await _permissionService.hasPermissionForCurrentUser(
+      event.id,
+      'event',
+      'manager',
+    );
+
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
-    // Logic to update event
+
+    final response = await _supabase.from('events').update(event.toJson()).eq('id', event.id);
+
+    if (response.isEmpty) {
+      throw Exception('Failed to update event.');
+    }
   }
 
+  /// Deletes an event from Supabase.
   Future<void> deleteEvent(int eventId) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(eventId, 'event', 'admin');
+    final bool hasPermission = await _permissionService.hasPermissionForCurrentUser(
+      eventId,
+      'event',
+      'admin',
+    );
+
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
-    // Logic to delete event
+
+    final response = await _supabase.from('events').delete().eq('id', eventId);
+
+    if (response.isEmpty) {
+      throw Exception('Failed to delete event.');
+    }
   }
 
+  /// Retrieves user tickets for a specific event.
   Future<List<UserEventTicket>> getUserTicketsForEvent(int eventId) async {
     return await _userEventTicketService.getTicketsByEventId(eventId);
   }
 
-  // Ajout de la méthode getEventsByIds
-  Future<List<Event>> getEventsByIds(List eventIds) async {
-    final events = await getEvents();
-    return events.where((event) => eventIds.contains(event.id)).toList();
+  /// Retrieves events by a list of event IDs.
+  Future<List<Event>> getEventsByIds(List<int> eventIds) async {
+    if (eventIds.isEmpty) {
+      return [];
+    }
+
+    // Build the 'or' filter for Supabase.
+    final String orFilter = eventIds.map((id) => 'id.eq.$id').join(',');
+
+    final response = await _supabase.from('events').select().or(orFilter);
+
+    if (response.isEmpty) {
+      return [];
+    }
+
+    return response.map<Event>((json) => Event.fromJson(json)).toList();
   }
 
+  /// Retrieves the festival start time for a specific event.
   Future<DateTime?> getFestivalStartTime(int eventId) async {
-  final String response = await rootBundle.loadString('assets/databases/events.json');
-  final List<dynamic> eventsJson = json.decode(response) as List<dynamic>;
+    final response = await _supabase.from('events').select('date_time').eq('id', eventId).maybeSingle();
 
-  final event = eventsJson.firstWhere((event) => event['id'] == eventId, orElse: () => null);
-  if (event != null) {
-    return DateTime.parse(event['date_time'] as String);
+    if (response != null && response.containsKey('date_time')) {
+      return DateTime.parse(response['date_time'] as String);
+    }
+    return null;
   }
-  return null;
-}
 }

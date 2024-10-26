@@ -1,18 +1,39 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
+// lib/features/event/services/event_promoter_service.dart
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 
 class EventPromoterService {
-  Future<List<Promoter>> getPromotersByEventId(int eventId) async {
-    final String response = await rootBundle.loadString('assets/databases/join_table/event_promoter.json');
-    final List<dynamic> eventPromoterJson = json.decode(response) as List<dynamic>;
-    final promoterIds = eventPromoterJson
-        .where((entry) => entry['event_id'] == eventId)
-        .map((entry) => entry['promoter_id'])
-        .toList();
+  final SupabaseClient _supabase = Supabase.instance.client;
+  final PromoterService _promoterService = PromoterService();
 
-    final promoters = await PromoterService().getPromoters();
-    return promoters.where((promoter) => promoterIds.contains(promoter.id)).toList();
+  /// Retrieves promoters associated with a specific event.
+  Future<List<Promoter>> getPromotersByEventId(int eventId) async {
+    try {
+      // Fetch event_promoter relations from Supabase
+      final response = await _supabase
+          .from('event_promoter')
+          .select('promoter_id')
+          .eq('event_id', eventId);
+
+      // Log the response
+      print('getPromotersByEventId Response: $response');
+
+      if (response.isEmpty) {
+        return [];
+      }
+
+      // Extract promoter IDs
+      final List<int> promoterIds = response
+          .map<int>((entry) => entry['promoter_id'] as int)
+          .toList();
+
+      // Fetch promoters by IDs
+      return await _promoterService.getPromotersByIds(promoterIds);
+    } catch (e) {
+      print('Error in getPromotersByEventId: $e');
+      rethrow;
+    }
   }
 }

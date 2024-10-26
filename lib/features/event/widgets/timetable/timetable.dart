@@ -100,12 +100,11 @@ class _TimetableWidgetState extends State<TimetableWidget> {
         } else {
           final List<DateTime> festivalDays = snapshot.data!;
 
-          // Assurez-vous que `selectedDay` est valide
-          if (!festivalDays.contains(selectedDay)) {
-            setState(() {
-              selectedDay = festivalDays.first;
-            });
-          }
+          // Déterminer le jour sélectionné effectif sans appeler setState
+          final DateTime effectiveSelectedDay =
+              festivalDays.contains(selectedDay)
+                  ? selectedDay
+                  : festivalDays.first;
 
           return Column(
             children: [
@@ -117,7 +116,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     Padding(
                       padding: const EdgeInsets.only(left: 16.0),
                       child: DropdownButton<DateTime>(
-                        value: selectedDay,
+                        value: effectiveSelectedDay,
                         onChanged: (DateTime? newValue) async {
                           if (newValue != null && newValue != selectedDay) {
                             setState(() {
@@ -125,9 +124,9 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                             });
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.setString(
-                                'lastSelectedDay', newValue.toIso8601String(),);
+                                'lastSelectedDay', newValue.toIso8601String());
                             await prefs.setString('lastSelectedTime',
-                                DateTime.now().toIso8601String(),);
+                                DateTime.now().toIso8601String());
                           }
                         },
                         items: festivalDays.map((DateTime date) {
@@ -178,8 +177,10 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                       eventArtists = artistSnapshot.data!;
 
                       final filteredArtists = eventArtists
-                          .where((artist) =>
-                              selectedStages.contains(artist['stage']),)
+                          .where(
+                            (artist) =>
+                                selectedStages.contains(artist['stage']),
+                          )
                           .toList();
 
                       if (filteredArtists.isEmpty) {

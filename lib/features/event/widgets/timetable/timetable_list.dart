@@ -17,10 +17,11 @@ Future<Widget> buildListView(
   bool showOnlyFollowedArtists,
 ) async {
   final Map<String, List<Map<String, dynamic>>> artistsByStage = {};
-  final UserFollowArtistService userFollowArtistService = UserFollowArtistService();
+  final UserFollowArtistService userFollowArtistService =
+      UserFollowArtistService();
 
   for (final entry in eventArtists) {
-    final stage = entry['stage'] as String?;
+    final stage = entry['stage'];
     if (stage != null) {
       if (!selectedStages.contains(stage)) {
         continue;
@@ -47,15 +48,9 @@ Future<Widget> buildListView(
   // Trier les artistes par heure de début pour chaque stage
   for (final stage in artistsByStage.keys) {
     artistsByStage[stage]!.sort((a, b) {
-      final startTimeA = a['start_time'] is String
-          ? DateTime.parse(a['start_time'] as String)
-          : a['start_time'] as DateTime;
-
-      final startTimeB = b['start_time'] is String
-          ? DateTime.parse(b['start_time'] as String)
-          : b['start_time'] as DateTime;
-
-      return startTimeA.compareTo(startTimeB);
+      final DateTime? startTimeA = a['start_time'];
+      final DateTime? startTimeB = b['start_time'];
+      return startTimeA!.compareTo(startTimeB!);
     });
   }
 
@@ -69,7 +64,8 @@ Future<Widget> buildListView(
       ...filteredStages.map((stage) {
         return SliverStickyHeader(
           header: Container(
-            color: Theme.of(context).scaffoldBackgroundColor, // Match app background
+            color: Theme.of(context)
+                .scaffoldBackgroundColor, // Match app background
             padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
             child: Text(
               stage,
@@ -89,16 +85,11 @@ Future<Widget> buildListView(
                 final List<Artist> artists = (entry['artists'] as List<dynamic>)
                     .map((artist) => artist as Artist)
                     .toList();
-                final customName = entry['custom_name'] as String?;
-                final startTime = entry['start_time'] is String
-                    ? DateTime.parse(entry['start_time'] as String)
-                    : entry['start_time'] as DateTime;
+                final customName = entry['custom_name'];
+                final DateTime? startTime = entry['start_time'];
+                final DateTime? endTime = entry['end_time'];
 
-                final endTime = entry['end_time'] is String
-                    ? DateTime.parse(entry['end_time'] as String)
-                    : entry['end_time'] as DateTime;
-
-                final status = entry['status'] as String?;
+                final status = entry['status'];
 
                 // Check for overlap
                 bool isOverlap = false;
@@ -106,26 +97,28 @@ Future<Widget> buildListView(
                 for (final otherEntry in artistsByStage[stage]!) {
                   if (entry == otherEntry) continue;
 
-                  final otherStartTime = otherEntry['start_time'] is String
-                      ? DateTime.parse(otherEntry['start_time'] as String)
-                      : otherEntry['start_time'] as DateTime;
+                  final DateTime? otherStartTime =
+                      otherEntry['start_time'];
+                  final DateTime? otherEndTime =
+                      otherEntry['end_time'];
 
-                  final otherEndTime = otherEntry['end_time'] is String
-                      ? DateTime.parse(otherEntry['end_time'] as String)
-                      : otherEntry['end_time'] as DateTime;
-
-                  if (startTime.isBefore(otherEndTime) &&
-                      endTime.isAfter(otherStartTime)) {
-                    isOverlap = true;
-                    break;
+                  if (startTime != null &&
+                      endTime != null &&
+                      otherStartTime != null &&
+                      otherEndTime != null) {
+                    if (startTime.isBefore(otherEndTime) &&
+                        endTime.isAfter(otherStartTime)) {
+                      isOverlap = true;
+                      break;
+                    }
                   }
                 }
 
                 return FutureBuilder<bool>(
                   future: Future.wait(
                     artists
-                        .map((artist) =>
-                            userFollowArtistService.isFollowingArtist(artist.id))
+                        .map((artist) => userFollowArtistService
+                            .isFollowingArtist(artist.id))
                         .toList(),
                   ).then(
                     (results) => results.any((isFollowing) => isFollowing),
@@ -136,8 +129,8 @@ Future<Widget> buildListView(
                         leading: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(formatTime(startTime)),
-                            Text(formatTime(endTime)),
+                            Text(formatTime(startTime!)),
+                            Text(formatTime(endTime!)),
                           ],
                         ),
                         title: Text(
@@ -151,8 +144,8 @@ Future<Widget> buildListView(
                         leading: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(formatTime(startTime)),
-                            Text(formatTime(endTime)),
+                            Text(formatTime(startTime!)),
+                            Text(formatTime(endTime!)),
                           ],
                         ),
                         title: Text(
@@ -184,14 +177,14 @@ Future<Widget> buildListView(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    formatTime(startTime),
+                                    formatTime(startTime!),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
-                                    formatTime(endTime),
+                                    formatTime(endTime!),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,

@@ -18,17 +18,15 @@ class Promoter {
   });
 
   factory Promoter.fromJson(Map<String, dynamic> json, List<Event> events) {
-    final promoterEvents = events
-        .where((event) => event.promoters.contains(json['id'] as int))
-        .map((e) => e.id)
-        .toList();
+    // Extraire les IDs des événements
+    final List<int> eventIds = events.map((event) => event.id).toList();
 
     return Promoter(
-      id: json['id'] as int, // Assure que l'id est bien un int
+      id: json['id'] as int,
       name: json['name'] as String? ?? '',
       imageUrl: json['image_url'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      upcomingEvents: promoterEvents,
+      upcomingEvents: eventIds,
     );
   }
 
@@ -48,7 +46,7 @@ class Promoter {
       'name': name,
       'image_url': imageUrl,
       'description': description,
-      // 'upcoming_events': upcomingEvents, // Optionnel si nécessaire
+      'upcoming_events': upcomingEvents, // Optionnel si nécessaire
     };
   }
 
