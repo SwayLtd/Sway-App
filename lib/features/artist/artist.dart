@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/utils/date_utils.dart';
-import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_genre_service.dart';
@@ -11,6 +10,7 @@ import 'package:sway/features/artist/services/similar_artist_service.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_artist_service.dart';
+import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
@@ -159,8 +159,8 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                         ),
                                         const SizedBox(width: 4),
                                         FutureBuilder<Venue?>(
-                                          future: VenueService()
-                                              .getVenueById(event.venue),
+                                          future: EventVenueService()
+                                              .getVenueByEventId(event.id),
                                           builder: (context, venueSnapshot) {
                                             if (venueSnapshot.connectionState ==
                                                 ConnectionState.waiting) {

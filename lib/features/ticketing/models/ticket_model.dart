@@ -1,58 +1,59 @@
+// lib/features/ticketing/models/ticket_model.dart
+
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
-
 class Ticket {
-  final int id;
-  final int eventId;
-  final String ticketType;
-  final String price;
-  final String status;
-  final DateTime createdAt;
-  final DateTime? waveEndDate;
-  final int? maxPurchases;
+  int id;
+  String filePath;
+  DateTime importedDate;
+  int? eventId;
+  String? eventName;
+  DateTime? eventDate;
+  String? eventLocation;
+  String? ticketType;
 
   Ticket({
     required this.id,
-    required this.eventId,
-    required this.ticketType,
-    required this.price,
-    required this.status,
-    required this.createdAt,
-    this.waveEndDate,
-    this.maxPurchases,
+    required this.filePath,
+    required this.importedDate,
+    this.eventId,
+    this.eventName,
+    this.eventDate,
+    this.eventLocation,
+    this.ticketType,
   });
 
-  factory Ticket.fromJson(Map<String, dynamic> json) {
-    return Ticket(
-      id: json['id'],
-      eventId: json['event_id'],
-      ticketType: json['ticket_type'],
-      price: json['price'],
-      status: json['status'],
-      createdAt: DateTime.parse(json['created_at']),
-      waveEndDate: json['wave_end_date'] != null
-          ? DateTime.parse(json['wave_end_date'])
-          : null,
-      maxPurchases: json['max_purchases'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
+  // Conversion de l'objet Ticket en Map
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'event_id': eventId,
-      'ticket_type': ticketType,
-      'price': price,
-      'status': status,
-      'created_at': createdAt.toIso8601String(),
-      'wave_end_date': waveEndDate?.toIso8601String(),
-      'max_purchases': maxPurchases,
+      'filePath': filePath,
+      'importedDate': importedDate.toIso8601String(),
+      'eventId': eventId,
+      'eventName': eventName,
+      'eventDate': eventDate?.toIso8601String(),
+      'eventLocation': eventLocation,
+      'ticketType': ticketType,
     };
   }
 
-  String generateQRCode(int userId, DateTime timestamp) {
-    final data = '$id-$userId-${timestamp.toIso8601String()}';
-    return sha256.convert(utf8.encode(data)).toString();
+  // Création d'un objet Ticket à partir d'un Map
+  factory Ticket.fromMap(Map<String, dynamic> map) {
+    return Ticket(
+      id: map['id'],
+      filePath: map['filePath'],
+      importedDate: DateTime.parse(map['importedDate']),
+      eventId: map['eventId'],
+      eventName: map['eventName'],
+      eventDate: map['eventDate'] != null ? DateTime.parse(map['eventDate']) : null,
+      eventLocation: map['eventLocation'],
+      ticketType: map['ticketType'],
+    );
   }
+
+  // Conversion de l'objet Ticket en JSON
+  String toJson() => json.encode(toMap());
+
+  // Création d'un objet Ticket à partir d'un JSON
+  factory Ticket.fromJson(String source) => Ticket.fromMap(json.decode(source));
 }

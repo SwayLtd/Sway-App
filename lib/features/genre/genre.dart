@@ -1,7 +1,6 @@
 // genre.dart
 
 import 'package:flutter/material.dart';
-import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';

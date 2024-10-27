@@ -37,7 +37,7 @@ class _ScaffoldWithNavBarWithoutAppBarState extends State<ScaffoldWithNavBarWith
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.person_outlined),
-        label: "Profile",
+        label: "Account",
       ),
     ];
 

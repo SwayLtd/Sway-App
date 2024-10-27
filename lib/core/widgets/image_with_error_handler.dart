@@ -1,4 +1,4 @@
-// image_with_error_handler.dart
+// lib\core\widgets\image_with_error_handler.dart
 
 import 'package:flutter/material.dart';
 

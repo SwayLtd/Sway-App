@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sway/core/utils/date_utils.dart';
-import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/common_section_widget.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
@@ -14,7 +13,6 @@ import 'package:sway/features/event/services/event_promoter_service.dart';
 import 'package:sway/features/event/widgets/info_card.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
-import 'package:sway/features/insight/insight.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';

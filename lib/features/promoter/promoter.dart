@@ -2,12 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/utils/date_utils.dart';
-import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
-import 'package:sway/features/insight/insight.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/screens/edit_promoter_screen.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';

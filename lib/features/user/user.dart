@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/utils/date_utils.dart';
-import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/common_section_widget.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';

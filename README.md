@@ -10,15 +10,12 @@ Coming soon
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* Feature: Implement local ticket organization System and remove fake ticket showcase
 * Database migration #7 - Refactor event data retrieval to use Supabase instead of local JSON storage
 * Database migration #6 - Refactor venue data retrieval to use Supabase instead of local JSON storage
 * Database migration #5 - Refactor promoter data management to use Supabase with updated data types
 * Database migration #4 - Refactor user data retrieval to use Supabase instead of local JSON storage
 * Database migration #3 - Refactor artist data retrieval to use Supabase instead of local JSON storage
-* Database migration #2 - Refactor promoter data retrieval to use Supabase instead of local JSON storage
-* Refactor: Migrate all date fields from String to DateTime
-* Refactor: Migrate all entity IDs from String to int
-* Database migration #1 - Refactor genre data retrieval to use Supabase instead of local JSON storage
 
 ### Known Issues
 * (Notification) The notification images and maybe other parameters are not collected correctly.

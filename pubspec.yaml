@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.2.7 # Database migration #7 - Refactor event data retrieval to use Supabase instead of local JSON storage
+version: 0.3.1 # Feature: Implement local ticket organization System and remove fake ticket showcase
 
 
 environment:
@@ -32,14 +32,19 @@ dependencies:
   http: ^1.2.2
   intl: ^0.19.0
   # isar: ^3.1.0+1 # Super Fast Cross-Platform Database - For bigger projects with more complex data structures - https://isar.dev/ - https://pub.dev/packages/isar
-  lemon_squeezy: ^1.0.3
+  # lemon_squeezy: ^1.0.3
   # onesignal_flutter: ^5.2.2
-  qr_flutter: ^4.1.0
+  # qr_flutter: ^4.1.0
   responsive_framework: ^1.4.0
   share_plus: ^10.0.0
   shared_preferences: ^2.2.3
   supabase_flutter: ^2.5.11
   uuid: ^4.4.2
+  file_picker: ^8.1.3
+  flutter_pdfview: ^1.3.4
+  screen_brightness: ^2.0.0+2
+  permission_handler: ^11.3.1
+  # isar_flutter_libs: ^3.1.0+1 # For Isar
 
 dev_dependencies:
   firebase_crashlytics: ^4.0.3
@@ -49,7 +54,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   lint: ^2.3.0
-  plausible_analytics: ^0.3.0
+  # build_runner: ^2.4.13 # For Isar
+  # isar_generator: ^3.1.0+1 # For Isar
+  # plausible_analytics: ^0.3.0
 
 # flutter_icons:
 #   android: "launcher_icon"
