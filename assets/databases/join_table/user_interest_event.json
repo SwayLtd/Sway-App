@@ -1,8 +1,0 @@
-[
-  { "user_id": 1, "event_id": 1, "status": "interested" },
-  { "user_id": 1, "event_id": 2, "status": "interested" },
-  { "user_id": 2, "event_id": 3, "status": "interested" },
-  { "user_id": 2, "event_id": 1, "status": "going" },
-  { "user_id": 3, "event_id": 2, "status": "going" },
-  { "user_id": 3, "event_id": 1, "status": "interested" }
-]
