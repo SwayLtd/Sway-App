@@ -135,8 +135,8 @@ class _AddEventDetailsScreenState extends State<AddEventDetailsScreen> {
                         Event event = _filteredEvents[index];
                         return ListTile(
                           leading: event.imageUrl.isNotEmpty
-                              ? Image.network(
-                                  event.imageUrl,
+                              ? ImageWithErrorHandler(
+                                  imageUrl: event.imageUrl,
                                   width: 50,
                                   height: 50,
                                   fit: BoxFit.cover,

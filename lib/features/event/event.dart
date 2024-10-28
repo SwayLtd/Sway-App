@@ -379,42 +379,26 @@ class _EventScreenState extends State<EventScreen> {
                                 child: Column(
                                   children: [
                                     ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: status == 'cancelled'
-                                          ? ColorFiltered(
-                                              colorFilter:
-                                                  const ColorFilter.mode(
-                                                Colors.grey,
-                                                BlendMode.saturation,
-                                              ),
-                                              child: Image.network(
-                                                artist.imageUrl,
+                                        borderRadius: BorderRadius.circular(10),
+                                        child: status == 'cancelled'
+                                            ? ColorFiltered(
+                                                colorFilter:
+                                                    const ColorFilter.mode(
+                                                  Colors.grey,
+                                                  BlendMode.saturation,
+                                                ),
+                                                child: ImageWithErrorHandler(
+                                                  imageUrl: artist.imageUrl,
+                                                  width: 100,
+                                                  height: 100,
+                                                  fit: BoxFit.cover,
+                                                ))
+                                            : ImageWithErrorHandler(
+                                                imageUrl: artist.imageUrl,
                                                 width: 100,
                                                 height: 100,
                                                 fit: BoxFit.cover,
-                                                errorBuilder: (context, error,
-                                                    stackTrace) {
-                                                  return const Icon(
-                                                    Icons.error,
-                                                    size: 100,
-                                                  );
-                                                },
-                                              ),
-                                            )
-                                          : Image.network(
-                                              artist.imageUrl,
-                                              width: 100,
-                                              height: 100,
-                                              fit: BoxFit.cover,
-                                              errorBuilder:
-                                                  (context, error, stackTrace) {
-                                                return const Icon(
-                                                  Icons.error,
-                                                  size: 100,
-                                                );
-                                              },
-                                            ),
-                                    ),
+                                              )),
                                     const SizedBox(height: 5),
                                     Text(
                                       artist.name,

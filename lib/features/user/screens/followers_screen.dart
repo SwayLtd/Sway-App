@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/user/models/user_model.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
 import 'package:sway/features/user/services/user_follow_genre_service.dart';
@@ -32,7 +33,10 @@ class _FollowersScreenState extends State<FollowersScreen>
   void initState() {
     super.initState();
     _tabController = TabController(
-        length: 2, vsync: this, initialIndex: widget.initialTabIndex,);
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    );
   }
 
   @override
@@ -124,7 +128,11 @@ class _FollowersScreenState extends State<FollowersScreen>
               return ListTile(
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.network(user.profilePictureUrl),
+                  child: ImageWithErrorHandler(
+                    imageUrl: user.profilePictureUrl,
+                    width: 50,
+                    height: 50,
+                  ),
                 ),
                 title: Text(user.username),
                 onTap: () {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/user/models/user_model.dart';
 import 'package:sway/features/user/services/user_service.dart';
 
@@ -59,10 +60,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(15),
-                    child: Image.network(
-                      widget.user.profilePictureUrl,
-                      width: 150,
-                      height: 150,
+                    child: ImageWithErrorHandler(
+                      imageUrl: widget.user.profilePictureUrl,
+                      width: 100,
+                      height: 100,
                     ),
                   ),
                   TextButton(

@@ -18,6 +18,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 * Database migration #3 - Refactor artist data retrieval to use Supabase instead of local JSON storage
 
 ### Known Issues
+* (Images bug) Error handler added to all screen images
 * (Notification) The notification images and maybe other parameters are not collected correctly.
 * (Timetable) The day selection show days without artists programmed.
 * (FIXED)(Notification) User and group specific notifications are sent to all users.
