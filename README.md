@@ -10,17 +10,18 @@ Coming soon
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* Remove swipe navigation on tickets (conflict navigation bug fix), add zoom on image tickets, add PDFController for future programmatic control - Local management of event tickets
 * PDF pinch zoom, multiple PDF pages ticket, multiple ticket navigation bug fix, ticket deletation - Local management of event tickets
 * Feature: Implement local ticket organization System and remove fake ticket showcase
 * Database migration #7 - Refactor event data retrieval to use Supabase instead of local JSON storage
 * Database migration #6 - Refactor venue data retrieval to use Supabase instead of local JSON storage
-* Database migration #5 - Refactor promoter data management to use Supabase with updated data types
 
 ### Known Issues
-* (Ticketing) Multiple ticckets navigation for one event fixed.
-* (Images bug) Error handler added to all screen images
+* (Ticketing) Multiple pages PDF are not unpacked a multiple tickets
 * (Notification) The notification images and maybe other parameters are not collected correctly.
 * (Timetable) The day selection show days without artists programmed.
+* (FIXED)(Ticketing) Multiple ticckets navigation for one event fixed.
+* (FIXED)(Images bug) Error handler added to all screen images
 * (FIXED)(Notification) User and group specific notifications are sent to all users.
 * (FIXED)(Timetable) Overlapping artist cells in the timetable caused layout issues. The solution now displays an overlay warning of overlaps without showing the overlapping artists, keeping the layout intact.
 * (FIXED)(Timetable) Artists are now correctly sorted by their start times, ensuring proper chronological order in timetable views.

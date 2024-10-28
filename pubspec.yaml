@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.3.1+1 # PDF pinch zoom, multiple PDF pages ticket, multiple ticket navigation bug fix, ticket deletation - Local management of event tickets
+version: 0.3.1+2 # Remove swipe navigation on tickets (conflict navigation bug fix), add zoom on image tickets, add PDFController for future programmatic control - Local management of event tickets
 
 
 environment:

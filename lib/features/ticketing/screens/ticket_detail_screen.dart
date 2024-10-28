@@ -2,7 +2,6 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
@@ -36,6 +35,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   late List<Ticket> _ticketsForEvent;
   late int _currentIndex;
   Venue? _venue; // Variable pour stocker la venue
+  PdfViewerController _pdfViewerController = PdfViewerController();
 
   @override
   void initState() {
@@ -87,6 +87,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   @override
   void dispose() {
     _resetBrightness();
+    _pdfViewerController.dispose();
     super.dispose();
   }
 
@@ -212,11 +213,17 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       // Afficher l'image avec superposition "Imported"
       return Stack(
         children: [
-          Image.file(
-            File(ticket.filePath),
-            fit: BoxFit.contain,
-            width: double.infinity,
-            height: double.infinity,
+          InteractiveViewer(
+            panEnabled: true, // Activer le déplacement
+            scaleEnabled: true, // Activer le zoom
+            minScale: 1.0, // Échelle minimale de zoom (taille normale)
+            maxScale: 5.0, // Échelle maximale de zoom
+            child: Image.file(
+              File(ticket.filePath),
+              fit: BoxFit.contain,
+              width: double.infinity,
+              height: double.infinity,
+            ),
           ),
           Positioned(
             top: 10,
@@ -251,7 +258,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         children: [
           SfPdfViewer.file(
             File(ticket.filePath),
-            //controller: _pdfViewerController,
+            controller: _pdfViewerController,
             enableDoubleTapZooming: true,
             initialZoomLevel: 1.0,
             //minZoomLevel: 1.0,
@@ -326,31 +333,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           ),
         ],
       ),
-      body: GestureDetector(
-        onHorizontalDragEnd: (details) {
-          if (details.primaryVelocity != null) {
-            if (details.primaryVelocity! < 0) {
-              // Swipe left
-              if (_currentIndex < _ticketsForEvent.length - 1) {
-                setState(() {
-                  _currentIndex++;
-                  // Charger la venue pour le nouveau ticket
-                  _loadVenue();
-                });
-              }
-            } else if (details.primaryVelocity! > 0) {
-              // Swipe right
-              if (_currentIndex > 0) {
-                setState(() {
-                  _currentIndex--;
-                  // Charger la venue pour le nouveau ticket
-                  _loadVenue();
-                });
-              }
-            }
-          }
-        },
-        child: Column(
+      body: Column(
           children: [
             // Afficher le fichier (Image ou PDF)
             Expanded(
@@ -433,7 +416,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             // Supprimer le texte "ADD DETAILS"
           ],
         ),
-      ),
     );
   }
 }
