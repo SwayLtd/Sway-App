@@ -127,4 +127,16 @@ class TicketService {
     final refOnly = DateTime(reference.year, reference.month, reference.day);
     return dateOnly.isBefore(refOnly);
   }
+
+  /// Supprime un ticket de la liste en fonction de son ID.
+  Future<void> deleteTicket(int ticketId) async {
+    // Récupère la liste actuelle des tickets
+    List<Ticket> currentTickets = await getTickets();
+
+    // Filtre pour conserver uniquement les tickets qui ne correspondent pas à l'ID à supprimer
+    currentTickets = currentTickets.where((t) => t.id != ticketId).toList();
+
+    // Enregistre la liste mise à jour sans le ticket supprimé
+    await _saveTickets(currentTickets);
+  }
 }

@@ -10,14 +10,14 @@ Coming soon
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* PDF pinch zoom, multiple PDF pages ticket, multiple ticket navigation bug fix, ticket deletation - Local management of event tickets
 * Feature: Implement local ticket organization System and remove fake ticket showcase
 * Database migration #7 - Refactor event data retrieval to use Supabase instead of local JSON storage
 * Database migration #6 - Refactor venue data retrieval to use Supabase instead of local JSON storage
 * Database migration #5 - Refactor promoter data management to use Supabase with updated data types
-* Database migration #4 - Refactor user data retrieval to use Supabase instead of local JSON storage
-* Database migration #3 - Refactor artist data retrieval to use Supabase instead of local JSON storage
 
 ### Known Issues
+* (Ticketing) Multiple ticckets navigation for one event fixed.
 * (Images bug) Error handler added to all screen images
 * (Notification) The notification images and maybe other parameters are not collected correctly.
 * (Timetable) The day selection show days without artists programmed.

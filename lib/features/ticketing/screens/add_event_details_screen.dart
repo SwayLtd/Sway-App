@@ -1,6 +1,7 @@
 // lib/features/ticketing/screens/add_event_details_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/ticketing/models/ticket_model.dart';
@@ -23,7 +24,8 @@ class _AddEventDetailsScreenState extends State<AddEventDetailsScreen> {
   final EventVenueService _eventVenueService = EventVenueService();
 
   final TextEditingController _eventNameController = TextEditingController();
-  final TextEditingController _eventLocationController = TextEditingController();
+  final TextEditingController _eventLocationController =
+      TextEditingController();
   DateTime? _eventDate;
   Event? _selectedEvent;
   List<Event> _events = [];
@@ -53,7 +55,8 @@ class _AddEventDetailsScreenState extends State<AddEventDetailsScreen> {
 
   Future<void> _loadEvents() async {
     try {
-      _events = await _eventService.searchEvents(_searchController.text, _filters);
+      _events =
+          await _eventService.searchEvents(_searchController.text, _filters);
       setState(() {
         _filteredEvents = _events.take(5).toList();
       });
@@ -82,7 +85,7 @@ class _AddEventDetailsScreenState extends State<AddEventDetailsScreen> {
 
     try {
       await _ticketService.updateTicket(updatedTicket);
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving event details: $e')),
@@ -143,7 +146,8 @@ class _AddEventDetailsScreenState extends State<AddEventDetailsScreen> {
                                 )
                               : Icon(Icons.event, size: 50),
                           title: Text(event.title),
-                          subtitle: Text('${event.dateTime.toLocal().toString().split(' ')[0]}'),
+                          subtitle: Text(
+                              '${event.dateTime.toLocal().toString().split(' ')[0]}'),
                           onTap: () => _selectEvent(event),
                         );
                       },

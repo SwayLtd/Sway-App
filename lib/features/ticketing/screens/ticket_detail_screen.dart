@@ -8,9 +8,10 @@ import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/ticketing/models/ticket_model.dart';
 import 'package:sway/features/ticketing/screens/add_event_details_screen.dart';
-import 'package:sway/features/ticketing/services/ticket_service.dart';
 import 'package:screen_brightness/screen_brightness.dart'; // Assurez-vous d'avoir ce package
-import 'package:sway/features/venue/models/venue_model.dart'; // Importez le modèle Venue
+import 'package:sway/features/ticketing/services/ticket_service.dart';
+import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart'; // Importez le modèle Venue
 // Importez le service VenueService
 
 class TicketDetailScreen extends StatefulWidget {
@@ -28,6 +29,7 @@ class TicketDetailScreen extends StatefulWidget {
 
 class _TicketDetailScreenState extends State<TicketDetailScreen> {
   final EventService _eventService = EventService();
+  final TicketService _ticketService = TicketService();
   final EventVenueService _eventVenueService =
       EventVenueService(); // Ajout du service
 
@@ -112,6 +114,10 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         value: 'contact_promoter',
         child: Text('Contact promoter', style: TextStyle(color: Colors.grey)),
       ),
+      const PopupMenuItem<String>(
+        value: 'delete_ticket',
+        child: Text('Delete ticket', style: TextStyle(color: Colors.red)),
+      ),
     ];
 
     final String? selected = await showMenu(
@@ -129,7 +135,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
           final event =
               await _eventService.getEventById(currentTicket.eventId!);
           if (event != null) {
-            // Optionnel: Charger la venue associée
+            // Optional: Load associated venue
             final venue = await _eventVenueService.getVenueByEventId(event.id);
             Navigator.push(
               context,
@@ -152,8 +158,50 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       case 'contact_promoter':
         // TODO: Implement contact promoter functionality
         break;
+      case 'delete_ticket':
+        _confirmDeleteTicket(currentTicket);
+        break;
       default:
         break;
+    }
+  }
+
+  Future<void> _confirmDeleteTicket(Ticket ticket) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this ticket?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancel',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      await _ticketService.deleteTicket(ticket.id);
+      _ticketsForEvent.remove(ticket);
+      if (_ticketsForEvent.isEmpty) {
+        Navigator.pop(context);
+      } else {
+        setState(() {
+          _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : 0;
+        });
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ticket deleted successfully')),
+      );
     }
   }
 
@@ -201,23 +249,18 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       // Afficher le PDF avec superposition "Imported"
       return Stack(
         children: [
-          PDFView(
-            filePath: ticket.filePath,
-            enableSwipe: true,
-            swipeHorizontal: true,
-            autoSpacing: false,
-            pageFling: false,
-            onError: (error) {
-              print('PDF Viewer Error: $error');
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error displaying PDF: $error')),
-              );
+          SfPdfViewer.file(
+            File(ticket.filePath),
+            //controller: _pdfViewerController,
+            enableDoubleTapZooming: true,
+            initialZoomLevel: 1.0,
+            //minZoomLevel: 1.0,
+            maxZoomLevel: 5.0,
+            onDocumentLoaded: (PdfDocumentLoadedDetails details) {
+              // Vous pouvez ajouter des actions après le chargement du document si nécessaire
             },
-            onPageError: (page, error) {
-              print('PDF Viewer Page Error: $page, $error');
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error on page $page: $error')),
-              );
+            onPageChanged: (PdfPageChangedDetails details) {
+              // Vous pouvez ajouter des actions lors du changement de page si nécessaire
             },
           ),
           Positioned(
@@ -232,19 +275,18 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               ),
             ),
           ),
-          if (_venue != null)
-            Positioned(
-              bottom: 10,
-              left: 10,
-              child: Container(
-                color: Colors.black.withOpacity(0.5),
-                padding: const EdgeInsets.all(4.0),
-                child: Text(
-                  _venue!.name,
-                  style: TextStyle(color: Colors.white),
-                ),
+          Positioned(
+            bottom: 10,
+            left: 10,
+            child: Container(
+              color: Colors.black.withOpacity(0.5),
+              padding: const EdgeInsets.all(4.0),
+              child: Text(
+                ticket.eventLocation ?? 'Unknown location',
+                style: const TextStyle(color: Colors.white),
               ),
             ),
+          ),
         ],
       );
     } else {

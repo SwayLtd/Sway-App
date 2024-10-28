@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.3.1 # Feature: Implement local ticket organization System and remove fake ticket showcase
+version: 0.3.1+1 # PDF pinch zoom, multiple PDF pages ticket, multiple ticket navigation bug fix, ticket deletation - Local management of event tickets
 
 
 environment:
@@ -44,6 +44,7 @@ dependencies:
   flutter_pdfview: ^1.3.4
   screen_brightness: ^2.0.0+2
   permission_handler: ^11.3.1
+  syncfusion_flutter_pdfviewer: ^27.1.56
   # isar_flutter_libs: ^3.1.0+1 # For Isar
 
 dev_dependencies:
