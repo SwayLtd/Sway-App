@@ -110,15 +110,22 @@ class TicketService {
         // Create a new PDF document
         final PdfDocument newPdf = PdfDocument();
 
+        // Get the size of the original page
+        final PdfPage originalPage = originalPdf.pages[pageNumber];
+        final Size originalSize = originalPage.size;
+
+        // Remove white margins on page
+        newPdf.pageSettings.margins.all = 0;
+
+        // Add a new page with the same size as the original page
+        final PdfPage newPage = newPdf.pages.add();
+
         // Import the page from the original document
-        newPdf.pages.add().graphics.drawPdfTemplate(
-              originalPdf.pages[pageNumber].createTemplate(),
-              Offset.zero,
-              Size(
-                originalPdf.pages[pageNumber].size.width,
-                originalPdf.pages[pageNumber].size.height,
-              ),
-            );
+        newPage.graphics.drawPdfTemplate(
+          originalPage.createTemplate(),
+          Offset.zero,
+          Size(originalSize.width, originalSize.height),
+        );
 
         // Save the new PDF document
         final List<int> newBytes = await newPdf.save();

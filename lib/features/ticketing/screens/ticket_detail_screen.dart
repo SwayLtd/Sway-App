@@ -120,7 +120,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       if (currentTicket.groupId != null)
         PopupMenuItem<String>(
           value: 'dissociate_group',
-          child: Text('Dissociate from group'),
+          child: Text('Dissociate tickets'),
         ),
       const PopupMenuItem<String>(
         value: 'delete_ticket',
