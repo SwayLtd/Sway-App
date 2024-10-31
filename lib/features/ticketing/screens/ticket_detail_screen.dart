@@ -111,10 +111,17 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         value: 'add_to_calendar',
         child: Text('Add to calendar', style: TextStyle(color: Colors.grey)),
       ),
-      const PopupMenuItem<String>(
-        value: 'contact_promoter',
-        child: Text('Contact promoter', style: TextStyle(color: Colors.grey)),
-      ),
+      if (currentTicket.eventId != null)
+        const PopupMenuItem<String>(
+          value: 'contact_promoter',
+          child: Text('Contact promoter', style: TextStyle(color: Colors.grey)),
+        ),
+      // New PopupMenuItem for dissociating from group
+      if (currentTicket.groupId != null)
+        PopupMenuItem<String>(
+          value: 'dissociate_group',
+          child: Text('Dissociate from group'),
+        ),
       const PopupMenuItem<String>(
         value: 'delete_ticket',
         child: Text('Delete ticket', style: TextStyle(color: Colors.red)),
@@ -158,6 +165,14 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         break;
       case 'contact_promoter':
         // TODO: Implement contact promoter functionality
+        break;
+      case 'dissociate_group':
+        await _ticketService.dissociateGroupFromTicket(currentTicket.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ticket dissociated from group')),
+        );
+        // Refresh the UI to reflect changes
+        setState(() {});
         break;
       case 'delete_ticket':
         _confirmDeleteTicket(currentTicket);
@@ -334,88 +349,88 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         ],
       ),
       body: Column(
-          children: [
-            // Afficher le fichier (Image ou PDF)
-            Expanded(
-              child: _buildFileDisplay(currentTicket),
-            ),
-            // Type de ticket
-            if (currentTicket.ticketType != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  currentTicket.ticketType!,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-            // Flèches de navigation, compteur et bouton d'édition
+        children: [
+          // Afficher le fichier (Image ou PDF)
+          Expanded(
+            child: _buildFileDisplay(currentTicket),
+          ),
+          // Type de ticket
+          if (currentTicket.ticketType != null)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                children: [
-                  // Flèche gauche
-                  IconButton(
-                    icon: Icon(Icons.arrow_left, size: 30),
-                    onPressed: _currentIndex > 0
-                        ? () {
-                            setState(() {
-                              _currentIndex--;
-                              // Charger la venue pour le ticket précédent
-                              _loadVenue();
-                            });
-                          }
-                        : null,
-                  ),
-                  // Compteur centré
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        '${_currentIndex + 1} / ${_ticketsForEvent.length} tickets',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                currentTicket.ticketType!,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          // Flèches de navigation, compteur et bouton d'édition
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              children: [
+                // Flèche gauche
+                IconButton(
+                  icon: Icon(Icons.arrow_left, size: 30),
+                  onPressed: _currentIndex > 0
+                      ? () {
+                          setState(() {
+                            _currentIndex--;
+                            // Charger la venue pour le ticket précédent
+                            _loadVenue();
+                          });
+                        }
+                      : null,
+                ),
+                // Compteur centré
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      '${_currentIndex + 1} / ${_ticketsForEvent.length} tickets',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                     ),
                   ),
-                  // Flèche droite
-                  IconButton(
-                    icon: Icon(Icons.arrow_right, size: 30),
-                    onPressed: _currentIndex < _ticketsForEvent.length - 1
-                        ? () {
-                            setState(() {
-                              _currentIndex++;
-                              // Charger la venue pour le ticket suivant
-                              _loadVenue();
-                            });
-                          }
-                        : null,
-                  ),
-                  // Bouton d'édition aligné à droite
-                  IconButton(
-                    icon: Icon(Icons.edit,
-                        color: Theme.of(context).colorScheme.secondary),
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              AddEventDetailsScreen(ticket: currentTicket),
-                        ),
-                      );
-                      await _loadTicketsForEvent();
-                      // Recharger la venue après la mise à jour
-                      _loadVenue();
-                      setState(() {});
-                    },
-                  ),
-                ],
-              ),
+                ),
+                // Flèche droite
+                IconButton(
+                  icon: Icon(Icons.arrow_right, size: 30),
+                  onPressed: _currentIndex < _ticketsForEvent.length - 1
+                      ? () {
+                          setState(() {
+                            _currentIndex++;
+                            // Charger la venue pour le ticket suivant
+                            _loadVenue();
+                          });
+                        }
+                      : null,
+                ),
+                // Bouton d'édition aligné à droite
+                IconButton(
+                  icon: Icon(Icons.edit,
+                      color: Theme.of(context).colorScheme.secondary),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AddEventDetailsScreen(ticket: currentTicket),
+                      ),
+                    );
+                    await _loadTicketsForEvent();
+                    // Recharger la venue après la mise à jour
+                    _loadVenue();
+                    setState(() {});
+                  },
+                ),
+              ],
             ),
-            // Supprimer le texte "ADD DETAILS"
-          ],
-        ),
+          ),
+          // Supprimer le texte "ADD DETAILS"
+        ],
+      ),
     );
   }
 }

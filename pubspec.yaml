@@ -6,8 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.3.1+3 # Implement PDF multi-page ticket splitting and grouping - Local management of event tickets
-
+version: 0.3.1+4 # Add dissociate ticket from group option in TicketDetailScreen - Local management of event tickets
 
 environment:
   sdk: ">=2.18.5 <4.0.0"

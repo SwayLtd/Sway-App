@@ -10,12 +10,11 @@ Coming soon
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* Add dissociate ticket from group option in TicketDetailScreen - Local management of event tickets
 * Implement PDF multi-page ticket splitting and grouping - Local management of event tickets
 * Remove swipe navigation on tickets (conflict navigation bug fix), add zoom on image tickets, add PDFController for future programmatic control - Local management of event tickets
 * PDF pinch zoom, multiple PDF pages ticket, multiple ticket navigation bug fix, ticket deletation - Local management of event tickets
 * Feature: Implement local ticket organization System and remove fake ticket showcase
-* Database migration #7 - Refactor event data retrieval to use Supabase instead of local JSON storage
-* Database migration #6 - Refactor venue data retrieval to use Supabase instead of local JSON storage
 
 ### Known Issues
 * (Ticketing) Delete white margins on PDF during import

@@ -56,16 +56,14 @@ class TicketService {
           final File file = File(filePath);
           await file.copy(savedPath);
 
-          // Générer un groupId unique pour ce ticket
-          final String groupId = Uuid().v4().toString();
-
-          // Crée une nouvelle entrée de ticket
+          // Ne pas assigner de groupId pour les images
+          // Crée une nouvelle entrée de ticket sans groupId
           final Ticket ticket = Ticket(
             id: Uuid().v4().hashCode,
             filePath: savedPath,
             importedDate: DateTime.now(),
             eventName: _removeFileExtension(fileName),
-            groupId: groupId, // Assigner le groupId
+            groupId: null, // Aucun groupId assigné
           );
 
           newTickets.add(ticket);
@@ -95,12 +93,18 @@ class TicketService {
       final PdfDocument originalPdf = PdfDocument(inputBytes: bytes);
       final int pageCount = originalPdf.pages.count;
 
-      // Générer un groupId unique pour cette importation
-      final String groupId = Uuid().v4().toString();
+      // Determine if the PDF has multiple pages
+      String? groupId;
+      if (pageCount > 1) {
+        groupId = Uuid()
+            .v4()
+            .toString(); // Assign a unique groupId for multi-page PDFs
+      }
 
       for (int pageNumber = 0; pageNumber < pageCount; pageNumber++) {
+        // Generate a unique file name for each ticket
         final String newFileName =
-            '${_removeFileExtension(originalFileName)}.pdf';
+            '${_removeFileExtension(originalFileName)}_ticket${pageNumber + 1}.pdf';
         final String savedPath = '$savedDirPath/$newFileName';
 
         // Create a new PDF document
@@ -130,7 +134,7 @@ class TicketService {
           filePath: savedPath,
           importedDate: DateTime.now(),
           eventName: _removeFileExtension(originalFileName),
-          groupId: groupId,
+          groupId: groupId, // Assign groupId only if PDF has multiple pages
         );
 
         tickets.add(ticket);
@@ -151,6 +155,39 @@ class TicketService {
 
   String _removeFileExtension(String fileName) {
     return fileName.replaceAll(RegExp(r'\.[^.]*$'), '');
+  }
+
+  /// Dissociates a ticket from its group by setting its groupId to null.
+  Future<void> dissociateGroupFromTicket(int ticketId) async {
+    // Retrieve the current list of tickets
+    List<Ticket> currentTickets = await getTickets();
+
+    // Find the index of the ticket to dissociate
+    int index = currentTickets.indexWhere((t) => t.id == ticketId);
+
+    if (index != -1 && currentTickets[index].groupId != null) {
+      // Get the existing ticket
+      Ticket oldTicket = currentTickets[index];
+
+      // Create a new Ticket instance with groupId set to null
+      Ticket updatedTicket = Ticket(
+        id: oldTicket.id,
+        filePath: oldTicket.filePath,
+        importedDate: oldTicket.importedDate,
+        eventId: oldTicket.eventId,
+        eventName: oldTicket.eventName,
+        eventDate: oldTicket.eventDate,
+        eventLocation: oldTicket.eventLocation,
+        ticketType: oldTicket.ticketType,
+        groupId: null, // Dissociate the groupId
+      );
+
+      // Replace the old ticket with the updated ticket
+      currentTickets[index] = updatedTicket;
+
+      // Save the updated list of tickets
+      await _saveTickets(currentTickets);
+    }
   }
 
   /// Récupère tous les tickets.
