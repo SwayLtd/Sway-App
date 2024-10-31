@@ -11,6 +11,7 @@ class Ticket {
   DateTime? eventDate;
   String? eventLocation;
   String? ticketType;
+  final String? groupId;
 
   Ticket({
     required this.id,
@@ -21,6 +22,7 @@ class Ticket {
     this.eventDate,
     this.eventLocation,
     this.ticketType,
+    this.groupId,
   });
 
   // Conversion de l'objet Ticket en Map
@@ -34,6 +36,7 @@ class Ticket {
       'eventDate': eventDate?.toIso8601String(),
       'eventLocation': eventLocation,
       'ticketType': ticketType,
+      'groupId': groupId, // Conversion du groupId
     };
   }
 
@@ -48,6 +51,7 @@ class Ticket {
       eventDate: map['eventDate'] != null ? DateTime.parse(map['eventDate']) : null,
       eventLocation: map['eventLocation'],
       ticketType: map['ticketType'],
+      groupId: map['groupId'],
     );
   }
 

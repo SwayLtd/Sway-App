@@ -2,11 +2,14 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sway/features/ticketing/models/ticket_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 class TicketService {
   static final TicketService _instance = TicketService._internal();
@@ -15,7 +18,6 @@ class TicketService {
 
   static const String _ticketsKey = 'tickets';
 
-  /// Importe un ticket (PDF ou Image) depuis l'appareil de l'utilisateur.
   Future<void> importTicket() async {
     try {
       // Ouvre le sélecteur de fichiers permettant les PDFs et les images
@@ -31,22 +33,49 @@ class TicketService {
 
         // Enregistre le fichier dans le répertoire des documents de l'application
         final Directory appDocDir = await getApplicationDocumentsDirectory();
-        final String savedPath = '${appDocDir.path}/$fileName';
-        final File file = File(filePath);
-        await file.copy(savedPath);
+        final String savedDirPath = '${appDocDir.path}/tickets';
+        final Directory savedDir = Directory(savedDirPath);
 
-        // Crée une nouvelle entrée de ticket
-        final Ticket ticket = Ticket(
-          id: Uuid().v4().hashCode,
-          filePath: savedPath,
-          importedDate: DateTime.now(),
-        );
+        if (!await savedDir.exists()) {
+          await savedDir.create(recursive: true);
+        }
+
+        final String fileExtension = _getFileExtension(fileName).toLowerCase();
+
+        List<Ticket> newTickets = [];
+
+        if (fileExtension == 'pdf') {
+          // Traiter les PDF avec syncfusion_flutter_pdf
+          final File file = File(filePath);
+          final List<Ticket> tickets =
+              await _splitPdfAndSaveSyncfusion(file, fileName, savedDirPath);
+          newTickets.addAll(tickets);
+        } else if (['png', 'jpg', 'jpeg'].contains(fileExtension)) {
+          // Traiter les images
+          final String savedPath = '$savedDirPath/$fileName';
+          final File file = File(filePath);
+          await file.copy(savedPath);
+
+          // Générer un groupId unique pour ce ticket
+          final String groupId = Uuid().v4().toString();
+
+          // Crée une nouvelle entrée de ticket
+          final Ticket ticket = Ticket(
+            id: Uuid().v4().hashCode,
+            filePath: savedPath,
+            importedDate: DateTime.now(),
+            eventName: _removeFileExtension(fileName),
+            groupId: groupId, // Assigner le groupId
+          );
+
+          newTickets.add(ticket);
+        }
 
         // Récupère la liste actuelle des tickets
         List<Ticket> currentTickets = await getTickets();
 
-        // Ajoute le nouveau ticket
-        currentTickets.add(ticket);
+        // Ajoute les nouveaux tickets
+        currentTickets.addAll(newTickets);
 
         // Enregistre la liste mise à jour
         await _saveTickets(currentTickets);
@@ -55,6 +84,73 @@ class TicketService {
       // Gérer les erreurs de manière appropriée
       print('Error importing ticket: $e');
     }
+  }
+
+  Future<List<Ticket>> _splitPdfAndSaveSyncfusion(
+      File originalFile, String originalFileName, String savedDirPath) async {
+    List<Ticket> tickets = [];
+    try {
+      // Load the original PDF document
+      final Uint8List bytes = await originalFile.readAsBytes();
+      final PdfDocument originalPdf = PdfDocument(inputBytes: bytes);
+      final int pageCount = originalPdf.pages.count;
+
+      // Générer un groupId unique pour cette importation
+      final String groupId = Uuid().v4().toString();
+
+      for (int pageNumber = 0; pageNumber < pageCount; pageNumber++) {
+        final String newFileName =
+            '${_removeFileExtension(originalFileName)}.pdf';
+        final String savedPath = '$savedDirPath/$newFileName';
+
+        // Create a new PDF document
+        final PdfDocument newPdf = PdfDocument();
+
+        // Import the page from the original document
+        newPdf.pages.add().graphics.drawPdfTemplate(
+              originalPdf.pages[pageNumber].createTemplate(),
+              Offset.zero,
+              Size(
+                originalPdf.pages[pageNumber].size.width,
+                originalPdf.pages[pageNumber].size.height,
+              ),
+            );
+
+        // Save the new PDF document
+        final List<int> newBytes = await newPdf.save();
+        final File newPdfFile = File(savedPath);
+        await newPdfFile.writeAsBytes(newBytes);
+
+        // Dispose the new document
+        newPdf.dispose();
+
+        // Create a new ticket
+        final Ticket ticket = Ticket(
+          id: Uuid().v4().hashCode,
+          filePath: savedPath,
+          importedDate: DateTime.now(),
+          eventName: _removeFileExtension(originalFileName),
+          groupId: groupId,
+        );
+
+        tickets.add(ticket);
+      }
+
+      // Dispose the original document
+      originalPdf.dispose();
+    } catch (e) {
+      print('Error splitting PDF: $e');
+    }
+
+    return tickets;
+  }
+
+  String _getFileExtension(String path) {
+    return path.split('.').last;
+  }
+
+  String _removeFileExtension(String fileName) {
+    return fileName.replaceAll(RegExp(r'\.[^.]*$'), '');
   }
 
   /// Récupère tous les tickets.

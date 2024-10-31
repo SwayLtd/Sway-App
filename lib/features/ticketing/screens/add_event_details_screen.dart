@@ -81,10 +81,32 @@ class _AddEventDetailsScreenState extends State<AddEventDetailsScreen> {
       eventLocation: _eventLocationController.text,
       ticketType: widget.ticket.ticketType,
       importedDate: widget.ticket.importedDate,
+      groupId: widget.ticket.groupId, // Assurer que groupId est conservé
     );
 
     try {
+      // Mettre à jour le ticket actuel
       await _ticketService.updateTicket(updatedTicket);
+
+      // Si groupId existe, mettre à jour tous les tickets avec le même groupId
+      if (updatedTicket.groupId != null) {
+        List<Ticket> allTickets = await _ticketService.getTickets();
+        List<Ticket> relatedTickets = allTickets
+            .where((t) =>
+                t.groupId == updatedTicket.groupId && t.id != updatedTicket.id)
+            .toList();
+
+        for (Ticket t in relatedTickets) {
+          t.eventId = updatedTicket.eventId;
+          t.eventName = updatedTicket.eventName;
+          t.eventDate = updatedTicket.eventDate;
+          t.eventLocation = updatedTicket.eventLocation;
+          t.ticketType = updatedTicket.ticketType;
+
+          await _ticketService.updateTicket(t);
+        }
+      }
+
       Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

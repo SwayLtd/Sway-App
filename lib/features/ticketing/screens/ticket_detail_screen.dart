@@ -10,7 +10,7 @@ import 'package:sway/features/ticketing/screens/add_event_details_screen.dart';
 import 'package:screen_brightness/screen_brightness.dart'; // Assurez-vous d'avoir ce package
 import 'package:sway/features/ticketing/services/ticket_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart'; // Importez le modèle Venue
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 // Importez le service VenueService
 
 class TicketDetailScreen extends StatefulWidget {
