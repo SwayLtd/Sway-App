@@ -616,55 +616,6 @@ class _EventScreenState extends State<EventScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            CommonSectionWidget(
-              title: "LOCATION",
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          VenueScreen(venueId: widget.event.venue),
-                    ),
-                  );
-                },
-                child: FutureBuilder<Venue?>(
-                  future: VenueService().getVenueById(widget.event.venue),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const InfoCard(
-                        title: "Location",
-                        content: 'Loading...',
-                      );
-                    } else if (snapshot.hasError ||
-                        !snapshot.hasData ||
-                        snapshot.data == null) {
-                      return const InfoCard(
-                        title: "Location",
-                        content: 'Location not found',
-                      );
-                    } else {
-                      final venue = snapshot.data!;
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  VenueScreen(venueId: venue.id),
-                            ),
-                          );
-                        },
-                        child: InfoCard(
-                          title: "Location",
-                          content: venue.name,
-                        ),
-                      );
-                    }
-                  },
-                ),
-              ),
-            ),
           ],
         ),
       ),
