@@ -17,12 +17,12 @@ import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
+import 'package:sway/features/promoter/widgets/promoter_item_widget.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway/features/user/services/user_interest_event_service.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
-import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/venue/venue.dart';
 
 class EventScreen extends StatefulWidget {
@@ -35,7 +35,6 @@ class EventScreen extends StatefulWidget {
 }
 
 class _EventScreenState extends State<EventScreen> {
-  late ScrollController _scrollController;
   int _selectedTabIndex = 0;
   bool isGridView = false;
   DateTime selectedDay = DateTime.now();
@@ -47,7 +46,6 @@ class _EventScreenState extends State<EventScreen> {
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
   }
 
   void _onAppBarItemTap(int index) {
@@ -459,153 +457,60 @@ class _EventScreenState extends State<EventScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            CommonSectionWidget(
-              title: "ORGANIZED BY",
-              child: FutureBuilder<List<Promoter>>(
-                future: EventPromoterService()
-                    .getPromotersByEventId(widget.event.id),
-                builder: (context, promoterSnapshot) {
-                  if (promoterSnapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  } else if (promoterSnapshot.hasError) {
-                    return Text('Error: ${promoterSnapshot.error}');
-                  } else if (!promoterSnapshot.hasData ||
-                      promoterSnapshot.data!.isEmpty) {
-                    return const Text('No promoters found');
-                  } else {
-                    final promoters = promoterSnapshot.data!;
-                    return Column(
-                      children: promoters.map((promoter) {
-                        return FutureBuilder<Promoter?>(
-                          future: PromoterService()
-                              .getPromoterByIdWithEvents(promoter.id),
-                          builder: (context, promoterDetailSnapshot) {
-                            if (promoterDetailSnapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const CircularProgressIndicator();
-                            } else if (promoterDetailSnapshot.hasError) {
-                              return Text(
-                                'Error: ${promoterDetailSnapshot.error}',
-                              );
-                            } else if (!promoterDetailSnapshot.hasData ||
-                                promoterDetailSnapshot.data == null) {
-                              return const Text('Promoter details not found');
-                            } else {
-                              final detailedPromoter =
-                                  promoterDetailSnapshot.data!;
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PromoterScreen(
-                                        promoterId: detailedPromoter.id,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: Card(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  elevation: 2,
-                                  child: ListTile(
-                                    leading: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: ImageWithErrorHandler(
-                                        imageUrl: detailedPromoter.imageUrl,
-                                        width: 50,
-                                        height: 50,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      detailedPromoter.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        FutureBuilder<int>(
-                                          future: UserFollowPromoterService()
-                                              .getPromoterFollowersCount(
-                                            detailedPromoter.id,
-                                          ),
-                                          builder: (context, countSnapshot) {
-                                            if (countSnapshot.connectionState ==
-                                                ConnectionState.waiting) {
-                                              return const Text(
-                                                'Loading followers...',
-                                              );
-                                            } else if (countSnapshot.hasError) {
-                                              return Text(
-                                                'Error: ${countSnapshot.error}',
-                                              );
-                                            } else {
-                                              return Text(
-                                                '${countSnapshot.data} followers',
-                                              );
-                                            }
-                                          },
-                                        ),
-                                        Text(
-                                          "${detailedPromoter.upcomingEvents.length} upcoming events",
-                                        ),
-                                      ],
-                                    ),
-                                    trailing: FutureBuilder<bool>(
-                                      future: UserFollowPromoterService()
-                                          .isFollowingPromoter(
-                                        detailedPromoter.id,
-                                      ),
-                                      builder: (context, followSnapshot) {
-                                        if (followSnapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return const CircularProgressIndicator();
-                                        } else if (followSnapshot.hasError) {
-                                          return Text(
-                                            'Error: ${followSnapshot.error}',
-                                          );
-                                        } else {
-                                          final bool isFollowing =
-                                              followSnapshot.data ?? false;
-                                          return ElevatedButton(
-                                            onPressed: () {
-                                              if (isFollowing) {
-                                                UserFollowPromoterService()
-                                                    .unfollowPromoter(
-                                                  detailedPromoter.id,
-                                                );
-                                              } else {
-                                                UserFollowPromoterService()
-                                                    .followPromoter(
-                                                  detailedPromoter.id,
-                                                );
-                                              }
-                                            },
-                                            child: Text(
-                                              isFollowing
-                                                  ? "Following"
-                                                  : "Follow",
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "ORGANIZED BY",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(
+                    height: 16.0), // Espacement entre le titre et la liste
+                FutureBuilder<List<Promoter>>(
+                  future: EventPromoterService()
+                      .getPromotersByEventId(widget.event.id),
+                  builder: (context, promoterSnapshot) {
+                    if (promoterSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (promoterSnapshot.hasError) {
+                      return Center(
+                          child: Text('Error: ${promoterSnapshot.error}'));
+                    } else if (!promoterSnapshot.hasData ||
+                        promoterSnapshot.data!.isEmpty) {
+                      return const Center(child: Text('No promoters found'));
+                    } else {
+                      final promoters = promoterSnapshot.data!;
+                      return ListView.separated(
+                        physics:
+                            const NeverScrollableScrollPhysics(), // Empêche le défilement imbriqué
+                        shrinkWrap:
+                            true, // Prend uniquement l'espace nécessaire
+                        itemCount: promoters.length,
+                        separatorBuilder: (context, index) => const SizedBox(
+                            height: 8.0), // Espacement entre les items
+                        itemBuilder: (context, index) {
+                          final promoter = promoters[index];
+                          return PromoterListItemWidget(
+                            promoter: promoter,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      PromoterScreen(promoterId: promoter.id),
                                 ),
                               );
-                            }
-                          },
-                        );
-                      }).toList(),
-                    );
-                  }
-                },
-              ),
+                            },
+                            maxNameLength:
+                                20, // Définissez la longueur maximale ici
+                          );
+                        },
+                      );
+                    }
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             CommonSectionWidget(
