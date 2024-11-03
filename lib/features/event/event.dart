@@ -10,6 +10,7 @@ import 'package:sway/features/event/screens/edit_event_screen.dart';
 import 'package:sway/features/event/services/event_artist_service.dart';
 import 'package:sway/features/event/services/event_genre_service.dart';
 import 'package:sway/features/event/services/event_promoter_service.dart';
+import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/event/widgets/info_card.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
@@ -81,26 +82,46 @@ class _EventScreenState extends State<EventScreen> {
                   icon: Icon(Icons.error),
                   onPressed: null,
                 );
-              } else {
+              } else if (snapshot.hasData) {
                 final bool isInterested =
                     snapshot.data?['isInterested'] ?? false;
                 final bool isAttended = snapshot.data?['isAttended'] ?? false;
+
+                // Déterminer le statut basé sur les booléens
+                String status;
+                if (isAttended) {
+                  status = 'going';
+                } else if (isInterested) {
+                  status = 'interested';
+                } else {
+                  status = 'ignored';
+                }
+
+                // Sélectionner l'icône appropriée
+                IconData icon;
+                switch (status) {
+                  case 'going':
+                    icon = Icons.check_circle;
+                    break;
+                  case 'interested':
+                    icon = Icons.favorite;
+                    break;
+                  case 'ignored':
+                  default:
+                    icon = Icons.favorite_border;
+                    break;
+                }
+
                 return PopupMenuButton<String>(
-                  icon: Icon(
-                    isAttended
-                        ? Icons.check_circle
-                        : (isInterested
-                            ? Icons.favorite
-                            : Icons.favorite_border),
-                  ),
+                  icon: Icon(icon),
                   onSelected: (String value) {
                     _handleMenuSelection(value, widget.event.id, context);
                   },
                   itemBuilder: (BuildContext context) {
                     String notOptionText;
-                    if (isAttended) {
+                    if (status == 'going') {
                       notOptionText = 'Not going';
-                    } else if (isInterested) {
+                    } else if (status == 'interested') {
                       notOptionText = 'Not interested';
                     } else {
                       notOptionText = 'Not interested';
@@ -120,6 +141,12 @@ class _EventScreenState extends State<EventScreen> {
                       ),
                     ];
                   },
+                );
+              } else {
+                // Cas où snapshot n'a pas de données mais pas d'erreur non plus
+                return const IconButton(
+                  icon: Icon(Icons.favorite_border),
+                  onPressed: null,
                 );
               }
             },
@@ -293,7 +320,7 @@ class _EventScreenState extends State<EventScreen> {
               content: formatEventDateRange(eventDateTime, eventEndDateTime),
             ),
             FutureBuilder<Venue?>(
-              future: VenueService().getVenueById(widget.event.venue),
+              future: EventVenueService().getVenueByEventId(widget.event.id),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const InfoCard(
