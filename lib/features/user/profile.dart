@@ -352,7 +352,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'ORGANIZERS',
+                      'PROMOTERS',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),

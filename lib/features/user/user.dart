@@ -243,7 +243,7 @@ class UserScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     CommonSectionWidget(
-                      title: 'ORGANIZERS',
+                      title: 'PROMOTERS',
                       child: FutureBuilder<List<Promoter>>(
                         future: UserFollowPromoterService().getFollowedPromotersByUserId(userId),
                         builder: (context, promoterSnapshot) {
