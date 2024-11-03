@@ -15,7 +15,7 @@ class Genre {
     return Genre(
       id: json['id'],
       name: json['name'] as String,
-      description: json['description'] as String,
+      description: json['description'] ?? "",
       bpmRange: json['bpm_range'].toString(), // Conversion explicite en String
     );
   }
