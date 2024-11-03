@@ -10,11 +10,11 @@ Coming soon
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* Add RESIDENT PROMOTERS section to ArtistScreen and populate promoter_resident_artists table
 * Fix white margins in split PDF tickets - Local management of event tickets
 * Add dissociate ticket from group option in TicketDetailScreen - Local management of event tickets
 * Implement PDF multi-page ticket splitting and grouping - Local management of event tickets
 * Remove swipe navigation on tickets (conflict navigation bug fix), add zoom on image tickets, add PDFController for future programmatic control - Local management of event tickets
-* PDF pinch zoom, multiple PDF pages ticket, multiple ticket navigation bug fix, ticket deletation - Local management of event tickets
 
 ### Known Issues
 * (Notification) The notification images and maybe other parameters are not collected correctly.

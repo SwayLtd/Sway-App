@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.3.1+5 # Fix white margins in split PDF tickets - Local management of event tickets
+version: 0.3.2 # Add RESIDENT PROMOTERS section to ArtistScreen and populate promoter_resident_artists table
 
 environment:
   sdk: ">=2.18.5 <4.0.0"

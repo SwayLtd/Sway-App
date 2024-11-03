@@ -1,4 +1,4 @@
-// lib/features/ticketing/screens/add_event_details_screen.dart
+// lib/features/ticketing/screens/edit_event_details_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
@@ -9,16 +9,16 @@ import 'package:sway/features/ticketing/services/ticket_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 
-class AddEventDetailsScreen extends StatefulWidget {
+class EditEventDetailsScreen extends StatefulWidget {
   final Ticket ticket;
 
-  const AddEventDetailsScreen({required this.ticket});
+  const EditEventDetailsScreen({required this.ticket});
 
   @override
-  _AddEventDetailsScreenState createState() => _AddEventDetailsScreenState();
+  _EditEventDetailsScreenState createState() => _EditEventDetailsScreenState();
 }
 
-class _AddEventDetailsScreenState extends State<AddEventDetailsScreen> {
+class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
   final EventService _eventService = EventService();
   final TicketService _ticketService = TicketService();
   final EventVenueService _eventVenueService = EventVenueService();

@@ -1,4 +1,4 @@
-// promoter.dart
+// lib/features/promoter/promoter.dart
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/utils/date_utils.dart';
@@ -12,6 +12,10 @@ import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/user/widgets/following_button_widget.dart';
+import 'package:sway/features/promoter/services/promoter_resident_artists_service.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/artist.dart';
+
 
 class PromoterScreen extends StatelessWidget {
   final int promoterId;
@@ -72,35 +76,9 @@ class PromoterScreen extends StatelessWidget {
                 return const SizedBox.shrink();
               } else {
                 return const SizedBox.shrink();
-                // TODO Implement insights for promoters
-                /*return IconButton(
-                  icon: const Icon(Icons.insights),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => InsightScreen(
-                          entityId: promoterId,
-                          entityType: 'promoter',
-                        ),
-                      ),
-                    );
-                  },
-                );*/
               }
             },
           ),
-          // TODO Implement sharing system for promoters
-          /*IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () async {
-              final promoter =
-                  await PromoterService().getPromoterById(promoterId);
-              if (promoter != null) {
-                shareEntity('promoter', promoterId, promoter.name);
-              }
-            },
-          ),*/
           FollowingButtonWidget(
             entityId: promoterId,
             entityType: 'promoter',
@@ -148,7 +126,13 @@ class PromoterScreen extends StatelessWidget {
                     entityId: promoterId,
                     entityType: 'promoter',
                   ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "ABOUT",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(promoter.description),
                   const SizedBox(height: 20),
                   const Text(
                     "UPCOMING EVENTS",
@@ -196,13 +180,71 @@ class PromoterScreen extends StatelessWidget {
                       },
                     );
                   }),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "ABOUT",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  FutureBuilder<List<Artist>>(
+                    future: PromoterResidentArtistsService()
+                        .getArtistsByPromoterId(promoterId),
+                    builder: (context, artistSnapshot) {
+                      if (artistSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (artistSnapshot.hasError) {
+                        return Text('Error: ${artistSnapshot.error}');
+                      } else if (!artistSnapshot.hasData ||
+                          artistSnapshot.data!.isEmpty) {
+                        return const SizedBox.shrink(); // Ne rien afficher
+                      } else {
+                        final artists = artistSnapshot.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "RESIDENT ARTISTS",
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 10),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: artists.map((artist) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ArtistScreen(artistId: artist.id),
+                                        ),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: ImageWithErrorHandler(
+                                              imageUrl: artist.imageUrl,
+                                              width: 100,
+                                              height: 100,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(artist.name),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        );
+                      }
+                    },
                   ),
-                  const SizedBox(height: 10),
-                  Text(promoter.description),
                 ],
               ),
             );

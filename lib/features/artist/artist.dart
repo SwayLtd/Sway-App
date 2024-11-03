@@ -1,6 +1,7 @@
-// artist.dart
+// lib/features/artist/artist.dart
 
 import 'package:flutter/material.dart';
+
 import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -13,6 +14,9 @@ import 'package:sway/features/event/services/event_artist_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/promoter/models/promoter_model.dart';
+import 'package:sway/features/promoter/promoter.dart';
+import 'package:sway/features/promoter/services/promoter_resident_artists_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/user/widgets/following_button_widget.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
@@ -37,13 +41,6 @@ class _ArtistScreenState extends State<ArtistScreen> {
       appBar: AppBar(
         title: Text('$artistName Details'),
         actions: [
-          // TODO Implement sharing system for artists
-          /*IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              shareEntity('artist', widget.artistId, artistName);
-            },
-          ),*/
           FollowingButtonWidget(
             entityId: widget.artistId,
             entityType: 'artist',
@@ -92,12 +89,6 @@ class _ArtistScreenState extends State<ArtistScreen> {
                       entityType: 'artist',
                     ),
                     const SizedBox(height: 20),
-                    const Text(
-                      "UPCOMING EVENTS",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
                     FutureBuilder<List<Map<String, dynamic>>>(
                       future: EventArtistService()
                           .getEventsByArtistId(widget.artistId),
@@ -111,9 +102,8 @@ class _ArtistScreenState extends State<ArtistScreen> {
                           );
                         } else if (!eventSnapshot.hasData ||
                             eventSnapshot.data!.isEmpty) {
-                          return const Center(
-                            child: Text('No upcoming events found'),
-                          );
+                          return const SizedBox
+                              .shrink(); // Hide section if empty
                         } else {
                           // Filtrer pour ne garder qu'un événement unique
                           final eventEntries = eventSnapshot.data!;
@@ -130,68 +120,86 @@ class _ArtistScreenState extends State<ArtistScreen> {
                               .toList();
 
                           return Column(
-                            children: uniqueEvents.map((event) {
-                              return ListTile(
-                                title: Text(event.title),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "UPCOMING EVENTS",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 10),
+                              Column(
+                                children: uniqueEvents.map((event) {
+                                  return ListTile(
+                                    title: Text(event.title),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        const Icon(
-                                          Icons.access_time,
-                                          size: 16,
-                                          color: Colors.grey,
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.access_time,
+                                              size: 16,
+                                              color: Colors.grey,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${formatEventTime(event.dateTime)} - ${formatEventTime(event.endDateTime)}',
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${formatEventTime(event.dateTime)} - ${formatEventTime(event.endDateTime)}',
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.location_on,
+                                              size: 16,
+                                              color: Colors.grey,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            FutureBuilder<Venue?>(
+                                              future: EventVenueService()
+                                                  .getVenueByEventId(event.id),
+                                              builder:
+                                                  (context, venueSnapshot) {
+                                                if (venueSnapshot
+                                                        .connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return const Text(
+                                                      'Loading...');
+                                                } else if (venueSnapshot
+                                                        .hasError ||
+                                                    !venueSnapshot.hasData ||
+                                                    venueSnapshot.data ==
+                                                        null) {
+                                                  return const Text(
+                                                    'Venue not found',
+                                                  );
+                                                } else {
+                                                  final venue =
+                                                      venueSnapshot.data!;
+                                                  return Text(venue.name);
+                                                }
+                                              },
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.location_on,
-                                          size: 16,
-                                          color: Colors.grey,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              EventScreen(event: event),
                                         ),
-                                        const SizedBox(width: 4),
-                                        FutureBuilder<Venue?>(
-                                          future: EventVenueService()
-                                              .getVenueByEventId(event.id),
-                                          builder: (context, venueSnapshot) {
-                                            if (venueSnapshot.connectionState ==
-                                                ConnectionState.waiting) {
-                                              return const Text('Loading...');
-                                            } else if (venueSnapshot.hasError ||
-                                                !venueSnapshot.hasData ||
-                                                venueSnapshot.data == null) {
-                                              return const Text(
-                                                'Venue not found',
-                                              );
-                                            } else {
-                                              final venue = venueSnapshot.data!;
-                                              return Text(venue.name);
-                                            }
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          EventScreen(event: event),
-                                    ),
+                                      );
+                                    },
                                   );
-                                },
-                              );
-                            }).toList(),
+                                }).toList(),
+                              ),
+                            ],
                           );
                         }
                       },
@@ -248,6 +256,74 @@ class _ArtistScreenState extends State<ArtistScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
+                    FutureBuilder<List<Promoter>>(
+                      future: PromoterResidentArtistsService()
+                          .getPromotersByArtistId(widget.artistId),
+                      builder: (context, promoterSnapshot) {
+                        if (promoterSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (promoterSnapshot.hasError) {
+                          return Text('Error: ${promoterSnapshot.error}');
+                        } else if (!promoterSnapshot.hasData ||
+                            promoterSnapshot.data!.isEmpty) {
+                          return const SizedBox
+                              .shrink(); // Ne rien afficher si vide
+                        } else {
+                          final promoters = promoterSnapshot.data!;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "RESIDENT PROMOTERS",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 10),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: promoters.map((promoter) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PromoterScreen(
+                                                    promoterId: promoter.id),
+                                          ),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Column(
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              child: ImageWithErrorHandler(
+                                                imageUrl: promoter.imageUrl,
+                                                width: 100,
+                                                height: 100,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Text(promoter.name),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
                     const Text(
                       "RESIDENT VENUES",
                       style:
@@ -267,9 +343,8 @@ class _ArtistScreenState extends State<ArtistScreen> {
                           );
                         } else if (!snapshot.hasData ||
                             snapshot.data!.isEmpty) {
-                          return const Center(
-                            child: Text('No resident venues found'),
-                          );
+                          return const SizedBox
+                              .shrink(); // Ne rien afficher si vide
                         } else {
                           final venues = snapshot.data!;
                           return Column(
