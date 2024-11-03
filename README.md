@@ -10,6 +10,7 @@ Coming soon
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* Implement Artist Item Widgets and UI Enhancements
 * Add RESIDENT PROMOTERS section to ArtistScreen and populate promoter_resident_artists table
 * Fix white margins in split PDF tickets - Local management of event tickets
 * Add dissociate ticket from group option in TicketDetailScreen - Local management of event tickets

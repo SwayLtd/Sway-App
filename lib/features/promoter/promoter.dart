@@ -2,11 +2,16 @@
 
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart'; // Import des constantes
 import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/artist/widgets/artist_item_widget.dart';
+import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/event/widgets/event_item_widget.dart';
+import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/screens/edit_promoter_screen.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
@@ -30,14 +35,10 @@ class _PromoterScreenState extends State<PromoterScreen> {
   Promoter? _promoter;
   bool _isLoading = true;
   String? _error;
+  final int maxEvents = 2;
 
   // Méthode pour récupérer les données du promoteur
   Future<void> _fetchPromoterData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
     try {
       final promoter =
           await PromoterService().getPromoterByIdWithEvents(widget.promoterId);
@@ -70,8 +71,9 @@ class _PromoterScreenState extends State<PromoterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(_promoter != null ? '${_promoter!.name} Details' : 'Promoter'),
+        title: Text(_promoter != null
+            ? '${_promoter!.name}'
+            : 'Promoter'), // Suppression de "Details"
         actions: [
           // Bouton d'édition
           FutureBuilder<bool>(
@@ -159,7 +161,9 @@ class _PromoterScreenState extends State<PromoterScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(
+                            height:
+                                sectionTitleSpacing), // Utilisation de la constante
                         // Nom du promoteur
                         Text(
                           _promoter!.name,
@@ -168,48 +172,101 @@ class _PromoterScreenState extends State<PromoterScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(
+                            height:
+                                sectionTitleSpacing), // Utilisation de la constante
                         // Compteur de followers
                         FollowersCountWidget(
                           entityId: widget.promoterId,
                           entityType: 'promoter',
                         ),
-                        const SizedBox(height: 20),
-                        // Section "ABOUT" avec ExpandableText
-                        const Text(
-                          "ABOUT",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        ExpandableText(
-                          _promoter!.description,
-                          expandText: 'show more',
-                          collapseText: 'show less',
-                          maxLines:
-                              3, // Nombre maximal de lignes avant "Show More"
-                          linkColor: Theme.of(context).primaryColor,
-                        ),
-                        const SizedBox(height: 20),
+                        const SizedBox(
+                            height:
+                                sectionSpacing), // Utilisation de la constante
+                        // Section "ABOUT" avec condition de visibilité
+                        if (_promoter!.description.isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "ABOUT",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(
+                                  height:
+                                      sectionTitleSpacing), // Utilisation de la constante
+                              ExpandableText(
+                                _promoter!.description,
+                                expandText: 'show more',
+                                collapseText: 'show less',
+                                maxLines:
+                                    3, // Nombre maximal de lignes avant "Show More"
+                                linkColor: Theme.of(context).primaryColor,
+                              ),
+                              const SizedBox(
+                                  height:
+                                      sectionSpacing), // Utilisation de la constante
+                            ],
+                          ),
+                        // Section "ABOUT" cachée si description est vide ou null
+                        if (_promoter!.description.isEmpty)
+                          const SizedBox.shrink(),
                         // Section "UPCOMING EVENTS"
-                        const Text(
-                          "UPCOMING EVENTS",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                        Row(
+                          mainAxisAlignment:
+                              _promoter!.upcomingEvents.length > maxEvents
+                                  ? MainAxisAlignment.spaceBetween
+                                  : MainAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "UPCOMING EVENTS",
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            if (_promoter!.upcomingEvents.length > maxEvents)
+                              IconButton(
+                                icon: const Icon(Icons.arrow_forward),
+                                onPressed: () async {
+                                  // Convertir List<int> en List<Event>
+                                  List<Event> events = await PromoterService()
+                                      .getEventsByIds(
+                                          _promoter!.upcomingEvents);
+                                  showEventModalBottomSheet(context, events);
+                                },
+                              ),
+                          ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: sectionTitleSpacing),
                         _promoter!.upcomingEvents.isEmpty
-                            ? const Text('No upcoming events')
-                            : Column(
+                            ? Row(
+                                children: const [
+                                  Icon(Icons.event_busy, color: Colors.grey),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'No upcoming events',
+                                    style: TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : // EventCardItemWidget view
+                            /*Column(
                                 children:
-                                    _promoter!.upcomingEvents.map((eventId) {
+                                    _promoter!.upcomingEvents.take(maxEvents).map((eventId) {
                                   return FutureBuilder<Event?>(
                                     future:
                                         EventService().getEventById(eventId),
                                     builder: (context, eventSnapshot) {
                                       if (eventSnapshot.connectionState ==
                                           ConnectionState.waiting) {
-                                        return const CircularProgressIndicator();
+                                        return const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 8.0, horizontal: 8.0),
+                                          child: CircularProgressIndicator(),
+                                        );
                                       } else if (eventSnapshot.hasError ||
                                           !eventSnapshot.hasData ||
                                           eventSnapshot.data == null) {
@@ -217,10 +274,8 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                             .shrink(); // Ne rien afficher si erreur
                                       } else {
                                         final event = eventSnapshot.data!;
-                                        return ListTile(
-                                          title: Text(event.title),
-                                          subtitle: Text(
-                                              formatEventDate(event.dateTime)),
+                                        return EventListItemWidget(
+                                          event: event,
                                           onTap: () {
                                             Navigator.push(
                                               context,
@@ -235,9 +290,57 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                     },
                                   );
                                 }).toList(),
+                              ),*/
+                            SizedBox(
+                                height:
+                                    246, // Définissez une hauteur appropriée pour le ListView horizontal
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _promoter!.upcomingEvents.length >
+                                          maxEvents
+                                      ? maxEvents
+                                      : _promoter!.upcomingEvents.length,
+                                  itemBuilder: (context, index) {
+                                    final eventId =
+                                        _promoter!.upcomingEvents[index];
+                                    return FutureBuilder<Event?>(
+                                      future:
+                                          EventService().getEventById(eventId),
+                                      builder: (context, eventSnapshot) {
+                                        if (eventSnapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return const Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 8.0, horizontal: 8.0),
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        } else if (eventSnapshot.hasError ||
+                                            !eventSnapshot.hasData ||
+                                            eventSnapshot.data == null) {
+                                          return const SizedBox
+                                              .shrink(); // Ne rien afficher si erreur
+                                        } else {
+                                          final event = eventSnapshot.data!;
+                                          return EventCardItemWidget(
+                                            event: event,
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventScreen(event: event),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }
+                                      },
+                                    );
+                                  },
+                                ),
                               ),
-                        const SizedBox(height: 20),
-                        // Section "RESIDENT ARTISTS"
+                        // const SizedBox(height: sectionSpacing),
+                        // Section "RESIDENT ARTISTS" avec ArtistItemWidget et icône "Show More" alignée à droite
                         FutureBuilder<List<Artist>>(
                           future: PromoterResidentArtistsService()
                               .getArtistsByPromoterId(widget.promoterId),
@@ -253,54 +356,61 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                   .shrink(); // Ne rien afficher si vide
                             } else {
                               final artists = artistSnapshot.data!;
+                              final bool hasMoreArtists = artists.length > 7;
+                              final displayedArtists = hasMoreArtists
+                                  ? artists.take(7).toList()
+                                  : artists;
+
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    "RESIDENT ARTISTS",
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
+                                  Row(
+                                    mainAxisAlignment: hasMoreArtists
+                                        ? MainAxisAlignment.spaceBetween
+                                        : MainAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "RESIDENT ARTISTS",
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      if (hasMoreArtists)
+                                        IconButton(
+                                          icon: const Icon(Icons.arrow_forward),
+                                          onPressed: () {
+                                            showArtistModalBottomSheet(
+                                                context, artists);
+                                          },
+                                        ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 10),
+                                  const SizedBox(height: sectionTitleSpacing),
                                   SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
                                     child: Row(
-                                      children: artists.map((artist) {
-                                        return GestureDetector(
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    ArtistScreen(
-                                                        artistId: artist.id),
-                                              ),
-                                            );
-                                          },
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Column(
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  child: ImageWithErrorHandler(
-                                                    imageUrl: artist.imageUrl,
-                                                    width: 100,
-                                                    height: 100,
-                                                  ),
+                                      children: [
+                                        ...displayedArtists.map((artist) {
+                                          return ArtistCardItemWidget(
+                                            artist: artist,
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ArtistScreen(
+                                                          artistId: artist.id),
                                                 ),
-                                                const SizedBox(height: 5),
-                                                Text(artist.name),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
+                                              );
+                                            },
+                                          );
+                                        }).toList(),
+                                        // Supprimer le GestureDetector "Show More" à la fin de la liste
+                                        // Si nécessaire, vous pouvez le conserver, mais selon vos instructions, il doit être supprimé
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(height: 20),
+                                  const SizedBox(height: sectionSpacing),
                                 ],
                               );
                             }

@@ -37,6 +37,21 @@ class PromoterService {
         .toList();
   }
 
+  Future<List<Event>> getEventsByIds(List<int> eventIds) async {
+    if (eventIds.isEmpty) {
+      return [];
+    }
+
+    final response =
+        await _supabase.from('events').select().filter('id', 'in', eventIds);
+
+    if (response.isEmpty) {
+      return [];
+    }
+
+    return response.map<Event>((json) => Event.fromJson(json)).toList();
+  }
+
   Future<Promoter?> getPromoterByIdWithEvents(int id) async {
     final response =
         await _supabase.from('promoters').select().eq('id', id).maybeSingle();
@@ -159,10 +174,8 @@ class PromoterService {
       return [];
     }
 
-    final response = await _supabase
-        .from('promoters')
-        .select()
-        .filter('id', 'in', promoterIds); // Utilisation de .filter au lieu de .in_
+    final response = await _supabase.from('promoters').select().filter(
+        'id', 'in', promoterIds); // Utilisation de .filter au lieu de .in_
 
     if (response.isEmpty) {
       return [];
