@@ -6,7 +6,7 @@ import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/ticketing/models/ticket_model.dart';
-import 'package:sway/features/ticketing/screens/add_event_details_screen.dart';
+import 'package:sway/features/ticketing/screens/edit_event_details_screen.dart';
 import 'package:screen_brightness/screen_brightness.dart'; // Assurez-vous d'avoir ce package
 import 'package:sway/features/ticketing/services/ticket_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
@@ -416,7 +416,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            AddEventDetailsScreen(ticket: currentTicket),
+                            EditEventDetailsScreen(ticket: currentTicket),
                       ),
                     );
                     await _loadTicketsForEvent();
