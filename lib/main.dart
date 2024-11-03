@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 import 'package:sway/core/constants/app_theme.dart';
 import 'package:sway/core/constants/l10n.dart';
 import 'package:sway/core/routes.dart';
@@ -12,14 +13,18 @@ import 'package:sway/core/services/database_service.dart';
 // import 'package:sway/core/services/notification_service.dart';
 import 'package:sway/features/security/utils/security_utils.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 Future<void> main() async {
   usePathUrlStrategy(); // Remove # from URL
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   DatabaseService().initialize();
+  await Hive.initFlutter();
   // NotificationService().initialize();
-  runApp(const SwayApp());
+  runApp(
+    const SwayApp(),
+  );
 }
 
 class SwayApp extends StatelessWidget {
