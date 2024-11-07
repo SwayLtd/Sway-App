@@ -228,20 +228,16 @@ class _VenueScreenState extends State<VenueScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(height: sectionTitleSpacing),
                             ExpandableText(
                               venue.description,
                               expandText: 'show more',
                               collapseText: 'show less',
                               maxLines: 3,
                               linkColor: Theme.of(context).primaryColor,
-                              style: const TextStyle(
-                                fontSize: 16,
-                              ),
                             ),
-                            SizedBox(height: sectionSpacing),
                           ],
                         ),
+                      SizedBox(height: sectionSpacing),
                       // MOOD Section
                       FutureBuilder<List<int>>(
                         future: _genresFuture,
