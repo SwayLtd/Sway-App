@@ -172,7 +172,7 @@ class VenueService {
 
   Future<List<Venue>> getVenuesByGenreId(int genreId) async {
     final response = await _supabase
-        .from('venue_genres')
+        .from('venue_genre')
         .select('venue_id')
         .eq('genre_id', genreId);
 

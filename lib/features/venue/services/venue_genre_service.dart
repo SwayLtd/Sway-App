@@ -7,7 +7,7 @@ class VenueGenreService {
 
   Future<List<int>> getGenresByVenueId(int venueId) async {
     final response = await _supabase
-        .from('venue_genres')
+        .from('venue_genre')
         .select('genre_id')
         .eq('venue_id', venueId);
 
@@ -20,7 +20,7 @@ class VenueGenreService {
 
   Future<List<int>> getVenuesByGenreId(int genreId) async {
     final response = await _supabase
-        .from('venue_genres')
+        .from('venue_genre')
         .select('venue_id')
         .eq('genre_id', genreId);
 
@@ -32,7 +32,7 @@ class VenueGenreService {
   }
 
   Future<void> addGenreToVenue(int venueId, int genreId) async {
-    final response = await _supabase.from('venue_genres').insert({
+    final response = await _supabase.from('venue_genre').insert({
       'venue_id': venueId,
       'genre_id': genreId,
     });
@@ -44,7 +44,7 @@ class VenueGenreService {
 
   Future<void> removeGenreFromVenue(int venueId, int genreId) async {
     final response = await _supabase
-        .from('venue_genres')
+        .from('venue_genre')
         .delete()
         .eq('venue_id', venueId)
         .eq('genre_id', genreId);
