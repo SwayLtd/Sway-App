@@ -1,6 +1,7 @@
 // profile.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/core/widgets/scrolling_text_screen.dart';
@@ -25,6 +26,7 @@ import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/venue.dart';
+import 'package:sway/features/venue/widgets/venue_item_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int userId;
@@ -311,46 +313,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         } else {
                           final venues = venueSnapshot.data!;
                           return SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: venues.map((venue) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => VenueScreen(
-                                            venueId: venue
-                                                .id), // Assurez-vous que venue.id est un int
-                                      ),
-                                    );
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          child: ImageWithErrorHandler(
-                                            imageUrl: venue.imageUrl,
-                                            width: 100,
-                                            height: 100,
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  ...venues.map((venue) {
+                                    return VenueCardItemWidget(
+                                      venue: venue,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                VenueScreen(venueId: venue.id),
                                           ),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(venue.name),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          );
+                                        );
+                                      },
+                                    );
+                                  }).toList(),
+                                ],
+                              ));
                         }
                       },
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: sectionSpacing),
                     const Text(
                       'PROMOTERS',
                       style:
