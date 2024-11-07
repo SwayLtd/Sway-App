@@ -9,6 +9,7 @@ class Ticket {
   int? eventId;
   String? eventName;
   DateTime? eventDate;
+  DateTime? eventEndDate; // New field added
   String? eventLocation;
   String? ticketType;
   final String? groupId;
@@ -20,6 +21,7 @@ class Ticket {
     this.eventId,
     this.eventName,
     this.eventDate,
+    this.eventEndDate, // Initialize the new field
     this.eventLocation,
     this.ticketType,
     this.groupId,
@@ -34,6 +36,7 @@ class Ticket {
       'eventId': eventId,
       'eventName': eventName,
       'eventDate': eventDate?.toIso8601String(),
+      'eventEndDate': eventEndDate?.toIso8601String(), // Include in map
       'eventLocation': eventLocation,
       'ticketType': ticketType,
       'groupId': groupId, // Conversion du groupId
@@ -48,7 +51,11 @@ class Ticket {
       importedDate: DateTime.parse(map['importedDate']),
       eventId: map['eventId'],
       eventName: map['eventName'],
-      eventDate: map['eventDate'] != null ? DateTime.parse(map['eventDate']) : null,
+      eventDate:
+          map['eventDate'] != null ? DateTime.parse(map['eventDate']) : null,
+      eventEndDate: map['eventEndDate'] != null
+          ? DateTime.parse(map['eventEndDate'])
+          : null, // Parse the new field
       eventLocation: map['eventLocation'],
       ticketType: map['ticketType'],
       groupId: map['groupId'],

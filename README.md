@@ -10,6 +10,7 @@ Coming soon
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* Update Ticket model and service to use event end date for upcoming tickets - Local management of event tickets
 * Implement Artist Item Widgets and UI Enhancements
 * Add RESIDENT PROMOTERS section to ArtistScreen and populate promoter_resident_artists table
 * Fix white margins in split PDF tickets - Local management of event tickets

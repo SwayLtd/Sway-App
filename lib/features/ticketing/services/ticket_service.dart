@@ -184,6 +184,7 @@ class TicketService {
         eventId: oldTicket.eventId,
         eventName: oldTicket.eventName,
         eventDate: oldTicket.eventDate,
+        eventEndDate: oldTicket.eventEndDate, // Preserve the eventEndDate
         eventLocation: oldTicket.eventLocation,
         ticketType: oldTicket.ticketType,
         groupId: null, // Dissociate the groupId
@@ -218,7 +219,6 @@ class TicketService {
   }
 
   /// Met à jour un ticket existant.
-
   Future<void> updateTicket(Ticket updatedTicket) async {
     List<Ticket> currentTickets = await getTickets();
     int index = currentTickets.indexWhere((t) => t.id == updatedTicket.id);
@@ -234,37 +234,39 @@ class TicketService {
     return allTickets.where((t) => t.eventId == eventId).toList();
   }
 
-  /// Récupère les tickets à venir en fonction de la date de l'événement.
+  /// Récupère les tickets à venir en fonction de la date de fin de l'événement.
   Future<List<Ticket>> getUpcomingTickets() async {
     final now = DateTime.now();
     List<Ticket> allTickets = await getTickets();
     return allTickets.where((t) {
-      final eventDate = t.eventDate ?? t.importedDate;
-      return isTodayOrAfter(eventDate, now);
+      final eventEndDate = t.eventEndDate ?? t.eventDate ?? t.importedDate;
+      return isTodayOrAfter(eventEndDate, now);
     }).toList();
   }
 
-  /// Récupère les tickets passés en fonction de la date de l'événement.
+  /// Récupère les tickets passés en fonction de la date de fin de l'événement.
   Future<List<Ticket>> getPastTickets() async {
     final now = DateTime.now();
     List<Ticket> allTickets = await getTickets();
     return allTickets.where((t) {
-      final eventDate = t.eventDate ?? t.importedDate;
-      return isBeforeToday(eventDate, now);
+      final eventEndDate = t.eventEndDate ?? t.eventDate ?? t.importedDate;
+      return isBeforeToday(eventEndDate, now);
     }).toList();
   }
 
   /// Helper method to check if date is today or after today
   bool isTodayOrAfter(DateTime date, DateTime reference) {
-    final dateOnly = DateTime(date.year, date.month, date.day);
-    final refOnly = DateTime(reference.year, reference.month, reference.day);
+    final dateOnly = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    final refOnly =
+        DateTime(reference.year, reference.month, reference.day, 0, 0, 0);
     return dateOnly.isAfter(refOnly) || dateOnly.isAtSameMomentAs(refOnly);
   }
 
   /// Helper method to check if date is before today
   bool isBeforeToday(DateTime date, DateTime reference) {
-    final dateOnly = DateTime(date.year, date.month, date.day);
-    final refOnly = DateTime(reference.year, reference.month, reference.day);
+    final dateOnly = DateTime(date.year, date.month, date.day, 0, 0, 0);
+    final refOnly =
+        DateTime(reference.year, reference.month, reference.day, 0, 0, 0);
     return dateOnly.isBefore(refOnly);
   }
 
