@@ -3,7 +3,6 @@
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart'; // Import des constantes
-import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/widgets/artist_item_widget.dart';
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
@@ -12,8 +11,12 @@ import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
 import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart';
+import 'package:sway/features/genre/genre.dart';
+import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/genre/widgets/genre_modal_bottom_sheet.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/screens/edit_promoter_screen.dart';
+import 'package:sway/features/promoter/services/promoter_genre_service.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
@@ -36,6 +39,8 @@ class _PromoterScreenState extends State<PromoterScreen> {
   bool _isLoading = true;
   String? _error;
   final int maxEvents = 2;
+
+  final UserPermissionService _permissionService = UserPermissionService();
 
   // Méthode pour récupérer les données du promoteur
   Future<void> _fetchPromoterData() async {
@@ -71,16 +76,14 @@ class _PromoterScreenState extends State<PromoterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_promoter != null
-            ? '${_promoter!.name}'
-            : 'Promoter'), // Suppression de "Details"
+        title: Text(_promoter != null ? '${_promoter!.name}' : 'Promoter'),
         actions: [
-          // Bouton d'édition
+          // Bouton d'édition conditionnel basé sur les permissions
           FutureBuilder<bool>(
-            future: UserPermissionService().hasPermissionForCurrentUser(
+            future: _permissionService.hasPermissionForCurrentUser(
               widget.promoterId,
               'promoter',
-              'edit',
+              'edit', // 'edit' correspond à 'manager' ou supérieur dans UserPermissionService
             ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -113,10 +116,10 @@ class _PromoterScreenState extends State<PromoterScreen> {
           ),
           // Bouton d'insight (vide pour l'instant)
           FutureBuilder<bool>(
-            future: UserPermissionService().hasPermissionForCurrentUser(
+            future: _permissionService.hasPermissionForCurrentUser(
               widget.promoterId,
               'promoter',
-              'insight',
+              'insight', // À implémenter si nécessaire
             ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -127,7 +130,12 @@ class _PromoterScreenState extends State<PromoterScreen> {
                 return const SizedBox.shrink();
               } else {
                 // Implémenter le bouton d'insight si nécessaire
-                return const SizedBox.shrink();
+                return IconButton(
+                  icon: const Icon(Icons.insights),
+                  onPressed: () {
+                    // Action pour le bouton d'insight
+                  },
+                );
               }
             },
           ),
@@ -212,6 +220,87 @@ class _PromoterScreenState extends State<PromoterScreen> {
                         // Section "ABOUT" cachée si description est vide ou null
                         if (_promoter!.description.isEmpty)
                           const SizedBox.shrink(),
+                        // MOOD Section
+                        FutureBuilder<List<int>>(
+                          future: PromoterGenreService()
+                              .getGenresByPromoterId(widget.promoterId),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${snapshot.error}'));
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            } else {
+                              final genres = snapshot.data!;
+                              final bool hasMoreGenres = genres.length > 5;
+                              final displayCount =
+                                  hasMoreGenres ? 5 : genres.length;
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: hasMoreGenres
+                                        ? MainAxisAlignment.spaceBetween
+                                        : MainAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "MOOD",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      if (hasMoreGenres)
+                                        IconButton(
+                                          icon: const Icon(Icons.arrow_forward),
+                                          onPressed: () {
+                                            showGenreModalBottomSheet(
+                                                context, genres);
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: sectionTitleSpacing),
+                                  SizedBox(
+                                    height:
+                                        60, // Hauteur fixe adaptée à vos GenreChips
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: displayCount,
+                                      itemBuilder: (context, index) {
+                                        final genreId = genres[index];
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 8.0),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      GenreScreen(
+                                                          genreId: genreId),
+                                                ),
+                                              );
+                                            },
+                                            child: GenreChip(genreId: genreId),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: sectionSpacing),
+                                ],
+                              );
+                            }
+                          },
+                        ),
                         // Section "UPCOMING EVENTS"
                         Row(
                           mainAxisAlignment:
@@ -339,7 +428,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                   },
                                 ),
                               ),
-                        // const SizedBox(height: sectionSpacing),
+                        const SizedBox(height: sectionSpacing),
                         // Section "RESIDENT ARTISTS" avec ArtistItemWidget et icône "Show More" alignée à droite
                         FutureBuilder<List<Artist>>(
                           future: PromoterResidentArtistsService()
@@ -405,8 +494,6 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                             },
                                           );
                                         }).toList(),
-                                        // Supprimer le GestureDetector "Show More" à la fin de la liste
-                                        // Si nécessaire, vous pouvez le conserver, mais selon vos instructions, il doit être supprimé
                                       ],
                                     ),
                                   ),

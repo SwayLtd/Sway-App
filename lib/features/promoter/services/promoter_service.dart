@@ -10,6 +10,7 @@ class PromoterService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final UserPermissionService _permissionService = UserPermissionService();
 
+  /// Recherche des promoteurs par nom.
   Future<List<Promoter>> searchPromoters(String query) async {
     final response =
         await _supabase.from('promoters').select().ilike('name', '%$query%');
@@ -24,6 +25,7 @@ class PromoterService {
         .toList();
   }
 
+  /// Récupère tous les promoteurs avec leurs événements associés.
   Future<List<Promoter>> getPromotersWithEvents() async {
     final response = await _supabase.from('promoters').select();
     if (response.isEmpty) {
@@ -37,6 +39,7 @@ class PromoterService {
         .toList();
   }
 
+  /// Récupère les événements par une liste d'IDs.
   Future<List<Event>> getEventsByIds(List<int> eventIds) async {
     if (eventIds.isEmpty) {
       return [];
@@ -52,6 +55,7 @@ class PromoterService {
     return response.map<Event>((json) => Event.fromJson(json)).toList();
   }
 
+  /// Récupère un promoteur par son ID avec ses événements à venir.
   Future<Promoter?> getPromoterByIdWithEvents(int id) async {
     final response =
         await _supabase.from('promoters').select().eq('id', id).maybeSingle();
@@ -90,6 +94,7 @@ class PromoterService {
     return Promoter.fromJson(response, upcomingEvents);
   }
 
+  /// Récupère tous les promoteurs sans leurs événements.
   Future<List<Promoter>> getPromoters() async {
     final response = await _supabase.from('promoters').select();
 
@@ -102,6 +107,7 @@ class PromoterService {
         .toList();
   }
 
+  /// Récupère un promoteur par son ID sans ses événements.
   Future<Promoter?> getPromoterById(int id) async {
     final response =
         await _supabase.from('promoters').select().eq('id', id).maybeSingle();
@@ -113,14 +119,17 @@ class PromoterService {
     return Promoter.fromJsonWithoutEvents(response);
   }
 
+  /// Ajoute un nouveau promoteur.
   Future<void> addPromoter(Promoter promoter) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(
+    final hasAdminPermission = await _permissionService.hasPermissionForCurrentUser(
       promoter.id,
       'promoter',
       'admin',
     );
-    if (!hasPermission) {
-      throw Exception('Permission denied');
+
+    if (!hasAdminPermission) {
+      throw Exception(
+          'Permission denied: You do not have the necessary rights to add a promoter.');
     }
 
     final response =
@@ -131,14 +140,17 @@ class PromoterService {
     }
   }
 
+  /// Met à jour un promoteur existant.
   Future<void> updatePromoter(Promoter promoter) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
       promoter.id,
       'promoter',
-      'manager',
+      'manager', // 'manager' ou supérieur peut mettre à jour
     );
+
     if (!hasPermission) {
-      throw Exception('Permission denied');
+      throw Exception(
+          'Permission denied: You do not have the necessary rights to update this promoter.');
     }
 
     final response = await _supabase
@@ -151,14 +163,17 @@ class PromoterService {
     }
   }
 
+  /// Supprime un promoteur par son ID.
   Future<void> deletePromoter(int promoterId) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(
+    final hasAdminPermission = await _permissionService.hasPermissionForCurrentUser(
       promoterId,
       'promoter',
       'admin',
     );
-    if (!hasPermission) {
-      throw Exception('Permission denied');
+
+    if (!hasAdminPermission) {
+      throw Exception(
+          'Permission denied: You do not have the necessary rights to delete this promoter.');
     }
 
     final response =
@@ -169,13 +184,16 @@ class PromoterService {
     }
   }
 
+  /// Récupère des promoteurs par une liste d'IDs.
   Future<List<Promoter>> getPromotersByIds(List<int> promoterIds) async {
     if (promoterIds.isEmpty) {
       return [];
     }
 
-    final response = await _supabase.from('promoters').select().filter(
-        'id', 'in', promoterIds); // Utilisation de .filter au lieu de .in_
+    final response = await _supabase
+        .from('promoters')
+        .select()
+        .filter('id', 'in', promoterIds);
 
     if (response.isEmpty) {
       return [];

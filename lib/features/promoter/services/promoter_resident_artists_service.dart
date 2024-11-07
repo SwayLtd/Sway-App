@@ -11,7 +11,7 @@ class PromoterResidentArtistsService {
   final ArtistService _artistService = ArtistService();
   final PromoterService _promoterService = PromoterService();
 
-  /// Retrieves artists associated with a specific promoter.
+  /// Récupère les artistes associés à un promoteur.
   Future<List<Artist>> getArtistsByPromoterId(int promoterId) async {
     final response = await _supabase
         .from('promoter_resident_artists')
@@ -23,12 +23,12 @@ class PromoterResidentArtistsService {
     }
 
     final List<int> artistIds =
-        response.map((entry) => entry['artist_id'] as int).toList();
+        response.map<int>((entry) => entry['artist_id'] as int).toList();
 
     return await _artistService.getArtistsByIds(artistIds);
   }
 
-  /// Adds an artist to a promoter.
+  /// Ajoute un artiste à un promoteur.
   Future<void> addArtistToPromoter(int promoterId, int artistId) async {
     final response = await _supabase.from('promoter_resident_artists').insert({
       'promoter_id': promoterId,
@@ -40,7 +40,7 @@ class PromoterResidentArtistsService {
     }
   }
 
-  /// Removes an artist from a promoter.
+  /// Supprime un artiste d'un promoteur.
   Future<void> removeArtistFromPromoter(int promoterId, int artistId) async {
     final response = await _supabase
         .from('promoter_resident_artists')
@@ -53,7 +53,7 @@ class PromoterResidentArtistsService {
     }
   }
 
-  /// **New Method:** Retrieves promoters associated with a specific artist.
+  /// Récupère les promoteurs associés à un artiste.
   Future<List<Promoter>> getPromotersByArtistId(int artistId) async {
     final response = await _supabase
         .from('promoter_resident_artists')
@@ -65,8 +65,34 @@ class PromoterResidentArtistsService {
     }
 
     final List<int> promoterIds =
-        response.map((entry) => entry['promoter_id'] as int).toList();
+        response.map<int>((entry) => entry['promoter_id'] as int).toList();
 
     return await _promoterService.getPromotersByIds(promoterIds);
+  }
+
+  /// Met à jour les artistes résidents associés à un promoteur.
+  Future<void> updatePromoterArtists(
+      int promoterId, List<int> artistIds) async {
+    // Supprimer les artistes existants
+    await _supabase
+        .from('promoter_resident_artists')
+        .delete()
+        .eq('promoter_id', promoterId);
+
+    // Ajouter les nouveaux artistes
+    final entries = artistIds
+        .map((artistId) => {
+              'promoter_id': promoterId,
+              'artist_id': artistId,
+            })
+        .toList();
+
+    if (entries.isNotEmpty) {
+      final response =
+          await _supabase.from('promoter_resident_artists').insert(entries);
+      if (response.isEmpty) {
+        throw Exception('Failed to update promoter artists.');
+      }
+    }
   }
 }

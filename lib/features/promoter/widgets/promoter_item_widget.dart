@@ -2,11 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
-import 'package:sway/features/promoter/models/promoter_model.dart'; // Assurez-vous d'avoir ce modèle
+import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
 
-/// Widget pour afficher un promoteur sous forme de liste avec image, nom, followers, événements à venir et bouton de suivi.
+/// Widget to display a promoter as a list item with image, name, followers, upcoming events, and follow button.
 class PromoterListItemWidget extends StatefulWidget {
   final Promoter promoter;
   final VoidCallback onTap;
@@ -15,7 +15,7 @@ class PromoterListItemWidget extends StatefulWidget {
   const PromoterListItemWidget({
     required this.promoter,
     required this.onTap,
-    this.maxNameLength = 20, // Longueur maximale du nom par défaut
+    this.maxNameLength = 16, // Default maximum name length
     Key? key,
   }) : super(key: key);
 
@@ -56,7 +56,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Troncature du nom si nécessaire
+    // Truncate name if necessary
     String truncatedName = widget.promoter.name.length > widget.maxNameLength
         ? '${widget.promoter.name.substring(0, widget.maxNameLength)}...'
         : widget.promoter.name;
@@ -65,17 +65,22 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 3,
       child: ListTile(
         onTap: widget.onTap,
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: ImageWithErrorHandler(
-            imageUrl: widget.promoter.imageUrl,
-            width: 50,
-            height: 50,
-            fit: BoxFit.cover,
+        leading: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor, // Apply cardColor from theme
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: ImageWithErrorHandler(
+              imageUrl: widget.promoter.imageUrl,
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+            ),
           ),
         ),
         title: Text(
@@ -95,7 +100,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Text(
-                    'Loading followers...',
+                    '',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
                   );
                 } else if (snapshot.hasError) {
@@ -147,16 +152,12 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
               return const Icon(Icons.error, color: Colors.red);
             } else {
               bool isFollowing = snapshot.data ?? false;
-              return ElevatedButton(
+              return IconButton(
+                icon: isFollowing
+                    ? Icon(Icons.favorite,
+                        color: Theme.of(context).colorScheme.secondary)
+                    : Icon(Icons.favorite_border),
                 onPressed: () => _toggleFollow(isFollowing),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isFollowing ? Colors.grey : Colors.blue,
-                  minimumSize: const Size(80, 30),
-                ),
-                child: Text(
-                  isFollowing ? 'Following' : 'Follow',
-                  style: const TextStyle(fontSize: 12),
-                ),
               );
             }
           },
@@ -166,7 +167,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
   }
 }
 
-/// Widget pour afficher un promoteur sous forme de carte avec image, nom, followers, événements à venir et bouton de suivi.
+/// Widget to display a promoter as a card with image, name, followers, upcoming events, and follow button.
 class PromoterCardItemWidget extends StatefulWidget {
   final Promoter promoter;
   final VoidCallback onTap;
@@ -175,7 +176,7 @@ class PromoterCardItemWidget extends StatefulWidget {
   const PromoterCardItemWidget({
     required this.promoter,
     required this.onTap,
-    this.maxNameLength = 20, // Longueur maximale du nom par défaut
+    this.maxNameLength = 20, // Default maximum name length
     Key? key,
   }) : super(key: key);
 
@@ -216,7 +217,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Troncature du nom si nécessaire
+    // Truncate name if necessary
     String truncatedName = widget.promoter.name.length > widget.maxNameLength
         ? '${widget.promoter.name.substring(0, widget.maxNameLength)}...'
         : widget.promoter.name;
@@ -226,21 +227,29 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
         borderRadius: BorderRadius.circular(10),
       ),
       elevation: 3,
-      margin: const EdgeInsets.all(8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image du promoteur
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(10),
-              topRight: Radius.circular(10),
+          // Promoter Image
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor, // Apply cardColor from theme
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
+              ),
             ),
-            child: ImageWithErrorHandler(
-              imageUrl: widget.promoter.imageUrl,
-              width: double.infinity,
-              height: 150,
-              fit: BoxFit.cover,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
+              ),
+              child: ImageWithErrorHandler(
+                imageUrl: widget.promoter.imageUrl,
+                width: double.infinity,
+                height: 150,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           Padding(
@@ -248,7 +257,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nom du promoteur avec troncature
+                // Promoter Name
                 Text(
                   truncatedName,
                   style: const TextStyle(
@@ -259,13 +268,13 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                // Nombre de followers
+                // Followers Count
                 FutureBuilder<int>(
                   future: _followersCountFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Text(
-                        'Loading followers...',
+                        '',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       );
                     } else if (snapshot.hasError) {
@@ -284,7 +293,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
                   },
                 ),
                 const SizedBox(height: 2),
-                // Nombre d'événements à venir
+                // Upcoming Events Count
                 FutureBuilder<int>(
                   future: _upcomingEventsCountFuture,
                   builder: (context, snapshot) {
@@ -309,7 +318,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
                   },
                 ),
                 const SizedBox(height: 8),
-                // Bouton "Follow" ou "Following"
+                // Follow Button
                 FutureBuilder<bool>(
                   future: _isFollowingFuture,
                   builder: (context, snapshot) {
@@ -324,17 +333,11 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
                       return const Icon(Icons.error, color: Colors.red);
                     } else {
                       bool isFollowing = snapshot.data ?? false;
-                      return ElevatedButton(
+                      return IconButton(
+                        icon: isFollowing
+                            ? Icon(Icons.favorite)
+                            : Icon(Icons.favorite_border),
                         onPressed: () => _toggleFollow(isFollowing),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isFollowing ? Colors.grey : Colors.blue,
-                          minimumSize: const Size(80, 30),
-                        ),
-                        child: Text(
-                          isFollowing ? 'Following' : 'Follow',
-                          style: const TextStyle(fontSize: 12),
-                        ),
                       );
                     }
                   },

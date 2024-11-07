@@ -1,4 +1,4 @@
-// artist_service.dart
+// lib/features/artist/services/artist_service.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
