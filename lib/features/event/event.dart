@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:expandable_text/expandable_text.dart';
 import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/core/widgets/common_section_widget.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
@@ -16,9 +17,7 @@ import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
-import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/promoter/widgets/promoter_item_widget.dart';
-import 'package:sway/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway/features/user/services/user_interest_event_service.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
@@ -352,7 +351,16 @@ class _EventScreenState extends State<EventScreen> {
             const SizedBox(height: 20),
             CommonSectionWidget(
               title: "DESCRIPTION",
-              child: Text(widget.event.description),
+              child: ExpandableText(
+                widget.event.description,
+                expandText: 'show more',
+                collapseText: 'show less',
+                maxLines: 3,
+                linkColor: Theme.of(context).primaryColor,
+                style: const TextStyle(
+                  fontSize: 16,
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             CommonSectionWidget(
