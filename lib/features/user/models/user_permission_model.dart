@@ -1,3 +1,5 @@
+// lib/features/user/models/user_permission_model.dart
+
 class UserPermission {
   final int userId;
   final int entityId;

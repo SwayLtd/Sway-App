@@ -1,3 +1,5 @@
+// lib/core/widgets/bottom_navigation_bar.dart
+
 import 'package:flutter/material.dart';
 import 'package:sway/core/routes.dart';
 
@@ -16,7 +18,12 @@ class _ScaffoldWithNavBarWithoutAppBarState extends State<ScaffoldWithNavBarWith
   @override
   void initState() {
     super.initState();
-    _currentIndex = selectedIndex();
+    int index = selectedIndex();
+    // Assurer que l'index est valide
+    if (index < 0 || index >= 4) { // 4 étant le nombre d'items
+      index = 0;
+    }
+    _currentIndex = index;
   }
 
   /// The widget to display in the body of the Scaffold.
@@ -36,30 +43,29 @@ class _ScaffoldWithNavBarWithoutAppBarState extends State<ScaffoldWithNavBarWith
         label: "Tickets",
       ),
       const BottomNavigationBarItem(
-        icon: Icon(Icons.person_outlined),
-        label: "Account",
+        icon: Icon(Icons.settings_outlined),
+        label: "Settings", // Modifier le label
       ),
     ];
+
+    // Calculer un index valide
+    final int validIndex = (_currentIndex < 0 || _currentIndex >= items.length) ? 0 : _currentIndex;
 
     return Scaffold(
       key: _scaffoldKey,
       body: widget.child,
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: selectedIndex() >= items.length
-            ? Theme.of(context).disabledColor
-            : Theme.of(context)
-                .primaryColor, // Faking a disabled color if the index is out of range
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Theme.of(context).disabledColor,
         items: items,
         onTap: (int index) {
           onTap(context, index);
-          _currentIndex = index;
+          setState(() {
+            _currentIndex = index;
+          });
         },
-        currentIndex: (int index) {
-          return _currentIndex = index >= items.length
-              ? 0
-              : index; // Faking the bottom navigation bar index if the index is out of range
-        }(_currentIndex),
+        currentIndex: validIndex,
       ),
     );
   }

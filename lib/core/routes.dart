@@ -1,23 +1,24 @@
-// https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/shell_route.dart
-// https://blog.codemagic.io/flutter-go-router-guide/
+// lib/core/routes.dart
 
-// ignore_for_file: avoid_dynamic_calls
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/l10n.dart';
 import 'package:sway/core/utils/error/error_not_found.dart';
 import 'package:sway/core/widgets/bottom_navigation_bar.dart';
 import 'package:sway/features/discovery/discovery.dart';
 import 'package:sway/features/search/search.dart';
+import 'package:sway/features/settings/settings.dart';
 import 'package:sway/features/ticketing/ticketing.dart';
-import 'package:sway/features/user/profile.dart';
+import 'package:sway/features/user/screens/login_screen.dart'; // Importer le nouvel écran
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
-List routes = [
+List<Map<String, dynamic>> shellRoutes = [
   {
     'name': 'Discovery',
     'path': '/',
@@ -37,58 +38,52 @@ List routes = [
     'screen': TicketingScreen(),
   },
   {
-    'name': 'Profile',
-    'path': '/profile/:id',
+    'name': 'Settings',
+    'path': '/settings',
     'index': 3,
-    'screen': const ProfileScreen(userId: 3,),
+    'screen': const SettingsScreen(), // Remplacer par le nouvel écran
+  },
+];
+
+List<Map<String, dynamic>> standaloneRoutes = [
+  {
+    'name': 'Login',
+    'path': '/login',
+    'screen': const LoginScreen(),
   },
 ];
 
 final GoRouter router = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/',
-  // routerNeglect: false, // Stop the router from adding the pages to the browser history > Setting for user privacy
+  redirect: (context, state) {
+    final bool loggedIn = Supabase.instance.client.auth.currentUser != null;
+    final bool loggingIn = state.matchedLocation == '/login';
+
+    if (!loggedIn) {
+      return loggingIn ? null : '/login';
+    }
+
+    if (loggingIn) {
+      return '/';
+    }
+
+    return null;
+  },
+  refreshListenable:
+      GoRouterRefreshStream(Supabase.instance.client.auth.onAuthStateChange),
   routes: [
     ShellRoute(
       navigatorKey: shellNavigatorKey,
       builder: (BuildContext context, GoRouterState state, Widget child) {
-        // Localizing road names
-        routes[0]['name'] = context.loc.routesNameHome;
-        routes[1]['name'] = context.loc.routesNameTest;
-        routes[2]['name'] = context.loc.routesNameHome;
-        routes[3]['name'] = context.loc.routesNameTest;
+        // Localisation des noms de routes
+        shellRoutes[0]['name'] = context.loc.routesNameHome;
+        shellRoutes[1]['name'] = context.loc.routesNameTest;
+        shellRoutes[2]['name'] = context.loc.routesNameTest;
+        shellRoutes[3]['name'] = context.loc.routesNameSettings;
 
         return ResponsiveBreakpoints.builder(
-          child: /*Stack(
-            children: <Widget>[
-              ResponsiveVisibility(
-                key: GlobalKey(debugLabel: 'navBar'),
-                // Show bottom navigation bar only on mobiles (smaller than TABLET)
-                hiddenConditions: const [
-                  Condition.largerThan(name: MOBILE),
-                ],
-                child: ScaffoldWithNavBar(child: child),
-              ),
-              ResponsiveVisibility(
-                key: GlobalKey(debugLabel: 'appBar'),
-                // Show app bar only on tablet (between MOBILE and DESKTOP)
-                hiddenConditions: const [
-                  Condition.smallerThan(name: TABLET),
-                  Condition.largerThan(name: TABLET),
-                ],
-                child: ScaffoldWithAppBar(child: child),
-              ),
-              ResponsiveVisibility(
-                key: GlobalKey(debugLabel: 'sideBar'),
-                // Show side menu only on desktop (larger than TABLET)
-                hiddenConditions: const [
-                  Condition.smallerThan(name: DESKTOP),
-                ],
-                child: ScaffoldWithSideBar(child: child),
-              ),
-            ],
-          ),*/
-          ScaffoldWithNavBarWithoutAppBar(child: child),
+          child: ScaffoldWithNavBarWithoutAppBar(child: child),
           breakpoints: const [
             Breakpoint(start: 0, end: 450, name: MOBILE),
             Breakpoint(start: 451, end: 800, name: TABLET),
@@ -98,24 +93,27 @@ final GoRouter router = GoRouter(
           ],
         );
       },
-      routes: getRoutes(),
+      routes: getShellRoutes(),
     ),
+    // Routes hors de la ShellRoute (ex. Login)
+    ...getStandaloneRoutes(),
   ],
   errorBuilder: (context, state) => NotFoundError(state.error),
 );
 
-List<RouteBase> getRoutes() {
+List<RouteBase> getShellRoutes() {
   final List<RouteBase> generatedRoutes = [];
-  for (final route in routes) {
+  for (final route in shellRoutes) {
     generatedRoutes.add(
       GoRoute(
         path: route['path'] as String,
         name: route['name'] as String,
-        pageBuilder: (context, state) => NoTransitionPage(
-          key: state.pageKey,
-          // NoTransitionPage is a custom widget that disables the default page transition animation
-          child: route['screen'] as Widget,
-        ),
+        pageBuilder: (context, state) {
+          return NoTransitionPage(
+            key: state.pageKey,
+            child: route['screen'] as Widget,
+          );
+        },
       ),
     );
   }
@@ -123,33 +121,65 @@ List<RouteBase> getRoutes() {
   return generatedRoutes;
 }
 
-// Return the current route name
+List<RouteBase> getStandaloneRoutes() {
+  final List<RouteBase> generatedRoutes = [];
+  for (final route in standaloneRoutes) {
+    generatedRoutes.add(
+      GoRoute(
+        path: route['path'] as String,
+        name: route['name'] as String,
+        builder: (context, state) => route['screen'] as Widget,
+      ),
+    );
+  }
+
+  return generatedRoutes;
+}
+
+// Retourner le nom de la route actuelle
 String routeName() {
-  final route = routes.firstWhere(
-    (route) => route['path'] == router.routerDelegate.currentConfiguration.fullPath,
-    orElse: () => routes.first,
+  final route = shellRoutes.firstWhere(
+    (route) =>
+        route['path'] == router.routerDelegate.currentConfiguration.fullPath,
+    orElse: () => shellRoutes.first,
   );
   return route['name'] as String;
 }
 
-// Return the index of the current screen
+// Retourner l'index de l'écran actuel
 int selectedIndex() {
-  final route = routes.firstWhere(
-    (route) => route['path'] == router.routerDelegate.currentConfiguration.fullPath,
-    orElse: () => routes.first,
+  final route = shellRoutes.firstWhere(
+    (route) =>
+        route['path'] == router.routerDelegate.currentConfiguration.fullPath,
+    orElse: () => shellRoutes.first,
   );
   return route['index'];
 }
 
-// Navigate to the screen corresponding to the index
+// Naviguer vers l'écran correspondant à l'index
 void onTap(BuildContext context, int index) {
-  final route = routes.firstWhere(
+  final route = shellRoutes.firstWhere(
     (route) => route['index'] == index,
-    orElse: () => routes.first,
+    orElse: () => shellRoutes.first,
   );
 
-  // context.push has been used instead of context.go because it works better with the back button
-  // Need to check if this is not creating a loop when we are faking the index for the bottom navigation bar
-  context.push(route['path'] as String);
-  Navigator.maybePop(context); // Close the drawer
+  // Utiliser context.go pour éviter les boucles de navigation
+  context.go(route['path'] as String);
+}
+
+// Classe pour écouter les changements d'état d'authentification
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    _subscription = stream.listen((_) {
+      notifyListeners();
+    });
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
 }

@@ -1,4 +1,4 @@
-// profile.dart
+// lib/features/user/profile.dart
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart';
@@ -29,19 +29,20 @@ import 'package:sway/features/venue/venue.dart';
 import 'package:sway/features/venue/widgets/venue_item_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final int userId;
-
-  const ProfileScreen({required this.userId});
+  // Supprimer le paramètre userId
+  const ProfileScreen({Key? key}) : super(key: key);
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final UserService _userService = UserService();
+
   int _clickCounter = 0;
   DateTime _firstClickTime = DateTime.now();
   static const int _clickThreshold = 5;
-  static const int _timeThreshold = 2; // in seconds
+  static const int _timeThreshold = 2; // en secondes
 
   void _handleAvatarClick() {
     final now = DateTime.now();
@@ -97,17 +98,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('User Profile'),
         actions: [
-          // TODO Implement sharing system for user profile
-          /*IconButton(
-            icon: const Icon(Icons.qr_code),
-            onPressed: () {
-              // Share action with QR code
-            },
-          ),*/
+          // Bouton Éditer le Profil
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
-              final User? user = await UserService().getUserById(widget.userId);
+              final User? user = await _userService.getCurrentUser();
               if (user != null) {
                 final updatedUser = await Navigator.push(
                   context,
@@ -116,34 +111,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 );
                 if (updatedUser != null) {
-                  // Handle the updated user information if necessary
+                  // Rafraîchir l'état pour afficher les informations mises à jour
+                  setState(() {});
                 }
               }
             },
           ),
+          // Bouton Gestion des Entités
           IconButton(
             icon: const Icon(Icons.account_tree),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      UserEntitiesScreen(userId: widget.userId),
-                ),
-              );
+            onPressed: () async {
+              final User? user = await _userService.getCurrentUser();
+              if (user != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserEntitiesScreen(userId: user.id),
+                  ),
+                );
+              }
             },
           ),
         ],
       ),
       body: FutureBuilder<User?>(
-        future: UserService().getUserById(widget.userId),
+        future: _userService.getCurrentUser(), // Récupérer l'utilisateur actuel
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('Erreur : ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(child: Text('User not found'));
+            return const Center(child: Text('Utilisateur non trouvé'));
           } else {
             final user = snapshot.data!;
             return SingleChildScrollView(
@@ -165,7 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: sectionSpacing),
                     Text(
                       user.username,
                       style: const TextStyle(
@@ -175,7 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Member since: ${user.createdAt.toLocal()}',
+                      'Membre depuis : ${user.createdAt.toLocal()}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontStyle: FontStyle.italic,
@@ -183,7 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 20),
                     FollowersCountWidget(
-                      entityId: widget.userId,
+                      entityId: user.id,
                       entityType: 'user',
                     ),
                     const SizedBox(height: 20),
@@ -195,16 +194,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Genre>>(
                       future: UserFollowGenreService()
-                          .getFollowedGenresByUserId(widget.userId),
+                          .getFollowedGenresByUserId(user.id),
                       builder: (context, genreSnapshot) {
                         if (genreSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (genreSnapshot.hasError) {
-                          return Text('Error: ${genreSnapshot.error}');
+                          return Text('Erreur : ${genreSnapshot.error}');
                         } else if (!genreSnapshot.hasData ||
                             genreSnapshot.data!.isEmpty) {
-                          return const Text('No followed genres found');
+                          return const Text('Aucun genre suivi trouvé');
                         } else {
                           final genres = genreSnapshot.data!;
                           return Wrap(
@@ -215,15 +214,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => GenreScreen(
-                                          genreId: genre
-                                              .id), // Assurez-vous que genre.id est bien un int
+                                      builder: (context) =>
+                                          GenreScreen(genreId: genre.id),
                                     ),
                                   );
                                 },
-                                child: GenreChip(
-                                    genreId: genre
-                                        .id), // GenreChip doit accepter un int pour genreId
+                                child: GenreChip(genreId: genre.id),
                               );
                             }).toList(),
                           );
@@ -239,16 +235,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Artist>>(
                       future: UserFollowArtistService()
-                          .getFollowedArtistsByUserId(widget.userId),
+                          .getFollowedArtistsByUserId(user.id),
                       builder: (context, artistSnapshot) {
                         if (artistSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (artistSnapshot.hasError) {
-                          return Text('Error: ${artistSnapshot.error}');
+                          return Text('Erreur : ${artistSnapshot.error}');
                         } else if (!artistSnapshot.hasData ||
                             artistSnapshot.data!.isEmpty) {
-                          return const Text('No followed artists found');
+                          return const Text('Aucun artiste suivi trouvé');
                         } else {
                           final artists = artistSnapshot.data!;
                           return SingleChildScrollView(
@@ -260,9 +256,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ArtistScreen(
-                                            artistId: artist
-                                                .id), // Assurez-vous que artist.id est un int
+                                        builder: (context) =>
+                                            ArtistScreen(artistId: artist.id),
                                       ),
                                     );
                                   },
@@ -300,37 +295,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Venue>>(
                       future: UserFollowVenueService()
-                          .getFollowedVenuesByUserId(widget.userId),
+                          .getFollowedVenuesByUserId(user.id),
                       builder: (context, venueSnapshot) {
                         if (venueSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (venueSnapshot.hasError) {
-                          return Text('Error: ${venueSnapshot.error}');
+                          return Text('Erreur : ${venueSnapshot.error}');
                         } else if (!venueSnapshot.hasData ||
                             venueSnapshot.data!.isEmpty) {
-                          return const Text('No followed venues found');
+                          return const Text('Aucun lieu suivi trouvé');
                         } else {
                           final venues = venueSnapshot.data!;
                           return SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(
-                                children: [
-                                  ...venues.map((venue) {
-                                    return VenueCardItemWidget(
-                                      venue: venue,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                VenueScreen(venueId: venue.id),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  }).toList(),
-                                ],
+                                children: venues.map((venue) {
+                                  return VenueCardItemWidget(
+                                    venue: venue,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              VenueScreen(venueId: venue.id),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }).toList(),
                               ));
                         }
                       },
@@ -344,16 +337,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Promoter>>(
                       future: UserFollowPromoterService()
-                          .getFollowedPromotersByUserId(widget.userId),
+                          .getFollowedPromotersByUserId(user.id),
                       builder: (context, promoterSnapshot) {
                         if (promoterSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (promoterSnapshot.hasError) {
-                          return Text('Error: ${promoterSnapshot.error}');
+                          return Text('Erreur : ${promoterSnapshot.error}');
                         } else if (!promoterSnapshot.hasData ||
                             promoterSnapshot.data!.isEmpty) {
-                          return const Text('No followed promoters found');
+                          return const Text('Aucun promoter suivi trouvé');
                         } else {
                           final promoters = promoterSnapshot.data!;
                           return SingleChildScrollView(
@@ -366,8 +359,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PromoterScreen(
-                                            promoterId: promoter
-                                                .id), // Assurez-vous que promoter.id est un int
+                                            promoterId: promoter.id),
                                       ),
                                     );
                                   },
@@ -405,16 +397,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Event>>(
                       future: UserInterestEventService()
-                          .getInterestedEventsByUserId(widget.userId),
+                          .getInterestedEventsByUserId(user.id),
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (eventSnapshot.hasError) {
-                          return Text('Error: ${eventSnapshot.error}');
+                          return Text('Erreur : ${eventSnapshot.error}');
                         } else if (!eventSnapshot.hasData ||
                             eventSnapshot.data!.isEmpty) {
-                          return const Text('No interested events found');
+                          return const Text('Aucun événement intéressé trouvé');
                         } else {
                           final events = eventSnapshot.data!;
                           return Column(
@@ -426,9 +418,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => EventScreen(
-                                          event:
-                                              event), // Assurez-vous que event.id est un int
+                                      builder: (context) =>
+                                          EventScreen(event: event),
                                     ),
                                   );
                                 },
@@ -447,16 +438,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Event>>(
                       future: UserInterestEventService()
-                          .getAttendedEventsByUserId(widget.userId),
+                          .getAttendedEventsByUserId(user.id),
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         } else if (eventSnapshot.hasError) {
-                          return Text('Error: ${eventSnapshot.error}');
+                          return Text('Erreur : ${eventSnapshot.error}');
                         } else if (!eventSnapshot.hasData ||
                             eventSnapshot.data!.isEmpty) {
-                          return const Text('No interested events found');
+                          return const Text('Aucun événement suivi trouvé');
                         } else {
                           final events = eventSnapshot.data!;
                           return Column(
@@ -468,9 +459,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => EventScreen(
-                                          event:
-                                              event), // Assurez-vous que event.id est un int
+                                      builder: (context) =>
+                                          EventScreen(event: event),
                                     ),
                                   );
                                 },
@@ -479,6 +469,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           );
                         }
                       },
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await UserService().signOut();
+                        // Supabase Auth redirigera automatiquement vers LoginScreen via GoRouter
+                      },
+                      child: const Text('Sign Out'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
                     ),
                   ],
                 ),
