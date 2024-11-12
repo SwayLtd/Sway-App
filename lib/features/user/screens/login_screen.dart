@@ -1,6 +1,7 @@
 // lib/features/user/screens/login_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/features/user/screens/sign_up_screen.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'dart:async';
 
@@ -166,6 +167,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       )
                     : const Text('Login'),
+              ),
+              const Spacer(),
+              // Navigate to Sign-Up Screen
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SignUpScreen()),
+                  );
+                },
+                child: const Text('Don\'t have an account? Sign up here.'),
               ),
             ],
           ),

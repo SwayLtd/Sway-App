@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
+import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/screens/login_screen.dart';
 import 'package:sway/features/user/profile.dart';
@@ -17,6 +18,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final UserService _userService = UserService();
   bool _isLoggedIn = false;
+  AppUser.User? _currentUser;
 
   @override
   void initState() {
@@ -30,13 +32,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Checks if the user is currently authenticated.
   Future<void> _checkAuthStatus() async {
-    final user = Supabase.instance.client.auth.currentUser;
+    _userService.getCurrentUser();
+    final fetchedUser = await _userService.getCurrentUser();
     setState(() {
-      _isLoggedIn = user != null;
+      _isLoggedIn = true;
+      _currentUser = fetchedUser;
     });
   }
 
-  /// Navigates to the Profile screen if authenticated, else prompts login.
+  /// Navigates to the Profile screen if authenticated, else redirects to Login.
   void _navigateToProfile() {
     if (_isLoggedIn) {
       Navigator.push(
@@ -44,7 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         MaterialPageRoute(builder: (context) => const ProfileScreen()),
       );
     } else {
-      _showLoginPrompt();
+      _navigateToLogin();
     }
   }
 
@@ -56,43 +60,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Shows a dialog prompting the user to log in.
-  void _showLoginPrompt() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Login Required'),
-          content: const Text('You need to log in to access this feature.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
-              },
-              child: const Text('Login'),
-            ),
-          ],
-        );
-      },
+  /// Navigates to the Login screen.
+  void _navigateToLogin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
   }
 
   /// Handles the sign-out process.
   Future<void> _handleSignOut() async {
-    await _userService.signOut();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Successfully signed out')),
-    );
+    try {
+      await _userService.signOut();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Successfully signed out')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error signing out: $e')),
+      );
+    }
   }
 
   /// Builds the UI for the settings screen.
@@ -104,13 +91,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: ListView(
         children: [
-          // Profile Option
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Profile'),
-            onTap: _navigateToProfile,
-          ),
-          // Settings Option (additional settings can be added here)
+          if (_isLoggedIn && _currentUser != null)
+            ListTile(
+              leading: CircleAvatar(
+                backgroundImage: NetworkImage(_currentUser!.profilePictureUrl),
+              ),
+              title: Text(_currentUser!.username),
+              subtitle: Text(_currentUser!.email),
+              onTap: _navigateToProfile,
+            )
+          else
+            ListTile(
+              leading: const Icon(Icons.login),
+              title: const Text('Sign Up or Login'),
+              onTap: _navigateToLogin,
+            ),
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),
@@ -121,25 +117,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
-          // About Option
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text('About'),
             onTap: _navigateToAbout,
           ),
           const Divider(),
-          // Login/Logout Option
           ListTile(
             leading: Icon(_isLoggedIn ? Icons.logout : Icons.login),
             title: Text(_isLoggedIn ? 'Logout' : 'Login'),
             onTap: _isLoggedIn
                 ? _handleSignOut
                 : () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const LoginScreen()),
-                    );
+                    _navigateToLogin();
                   },
           ),
         ],

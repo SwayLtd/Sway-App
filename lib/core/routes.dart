@@ -6,14 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sway/core/constants/l10n.dart';
 import 'package:sway/core/utils/error/error_not_found.dart';
 import 'package:sway/core/widgets/bottom_navigation_bar.dart';
 import 'package:sway/features/discovery/discovery.dart';
 import 'package:sway/features/search/search.dart';
 import 'package:sway/features/settings/settings.dart';
 import 'package:sway/features/ticketing/ticketing.dart';
-import 'package:sway/features/user/screens/login_screen.dart'; // Importer le nouvel écran
+import 'package:sway/features/user/profile.dart';
+import 'package:sway/features/user/screens/login_screen.dart';
+import 'package:sway/features/user/screens/sign_up_screen.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
@@ -41,7 +42,7 @@ List<Map<String, dynamic>> shellRoutes = [
     'name': 'Settings',
     'path': '/settings',
     'index': 3,
-    'screen': const SettingsScreen(), // Remplacer par le nouvel écran
+    'screen': const SettingsScreen(), // Replace with the new SettingsScreen
   },
 ];
 
@@ -51,6 +52,11 @@ List<Map<String, dynamic>> standaloneRoutes = [
     'path': '/login',
     'screen': const LoginScreen(),
   },
+  {
+    'name': 'SignUp',
+    'path': '/signup',
+    'screen': const SignUpScreen(),
+  },
 ];
 
 final GoRouter router = GoRouter(
@@ -59,16 +65,27 @@ final GoRouter router = GoRouter(
   redirect: (context, state) {
     final bool loggedIn = Supabase.instance.client.auth.currentUser != null;
     final bool loggingIn = state.matchedLocation == '/login';
+    final bool signingUp = state.matchedLocation == '/signup';
 
-    if (!loggedIn) {
-      return loggingIn ? null : '/login';
+    // Define protected paths that require authentication
+    final List<String> protectedPaths = [
+      '/settings/profile',
+      // Add more protected paths if needed
+    ];
+
+    bool isProtected =
+        protectedPaths.any((path) => state.uri.toString().startsWith(path));
+
+    if (!loggedIn && isProtected) {
+      return '/login';
     }
 
-    if (loggingIn) {
+    // If already logged in and trying to access login or signup, redirect to home
+    if (loggedIn && (loggingIn || signingUp)) {
       return '/';
     }
 
-    return null;
+    return null; // No redirect needed
   },
   refreshListenable:
       GoRouterRefreshStream(Supabase.instance.client.auth.onAuthStateChange),
@@ -76,12 +93,6 @@ final GoRouter router = GoRouter(
     ShellRoute(
       navigatorKey: shellNavigatorKey,
       builder: (BuildContext context, GoRouterState state, Widget child) {
-        // Localisation des noms de routes
-        shellRoutes[0]['name'] = context.loc.routesNameHome;
-        shellRoutes[1]['name'] = context.loc.routesNameTest;
-        shellRoutes[2]['name'] = context.loc.routesNameTest;
-        shellRoutes[3]['name'] = context.loc.routesNameSettings;
-
         return ResponsiveBreakpoints.builder(
           child: ScaffoldWithNavBarWithoutAppBar(child: child),
           breakpoints: const [
@@ -95,7 +106,7 @@ final GoRouter router = GoRouter(
       },
       routes: getShellRoutes(),
     ),
-    // Routes hors de la ShellRoute (ex. Login)
+    // Add standalone routes (e.g., Login, SignUp)
     ...getStandaloneRoutes(),
   ],
   errorBuilder: (context, state) => NotFoundError(state.error),
@@ -114,6 +125,15 @@ List<RouteBase> getShellRoutes() {
             child: route['screen'] as Widget,
           );
         },
+        routes: [
+          // Define subroutes if needed, e.g., '/settings/profile'
+          if (route['path'] == '/settings')
+            GoRoute(
+              path: 'profile',
+              name: 'Profile',
+              builder: (context, state) => const ProfileScreen(),
+            ),
+        ],
       ),
     );
   }
@@ -136,7 +156,7 @@ List<RouteBase> getStandaloneRoutes() {
   return generatedRoutes;
 }
 
-// Retourner le nom de la route actuelle
+/// Returns the name of the current route.
 String routeName() {
   final route = shellRoutes.firstWhere(
     (route) =>
@@ -146,7 +166,7 @@ String routeName() {
   return route['name'] as String;
 }
 
-// Retourner l'index de l'écran actuel
+/// Returns the index of the current screen.
 int selectedIndex() {
   final route = shellRoutes.firstWhere(
     (route) =>
@@ -156,18 +176,18 @@ int selectedIndex() {
   return route['index'];
 }
 
-// Naviguer vers l'écran correspondant à l'index
+/// Navigates to the screen corresponding to the index.
 void onTap(BuildContext context, int index) {
   final route = shellRoutes.firstWhere(
     (route) => route['index'] == index,
     orElse: () => shellRoutes.first,
   );
 
-  // Utiliser context.go pour éviter les boucles de navigation
+  // Use context.go to avoid navigation loops
   context.go(route['path'] as String);
 }
 
-// Classe pour écouter les changements d'état d'authentification
+/// Class to listen to authentication state changes.
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
     _subscription = stream.listen((_) {

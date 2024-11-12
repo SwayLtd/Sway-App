@@ -5,7 +5,8 @@ class User {
   final String username;
   final String email;
   final String profilePictureUrl;
-  final String supabaseId; // Ajouté pour référencer Supabase Auth
+  final String supabaseId; // References Supabase Auth
+  final bool isAnonymous;
   final DateTime createdAt;
 
   User({
@@ -14,6 +15,7 @@ class User {
     required this.email,
     required this.profilePictureUrl,
     required this.supabaseId,
+    required this.isAnonymous,
     required this.createdAt,
   });
 
@@ -24,6 +26,7 @@ class User {
       email: json['email'] ?? '',
       profilePictureUrl: json['profile_picture_url'] ?? '',
       supabaseId: json['supabase_id'] ?? '',
+      isAnonymous: json['is_anonymous'] == true,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
@@ -37,6 +40,7 @@ class User {
       'email': email,
       'profile_picture_url': profilePictureUrl,
       'supabase_id': supabaseId,
+      'is_anonymous': isAnonymous,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -46,6 +50,7 @@ class User {
     String? email,
     String? profilePictureUrl,
     String? supabaseId,
+    bool? isAnonymous,
   }) {
     return User(
       id: id,
@@ -53,6 +58,7 @@ class User {
       email: email ?? this.email,
       profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       supabaseId: supabaseId ?? this.supabaseId,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
       createdAt: createdAt,
     );
   }

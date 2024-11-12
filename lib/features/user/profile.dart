@@ -470,16 +470,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }
                       },
                     ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await UserService().signOut();
-                        // Supabase Auth redirigera automatiquement vers LoginScreen via GoRouter
-                      },
-                      child: const Text('Sign Out'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                    ),
                   ],
                 ),
               ),
