@@ -12,9 +12,9 @@ import 'package:sway/features/discovery/discovery.dart';
 import 'package:sway/features/search/search.dart';
 import 'package:sway/features/settings/settings.dart';
 import 'package:sway/features/ticketing/ticketing.dart';
+import 'package:sway/features/user/screens/login_screen.dart'; // Import LoginScreen
 import 'package:sway/features/user/profile.dart';
-import 'package:sway/features/user/screens/login_screen.dart';
-import 'package:sway/features/user/screens/sign_up_screen.dart';
+import 'package:sway/features/user/screens/sign_up_screen.dart'; // Import ProfileScreen
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
@@ -42,7 +42,7 @@ List<Map<String, dynamic>> shellRoutes = [
     'name': 'Settings',
     'path': '/settings',
     'index': 3,
-    'screen': const SettingsScreen(), // Replace with the new SettingsScreen
+    'screen': const SettingsScreen(),
   },
 ];
 
@@ -63,7 +63,8 @@ final GoRouter router = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/',
   redirect: (context, state) {
-    final bool loggedIn = Supabase.instance.client.auth.currentUser != null;
+    final user = Supabase.instance.client.auth.currentUser;
+    final bool loggedIn = user != null;
     final bool loggingIn = state.matchedLocation == '/login';
     final bool signingUp = state.matchedLocation == '/signup';
 
@@ -73,6 +74,7 @@ final GoRouter router = GoRouter(
       // Add more protected paths if needed
     ];
 
+    // Check if the current path is protected
     bool isProtected =
         protectedPaths.any((path) => state.uri.toString().startsWith(path));
 
@@ -93,6 +95,8 @@ final GoRouter router = GoRouter(
     ShellRoute(
       navigatorKey: shellNavigatorKey,
       builder: (BuildContext context, GoRouterState state, Widget child) {
+        // Optionally, localize route names here if needed
+
         return ResponsiveBreakpoints.builder(
           child: ScaffoldWithNavBarWithoutAppBar(child: child),
           breakpoints: const [
@@ -183,7 +187,7 @@ void onTap(BuildContext context, int index) {
     orElse: () => shellRoutes.first,
   );
 
-  // Use context.go to avoid navigation loops
+  // Use context.go to navigate without stacking
   context.go(route['path'] as String);
 }
 
