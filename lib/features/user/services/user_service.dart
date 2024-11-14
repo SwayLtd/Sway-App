@@ -2,11 +2,33 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
+import 'package:sway/features/user/services/auth_services.dart';
 
 class UserService {
   final SupabaseClient _supabase = Supabase.instance.client;
+  final AuthService _authService = AuthService();
 
-  /// Récupère un utilisateur par son ID.
+  /// Retrieves a user by their Supabase ID.
+  Future<AppUser.User?> getUserBySupabaseId(String supabaseId) async {
+    try {
+      final data = await _supabase
+          .from('users')
+          .select()
+          .eq('supabase_id', supabaseId)
+          .maybeSingle();
+
+      if (data == null) {
+        return null;
+      }
+
+      return AppUser.User.fromJson(data);
+    } catch (e) {
+      print('Error fetching user by Supabase ID: $e');
+      return null;
+    }
+  }
+
+  /// Retrieves a user by their internal ID.
   Future<AppUser.User?> getUserById(int userId) async {
     try {
       final data =
@@ -23,7 +45,7 @@ class UserService {
     }
   }
 
-  /// Recherche des utilisateurs par nom d'utilisateur.
+  /// Retrieves users by a list of Supabase IDs.
   Future<List<AppUser.User>> searchUsers(String query) async {
     try {
       final data = await _supabase
@@ -44,7 +66,29 @@ class UserService {
     }
   }
 
-  /// Récupère des utilisateurs par une liste d'IDs.
+  /// Retrieves users by a list of Supabase IDs.
+  Future<List<AppUser.User>> getUsersBySupabaseIds(
+      List<String> supabaseIds) async {
+    if (supabaseIds.isEmpty) {
+      return [];
+    }
+
+    try {
+      final data = await _supabase
+          .from('users')
+          .select()
+          .filter('supabase_id', 'in', '($supabaseIds)');
+
+      return (data as List<dynamic>)
+          .map<AppUser.User>((json) => AppUser.User.fromJson(json))
+          .toList();
+    } catch (e) {
+      print('Error fetching users by Supabase IDs: $e');
+      return [];
+    }
+  }
+
+  /// Retrieves users by a list of internal IDs.
   Future<List<AppUser.User>> getUsersByIds(List<int> userIds) async {
     if (userIds.isEmpty) {
       return [];
@@ -65,100 +109,69 @@ class UserService {
     }
   }
 
-  /// Met à jour les informations d'un utilisateur.
+  /// Updates user information.
   Future<void> updateUser(AppUser.User updatedUser) async {
     try {
-      await _supabase
+      final response = await _supabase
           .from('users')
           .update(updatedUser.toJson())
-          .eq('id', updatedUser.id);
+          .eq('supabase_id', updatedUser.supabaseId);
 
-      print('User updated successfully.');
+      if (response.error != null) {
+        print('Failed to update user: ${response.error!.message}');
+      } else {
+        print('User updated successfully.');
+      }
     } catch (e) {
       print('Failed to update user: $e');
     }
   }
 
-  /// Récupère l'utilisateur actuellement connecté.
+  /// Retrieves the currently authenticated user.
   Future<AppUser.User?> getCurrentUser() async {
-    final user = _supabase.auth.currentUser;
+    final user = _authService.getCurrentUser();
     if (user == null) {
       return null;
     }
 
-    try {
-      final data = await _supabase
-          .from('users')
-          .select()
-          .eq('supabase_id', user.id)
-          .maybeSingle();
-
-      if (data == null) {
-        return null;
-      }
-
-      return AppUser.User.fromJson(data);
-    } catch (e) {
-      print('Error fetching current user: $e');
-      return null;
+    // Vérifiez si l'utilisateur est anonyme
+    if (user.userMetadata?['is_anonymous'] == true) {
+      // Traitez les utilisateurs anonymes selon vos besoins
+      return null; // Ou retournez une instance spécifique si nécessaire
     }
+
+    return await getUserBySupabaseId(user.id);
   }
 
-  /// Inscrit un nouvel utilisateur avec email, mot de passe et username.
+  /// Signs up a new user.
   Future<void> signUp(String email, String password, String username) async {
-    try {
-      final response = await _supabase.auth.signUp(
-        email: email,
-        password: password,
-      );
-
-      final user = response.user;
-      if (user == null) {
-        throw Exception('Utilisateur non créé.');
-      }
-
-      // Créer une entrée dans la table users
-      await _supabase.from('users').insert({
-        'supabase_id': user.id,
-        'username': username,
-        'email': email,
-        'profile_picture_url': 'https://via.placeholder.com/150',
-        'created_at': DateTime.now().toIso8601String(),
-      });
-
-      print('User signed up successfully.');
-    } catch (e) {
-      throw Exception('Échec de l\'inscription: $e');
-    }
+    await _authService.signUp(email, password, username);
   }
 
-  /// Connecte un utilisateur avec email et mot de passe.
+  /// Signs in a user.
   Future<void> signIn(String email, String password) async {
-    try {
-      final response = await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-
-      // Vérifie si une session a été établie
-      final session = response.session;
-      if (session == null) {
-        throw Exception('Session non établie.');
-      }
-
-      print('User signed in successfully.');
-    } catch (e) {
-      throw Exception('Échec de la connexion: $e');
-    }
+    await _authService.signIn(email, password);
   }
 
-  /// Déconnecte l'utilisateur actuellement connecté.
+  /// Signs in anonymously.
+  Future<void> signInAnonymously() async {
+    await _authService.signInAnonymously();
+  }
+
+  /// Links anonymous user to email/password account.
+  Future<void> linkWithEmail(String email, String password) async {
+    await _authService.linkWithEmail(email, password);
+    // Additional logic if necessary
+  }
+
+  /// Links anonymous user to an OAuth provider.
+  Future<void> linkWithOAuth(OAuthProvider provider) async {
+    await _authService.linkWithOAuth(provider);
+    // Additional logic if necessary
+  }
+
+  /// Signs out the current user.
   Future<void> signOut() async {
-    try {
-      await _supabase.auth.signOut();
-      print('User signed out successfully.');
-    } catch (e) {
-      print('Error signing out: $e');
-    }
+    await _authService.signOut();
   }
 }

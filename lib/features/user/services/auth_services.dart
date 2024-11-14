@@ -5,6 +5,21 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  /// Vérifie et assure qu'un utilisateur est connecté. Si aucun utilisateur n'est connecté, se connecte anonymement.
+  Future<void> ensureUser() async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      final response = await _supabase.auth.signInAnonymously();
+
+      if (response.user == null) {
+        throw Exception('Utilisateur anonyme non créé.');
+      }
+
+      // Optionnel : Vous pouvez gérer des actions supplémentaires après la création de l'utilisateur anonyme.
+    }
+  }
+
   /// Signs in a user with email and password.
   Future<void> signIn(String email, String password) async {
     final response = await _supabase.auth.signInWithPassword(
@@ -53,23 +68,6 @@ class AuthService {
     if (response.user == null) {
       throw Exception('Anonymous user not created.');
     }
-
-    // Optionally, create a user entry in 'users' table for anonymous user
-    final user = response.user;
-    final insertResponse = await _supabase.from('users').insert({
-      'supabase_id': user?.id,
-      'username': 'Anonymous',
-      'email': '',
-      'profile_picture_url': 'https://via.placeholder.com/150',
-      'created_at': DateTime.now().toIso8601String(),
-      'is_anonymous': true,
-      'role': 'user', // Assign default role
-    });
-
-    if (insertResponse.error != null) {
-      throw Exception(
-          'Failed to create anonymous user entry: ${insertResponse.error!.message}');
-    }
   }
 
   /// Links the current anonymous user to an email/password account.
@@ -87,9 +85,12 @@ class AuthService {
     await _supabase.auth.linkIdentity(provider);
   }
 
-  /// Signs out the current user.
+  /// Sign out et reconnecte anonymement
   Future<void> signOut() async {
     await _supabase.auth.signOut();
+
+    // Après la déconnexion, connectez-vous anonymement
+    await ensureUser();
   }
 
   /// Returns the current authenticated user.

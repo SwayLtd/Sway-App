@@ -13,6 +13,7 @@ import 'package:sway/core/services/database_service.dart';
 import 'package:sway/features/security/utils/security_utils.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:sway/features/user/services/auth_services.dart';
 
 Future<void> main() async {
   usePathUrlStrategy(); // Remove # from URL
@@ -21,6 +22,11 @@ Future<void> main() async {
   DatabaseService().initialize();
   await Hive.initFlutter();
   // NotificationService().initialize();
+
+  final authService = AuthService();
+  // Make sure a user is logged in (authenticated or anonymous)
+  await authService.ensureUser();
+
   runApp(
     const SwayApp(),
   );
