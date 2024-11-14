@@ -1,7 +1,6 @@
 // lib/widgets/captcha_widget.dart
 
 import 'package:flutter/material.dart';
-import 'package:hcaptcha/hcaptcha.dart';
 
 class CaptchaWidget extends StatefulWidget {
   final Function(String) onVerified;
