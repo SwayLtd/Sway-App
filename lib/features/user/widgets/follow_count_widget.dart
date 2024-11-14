@@ -1,3 +1,5 @@
+// lib/features/user/widgets/followers_count_widget.dart
+
 import 'package:flutter/material.dart';
 import 'package:sway/features/user/screens/followers_screen.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
@@ -6,229 +8,83 @@ import 'package:sway/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway/features/user/services/user_follow_user_service.dart';
 import 'package:sway/features/user/services/user_follow_venue_service.dart';
 import 'package:sway/features/user/services/user_interest_event_service.dart';
+import 'package:sway/features/user/services/user_service.dart';
 
-class FollowersCountWidget extends StatelessWidget {
+class FollowersCountWidget extends StatefulWidget {
   final int entityId;
-  final String entityType; // 'venue', 'promoter', 'event', 'artist', 'user', 'genre'
+  final String
+      entityType; // 'venue', 'promoter', 'event', 'artist', 'user', 'genre'
 
-  const FollowersCountWidget({required this.entityId, required this.entityType});
+  const FollowersCountWidget(
+      {required this.entityId, required this.entityType});
 
   @override
-  Widget build(BuildContext context) {
-    if (entityType == 'event') {
-      return FutureBuilder<Map<String, int>>(
-        future: _getEventFollowersCount(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            final int interestedCount = snapshot.data?['interested'] ?? 0;
-            final int goingCount = snapshot.data?['going'] ?? 0;
-            return Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FollowersScreen(
-                          entityId: entityId,
-                          entityType: entityType,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Text(
-                      '$interestedCount interested',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FollowersScreen(
-                          entityId: entityId,
-                          entityType: entityType,
-                          initialTabIndex: 1, // Going tab
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.greenAccent,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Text(
-                      '$goingCount going',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }
-        },
-      );
-    } else if (entityType == 'user') {
-      return FutureBuilder<Map<String, int>>(
-        future: _getUserFollowersFollowingCount(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            final int followersCount = snapshot.data?['followers'] ?? 0;
-            final int followingCount = snapshot.data?['following'] ?? 0;
-            return Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FollowersScreen(
-                          entityId: entityId,
-                          entityType: 'user',
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Text(
-                      '$followersCount followers',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FollowersScreen(
-                          entityId: entityId,
-                          entityType: 'user',
-                          initialTabIndex: 1, // Following tab
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.greenAccent,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Text(
-                      '$followingCount following',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }
-        },
-      );
-    } else {
-      return FutureBuilder<int>(
-        future: _getFollowersCountForEntity(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            final int followersCount = snapshot.data ?? 0;
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FollowersScreen(
-                      entityId: entityId,
-                      entityType: entityType,
-                    ),
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                decoration: BoxDecoration(
-                  color: Colors.blueAccent,
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Text(
-                  '$followersCount follower${followersCount == 1 ? '' : 's'}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            );
-          }
-        },
-      );
+  _FollowersCountWidgetState createState() => _FollowersCountWidgetState();
+}
+
+class _FollowersCountWidgetState extends State<FollowersCountWidget> {
+  bool isAuthenticated = false;
+  bool isLoading = true;
+  Map<String, int> counts = {};
+
+  final UserService _userService = UserService();
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      // Vérifie l'état d'authentification
+      final user = await _userService.getCurrentUser();
+      setState(() {
+        isAuthenticated = user != null;
+      });
+
+      // Récupère les counts en fonction du type d'entité
+      if (widget.entityType == 'event') {
+        counts = await _getEventFollowersCount();
+      } else if (widget.entityType == 'user') {
+        counts = await _getUserFollowersFollowingCount();
+      } else {
+        counts['followersCount'] = await _getFollowersCountForEntity();
+      }
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error initializing FollowersCountWidget: $e');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   Future<int> _getFollowersCountForEntity() {
-    switch (entityType) {
+    switch (widget.entityType) {
       case 'artist':
-        return UserFollowArtistService().getArtistFollowersCount(entityId);
+        return UserFollowArtistService()
+            .getArtistFollowersCount(widget.entityId);
       case 'venue':
-        return UserFollowVenueService().getVenueFollowersCount(entityId);
+        return UserFollowVenueService().getVenueFollowersCount(widget.entityId);
       case 'promoter':
-        return UserFollowPromoterService().getPromoterFollowersCount(entityId);
+        return UserFollowPromoterService()
+            .getPromoterFollowersCount(widget.entityId);
       case 'genre':
-        return UserFollowGenreService().getGenreFollowersCount(entityId);
+        return UserFollowGenreService().getGenreFollowersCount(widget.entityId);
       default:
         throw Exception('Unknown entity type');
     }
   }
 
   Future<Map<String, int>> _getEventFollowersCount() async {
-    final interestedCount = await UserInterestEventService().getEventInterestCount(entityId, 'interested');
-    final goingCount = await UserInterestEventService().getEventInterestCount(entityId, 'going');
+    final interestedCount = await UserInterestEventService()
+        .getEventInterestCount(widget.entityId, 'interested');
+    final goingCount = await UserInterestEventService()
+        .getEventInterestCount(widget.entityId, 'going');
     return {
       'interested': interestedCount,
       'going': goingCount,
@@ -236,11 +92,159 @@ class FollowersCountWidget extends StatelessWidget {
   }
 
   Future<Map<String, int>> _getUserFollowersFollowingCount() async {
-    final followersCount = await UserFollowUserService().getFollowersCount(entityId);
-    final followingCount = await UserFollowUserService().getFollowingCount(entityId);
+    final followersCount =
+        await UserFollowUserService().getFollowersCount(widget.entityId);
+    final followingCount =
+        await UserFollowUserService().getFollowingCount(widget.entityId);
     return {
       'followers': followersCount,
       'following': followingCount,
     };
+  }
+
+  void _navigateToFollowersScreen({int initialTabIndex = 0}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FollowersScreen(
+          entityId: widget.entityId,
+          entityType: widget.entityType,
+          initialTabIndex: initialTabIndex,
+        ),
+      ),
+    );
+  }
+
+  void _handleTap({int initialTabIndex = 0}) async {
+    if (isAuthenticated) {
+      _navigateToFollowersScreen(initialTabIndex: initialTabIndex);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Please log in to access this feature.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const CircularProgressIndicator();
+    }
+
+    if (widget.entityType == 'event') {
+      final int interestedCount = counts['interested'] ?? 0;
+      final int goingCount = counts['going'] ?? 0;
+      return Row(
+        children: [
+          GestureDetector(
+            onTap: () => _handleTap(initialTabIndex: 0),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.blueAccent,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                '$interestedCount interested',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => _handleTap(initialTabIndex: 1),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.greenAccent,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                '$goingCount going',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (widget.entityType == 'user') {
+      final int followersCount = counts['followers'] ?? 0;
+      final int followingCount = counts['following'] ?? 0;
+      return Row(
+        children: [
+          GestureDetector(
+            onTap: () => _handleTap(initialTabIndex: 0),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.blueAccent,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                '$followersCount followers',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => _handleTap(initialTabIndex: 1),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.greenAccent,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                '$followingCount following',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      final int followersCount = counts['followersCount'] ?? 0;
+      return GestureDetector(
+        onTap: () => _handleTap(),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          decoration: BoxDecoration(
+            color: Colors.blueAccent,
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Text(
+            '$followersCount follower${followersCount == 1 ? '' : 's'}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      );
+    }
   }
 }
