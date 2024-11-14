@@ -2,7 +2,7 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
-import 'package:sway/features/user/services/auth_services.dart';
+import 'package:sway/features/user/services/auth_service.dart';
 
 class UserService {
   final SupabaseClient _supabase = Supabase.instance.client;
