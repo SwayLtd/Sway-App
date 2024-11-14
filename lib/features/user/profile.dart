@@ -406,7 +406,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           return Text('Erreur : ${eventSnapshot.error}');
                         } else if (!eventSnapshot.hasData ||
                             eventSnapshot.data!.isEmpty) {
-                          return const Text('Aucun événement intéressé trouvé');
+                          return const Text('No interested events found');
                         } else {
                           final events = eventSnapshot.data!;
                           return Column(
