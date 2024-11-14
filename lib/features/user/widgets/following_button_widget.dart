@@ -6,6 +6,7 @@ import 'package:sway/features/user/services/user_follow_genre_service.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway/features/user/services/user_follow_user_service.dart';
 import 'package:sway/features/user/services/user_follow_venue_service.dart';
+import 'package:sway/features/user/services/user_service.dart';
 
 class FollowingButtonWidget extends StatefulWidget {
   final int entityId;
@@ -23,23 +24,38 @@ class FollowingButtonWidget extends StatefulWidget {
 class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
   bool isFollowing = false;
   bool isLoading = true;
+  bool isAnonymous = false;
+
+  final UserService _userService = UserService();
 
   @override
   void initState() {
     super.initState();
-    _loadFollowingStatus();
+    _loadUserStatus();
   }
 
-  Future<void> _loadFollowingStatus() async {
+  Future<void> _loadUserStatus() async {
     try {
-      bool following = await _isFollowing();
-      setState(() {
-        isFollowing = following;
-        isLoading = false;
-      });
+      final currentUser = await _userService.getCurrentUser();
+      if (currentUser == null) {
+        // L'utilisateur est anonyme
+        setState(() {
+          isAnonymous = true;
+          isLoading = false;
+        });
+      } else {
+        // L'utilisateur est authentifié, vérifier s'il suit l'entité
+        bool following = await _isFollowing();
+        setState(() {
+          isFollowing = following;
+          isAnonymous = false;
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      print('Error loading following status: $e');
+      print('Error loading user status: $e');
       setState(() {
+        isAnonymous = false;
         isFollowing = false;
         isLoading = false;
       });
@@ -127,7 +143,16 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
       setState(() {
         isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la mise à jour du suivi.')),
+      );
     }
+  }
+
+  void _showLoginSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Please log in to follow this item.')),
+    );
   }
 
   @override
@@ -142,12 +167,32 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
         ),
       );
     } else {
+      IconData iconData;
+      Color iconColor;
+      VoidCallback? onPressed;
+
+      if (isAnonymous) {
+        // Utilisateur anonyme
+        iconData = Icons.favorite_border;
+        iconColor = Colors.grey;
+        onPressed = _showLoginSnackbar;
+      } else {
+        // Utilisateur authentifié
+        if (isFollowing) {
+          iconData = Icons.favorite;
+        } else {
+          iconData = Icons.favorite_border;
+        }
+        iconColor = Colors.white;
+        onPressed = _toggleFollow;
+      }
+
       return IconButton(
         icon: Icon(
-          isFollowing ? Icons.star : Icons.star_border,
-          // You can customize the color if needed
+          iconData,
+          color: iconColor,
         ),
-        onPressed: _toggleFollow,
+        onPressed: onPressed,
       );
     }
   }
