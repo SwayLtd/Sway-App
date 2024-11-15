@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  /// Vérifie et assure qu'un utilisateur est connecté. Si aucun utilisateur n'est connecté, se connecte anonymement.
+  /// S'assure qu'un utilisateur est connecté. Si aucun utilisateur n'est connecté, se connecte anonymement.
   Future<void> ensureUser() async {
     final user = _supabase.auth.currentUser;
 
@@ -13,14 +13,14 @@ class AuthService {
       final response = await _supabase.auth.signInAnonymously();
 
       if (response.user == null) {
-        throw Exception('Utilisateur anonyme non créé.');
+        throw Exception('Anonymous user not created.');
       }
 
-      // Optionnel : Vous pouvez gérer des actions supplémentaires après la création de l'utilisateur anonyme.
+      // Optionnellement, gérer des actions supplémentaires après la création d'un utilisateur anonyme.
     }
   }
 
-  /// Signs in a user with email and password.
+  /// Connecte un utilisateur avec email et mot de passe.
   Future<void> signIn(String email, String password) async {
     final response = await _supabase.auth.signInWithPassword(
       email: email,
@@ -28,40 +28,29 @@ class AuthService {
     );
 
     if (response.user == null) {
-      throw Exception('User not found.');
+      throw AuthenticationException('User not found.', '');
     }
   }
 
-  /// Signs up a new user with email, password, and username.
+  /// Inscrit un nouvel utilisateur avec email, mot de passe et nom d'utilisateur.
   Future<void> signUp(String email, String password, String username) async {
     final response = await _supabase.auth.signUp(
       email: email,
       password: password,
+      data: {
+        'username': username
+      }, // Ajout du nom d'utilisateur dans raw_user_meta_data
     );
 
     final user = response.user;
     if (user == null) {
-      throw Exception('User not created.');
+      throw AuthenticationException('User not created.', '');
     }
 
-    // Assuming you have a 'users' table to store additional user info
-    final insertResponse = await _supabase.from('users').insert({
-      'supabase_id': user.id,
-      'username': username,
-      'email': email,
-      'profile_picture_url': 'https://via.placeholder.com/150',
-      'created_at': DateTime.now().toIso8601String(),
-      'is_anonymous': false,
-      'role': 'user', // Assign default role
-    });
-
-    if (insertResponse.error != null) {
-      throw Exception(
-          'Failed to create user entry: ${insertResponse.error!.message}');
-    }
+    // L'insertion dans la table 'users' est gérée automatiquement par le déclencheur PostgreSQL.
   }
 
-  /// Signs in anonymously.
+  /// Connecte anonymement un utilisateur.
   Future<void> signInAnonymously() async {
     final response = await _supabase.auth.signInAnonymously();
 
@@ -70,7 +59,7 @@ class AuthService {
     }
   }
 
-  /// Links the current anonymous user to an email/password account.
+  /// Lie l'utilisateur anonyme actuel à un compte email/mot de passe.
   Future<void> linkWithEmail(String email, String password) async {
     await _supabase.auth.updateUser(
       UserAttributes(
@@ -78,23 +67,43 @@ class AuthService {
         password: password,
       ),
     );
+
+    // L'insertion ou la mise à jour dans la table 'users' peut être gérée par un autre déclencheur si nécessaire.
   }
 
-  /// Links the current anonymous user to an OAuth provider.
+  /// Lie l'utilisateur anonyme actuel à un fournisseur OAuth.
   Future<void> linkWithOAuth(OAuthProvider provider) async {
     await _supabase.auth.linkIdentity(provider);
+
+    // Optionnellement, gérer des mises à jour supplémentaires dans la table 'users' si nécessaire.
   }
 
-  /// Sign out et reconnecte anonymement
+  /// Déconnecte l'utilisateur et reconnecte anonymement.
   Future<void> signOut() async {
     await _supabase.auth.signOut();
 
-    // Après la déconnexion, connectez-vous anonymement
+    // Après la déconnexion, se reconnecter anonymement.
     await ensureUser();
   }
 
-  /// Returns the current authenticated user.
+  /// Retourne l'utilisateur authentifié actuel.
   User? getCurrentUser() {
     return _supabase.auth.currentUser;
+  }
+}
+
+/// Exception personnalisée pour gérer les erreurs d'authentification.
+class AuthenticationException implements Exception {
+  final String message;
+  final String? details;
+
+  AuthenticationException(this.message, this.details);
+
+  @override
+  String toString() {
+    if (details != null && details!.isNotEmpty) {
+      return '$message: $details';
+    }
+    return message;
   }
 }

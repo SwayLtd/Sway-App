@@ -1,7 +1,9 @@
 // lib/features/user/screens/login_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/user/screens/sign_up_screen.dart';
+import 'package:sway/features/user/services/auth_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'dart:async';
 
@@ -13,9 +15,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final UserService _userService = UserService();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -27,6 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Timer? _lockTimer;
   static const int _maxFailedAttempts = 5;
   static const Duration _lockDuration = Duration(minutes: 2);
+
+  bool _isPasswordVisible = false;
 
   /// Validates the email input to prevent SQL injections and other issues.
   String? _validateEmail(String? value) {
@@ -70,18 +76,27 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await _userService.signIn(
+      // Step 1: Sign in with AuthService
+      await _authService.signIn(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
+
+      // Optionally, fetch user details
+      final user = await _userService.getCurrentUser();
+      if (user == null) {
+        throw Exception('User details not found.');
+      }
 
       // Reset failed attempts after a successful login
       setState(() {
         _failedAttempts = 0;
       });
 
-      // Supabase Auth handles redirection automatically via GoRouter
-    } catch (e) {
+      // Navigate to the main application screen or wherever appropriate
+      // For example:
+      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
+    } on AuthenticationException catch (e) {
       setState(() {
         _failedAttempts += 1;
         if (_failedAttempts >= _maxFailedAttempts) {
@@ -99,6 +114,10 @@ class _LoginScreenState extends State<LoginScreen> {
           _errorMessage =
               'Login failed. Please check your credentials. Attempt $_failedAttempts of $_maxFailedAttempts.';
         }
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'An unexpected error occurred. Please try again.';
       });
     } finally {
       setState(() {
@@ -133,17 +152,55 @@ class _LoginScreenState extends State<LoginScreen> {
               // Email Input Field
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  hintText: 'Enter your email',
+                  suffixIcon:
+                      _validateEmail(_emailController.text.trim()) == null
+                          ? null
+                          : const Icon(Icons.check, color: Colors.green),
+                ),
                 keyboardType: TextInputType.emailAddress,
                 validator: _validateEmail,
+                onChanged: (value) {
+                  setState(() {});
+                },
               ),
               const SizedBox(height: 16.0),
               // Password Input Field
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  hintText: 'Enter your password',
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Check Icon
+                      if (_validatePassword(_passwordController.text.trim()) ==
+                          null)
+                        const Icon(Icons.check, color: Colors.green),
+                      // Toggle Password Visibility
+                      IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                obscureText: !_isPasswordVisible,
                 validator: _validatePassword,
+                onChanged: (value) {
+                  setState(() {});
+                },
               ),
               const SizedBox(height: 24.0),
               // Display Error Message if Any
@@ -169,16 +226,96 @@ class _LoginScreenState extends State<LoginScreen> {
                     : const Text('Login'),
               ),
               const Spacer(),
+              // OAuth Login Buttons (Disabled for now)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Or login with:',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Google
+                      IconButton(
+                        icon: const Icon(Icons.g_mobiledata),
+                        color: Colors.grey,
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('Google login will be available soon.'),
+                            ),
+                          );
+                        },
+                        tooltip: 'Login with Google',
+                      ),
+                      // Apple
+                      IconButton(
+                        icon: const Icon(Icons.apple),
+                        color: Colors.grey,
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('Apple login will be available soon.'),
+                            ),
+                          );
+                        },
+                        tooltip: 'Login with Apple',
+                      ),
+                      // Facebook
+                      IconButton(
+                        icon: const Icon(Icons.facebook),
+                        color: Colors.grey,
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Facebook login will be available soon.'),
+                            ),
+                          );
+                        },
+                        tooltip: 'Login with Facebook',
+                      ),
+                      // Spotify
+                      IconButton(
+                        icon: const Icon(Icons.music_note),
+                        color: Colors.grey,
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('Spotify login will be available soon.'),
+                            ),
+                          );
+                        },
+                        tooltip: 'Login with Spotify',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24.0),
               // Navigate to Sign-Up Screen
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const SignUpScreen()),
-                  );
-                },
-                child: const Text('Don\'t have an account? Sign up here.'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Don\'t have an account?'),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SignUpScreen()),
+                      );
+                    },
+                    child: const Text('Sign up here.'),
+                  ),
+                ],
               ),
             ],
           ),

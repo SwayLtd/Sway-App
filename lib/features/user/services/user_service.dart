@@ -2,11 +2,9 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
-import 'package:sway/features/user/services/auth_service.dart';
 
 class UserService {
   final SupabaseClient _supabase = Supabase.instance.client;
-  final AuthService _authService = AuthService();
 
   /// Retrieves a user by their Supabase ID.
   Future<AppUser.User?> getUserBySupabaseId(String supabaseId) async {
@@ -45,7 +43,7 @@ class UserService {
     }
   }
 
-  /// Retrieves users by a list of Supabase IDs.
+  /// Searches users by username.
   Future<List<AppUser.User>> searchUsers(String query) async {
     try {
       final data = await _supabase
@@ -78,6 +76,7 @@ class UserService {
           .from('users')
           .select()
           .filter('supabase_id', 'in', '($supabaseIds)');
+      ;
 
       return (data as List<dynamic>)
           .map<AppUser.User>((json) => AppUser.User.fromJson(json))
@@ -99,6 +98,7 @@ class UserService {
           .from('users')
           .select()
           .filter('id', 'in', '($userIds)');
+      ;
 
       return data
           .map<AppUser.User>((json) => AppUser.User.fromJson(json))
@@ -109,69 +109,34 @@ class UserService {
     }
   }
 
-  /// Updates user information.
-  Future<void> updateUser(AppUser.User updatedUser) async {
+  /// Updates the profile picture URL of a user.
+  Future<void> updateUserProfilePicture({
+    required String supabaseId,
+    required String profilePictureUrl,
+  }) async {
     try {
       final response = await _supabase
           .from('users')
-          .update(updatedUser.toJson())
-          .eq('supabase_id', updatedUser.supabaseId);
+          .update({'profile_picture_url': profilePictureUrl}).eq(
+              'supabase_id', supabaseId);
 
       if (response.error != null) {
-        print('Failed to update user: ${response.error!.message}');
-      } else {
-        print('User updated successfully.');
+        throw Exception(
+            'Failed to update profile picture: ${response.error!.message}');
       }
     } catch (e) {
-      print('Failed to update user: $e');
+      print('Error updating profile picture: $e');
+      throw Exception('Error updating profile picture.');
     }
   }
 
   /// Retrieves the currently authenticated user.
   Future<AppUser.User?> getCurrentUser() async {
-    final user = _authService.getCurrentUser();
+    final user = _supabase.auth.currentUser;
     if (user == null) {
       return null;
     }
 
-    // Vérifiez si l'utilisateur est anonyme
-    if (user.userMetadata?['is_anonymous'] == true) {
-      // Traitez les utilisateurs anonymes selon vos besoins
-      return null; // Ou retournez une instance spécifique si nécessaire
-    }
-
     return await getUserBySupabaseId(user.id);
-  }
-
-  /// Signs up a new user.
-  Future<void> signUp(String email, String password, String username) async {
-    await _authService.signUp(email, password, username);
-  }
-
-  /// Signs in a user.
-  Future<void> signIn(String email, String password) async {
-    await _authService.signIn(email, password);
-  }
-
-  /// Signs in anonymously.
-  Future<void> signInAnonymously() async {
-    await _authService.signInAnonymously();
-  }
-
-  /// Links anonymous user to email/password account.
-  Future<void> linkWithEmail(String email, String password) async {
-    await _authService.linkWithEmail(email, password);
-    // Additional logic if necessary
-  }
-
-  /// Links anonymous user to an OAuth provider.
-  Future<void> linkWithOAuth(OAuthProvider provider) async {
-    await _authService.linkWithOAuth(provider);
-    // Additional logic if necessary
-  }
-
-  /// Signs out the current user.
-  Future<void> signOut() async {
-    await _authService.signOut();
   }
 }

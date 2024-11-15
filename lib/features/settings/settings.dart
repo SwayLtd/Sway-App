@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
+import 'package:sway/features/user/services/auth_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/screens/login_screen.dart';
 import 'package:sway/features/user/profile.dart';
@@ -17,6 +18,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final UserService _userService = UserService();
+  final AuthService _authService = AuthService();
   bool _isLoggedIn = false;
   AppUser.User? _currentUser;
 
@@ -71,7 +73,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Handles the sign-out process.
   Future<void> _handleSignOut() async {
     try {
-      await _userService.signOut();
+      await _authService.signOut();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Successfully signed out')),
       );

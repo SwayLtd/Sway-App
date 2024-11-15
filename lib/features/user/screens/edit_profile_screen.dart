@@ -35,7 +35,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       username: _usernameController.text,
       email: _emailController.text,
     );
-    await UserService().updateUser(updatedUser);
+    // await UserService().updateUser(updatedUser);
     Navigator.pop(context, updatedUser);
   }
 
