@@ -31,11 +31,9 @@ class GenreChip extends StatelessWidget {
           );
         } else {
           final genre = snapshot.data!;
-          return GestureDetector(
-            onTap: onTap,
-            child: Chip(
-              label: Text(genre.name),
-            ),
+          return Chip(
+            label: Text(genre.name),
+            onDeleted: onTap, // Enables deletion via the chip
           );
         }
       },
