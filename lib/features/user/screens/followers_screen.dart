@@ -177,12 +177,12 @@ class _FollowersScreenState extends State<FollowersScreen>
         if (followerType == 'followers') {
           return UserFollowUserService().getFollowersForUser(widget.entityId);
         } else if (followerType == 'following') {
-          return UserFollowUserService().getFollowingForUser(widget.entityId);
+          return UserFollowUserService().getFollowingForCurrentUser();
         } else {
           return Future.value([]);
         }
       case 'genre':
-        return UserFollowGenreService().getUsersFollowingGenre(widget.entityId);
+        return UserFollowGenreService().getFollowersForGenre(widget.entityId);
       default:
         throw Exception('Unknown entity type');
     }
