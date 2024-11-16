@@ -25,8 +25,7 @@ class UserFollowUserService {
         .from('user_follow_user')
         .select()
         .eq('follower_id', userId)
-        .eq('followed_id', targetUserId)
-        .single();
+        .eq('followed_id', targetUserId);
 
     return response.isNotEmpty;
   }
@@ -38,14 +37,10 @@ class UserFollowUserService {
       throw Exception('Utilisateur non authentifié.');
     }
 
-    await _supabase
-        .from('user_follow_user')
-        .insert({
-          'follower_id': userId,
-          'followed_id': targetUserId,
-        })
-        .select()
-        .single(); // Utilisez `.select().single()` pour obtenir la réponse
+    await _supabase.from('user_follow_user').insert({
+      'follower_id': userId,
+      'followed_id': targetUserId,
+    }).select();
   }
 
   /// Ne suit plus un utilisateur
@@ -92,8 +87,8 @@ class UserFollowUserService {
         .select('follower_id')
         .eq('followed_id', targetUserId);
 
-    final List<int> followerIds = response.map((item) => item['follower_id'] as int)
-        .toList();
+    final List<int> followerIds =
+        response.map((item) => item['follower_id'] as int).toList();
 
     return await _userService.getUsersByIds(followerIds);
   }
@@ -110,8 +105,8 @@ class UserFollowUserService {
         .select('followed_id')
         .eq('follower_id', userId);
 
-    final List<int> followingIds = response.map((item) => item['followed_id'] as int)
-        .toList();
+    final List<int> followingIds =
+        response.map((item) => item['followed_id'] as int).toList();
 
     return await _userService.getUsersByIds(followingIds);
   }

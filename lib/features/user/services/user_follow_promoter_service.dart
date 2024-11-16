@@ -27,8 +27,7 @@ class UserFollowPromoterService {
         .from('user_follow_promoter')
         .select()
         .eq('user_id', userId)
-        .eq('promoter_id', promoterId)
-        .single();
+        .eq('promoter_id', promoterId);
 
     return response.isNotEmpty;
   }
@@ -65,8 +64,7 @@ class UserFollowPromoterService {
     final response = await _supabase
         .from('user_follow_promoter')
         .select('user_id')
-        .eq('promoter_id', promoterId)
-        .single();
+        .eq('promoter_id', promoterId);
 
     return response.length;
   }

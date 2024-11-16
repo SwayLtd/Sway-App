@@ -27,8 +27,7 @@ class UserFollowGenreService {
         .from('user_follow_genre')
         .select()
         .eq('user_id', userId)
-        .eq('genre_id', genreId)
-        .single();
+        .eq('genre_id', genreId);
 
     return response.isNotEmpty;
   }
@@ -65,8 +64,7 @@ class UserFollowGenreService {
     final response = await _supabase
         .from('user_follow_genre')
         .select('user_id')
-        .eq('genre_id', genreId)
-        .single();
+        .eq('genre_id', genreId);
 
     return response.length;
   }

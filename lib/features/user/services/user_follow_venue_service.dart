@@ -27,8 +27,7 @@ class UserFollowVenueService {
         .from('user_follow_venue')
         .select()
         .eq('user_id', userId)
-        .eq('venue_id', venueId)
-        .single();
+        .eq('venue_id', venueId);
 
     return response.isNotEmpty;
   }
@@ -65,8 +64,7 @@ class UserFollowVenueService {
     final response = await _supabase
         .from('user_follow_venue')
         .select('user_id')
-        .eq('venue_id', venueId)
-        .single();
+        .eq('venue_id', venueId);
 
     return response.length;
   }

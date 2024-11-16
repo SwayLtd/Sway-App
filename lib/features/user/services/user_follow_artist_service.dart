@@ -27,8 +27,7 @@ class UserFollowArtistService {
         .from('user_follow_artist')
         .select()
         .eq('user_id', userId)
-        .eq('artist_id', artistId)
-        .single();
+        .eq('artist_id', artistId);
 
     return response.isNotEmpty;
   }
@@ -65,8 +64,7 @@ class UserFollowArtistService {
     final response = await _supabase
         .from('user_follow_artist')
         .select('user_id')
-        .eq('artist_id', artistId)
-        .single();
+        .eq('artist_id', artistId);
 
     return response.length;
   }
