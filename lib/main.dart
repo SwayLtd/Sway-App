@@ -12,7 +12,7 @@ import 'package:sway/core/services/database_service.dart';
 // import 'package:sway/core/services/notification_service.dart';
 import 'package:sway/features/security/utils/security_utils.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+// mport 'package:hive_flutter/hive_flutter.dart';
 import 'package:sway/features/user/services/auth_service.dart';
 
 Future<void> main() async {
@@ -20,7 +20,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   DatabaseService().initialize();
-  await Hive.initFlutter();
+  // await Hive.initFlutter();
   // NotificationService().initialize();
 
   final authService = AuthService();
