@@ -1,4 +1,4 @@
-// lib/features/promoter/widgets/promoter_item_widget.dart
+// // lib/features/promoter/widgets/promoter_item_widget.dart
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';

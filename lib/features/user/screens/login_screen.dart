@@ -1,7 +1,6 @@
 // lib/features/user/screens/login_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/user/screens/sign_up_screen.dart';
 import 'package:sway/features/user/services/auth_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
@@ -96,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // Navigate to the main application screen or wherever appropriate
       // For example:
       // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
-    } on AuthenticationException catch (e) {
+    } on AuthenticationException {
       setState(() {
         _failedAttempts += 1;
         if (_failedAttempts >= _maxFailedAttempts) {
