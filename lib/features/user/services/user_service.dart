@@ -46,14 +46,8 @@ class UserService {
   /// Searches users by username.
   Future<List<AppUser.User>> searchUsers(String query) async {
     try {
-      final data = await _supabase
-          .from('users')
-          .select()
-          .ilike('username', '%$query%') as List<dynamic>?;
-
-      if (data == null) {
-        return [];
-      }
+      final data =
+          await _supabase.from('users').select().ilike('username', '%$query%');
 
       return data
           .map<AppUser.User>((json) => AppUser.User.fromJson(json))
@@ -76,7 +70,6 @@ class UserService {
           .from('users')
           .select()
           .filter('supabase_id', 'in', '($supabaseIds)');
-      ;
 
       return (data as List<dynamic>)
           .map<AppUser.User>((json) => AppUser.User.fromJson(json))
@@ -98,7 +91,6 @@ class UserService {
           .from('users')
           .select()
           .filter('id', 'in', '($userIds)');
-      ;
 
       return data
           .map<AppUser.User>((json) => AppUser.User.fromJson(json))
@@ -127,6 +119,46 @@ class UserService {
     } catch (e) {
       print('Error updating profile picture: $e');
       throw Exception('Error updating profile picture.');
+    }
+  }
+
+  /// Met à jour l'adresse email de l'utilisateur dans la table 'users'
+  Future<void> updateUserEmail({
+    required String supabaseId,
+    required String newEmail,
+  }) async {
+    try {
+      final response = await _supabase
+          .from('users')
+          .update({'email': newEmail}).eq('supabase_id', supabaseId);
+
+      if (response.error != null) {
+        throw Exception(
+            'Failed to update email in users table: ${response.error!.message}');
+      }
+    } catch (e) {
+      print('Error updating email in users table: $e');
+      throw Exception('Error updating email in users table.');
+    }
+  }
+
+  /// Met à jour le nom d'utilisateur de l'utilisateur dans la table 'users'
+  Future<void> updateUsername({
+    required String supabaseId,
+    required String newUsername,
+  }) async {
+    try {
+      final response = await _supabase
+          .from('users')
+          .update({'username': newUsername}).eq('supabase_id', supabaseId);
+
+      if (response.error != null) {
+        throw Exception(
+            'Failed to update username: ${response.error!.message}');
+      }
+    } catch (e) {
+      print('Error updating username: $e');
+      throw Exception('Error updating username.');
     }
   }
 

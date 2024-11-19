@@ -1,6 +1,9 @@
+// lib/features/user/screens/edit_profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/user/models/user_model.dart';
+import 'package:sway/features/user/services/auth_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -15,6 +18,12 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
+
+  final UserService _userService = UserService();
+  final AuthService _authService = AuthService();
+
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -31,12 +40,63 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _updateProfile() async {
-    final updatedUser = widget.user.copyWith(
-      username: _usernameController.text,
-      email: _emailController.text,
-    );
-    // await UserService().updateUser(updatedUser);
-    Navigator.pop(context, updatedUser);
+    final newUsername = _usernameController.text.trim();
+    final newEmail = _emailController.text.trim();
+
+    final bool isUsernameChanged = newUsername != widget.user.username;
+    final bool isEmailChanged = newEmail != widget.user.email;
+
+    if (!isUsernameChanged && !isEmailChanged) {
+      // Rien à mettre à jour
+      Navigator.pop(context);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      if (isUsernameChanged) {
+        await _userService.updateUsername(
+          supabaseId: widget.user.supabaseId,
+          newUsername: newUsername,
+        );
+      }
+
+      if (isEmailChanged) {
+        await _authService.updateEmail(newEmail);
+        // Ne mettez pas à jour directement la table 'users' ici
+      }
+
+      // Récupérer l'utilisateur mis à jour
+      final updatedUser = await _userService.getCurrentUser();
+      Navigator.pop(context, updatedUser);
+
+      // Afficher une boîte de dialogue pour informer l'utilisateur de vérifier son email
+      if (isEmailChanged) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Vérification Email'),
+            content: Text(
+                'Un email de vérification a été envoyé à votre nouvelle adresse. Veuillez vérifier votre email pour confirmer les changements.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -47,7 +107,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: _updateProfile,
+            onPressed: _isLoading ? null : _updateProfile,
           ),
         ],
       ),
@@ -68,7 +128,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      // Logic to edit avatar will be here
+                      // Logique pour éditer l'avatar sera ici
                     },
                     child: const Text('Edit avatar'),
                   ),
@@ -84,7 +144,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
             ),
+            const SizedBox(height: 20),
+            if (_isLoading) CircularProgressIndicator(),
+            if (_errorMessage != null)
+              Text(
+                _errorMessage!,
+                style: TextStyle(color: Colors.red),
+              ),
           ],
         ),
       ),

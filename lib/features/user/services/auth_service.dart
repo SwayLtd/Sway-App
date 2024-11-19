@@ -90,6 +90,17 @@ class AuthService {
   User? getCurrentUser() {
     return _supabase.auth.currentUser;
   }
+
+  /// Met à jour l'adresse email de l'utilisateur actuellement connecté
+  Future<void> updateEmail(String newEmail) async {
+    await _supabase.auth.updateUser(
+      UserAttributes(
+        email: newEmail,
+      ),
+    );
+
+    // Supabase envoie automatiquement un email de confirmation à la nouvelle adresse
+  }
 }
 
 /// Exception personnalisée pour gérer les erreurs d'authentification.
