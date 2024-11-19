@@ -341,46 +341,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                   ),
                                 ],
                               )
-                            : // EventCardItemWidget view
-                            /*Column(
-                                children:
-                                    _promoter!.upcomingEvents.take(maxEvents).map((eventId) {
-                                  return FutureBuilder<Event?>(
-                                    future:
-                                        EventService().getEventById(eventId),
-                                    builder: (context, eventSnapshot) {
-                                      if (eventSnapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return const Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 8.0, horizontal: 8.0),
-                                          child: CircularProgressIndicator(),
-                                        );
-                                      } else if (eventSnapshot.hasError ||
-                                          !eventSnapshot.hasData ||
-                                          eventSnapshot.data == null) {
-                                        return const SizedBox
-                                            .shrink(); // Ne rien afficher si erreur
-                                      } else {
-                                        final event = eventSnapshot.data!;
-                                        return EventListItemWidget(
-                                          event: event,
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EventScreen(event: event),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      }
-                                    },
-                                  );
-                                }).toList(),
-                              ),*/
-                            SizedBox(
+                            : SizedBox(
                                 height:
                                     246, // Définissez une hauteur appropriée pour le ListView horizontal
                                 child: ListView.builder(
