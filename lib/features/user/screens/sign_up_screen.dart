@@ -1,11 +1,9 @@
 // lib/features/user/screens/sign_up_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/user/screens/login_screen.dart';
 import 'package:sway/features/user/screens/terms_and_conditions_screen.dart';
 import 'package:sway/features/user/services/auth_service.dart';
-import 'package:sway/features/user/services/user_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
