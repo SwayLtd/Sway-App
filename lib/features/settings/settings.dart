@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/services/auth_service.dart';
@@ -133,6 +134,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 : () {
                     _navigateToLogin();
                   },
+          ),
+          const Divider(),
+          SizedBox(height: sectionSpacing),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Copyright © 2024 - '),
+              Text(
+                'Sway',
+                style: TextStyle(
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+            ],
           ),
         ],
       ),
