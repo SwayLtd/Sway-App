@@ -9,7 +9,8 @@ import 'package:sway/features/user/services/user_permission_service.dart';
 class EventService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final UserPermissionService _permissionService = UserPermissionService();
-  final UserEventTicketService _userEventTicketService = UserEventTicketService();
+  final UserEventTicketService _userEventTicketService =
+      UserEventTicketService();
 
   /// Retrieves all events from Supabase.
   Future<List<Event>> getEvents() async {
@@ -24,7 +25,8 @@ class EventService {
 
   /// Retrieves a single event by its ID from Supabase.
   Future<Event?> getEventById(int eventId) async {
-    final response = await _supabase.from('events').select().eq('id', eventId).maybeSingle();
+    final response =
+        await _supabase.from('events').select().eq('id', eventId).maybeSingle();
 
     if (response == null) {
       return null;
@@ -34,7 +36,8 @@ class EventService {
   }
 
   /// Searches for events based on a query and additional filters.
-  Future<List<Event>> searchEvents(String query, Map<String, dynamic> filters) async {
+  Future<List<Event>> searchEvents(
+      String query, Map<String, dynamic> filters) async {
     // Initialize the query builder.
     var builder = _supabase.from('events').select();
 
@@ -46,8 +49,12 @@ class EventService {
     // Apply date filter if provided.
     if (filters.containsKey('date') && filters['date'] is DateTime) {
       DateTime dateFilter = filters['date'] as DateTime;
-      String startOfDay = DateTime(dateFilter.year, dateFilter.month, dateFilter.day).toIso8601String();
-      String endOfDay = DateTime(dateFilter.year, dateFilter.month, dateFilter.day, 23, 59, 59).toIso8601String();
+      String startOfDay =
+          DateTime(dateFilter.year, dateFilter.month, dateFilter.day)
+              .toIso8601String();
+      String endOfDay = DateTime(
+              dateFilter.year, dateFilter.month, dateFilter.day, 23, 59, 59)
+          .toIso8601String();
       builder = builder.gte('date_time', startOfDay).lte('date_time', endOfDay);
     }
 
@@ -55,7 +62,8 @@ class EventService {
     if (filters.containsKey('genres') && filters['genres'] is List<int>) {
       List<int> genreFilter = filters['genres'] as List<int>;
       if (genreFilter.isNotEmpty) {
-        String orFilter = genreFilter.map((genreId) => 'genre_id.eq.$genreId').join(',');
+        String orFilter =
+            genreFilter.map((genreId) => 'genre_id.eq.$genreId').join(',');
         builder = builder.or(orFilter);
       }
     }
@@ -88,7 +96,9 @@ class EventService {
 
   /// Helper method to check if two dates are on the same day.
   bool _isSameDate(DateTime date1, DateTime date2) {
-    return date1.year == date2.year && date1.month == date2.month && date1.day == date2.day;
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
   /// Retrieves event genres from the 'event_genre' join table.
@@ -112,7 +122,8 @@ class EventService {
 
   /// Adds a new event to Supabase.
   Future<void> addEvent(Event event) async {
-    final bool hasPermission = await _permissionService.hasPermissionForCurrentUser(
+    final bool hasPermission =
+        await _permissionService.hasPermissionForCurrentUser(
       event.id,
       'event',
       'admin',
@@ -131,7 +142,8 @@ class EventService {
 
   /// Updates an existing event in Supabase.
   Future<void> updateEvent(Event event) async {
-    final bool hasPermission = await _permissionService.hasPermissionForCurrentUser(
+    final bool hasPermission =
+        await _permissionService.hasPermissionForCurrentUser(
       event.id,
       'event',
       'manager',
@@ -141,7 +153,10 @@ class EventService {
       throw Exception('Permission denied');
     }
 
-    final response = await _supabase.from('events').update(event.toJson()).eq('id', event.id);
+    final response = await _supabase
+        .from('events')
+        .update(event.toJson())
+        .eq('id', event.id);
 
     if (response.isEmpty) {
       throw Exception('Failed to update event.');
@@ -150,7 +165,8 @@ class EventService {
 
   /// Deletes an event from Supabase.
   Future<void> deleteEvent(int eventId) async {
-    final bool hasPermission = await _permissionService.hasPermissionForCurrentUser(
+    final bool hasPermission =
+        await _permissionService.hasPermissionForCurrentUser(
       eventId,
       'event',
       'admin',
@@ -192,11 +208,36 @@ class EventService {
 
   /// Retrieves the festival start time for a specific event.
   Future<DateTime?> getFestivalStartTime(int eventId) async {
-    final response = await _supabase.from('events').select('date_time').eq('id', eventId).maybeSingle();
+    final response = await _supabase
+        .from('events')
+        .select('date_time')
+        .eq('id', eventId)
+        .maybeSingle();
 
     if (response != null && response.containsKey('date_time')) {
       return DateTime.parse(response['date_time'] as String);
     }
     return null;
+  }
+
+  /// Retrieves the top events based on popularity.
+  Future<List<Event>> getTopEvents({int limit = 5}) async {
+    // Assurez-vous que votre table 'events' a une colonne 'popularity' ou 'interested_users_count'
+    try {
+      final response = await _supabase
+          .from('events')
+          .select()
+          .order('interested_users_count', ascending: false)
+          .limit(limit);
+
+      if (response.isEmpty) {
+        return [];
+      }
+
+      return response.map<Event>((json) => Event.fromJson(json)).toList();
+    } catch (e) {
+      print('Error fetching top events: $e');
+      return [];
+    }
   }
 }

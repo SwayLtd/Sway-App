@@ -1,6 +1,7 @@
-// discovery.dart
+// lib/features/discovery/discovery.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -13,7 +14,6 @@ import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
-// import 'package:sway/features/notification/notification.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
@@ -27,8 +27,15 @@ import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/venue/venue.dart';
+import 'package:sway/features/promoter/widgets/promoter_item_widget.dart';
+import 'package:sway/features/venue/widgets/venue_item_widget.dart';
 
-class DiscoveryScreen extends StatelessWidget {
+class DiscoveryScreen extends StatefulWidget {
+  @override
+  _DiscoveryScreenState createState() => _DiscoveryScreenState();
+}
+
+class _DiscoveryScreenState extends State<DiscoveryScreen> {
   final UserService _userService = UserService();
   final EventService _eventService = EventService();
   final UserFollowArtistService _userFollowArtistService =
@@ -42,113 +49,24 @@ class DiscoveryScreen extends StatelessWidget {
   final SimilarArtistService _similarArtistService = SimilarArtistService();
   final UserInterestEventService _userInterestEventService =
       UserInterestEventService();
-  final int unreadNotifications = 5; // Number of unread notifications
+
+  Future<Map<String, dynamic>>? _recommendationsFuture;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Discovery"),
-        actions: [
-          // TODO Implement notification system
-          /*IconButton(
-            icon: Stack(
-              children: <Widget>[
-                const Icon(Icons.notifications),
-                if (unreadNotifications > 0)
-                  Positioned(
-                    right: 0,
-                    child: Badge(), // Keep Badge empty as per your requirement
-                  ),
-              ],
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NotificationScreen()),
-              );
-            },
-          ),*/
-        ],
-      ),
-      body: FutureBuilder<User?>(
-        future: _userService.getCurrentUser(),
-        builder: (context, userSnapshot) {
-          if (userSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (userSnapshot.hasError) {
-            return Center(child: Text('Error: ${userSnapshot.error}'));
-          } else if (!userSnapshot.hasData) {
-            return const Center(child: Text('No user found'));
-          } else {
-            final user = userSnapshot.data!;
-            return FutureBuilder<Map<String, dynamic>>(
-              future: _fetchUserRecommendations(user.id),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData) {
-                  return const Center(child: Text('No recommendations found'));
-                } else {
-                  final recommendations = snapshot.data!;
-                  return ListView(
-                    children: [
-                      if ((recommendations['events'] as List<Event>)
-                          .isNotEmpty) ...[
-                        _buildSectionTitle('Upcoming Events'),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: _buildEventCards(
-                              context,
-                              recommendations['events'] as List<Event>,
-                            ),
-                          ),
-                        ),
-                      ],
-                      if ((recommendations['promoters'] as List<Promoter>)
-                          .isNotEmpty) ...[
-                        _buildSectionTitle('Suggested Promoters'),
-                        ..._buildPromoterCards(
-                          context,
-                          recommendations['promoters'] as List<Promoter>,
-                        ),
-                      ],
-                      if ((recommendations['artists'] as List<Artist>)
-                          .isNotEmpty) ...[
-                        _buildSectionTitle('Suggested Artists'),
-                        ..._buildArtistCards(
-                          context,
-                          recommendations['artists'] as List<Artist>,
-                        ),
-                      ],
-                      if ((recommendations['venues'] as List<Venue>)
-                          .isNotEmpty) ...[
-                        _buildSectionTitle('Suggested Venues'),
-                        ..._buildVenueCards(
-                          context,
-                          recommendations['venues'] as List<Venue>,
-                        ),
-                      ],
-                      if ((recommendations['genres'] as List<Genre>)
-                          .isNotEmpty) ...[
-                        _buildSectionTitle('Suggested Genres'),
-                        _buildGenreChips(
-                          context,
-                          recommendations['genres'] as List<Genre>,
-                        ),
-                      ],
-                    ],
-                  );
-                }
-              },
-            );
-          }
-        },
-      ),
-    );
+  void initState() {
+    super.initState();
+    _loadRecommendations();
+  }
+
+  Future<void> _loadRecommendations() async {
+    final user = await _userService.getCurrentUser();
+    if (user != null) {
+      _recommendationsFuture = _fetchUserRecommendations(user.id);
+    } else {
+      // Pour les utilisateurs anonymes, fournir des recommandations génériques
+      _recommendationsFuture = _fetchGenericRecommendations();
+    }
+    setState(() {});
   }
 
   Future<Map<String, dynamic>> _fetchUserRecommendations(int userId) async {
@@ -211,6 +129,9 @@ class DiscoveryScreen extends StatelessWidget {
           isNotFollowedEvent;
     }).toList();
 
+    // Récupérer les 5 événements suggérés (les plus populaires)
+    final suggestedEvents = await _eventService.getTopEvents(limit: 5);
+
     final allArtists = await ArtistService().getArtists();
     final allGenres = await GenreService().getGenres();
     final allPromoters = await PromoterService().getPromoters();
@@ -234,6 +155,7 @@ class DiscoveryScreen extends StatelessWidget {
         .toList();
 
     return {
+      'suggestedEvents': suggestedEvents,
       'events': filteredEvents.take(5).toList(),
       'artists': {...similarArtists.take(3), ...suggestedArtists}.toList(),
       'genres': suggestedGenres,
@@ -242,9 +164,168 @@ class DiscoveryScreen extends StatelessWidget {
     };
   }
 
+  Future<Map<String, dynamic>> _fetchGenericRecommendations() async {
+    // Recommandations génériques pour les utilisateurs anonymes
+    final suggestedEvents = await _eventService.getTopEvents(limit: 5);
+    final allArtists = await ArtistService().getArtists();
+    final allGenres = await GenreService().getGenres();
+    final allPromoters = await PromoterService().getPromoters();
+    final allVenues = await VenueService().getVenues();
+
+    final suggestedArtists = allArtists.take(3).toList();
+    final suggestedGenres = allGenres.take(3).toList();
+    final suggestedPromoters = allPromoters.take(3).toList();
+    final suggestedVenues = allVenues.take(3).toList();
+
+    return {
+      'suggestedEvents': suggestedEvents,
+      'events': [], // Pas de filtres spécifiques pour les événements
+      'artists': suggestedArtists,
+      'genres': suggestedGenres,
+      'promoters': suggestedPromoters,
+      'venues': suggestedVenues,
+    };
+  }
+
+  Future<void> _refreshRecommendations() async {
+    await _loadRecommendations();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Discovery"),
+        actions: [
+          // TODO Implement notification system
+          /*IconButton(
+            icon: Stack(
+              children: <Widget>[
+                const Icon(Icons.notifications),
+                if (unreadNotifications > 0)
+                  Positioned(
+                    right: 0,
+                    child: Badge(), // Keep Badge empty as per your requirement
+                  ),
+              ],
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationScreen()),
+              );
+            },
+          ),*/
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _refreshRecommendations,
+        child: FutureBuilder<Map<String, dynamic>?>(
+          future: _recommendationsFuture,
+          builder: (context, snapshot) {
+            if (_recommendationsFuture == null ||
+                snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data == null) {
+              return const Center(child: Text('No recommendations found'));
+            } else {
+              final recommendations = snapshot.data!;
+              return ListView(
+                children: [
+                  // Section "Suggested Events"
+                  if ((recommendations['suggestedEvents'] as List<Event>)
+                      .isNotEmpty) ...[
+                    _buildSectionTitle('Suggested Events'),
+                    SizedBox(height: sectionTitleSpacing),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _buildEventCards(
+                          context,
+                          recommendations['suggestedEvents'] as List<Event>,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: sectionSpacing),
+                  ],
+
+                  // Section "Upcoming Events" (Existante)
+                  if ((recommendations['events']).isNotEmpty) ...[
+                    _buildSectionTitle('Upcoming Events'),
+                    SizedBox(height: sectionTitleSpacing),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _buildEventCards(
+                          context,
+                          recommendations['events'] as List<Event>,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: sectionSpacing),
+                  ],
+
+                  // Section "Suggested Promoters"
+                  if ((recommendations['promoters'] as List<Promoter>)
+                      .isNotEmpty) ...[
+                    _buildSectionTitle('Suggested Promoters'),
+                    SizedBox(height: sectionTitleSpacing),
+                    ..._buildPromoterCards(
+                      context,
+                      recommendations['promoters'] as List<Promoter>,
+                    ),
+                    SizedBox(height: sectionSpacing),
+                  ],
+
+                  // Section "Suggested Artists"
+                  if ((recommendations['artists'] as List<Artist>)
+                      .isNotEmpty) ...[
+                    _buildSectionTitle('Suggested Artists'),
+                    SizedBox(height: sectionTitleSpacing),
+                    ..._buildArtistCards(
+                      context,
+                      recommendations['artists'] as List<Artist>,
+                    ),
+                    SizedBox(height: sectionSpacing),
+                  ],
+
+                  // Section "Suggested Venues"
+                  if ((recommendations['venues'] as List<Venue>)
+                      .isNotEmpty) ...[
+                    _buildSectionTitle('Suggested Venues'),
+                    SizedBox(height: sectionTitleSpacing),
+                    ..._buildVenueCards(
+                      context,
+                      recommendations['venues'] as List<Venue>,
+                    ),
+                    SizedBox(height: sectionSpacing),
+                  ],
+
+                  // Section "Suggested Genres"
+                  if ((recommendations['genres'] as List<Genre>)
+                      .isNotEmpty) ...[
+                    _buildSectionTitle('Suggested Genres'),
+                    SizedBox(height: sectionTitleSpacing),
+                    _buildGenreChips(
+                      context,
+                      recommendations['genres'] as List<Genre>,
+                    ),
+                    SizedBox(height: sectionSpacing),
+                  ],
+                ],
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Text(
         title,
         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -253,23 +334,13 @@ class DiscoveryScreen extends StatelessWidget {
   }
 
   List<Widget> _buildEventCards(BuildContext context, List<Event> events) {
-    return [
-      SizedBox(
-        // height: 375, // Adjust height as needed
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: events.map<Widget>((event) {
-              return Container(
-                width: 400, // Adjust width as needed
-                margin: const EdgeInsets.only(right: 10),
-                child: EventCard(event: event),
-              );
-            }).toList(),
-          ),
-        ),
-      ),
-    ];
+    return events.map<Widget>((event) {
+      return Container(
+        width: 300, // Ajustez la largeur selon vos besoins
+        margin: const EdgeInsets.only(right: 10, left: 16),
+        child: EventCard(event: event),
+      );
+    }).toList();
   }
 
   List<Widget> _buildPromoterCards(
@@ -278,25 +349,13 @@ class DiscoveryScreen extends StatelessWidget {
   ) {
     return promoters
         .map<Widget>(
-          (promoter) => ListTile(
-            title: Text(promoter.name),
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: ImageWithErrorHandler(
-                  imageUrl: promoter.imageUrl,
-                  width: 50,
-                  height: 50,
-                ),
-              ),
-            ),
+          (promoter) => PromoterListItemWidget(
+            promoter: promoter,
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      PromoterScreen(promoterId: promoter.id),
+                  builder: (context) => PromoterScreen(promoterId: promoter.id),
                 ),
               );
             },
@@ -334,23 +393,8 @@ class DiscoveryScreen extends StatelessWidget {
   List<Widget> _buildVenueCards(BuildContext context, List<Venue> venues) {
     return venues
         .map<Widget>(
-          (venue) => ListTile(
-            title: Text(venue.name),
-            subtitle: Row(
-              children: [
-                const Icon(Icons.location_on, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(venue.location),
-              ],
-            ),
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: ImageWithErrorHandler(
-                imageUrl: venue.imageUrl,
-                width: 50,
-                height: 50,
-              ),
-            ),
+          (venue) => VenueListItemWidget(
+            venue: venue,
             onTap: () {
               Navigator.push(
                 context,
@@ -366,27 +410,24 @@ class DiscoveryScreen extends StatelessWidget {
 
   Widget _buildGenreChips(BuildContext context, List<Genre> genres) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Wrap(
-          spacing: 8.0,
-          children: genres
-              .map(
-                (genre) => GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => GenreScreen(genreId: genre.id),
-                      ),
-                    );
-                  },
-                  child: GenreChip(genreId: genre.id),
-                ),
-              )
-              .toList(),
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Wrap(
+        spacing: 8.0,
+        children: genres
+            .map(
+              (genre) => GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => GenreScreen(genreId: genre.id),
+                    ),
+                  );
+                },
+                child: GenreChip(genreId: genre.id),
+              ),
+            )
+            .toList(),
       ),
     );
   }
@@ -406,7 +447,7 @@ class Badge extends StatelessWidget {
         minHeight: 16,
       ),
       child: const Text(
-        '5', // Replace with the actual number of unread notifications
+        '5', // Remplacez par le nombre réel de notifications non lues
         style: TextStyle(
           color: Colors.white,
           fontSize: 12,
