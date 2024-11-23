@@ -4,7 +4,7 @@
 Sway is a mobile event management application that helps users discover, organize, and manage events effortlessly. Sway aims to provide a seamless and intuitive experience for both event attendees and promoters.
 
 ## Screenshots
-![Event Details screenshot of Rave Rebels XXL Weekender 2024](assets\images\screenshots\event.png)
+![Event Details screenshot of Rave Rebels XXL Weekender 2024](assets/images/screenshots/event.png)
 
 ## Roadmap
 Migrated to [Canny](https://swayapp.canny.io/)
