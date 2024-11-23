@@ -107,7 +107,7 @@ final GoRouter router = GoRouter(
   // Remove or comment out the initialLocation parameter
   // initialLocation: '/',
   initialLocation: Uri.base.toString(),
-  debugLogDiagnostics: true,
+  debugLogDiagnostics: false,
   redirect: (context, state) async {
     final user = Supabase.instance.client.auth.currentUser;
     final bool loggedIn = user != null;
@@ -216,10 +216,7 @@ List<RouteBase> getShellRoutes() {
         path: route['path'] as String,
         name: route['name'] as String,
         pageBuilder: (context, state) {
-          return NoTransitionPage(
-            key: state.pageKey,
-            child: route['screen'] as Widget,
-          );
+          return fadeTransitionPage(context, state, route['screen'] as Widget);
         },
         routes: [
           // Define subroutes if needed, e.g., '/settings/profile'
@@ -245,7 +242,9 @@ List<RouteBase> getStandaloneRoutes() {
         GoRoute(
           path: route['path'] as String,
           name: route['name'] as String,
-          builder: (context, state) => route['screen'] as Widget,
+          pageBuilder: (context, state) {
+            return fadeTransitionPage(context, state, route['screen'] as Widget);
+          },
         ),
       );
     } else if (route.containsKey('screenBuilder')) {
@@ -253,8 +252,10 @@ List<RouteBase> getStandaloneRoutes() {
         GoRoute(
           path: route['path'] as String,
           name: route['name'] as String,
-          builder: route['screenBuilder'] as Widget Function(
-              BuildContext, GoRouterState),
+          pageBuilder: (context, state) {
+            final widget = (route['screenBuilder'] as Widget Function(BuildContext, GoRouterState))(context, state);
+            return fadeTransitionPage(context, state, widget);
+          },
         ),
       );
     }
@@ -308,4 +309,18 @@ class GoRouterRefreshStream extends ChangeNotifier {
     _subscription.cancel();
     super.dispose();
   }
+}
+
+Page<void> fadeTransitionPage(
+    BuildContext context, GoRouterState state, Widget child) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: animation,
+        child: child,
+      );
+    },
+  );
 }
