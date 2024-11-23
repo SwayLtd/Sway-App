@@ -10,11 +10,12 @@ Coming soon
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* Deep link support for entities
+* Authentication update with 'supabase_auth-ui' and password reset - Authentication system
+* Email change - Authentication system
 * Sign-up and follow system update - Authentication system
 * Implementation of user registration using database function and database triggers - Authentication system
 * Enhance VenueScreen and PromoterScreen UI/UX
-* Update Ticket model and service to use event end date for upcoming tickets - Local management of event tickets
-* Implement Artist Item Widgets and UI Enhancements
 
 ### Known Issues
 * (Notification) The notification images and maybe other parameters are not collected correctly.

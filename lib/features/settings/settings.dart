@@ -7,7 +7,7 @@ import 'package:sway/features/settings/screens/about_screen.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/services/auth_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
-import 'package:sway/features/user/screens/login_screen.dart';
+import 'package:sway/features/user/widgets/auth_modal.dart';
 import 'package:sway/features/user/profile.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -35,15 +35,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Checks if the user is currently authenticated.
   Future<void> _checkAuthStatus() async {
-    _userService.getCurrentUser();
     final fetchedUser = await _userService.getCurrentUser();
     setState(() {
-      _isLoggedIn = true;
+      _isLoggedIn = fetchedUser != null;
       _currentUser = fetchedUser;
     });
   }
 
-  /// Navigates to the Profile screen if authenticated, else redirects to Login.
+  /// Navigates to the Profile screen if authenticated, else opens AuthModal.
   void _navigateToProfile() {
     if (_isLoggedIn) {
       Navigator.push(
@@ -51,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         MaterialPageRoute(builder: (context) => const ProfileScreen()),
       );
     } else {
-      _navigateToLogin();
+      _showAuthModal();
     }
   }
 
@@ -63,12 +62,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Navigates to the Login screen.
-  void _navigateToLogin() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
+  /// Opens the AuthModal as a bottom sheet.
+  void _showAuthModal() {
+    AuthModal.showAuthModal(context);
   }
 
   /// Handles the sign-out process.
@@ -107,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               leading: const Icon(Icons.login),
               title: const Text('Sign Up or Login'),
-              onTap: _navigateToLogin,
+              onTap: _showAuthModal,
             ),
           const Divider(),
           ListTile(
@@ -126,16 +122,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: _navigateToAbout,
           ),
           const Divider(),
-          ListTile(
-            leading: Icon(_isLoggedIn ? Icons.logout : Icons.login),
-            title: Text(_isLoggedIn ? 'Logout' : 'Login'),
-            onTap: _isLoggedIn
-                ? _handleSignOut
-                : () {
-                    _navigateToLogin();
-                  },
-          ),
-          const Divider(),
           SizedBox(height: sectionSpacing),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -149,6 +135,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
+          SizedBox(height: sectionSpacing),
+          if (_isLoggedIn)
+            Center(
+              child: TextButton(
+                child: Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: Theme.of(context).disabledColor,
+                  ),
+                ),
+                onPressed: () => _handleSignOut,
+              ),
+            ),
         ],
       ),
     );

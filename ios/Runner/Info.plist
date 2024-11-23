@@ -27,6 +27,8 @@
 		<dict>
 		<key>CFBundleTypeRole</key>
 		<string>Editor</string>
+		<key>CFBundleURLName</key>
+    	<string>app.sway.main</string>
 		<key>CFBundleURLSchemes</key>
 		<array>
 			<string>app.sway.main</string>
@@ -64,5 +66,7 @@
         <string>filza</string>
         <string>activator</string>
     </array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
 </dict>
 </plist>

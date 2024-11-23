@@ -53,22 +53,3 @@ class _SecurityUtilsState extends State<SecurityUtils> {
   }
 }
 
-class SecureStorage {
-  final FlutterSecureStorage storage = const FlutterSecureStorage();
-
-  /// [writeSecureData] Writes secure data to the device
-  Future<void> writeSecureData(String key, String value) async {
-    await storage.write(key: key, value: value);
-  }
-
-  /// [readSecureData] Reads secure data from the device
-  Future<void> readSecureData(String key) async {
-    final String value = await storage.read(key: key) ?? 'No data found!';
-    debugPrint("Data read from secure storage: $value");
-  }
-
-  /// [deleteSecureData] Deletes secure data from the device
-  Future<void> deleteSecureData(String key) async {
-    await storage.delete(key: key);
-  }
-}

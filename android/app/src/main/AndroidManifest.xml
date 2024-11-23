@@ -6,10 +6,11 @@
         android:label="Sway"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+        <!-- android:launchMode="singleTop" -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -27,14 +28,52 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <!-- Deep Links -->
+            </intent-filter>
+
+            <!-- Deep Links -->
+            <!-- Intent filter for authentication deep links -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Accepts URIs that begin with YOUR_SCHEME://YOUR_HOST -->
+
+                <!-- Handle deep links with scheme "app.sway.main" -->
                 <data
-                android:scheme="app.sway.main" />
-                <!-- android:host="login-callback" /> --><!-- optional -->
+                    android:scheme="app.sway.main"
+                    android:host="login-callback" />
+            </intent-filter>
+            
+            <!-- Intent filter for password reset deep links -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Handle deep links with scheme "app.sway.main" -->
+                <data
+                    android:scheme="app.sway.main"
+                    android:host="reset-password" />
+            </intent-filter>
+
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="true" />
+
+            <!-- Intent filter for future deep links (e.g., artists, promoters) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Handle deep links with scheme "app.sway.main" and different hosts -->
+                <data android:scheme="app.sway.main" />
+                <data android:host="app" />
+                <data android:pathPattern="/artist/.*" />
+                <data android:pathPattern="/promoter/.*" />
+                <!-- Add more data tags as needed -->
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

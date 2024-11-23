@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  /// S'assure qu'un utilisateur est connecté. Si aucun utilisateur n'est connecté, se connecte anonymement.
+  /// Ensures that a user is logged in. If no user is logged in, logs in anonymously.
   Future<void> ensureUser() async {
     final user = _supabase.auth.currentUser;
 
@@ -16,66 +16,17 @@ class AuthService {
         throw Exception('Anonymous user not created.');
       }
 
-      // Optionnellement, gérer des actions supplémentaires après la création d'un utilisateur anonyme.
+      // Optionally, manage additional actions after the creation of an anonymous user.
     }
   }
 
-  /// Connecte un utilisateur avec email et mot de passe.
-  Future<void> signIn(String email, String password) async {
-    final response = await _supabase.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
-
-    if (response.user == null) {
-      throw AuthenticationException('User not found.', '');
-    }
-  }
-
-  /// Inscrit un nouvel utilisateur avec email, mot de passe et nom d'utilisateur.
-  Future<void> signUp(String email, String password, String username) async {
-    final response = await _supabase.auth.signUp(
-      email: email,
-      password: password,
-      data: {
-        'username': username
-      }, // Ajout du nom d'utilisateur dans raw_user_meta_data
-    );
-
-    final user = response.user;
-    if (user == null) {
-      throw AuthenticationException('User not created.', '');
-    }
-
-    // L'insertion dans la table 'users' est gérée automatiquement par le déclencheur PostgreSQL.
-  }
-
-  /// Connecte anonymement un utilisateur.
+  /// Connect a user anonymously.
   Future<void> signInAnonymously() async {
     final response = await _supabase.auth.signInAnonymously();
 
     if (response.user == null) {
       throw Exception('Anonymous user not created.');
     }
-  }
-
-  /// Lie l'utilisateur anonyme actuel à un compte email/mot de passe.
-  Future<void> linkWithEmail(String email, String password) async {
-    await _supabase.auth.updateUser(
-      UserAttributes(
-        email: email,
-        password: password,
-      ),
-    );
-
-    // L'insertion ou la mise à jour dans la table 'users' peut être gérée par un autre déclencheur si nécessaire.
-  }
-
-  /// Lie l'utilisateur anonyme actuel à un fournisseur OAuth.
-  Future<void> linkWithOAuth(OAuthProvider provider) async {
-    await _supabase.auth.linkIdentity(provider);
-
-    // Optionnellement, gérer des mises à jour supplémentaires dans la table 'users' si nécessaire.
   }
 
   /// Déconnecte l'utilisateur et reconnecte anonymement.
@@ -100,6 +51,18 @@ class AuthService {
     );
 
     // Supabase envoie automatiquement un email de confirmation à la nouvelle adresse
+  }
+
+  /// Async method to check if username already exists
+  Future<bool> _doesUsernameExist(String username) async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase
+        .from('users')
+        .select('username')
+        .eq('username', username)
+        .maybeSingle();
+
+    return response != null;
   }
 }
 

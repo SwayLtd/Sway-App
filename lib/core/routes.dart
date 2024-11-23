@@ -6,15 +6,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sway/core/auth_state_manager.dart';
 import 'package:sway/core/utils/error/error_not_found.dart';
 import 'package:sway/core/widgets/bottom_navigation_bar.dart';
+import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/discovery/discovery.dart';
+import 'package:sway/features/genre/genre.dart';
+import 'package:sway/features/promoter/promoter.dart';
+import 'package:sway/features/user/user.dart';
 import 'package:sway/features/search/search.dart';
 import 'package:sway/features/settings/settings.dart';
 import 'package:sway/features/ticketing/ticketing.dart';
-import 'package:sway/features/user/screens/login_screen.dart'; // Import LoginScreen
 import 'package:sway/features/user/profile.dart';
-import 'package:sway/features/user/screens/sign_up_screen.dart'; // Import ProfileScreen
+import 'package:sway/features/user/screens/reset_password_screen.dart';
+import 'package:sway/features/venue/venue.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
@@ -48,25 +53,72 @@ List<Map<String, dynamic>> shellRoutes = [
 
 List<Map<String, dynamic>> standaloneRoutes = [
   {
-    'name': 'Login',
-    'path': '/login',
-    'screen': const LoginScreen(),
+    'name': 'ResetPassword',
+    'path': '/reset-password',
+    'screen': const ResetPasswordScreen(),
+  },
+  // New standalone routes for artist and user
+  {
+    'name': 'ArtistDetail',
+    'path': '/artist/:id',
+    'screenBuilder': (BuildContext context, GoRouterState state) {
+      final int artistId = int.parse(state.pathParameters['id']!);
+      return ArtistScreen(artistId: artistId);
+    },
   },
   {
-    'name': 'SignUp',
-    'path': '/signup',
-    'screen': const SignUpScreen(),
+    'name': 'PromoterDetail',
+    'path': '/promoter/:id',
+    'screenBuilder': (BuildContext context, GoRouterState state) {
+      final int promoterId = int.parse(state.pathParameters['id']!);
+      return PromoterScreen(promoterId: promoterId);
+    },
+  },
+  {
+    'name': 'VenueDetail',
+    'path': '/venue/:id',
+    'screenBuilder': (BuildContext context, GoRouterState state) {
+      final int venueId = int.parse(state.pathParameters['id']!);
+      return VenueScreen(venueId: venueId);
+    },
+  },
+  {
+    'name': 'GenreDetail',
+    'path': '/genre/:id',
+    'screenBuilder': (BuildContext context, GoRouterState state) {
+      final int genreId = int.parse(state.pathParameters['id']!);
+      return GenreScreen(genreId: genreId);
+    },
+  },
+  {
+    'name': 'UserDetail',
+    'path': '/user/:id',
+    'screenBuilder': (BuildContext context, GoRouterState state) {
+      final int userId = int.parse(state.pathParameters['id']!);
+      return UserScreen(userId: userId);
+    },
   },
 ];
 
+final authStateManager = AuthStateManager();
+
 final GoRouter router = GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: '/',
-  redirect: (context, state) {
+  // Remove or comment out the initialLocation parameter
+  // initialLocation: '/',
+  initialLocation: Uri.base.toString(),
+  debugLogDiagnostics: true,
+  redirect: (context, state) async {
     final user = Supabase.instance.client.auth.currentUser;
     final bool loggedIn = user != null;
-    final bool loggingIn = state.matchedLocation == '/login';
-    final bool signingUp = state.matchedLocation == '/signup';
+    final bool isAuthPath = state.matchedLocation == '/auth';
+
+    // Access the authChangeEvent from authStateManager
+    final authChangeEvent = authStateManager.authChangeEvent;
+
+    // Check if the user is recovering password
+    final recoveringPassword =
+        authChangeEvent == AuthChangeEvent.passwordRecovery;
 
     // Define protected paths that require authentication
     final List<String> protectedPaths = [
@@ -79,24 +131,63 @@ final GoRouter router = GoRouter(
         protectedPaths.any((path) => state.uri.toString().startsWith(path));
 
     if (!loggedIn && isProtected) {
-      return '/login';
-    }
-
-    // If already logged in and trying to access login or signup, redirect to home
-    if (loggedIn && (loggingIn || signingUp)) {
       return '/';
     }
 
+    // If the user is recovering password, redirect to '/reset-password'
+    if (recoveringPassword && state.uri.toString() != '/reset-password') {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).removeCurrentSnackBar();
+      return '/reset-password';
+    }
+
+    // Handle deep links for 'artist', 'promoter', 'venue', 'genre' and 'user'
+    // Extract the entity type from the path
+    final uri = Uri.parse(state.uri.toString());
+    final pathSegments = uri.pathSegments;
+
+    if (pathSegments.isNotEmpty) {
+      final entityType = pathSegments[0];
+
+      switch (entityType) {
+        case 'artist':
+          print('Artist entity found');
+          break;
+        case 'promoter':
+          print('Promoter entity found');
+          break;
+        case 'venue':
+          print('Venue entity found');
+          break;
+        case 'genre':
+          print('Genre entity found');
+          break;
+        case 'user':
+          print('User entity found');
+          break;
+        default:
+          // No action needed for other paths
+          break;
+      }
+      // No redirect needed for entity deep links
+      return null;
+    }
+
+    // If already logged in and trying to access auth, redirect to home
+    if (loggedIn && isAuthPath) {
+      return '/';
+    }
+
+    print('Navigating to: ${state.uri.toString()}');
+    print('Matched location: ${state.matchedLocation}');
+
     return null; // No redirect needed
   },
-  refreshListenable:
-      GoRouterRefreshStream(Supabase.instance.client.auth.onAuthStateChange),
+  refreshListenable: authStateManager,
   routes: [
     ShellRoute(
       navigatorKey: shellNavigatorKey,
       builder: (BuildContext context, GoRouterState state, Widget child) {
-        // Optionally, localize route names here if needed
-
         return ResponsiveBreakpoints.builder(
           child: ScaffoldWithNavBarWithoutAppBar(child: child),
           breakpoints: const [
@@ -108,10 +199,11 @@ final GoRouter router = GoRouter(
           ],
         );
       },
-      routes: getShellRoutes(),
+      routes: [
+        ...getShellRoutes(),
+        ...getStandaloneRoutes(),
+      ],
     ),
-    // Add standalone routes (e.g., Login, SignUp)
-    ...getStandaloneRoutes(),
   ],
   errorBuilder: (context, state) => NotFoundError(state.error),
 );
@@ -148,15 +240,25 @@ List<RouteBase> getShellRoutes() {
 List<RouteBase> getStandaloneRoutes() {
   final List<RouteBase> generatedRoutes = [];
   for (final route in standaloneRoutes) {
-    generatedRoutes.add(
-      GoRoute(
-        path: route['path'] as String,
-        name: route['name'] as String,
-        builder: (context, state) => route['screen'] as Widget,
-      ),
-    );
+    if (route.containsKey('screen')) {
+      generatedRoutes.add(
+        GoRoute(
+          path: route['path'] as String,
+          name: route['name'] as String,
+          builder: (context, state) => route['screen'] as Widget,
+        ),
+      );
+    } else if (route.containsKey('screenBuilder')) {
+      generatedRoutes.add(
+        GoRoute(
+          path: route['path'] as String,
+          name: route['name'] as String,
+          builder: route['screenBuilder'] as Widget Function(
+              BuildContext, GoRouterState),
+        ),
+      );
+    }
   }
-
   return generatedRoutes;
 }
 
