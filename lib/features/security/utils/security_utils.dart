@@ -6,7 +6,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:root_jailbreak_sniffer/rjsniffer.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecurityUtils extends StatefulWidget {
   const SecurityUtils({super.key});
