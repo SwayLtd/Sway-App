@@ -73,6 +73,9 @@
                 <data android:host="app" />
                 <data android:pathPattern="/artist/.*" />
                 <data android:pathPattern="/promoter/.*" />
+                <data android:pathPattern="/venue/.*" />
+                <data android:pathPattern="/genre/.*" />
+                <data android:pathPattern="/user/.*" />
                 <!-- Add more data tags as needed -->
             </intent-filter>
         </activity>
