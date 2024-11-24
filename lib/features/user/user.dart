@@ -1,8 +1,8 @@
 // user.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/utils/date_utils.dart';
-import 'package:sway/core/widgets/common_section_widget.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -41,7 +41,9 @@ class UserScreen extends StatelessWidget {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox.shrink();
-              } else if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  snapshot.data == null) {
                 return const SizedBox.shrink();
               } else {
                 return const SizedBox.shrink();
@@ -63,7 +65,7 @@ class UserScreen extends StatelessWidget {
         future: UserService().getUserById(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator.adaptive());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data == null) {
@@ -90,13 +92,17 @@ class UserScreen extends StatelessWidget {
                     Text(
                       user.username,
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold,),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 5),
                     Text(
                       'Member since: ${user.createdAt.toLocal()}',
                       style: const TextStyle(
-                          fontSize: 16, fontStyle: FontStyle.italic,),
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     FollowersCountWidget(
@@ -104,262 +110,307 @@ class UserScreen extends StatelessWidget {
                       entityType: 'user',
                     ),
                     const SizedBox(height: 20),
-                    CommonSectionWidget(
-                      title: 'GENRES',
-                      child: FutureBuilder<List<Genre>>(
-                        future: UserFollowGenreService().getFollowedGenresByUserId(userId),
-                        builder: (context, genreSnapshot) {
-                          if (genreSnapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (genreSnapshot.hasError) {
-                            return Text('Error: ${genreSnapshot.error}');
-                          } else if (!genreSnapshot.hasData || genreSnapshot.data!.isEmpty) {
-                            return const Text('No followed genres found');
-                          } else {
-                            final genres = genreSnapshot.data!;
-                            return Wrap(
-                              spacing: 8.0,
-                              children: genres.map((genre) {
+                    Text(
+                      "MOOD",
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: sectionTitleSpacing),
+                    FutureBuilder<List<Genre>>(
+                      future: UserFollowGenreService()
+                          .getFollowedGenresByUserId(userId),
+                      builder: (context, genreSnapshot) {
+                        if (genreSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator.adaptive();
+                        } else if (genreSnapshot.hasError) {
+                          return Text('Error: ${genreSnapshot.error}');
+                        } else if (!genreSnapshot.hasData ||
+                            genreSnapshot.data!.isEmpty) {
+                          return const Text('No followed genres found');
+                        } else {
+                          final genres = genreSnapshot.data!;
+                          return Wrap(
+                            spacing: 8.0,
+                            children: genres.map((genre) {
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          GenreScreen(genreId: genre.id),
+                                    ),
+                                  );
+                                },
+                                child: GenreChip(genreId: genre.id),
+                              );
+                            }).toList(),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      "ARTISTS",
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: sectionTitleSpacing),
+                    FutureBuilder<List<Artist>>(
+                      future: UserFollowArtistService()
+                          .getFollowedArtistsByUserId(userId),
+                      builder: (context, artistSnapshot) {
+                        if (artistSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator.adaptive();
+                        } else if (artistSnapshot.hasError) {
+                          return Text('Error: ${artistSnapshot.error}');
+                        } else if (!artistSnapshot.hasData ||
+                            artistSnapshot.data!.isEmpty) {
+                          return const Text('No followed artists found');
+                        } else {
+                          final artists = artistSnapshot.data!;
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: artists.map((artist) {
                                 return GestureDetector(
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => GenreScreen(genreId: genre.id),
+                                        builder: (context) =>
+                                            ArtistScreen(artistId: artist.id),
                                       ),
                                     );
                                   },
-                                  child: GenreChip(genreId: genre.id),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: ImageWithErrorHandler(
+                                            imageUrl: artist.imageUrl,
+                                            width: 100,
+                                            height: 100,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(artist.name),
+                                      ],
+                                    ),
+                                  ),
                                 );
                               }).toList(),
-                            );
-                          }
-                        },
-                      ),
+                            ),
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(height: 20),
-                    CommonSectionWidget(
-                      title: 'ARTISTS',
-                      child: FutureBuilder<List<Artist>>(
-                        future: UserFollowArtistService().getFollowedArtistsByUserId(userId),
-                        builder: (context, artistSnapshot) {
-                          if (artistSnapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (artistSnapshot.hasError) {
-                            return Text('Error: ${artistSnapshot.error}');
-                          } else if (!artistSnapshot.hasData || artistSnapshot.data!.isEmpty) {
-                            return const Text('No followed artists found');
-                          } else {
-                            final artists = artistSnapshot.data!;
-                            return SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: artists.map((artist) {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ArtistScreen(artistId: artist.id),
-                                        ),
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Column(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(10),
-                                            child: ImageWithErrorHandler(
-                                              imageUrl: artist.imageUrl,
-                                              width: 100,
-                                              height: 100,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Text(artist.name),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            );
-                          }
-                        },
-                      ),
+                    Text(
+                      "VENUES",
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 20),
-                    CommonSectionWidget(
-                      title: 'VENUES',
-                      child: FutureBuilder<List<Venue>>(
-                        future: UserFollowVenueService().getFollowedVenuesByUserId(userId),
-                        builder: (context, venueSnapshot) {
-                          if (venueSnapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (venueSnapshot.hasError) {
-                            return Text('Error: ${venueSnapshot.error}');
-                          } else if (!venueSnapshot.hasData || venueSnapshot.data!.isEmpty) {
-                            return const Text('No followed venues found');
-                          } else {
-                            final venues = venueSnapshot.data!;
-                            return SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: venues.map((venue) {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => VenueScreen(venueId: venue.id),
-                                        ),
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Column(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(10),
-                                            child: ImageWithErrorHandler(
-                                              imageUrl: venue.imageUrl,
-                                              width: 100,
-                                              height: 100,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Text(venue.name),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    CommonSectionWidget(
-                      title: 'PROMOTERS',
-                      child: FutureBuilder<List<Promoter>>(
-                        future: UserFollowPromoterService().getFollowedPromotersByUserId(userId),
-                        builder: (context, promoterSnapshot) {
-                          if (promoterSnapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (promoterSnapshot.hasError) {
-                            return Text('Error: ${promoterSnapshot.error}');
-                          } else if (!promoterSnapshot.hasData || promoterSnapshot.data!.isEmpty) {
-                            return const Text('No followed promoters found');
-                          } else {
-                            final promoters = promoterSnapshot.data!;
-                            return SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: promoters.map((promoter) {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => PromoterScreen(promoterId: promoter.id),
-                                        ),
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Column(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(10),
-                                            child: ImageWithErrorHandler(
-                                              imageUrl: promoter.imageUrl,
-                                              width: 100,
-                                              height: 100,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Text(promoter.name),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    CommonSectionWidget(
-                      title: 'INTERESTED EVENTS',
-                      child: FutureBuilder<List<Event>>(
-                        future: UserInterestEventService().getInterestedEventsByUserId(userId),
-                        builder: (context, eventSnapshot) {
-                          if (eventSnapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (eventSnapshot.hasError) {
-                            return Text('Error: ${eventSnapshot.error}');
-                          } else if (!eventSnapshot.hasData || eventSnapshot.data!.isEmpty) {
-                            return const Text('No interested events found');
-                          } else {
-                            final events = eventSnapshot.data!;
-                            return Column(
-                              children: events.map((event) {
-                                return ListTile(
-                                  title: Text(event.title),
-                                  subtitle: Text(formatEventDate(event.dateTime)),
+                    SizedBox(height: sectionTitleSpacing),
+                    FutureBuilder<List<Venue>>(
+                      future: UserFollowVenueService()
+                          .getFollowedVenuesByUserId(userId),
+                      builder: (context, venueSnapshot) {
+                        if (venueSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator.adaptive();
+                        } else if (venueSnapshot.hasError) {
+                          return Text('Error: ${venueSnapshot.error}');
+                        } else if (!venueSnapshot.hasData ||
+                            venueSnapshot.data!.isEmpty) {
+                          return const Text('No followed venues found');
+                        } else {
+                          final venues = venueSnapshot.data!;
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: venues.map((venue) {
+                                return GestureDetector(
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => EventScreen(event: event),
+                                        builder: (context) =>
+                                            VenueScreen(venueId: venue.id),
                                       ),
                                     );
                                   },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: ImageWithErrorHandler(
+                                            imageUrl: venue.imageUrl,
+                                            width: 100,
+                                            height: 100,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(venue.name),
+                                      ],
+                                    ),
+                                  ),
                                 );
                               }).toList(),
-                            );
-                          }
-                        },
-                      ),
+                            ),
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(height: 20),
-                    CommonSectionWidget(
-                      title: 'ATTENDED EVENTS',
-                      child: FutureBuilder<List<Event>>(
-                        future: UserInterestEventService().getAttendedEventsByUserId(userId),
-                        builder: (context, eventSnapshot) {
-                          if (eventSnapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (eventSnapshot.hasError) {
-                            return Text('Error: ${eventSnapshot.error}');
-                          } else if (!eventSnapshot.hasData || eventSnapshot.data!.isEmpty) {
-                            return const Text('No attended events found');
-                          } else {
-                            final events = eventSnapshot.data!;
-                            return Column(
-                              children: events.map((event) {
-                                return ListTile(
-                                  title: Text(event.title),
-                                  subtitle: Text(formatEventDate(event.dateTime)),
+                    Text(
+                      "PROMOTERS",
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: sectionTitleSpacing),
+                    FutureBuilder<List<Promoter>>(
+                      future: UserFollowPromoterService()
+                          .getFollowedPromotersByUserId(userId),
+                      builder: (context, promoterSnapshot) {
+                        if (promoterSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator.adaptive();
+                        } else if (promoterSnapshot.hasError) {
+                          return Text('Error: ${promoterSnapshot.error}');
+                        } else if (!promoterSnapshot.hasData ||
+                            promoterSnapshot.data!.isEmpty) {
+                          return const Text('No followed promoters found');
+                        } else {
+                          final promoters = promoterSnapshot.data!;
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: promoters.map((promoter) {
+                                return GestureDetector(
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => EventScreen(event: event),
+                                        builder: (context) => PromoterScreen(
+                                            promoterId: promoter.id),
                                       ),
                                     );
                                   },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: ImageWithErrorHandler(
+                                            imageUrl: promoter.imageUrl,
+                                            width: 100,
+                                            height: 100,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(promoter.name),
+                                      ],
+                                    ),
+                                  ),
                                 );
                               }).toList(),
-                            );
-                          }
-                        },
-                      ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      "INTERESTED EVENTS",
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: sectionTitleSpacing),
+                    FutureBuilder<List<Event>>(
+                      future: UserInterestEventService()
+                          .getInterestedEventsByUserId(userId),
+                      builder: (context, eventSnapshot) {
+                        if (eventSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator.adaptive();
+                        } else if (eventSnapshot.hasError) {
+                          return Text('Error: ${eventSnapshot.error}');
+                        } else if (!eventSnapshot.hasData ||
+                            eventSnapshot.data!.isEmpty) {
+                          return const Text('No interested events found');
+                        } else {
+                          final events = eventSnapshot.data!;
+                          return Column(
+                            children: events.map((event) {
+                              return ListTile(
+                                title: Text(event.title),
+                                subtitle: Text(formatEventDate(event.dateTime)),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          EventScreen(event: event),
+                                    ),
+                                  );
+                                },
+                              );
+                            }).toList(),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      "ATTENDED EVENTS",
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: sectionTitleSpacing),
+                    FutureBuilder<List<Event>>(
+                      future: UserInterestEventService()
+                          .getAttendedEventsByUserId(userId),
+                      builder: (context, eventSnapshot) {
+                        if (eventSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator.adaptive();
+                        } else if (eventSnapshot.hasError) {
+                          return Text('Error: ${eventSnapshot.error}');
+                        } else if (!eventSnapshot.hasData ||
+                            eventSnapshot.data!.isEmpty) {
+                          return const Text('No attended events found');
+                        } else {
+                          final events = eventSnapshot.data!;
+                          return Column(
+                            children: events.map((event) {
+                              return ListTile(
+                                title: Text(event.title),
+                                subtitle: Text(formatEventDate(event.dateTime)),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          EventScreen(event: event),
+                                    ),
+                                  );
+                                },
+                              );
+                            }).toList(),
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),

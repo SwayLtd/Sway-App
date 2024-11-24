@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:expandable_text/expandable_text.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/utils/date_utils.dart';
-import 'package:sway/core/widgets/common_section_widget.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -349,119 +349,123 @@ class _EventScreenState extends State<EventScreen> {
             ),
             InfoCard(title: "Price", content: widget.event.price),
             const SizedBox(height: 20),
-            CommonSectionWidget(
-              title: "DESCRIPTION",
-              child: ExpandableText(
-                widget.event.description,
-                expandText: 'show more',
-                collapseText: 'show less',
-                maxLines: 3,
-                linkColor: Theme.of(context).primaryColor,
-                style: const TextStyle(
-                  fontSize: 16,
-                ),
+            Text(
+              "ABOUT",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: sectionTitleSpacing),
+            ExpandableText(
+              widget.event.description,
+              expandText: 'show more',
+              collapseText: 'show less',
+              maxLines: 3,
+              linkColor: Theme.of(context).primaryColor,
+              style: const TextStyle(
+                fontSize: 16,
               ),
             ),
             const SizedBox(height: 20),
-            CommonSectionWidget(
-              title: "LINE UP",
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: // event.dart
+            Text(
+              "LINE UP",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: sectionTitleSpacing),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: // event.dart
 
-                    FutureBuilder<List<Map<String, dynamic>>>(
-                  future:
-                      EventArtistService().getArtistsByEventId(widget.event.id),
-                  builder: (context, artistSnapshot) {
-                    if (artistSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else if (artistSnapshot.hasError) {
-                      return Text('Error: ${artistSnapshot.error}');
-                    } else if (!artistSnapshot.hasData ||
-                        artistSnapshot.data!.isEmpty) {
-                      return const Text('No artists found');
-                    } else {
-                      final artistEntries = artistSnapshot.data!;
-                      final List<Widget> artistWidgets = [];
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                future:
+                    EventArtistService().getArtistsByEventId(widget.event.id),
+                builder: (context, artistSnapshot) {
+                  if (artistSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const CircularProgressIndicator.adaptive();
+                  } else if (artistSnapshot.hasError) {
+                    return Text('Error: ${artistSnapshot.error}');
+                  } else if (!artistSnapshot.hasData ||
+                      artistSnapshot.data!.isEmpty) {
+                    return const Text('No artists found');
+                  } else {
+                    final artistEntries = artistSnapshot.data!;
+                    final List<Widget> artistWidgets = [];
 
-                      for (final entry in artistEntries) {
-                        final List<dynamic> artists =
-                            entry['artists'] as List<dynamic>;
+                    for (final entry in artistEntries) {
+                      final List<dynamic> artists =
+                          entry['artists'] as List<dynamic>;
 
-                        final DateTime startTime = entry['start_time'];
+                      final DateTime startTime = entry['start_time'];
 
-                        final DateTime endTime = entry['end_time'];
+                      final DateTime endTime = entry['end_time'];
 
-                        final status = entry['status'] as String?;
+                      final status = entry['status'] as String?;
 
-                        for (final artist in artists.cast<Artist>()) {
-                          artistWidgets.add(
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        ArtistScreen(artistId: artist.id),
-                                  ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    ClipRRect(
-                                        borderRadius: BorderRadius.circular(10),
-                                        child: status == 'cancelled'
-                                            ? ColorFiltered(
-                                                colorFilter:
-                                                    const ColorFilter.mode(
-                                                  Colors.grey,
-                                                  BlendMode.saturation,
-                                                ),
-                                                child: ImageWithErrorHandler(
-                                                  imageUrl: artist.imageUrl,
-                                                  width: 100,
-                                                  height: 100,
-                                                  fit: BoxFit.cover,
-                                                ))
-                                            : ImageWithErrorHandler(
+                      for (final artist in artists.cast<Artist>()) {
+                        artistWidgets.add(
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ArtistScreen(artistId: artist.id),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: status == 'cancelled'
+                                          ? ColorFiltered(
+                                              colorFilter:
+                                                  const ColorFilter.mode(
+                                                Colors.grey,
+                                                BlendMode.saturation,
+                                              ),
+                                              child: ImageWithErrorHandler(
                                                 imageUrl: artist.imageUrl,
                                                 width: 100,
                                                 height: 100,
                                                 fit: BoxFit.cover,
-                                              )),
-                                    const SizedBox(height: 5),
-                                    Text(
-                                      artist.name,
-                                      style: TextStyle(
-                                        color: status == 'cancelled'
-                                            ? Colors.grey
-                                            : null,
-                                      ),
+                                              ))
+                                          : ImageWithErrorHandler(
+                                              imageUrl: artist.imageUrl,
+                                              width: 100,
+                                              height: 100,
+                                              fit: BoxFit.cover,
+                                            )),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    artist.name,
+                                    style: TextStyle(
+                                      color: status == 'cancelled'
+                                          ? Colors.grey
+                                          : null,
                                     ),
-                                    if (widget.event.type == 'festival')
-                                      Text(
-                                        '${formatTime(startTime)} - ${formatTime(endTime)}',
-                                      ),
-                                  ],
-                                ),
+                                  ),
+                                  if (widget.event.type == 'festival')
+                                    Text(
+                                      '${formatTime(startTime)} - ${formatTime(endTime)}',
+                                    ),
+                                ],
                               ),
                             ),
-                          );
-                        }
+                          ),
+                        );
                       }
-
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: artistWidgets,
-                        ),
-                      );
                     }
-                  },
-                ),
+
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: artistWidgets,
+                      ),
+                    );
+                  }
+                },
               ),
             ),
             const SizedBox(height: 20),
@@ -480,7 +484,8 @@ class _EventScreenState extends State<EventScreen> {
                   builder: (context, promoterSnapshot) {
                     if (promoterSnapshot.connectionState ==
                         ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(
+                          child: CircularProgressIndicator.adaptive());
                     } else if (promoterSnapshot.hasError) {
                       return Center(
                           child: Text('Error: ${promoterSnapshot.error}'));
@@ -521,39 +526,40 @@ class _EventScreenState extends State<EventScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            CommonSectionWidget(
-              title: "MOOD",
-              child: FutureBuilder<List>(
-                future: EventGenreService().getGenresByEventId(widget.event.id),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Text('No genres found');
-                  } else {
-                    final genres = snapshot.data!;
-                    return Wrap(
-                      spacing: 8.0,
-                      children: genres.map((genre) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    GenreScreen(genreId: genre),
-                              ),
-                            );
-                          },
-                          child: GenreChip(genreId: genre),
-                        );
-                      }).toList(),
-                    );
-                  }
-                },
-              ),
+            Text(
+              "MOOD",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: sectionTitleSpacing),
+            FutureBuilder<List>(
+              future: EventGenreService().getGenresByEventId(widget.event.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator.adaptive();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Text('No genres found');
+                } else {
+                  final genres = snapshot.data!;
+                  return Wrap(
+                    spacing: 8.0,
+                    children: genres.map((genre) {
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GenreScreen(genreId: genre),
+                            ),
+                          );
+                        },
+                        child: GenreChip(genreId: genre),
+                      );
+                    }).toList(),
+                  );
+                }
+              },
             ),
             const SizedBox(height: 20),
           ],
