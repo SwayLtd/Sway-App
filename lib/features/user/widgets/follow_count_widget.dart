@@ -9,6 +9,7 @@ import 'package:sway/features/user/services/user_follow_user_service.dart';
 import 'package:sway/features/user/services/user_follow_venue_service.dart';
 import 'package:sway/features/user/services/user_interest_event_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
+import 'package:sway/features/user/widgets/snackbar_login.dart';
 
 class FollowersCountWidget extends StatefulWidget {
   final int entityId;
@@ -119,18 +120,14 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
     if (isAuthenticated) {
       _navigateToFollowersScreen(initialTabIndex: initialTabIndex);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                'Please log in to access this feature.')),
-      );
+      SnackbarLogin.showLoginSnackBar(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const CircularProgressIndicator();
+      return const CircularProgressIndicator.adaptive();
     }
 
     if (widget.entityType == 'event') {

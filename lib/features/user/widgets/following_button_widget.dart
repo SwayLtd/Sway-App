@@ -7,6 +7,7 @@ import 'package:sway/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway/features/user/services/user_follow_user_service.dart';
 import 'package:sway/features/user/services/user_follow_venue_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
+import 'package:sway/features/user/widgets/snackbar_login.dart';
 
 class FollowingButtonWidget extends StatefulWidget {
   final int entityId;
@@ -144,15 +145,9 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la mise à jour du suivi.')),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Erreur lors de la mise à jour du suivi.')),
       );
     }
-  }
-
-  void _showLoginSnackbar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Please log in to follow this item.')),
-    );
   }
 
   @override
@@ -175,7 +170,7 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
         // Utilisateur anonyme
         iconData = Icons.favorite_border;
         iconColor = Colors.grey;
-        onPressed = _showLoginSnackbar;
+        onPressed = () => SnackbarLogin.showLoginSnackBar(context);
       } else {
         // Utilisateur authentifié
         if (isFollowing) {
