@@ -76,19 +76,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // Afficher une boîte de dialogue pour informer l'utilisateur de vérifier son email
       if (isEmailChanged) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Vérification Email'),
-            content: Text(
-                'Un email de vérification a été envoyé à votre nouvelle adresse. Veuillez vérifier votre email pour confirmer les changements.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('OK'),
-              ),
-            ],
-          ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              behavior: SnackBarBehavior.floating,
+              content: Text('A confirmation email has been sent to your new email address.')),
         );
       }
     } catch (e) {
