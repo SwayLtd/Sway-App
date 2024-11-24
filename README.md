@@ -10,6 +10,7 @@ Sway is a mobile event management application that helps users discover, organiz
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
+* Image caching, floating snackbar, adaptive widgets, login snackbar open auth modal
 * Deep link support for entities
 * Authentication update with 'supabase_auth-ui' and password reset - Authentication system
 * Email change - Authentication system

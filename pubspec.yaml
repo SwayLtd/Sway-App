@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.4.5 # Authentication update with 'supabase_auth-ui' and password reset - Authentication system + Deep link support for entities
+version: 0.4.5+1 # Image caching, floating snackbar, adaptive widgets, login snackbar open auth modal
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
@@ -53,6 +53,7 @@ dependencies:
   provider: ^6.1.2
   hcaptcha: ^0.0.2
   supabase_auth_ui: ^0.5.4
+  cached_network_image: ^3.4.1
   # isar_flutter_libs: ^3.1.0+1 # For Isar
 
 dev_dependencies:
