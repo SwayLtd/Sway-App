@@ -79,7 +79,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading data: ${e.toString()}')),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error loading data: ${e.toString()}')),
       );
     } finally {
       setState(() {
@@ -121,7 +121,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
           widget.promoter.id, _selectedArtists);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Promoter updated successfully!')),
+        const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Promoter updated successfully!')),
       );
 
       Navigator.pop(context, updatedPromoter);
@@ -134,7 +134,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text(errorMessage)),
       );
     } finally {
       setState(() {
@@ -172,7 +172,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                   Navigator.of(context).pop(); // Return to previous screen
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${e.toString()}')),
+                    SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error: ${e.toString()}')),
                   );
                 }
               },
@@ -207,7 +207,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading genres: ${e.toString()}')),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error loading genres: ${e.toString()}')),
       );
     }
   }
@@ -236,7 +236,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading artists: ${e.toString()}')),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error loading artists: ${e.toString()}')),
       );
     }
   }
@@ -288,7 +288,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator.adaptive())
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
@@ -306,7 +306,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                           },
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
-                            return const CircularProgressIndicator();
+                            return const CircularProgressIndicator.adaptive();
                           },
                         ),
                       ),
@@ -400,7 +400,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (snapshot.hasError ||
                             !snapshot.hasData ||
                             snapshot.data == null) {
@@ -495,7 +495,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error searching genres: ${e.toString()}')),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error searching genres: ${e.toString()}')),
       );
     } finally {
       setState(() {
@@ -559,7 +559,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
           ),
           const SizedBox(height: sectionTitleSpacing),
           _isLoading
-              ? const CircularProgressIndicator()
+              ? const CircularProgressIndicator.adaptive()
               : Expanded(
                   child: _genres.isEmpty
                       ? const Center(child: Text('No genres found.'))
@@ -663,7 +663,7 @@ class _ArtistSelectionBottomSheetState
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error searching artists: ${e.toString()}')),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error searching artists: ${e.toString()}')),
       );
     } finally {
       setState(() {
@@ -727,7 +727,7 @@ class _ArtistSelectionBottomSheetState
           ),
           const SizedBox(height: sectionTitleSpacing),
           _isLoading
-              ? const CircularProgressIndicator()
+              ? const CircularProgressIndicator.adaptive()
               : Expanded(
                   child: _artists.isEmpty
                       ? const Center(child: Text('No artists found.'))

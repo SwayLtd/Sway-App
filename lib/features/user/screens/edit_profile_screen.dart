@@ -147,7 +147,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 20),
-            if (_isLoading) CircularProgressIndicator(),
+            if (_isLoading) CircularProgressIndicator.adaptive(),
             if (_errorMessage != null)
               Text(
                 _errorMessage!,

@@ -138,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         future: _userService.getCurrentUser(), // Récupérer l'utilisateur actuel
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator.adaptive());
           } else if (snapshot.hasError) {
             return Center(child: Text('Erreur : ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data == null) {
@@ -198,7 +198,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       builder: (context, genreSnapshot) {
                         if (genreSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (genreSnapshot.hasError) {
                           return Text('Erreur : ${genreSnapshot.error}');
                         } else if (!genreSnapshot.hasData ||
@@ -239,7 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       builder: (context, artistSnapshot) {
                         if (artistSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (artistSnapshot.hasError) {
                           return Text('Erreur : ${artistSnapshot.error}');
                         } else if (!artistSnapshot.hasData ||
@@ -299,7 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       builder: (context, venueSnapshot) {
                         if (venueSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (venueSnapshot.hasError) {
                           return Text('Erreur : ${venueSnapshot.error}');
                         } else if (!venueSnapshot.hasData ||
@@ -341,7 +341,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       builder: (context, promoterSnapshot) {
                         if (promoterSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (promoterSnapshot.hasError) {
                           return Text('Erreur : ${promoterSnapshot.error}');
                         } else if (!promoterSnapshot.hasData ||
@@ -401,7 +401,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (eventSnapshot.hasError) {
                           return Text('Erreur : ${eventSnapshot.error}');
                         } else if (!eventSnapshot.hasData ||
@@ -442,7 +442,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (eventSnapshot.hasError) {
                           return Text('Erreur : ${eventSnapshot.error}');
                         } else if (!eventSnapshot.hasData ||

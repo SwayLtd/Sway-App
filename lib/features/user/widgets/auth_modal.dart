@@ -93,7 +93,7 @@ class AuthModal extends StatelessWidget {
                   Navigator.of(context).pop();
                 }
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Signed in successfully')),
+                  const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Signed in successfully')),
                 );
               },
               // Callback après une inscription réussie
@@ -157,7 +157,7 @@ class AuthModal extends StatelessWidget {
                   errorMessage = error.toString();
                 }
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: $errorMessage')),
+                  SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error: $errorMessage')),
                 );
               },
             ),

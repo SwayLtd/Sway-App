@@ -131,7 +131,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
       future: GenreService().getGenres(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator.adaptive());
         } else if (snapshot.hasError) {
           return const Center(child: Text('Error loading genres'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {

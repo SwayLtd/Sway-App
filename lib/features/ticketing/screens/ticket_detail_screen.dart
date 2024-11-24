@@ -152,7 +152,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Event not found')),
+              const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Event not found')),
             );
           }
         }
@@ -169,7 +169,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       case 'dissociate_group':
         await _ticketService.dissociateGroupFromTicket(currentTicket.id);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ticket dissociated from group')),
+          SnackBar(behavior: SnackBarBehavior.floating, content: Text('Ticket dissociated from group')),
         );
         // Refresh the UI to reflect changes
         setState(() {});
@@ -216,7 +216,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         });
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ticket deleted successfully')),
+        const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Ticket deleted successfully')),
       );
     }
   }

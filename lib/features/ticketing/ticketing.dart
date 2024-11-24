@@ -260,7 +260,7 @@ class _TicketingScreenState extends State<TicketingScreen>
         future: _eventService.getEventById(ticket.eventId!),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
+            return CircularProgressIndicator.adaptive();
           } else if (snapshot.hasError || !snapshot.hasData) {
             return Icon(
               Icons.error,
@@ -325,7 +325,7 @@ class _TicketingScreenState extends State<TicketingScreen>
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return ListTile(
-              leading: CircularProgressIndicator(),
+              leading: CircularProgressIndicator.adaptive(),
               title: Text('Loading...'),
             );
           } else if (snapshot.hasError || !snapshot.hasData) {

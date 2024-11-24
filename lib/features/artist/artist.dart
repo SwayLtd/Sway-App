@@ -51,7 +51,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
         future: ArtistService().getArtistById(widget.artistId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator.adaptive());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data == null) {
@@ -95,7 +95,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (eventSnapshot.hasError) {
                           return Center(
                             child: Text('Error: ${eventSnapshot.error}'),
@@ -225,7 +225,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                       builder: (context, genreSnapshot) {
                         if (genreSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (genreSnapshot.hasError) {
                           return Center(
                             child: Text('Error: ${genreSnapshot.error}'),
@@ -262,7 +262,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                       builder: (context, promoterSnapshot) {
                         if (promoterSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (promoterSnapshot.hasError) {
                           return Text('Error: ${promoterSnapshot.error}');
                         } else if (!promoterSnapshot.hasData ||
@@ -336,7 +336,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (snapshot.hasError) {
                           return Center(
                             child: Text('Error: ${snapshot.error}'),
@@ -380,7 +380,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                       builder: (context, similarArtistSnapshot) {
                         if (similarArtistSnapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const CircularProgressIndicator.adaptive();
                         } else if (similarArtistSnapshot.hasError) {
                           return Center(
                             child: Text(
@@ -404,7 +404,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                   builder: (context, similarArtistSnapshot) {
                                     if (similarArtistSnapshot.connectionState ==
                                         ConnectionState.waiting) {
-                                      return const CircularProgressIndicator();
+                                      return const CircularProgressIndicator.adaptive();
                                     } else if (similarArtistSnapshot.hasError ||
                                         !similarArtistSnapshot.hasData ||
                                         similarArtistSnapshot.data == null) {

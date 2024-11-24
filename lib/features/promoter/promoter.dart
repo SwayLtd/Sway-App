@@ -149,7 +149,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
       body: RefreshIndicator(
         onRefresh: _fetchPromoterData,
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator.adaptive())
             : _error != null
                 ? Center(child: Text('Error: $_error'))
                 : SingleChildScrollView(
@@ -228,7 +228,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
                               return const Center(
-                                  child: CircularProgressIndicator());
+                                  child: CircularProgressIndicator.adaptive());
                             } else if (snapshot.hasError) {
                               return Center(
                                   child: Text('Error: ${snapshot.error}'));
@@ -362,7 +362,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                           return const Padding(
                                             padding: EdgeInsets.symmetric(
                                                 vertical: 8.0, horizontal: 8.0),
-                                            child: CircularProgressIndicator(),
+                                            child: CircularProgressIndicator.adaptive(),
                                           );
                                         } else if (eventSnapshot.hasError ||
                                             !eventSnapshot.hasData ||
@@ -397,7 +397,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
                           builder: (context, artistSnapshot) {
                             if (artistSnapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return const CircularProgressIndicator();
+                              return const CircularProgressIndicator.adaptive();
                             } else if (artistSnapshot.hasError) {
                               return Text('Error: ${artistSnapshot.error}');
                             } else if (!artistSnapshot.hasData ||

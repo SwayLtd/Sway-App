@@ -92,7 +92,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
       future: calculateFestivalDays(widget.event),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator.adaptive());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -165,7 +165,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                   builder: (context, artistSnapshot) {
                     if (artistSnapshot.connectionState ==
                         ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator.adaptive());
                     } else if (artistSnapshot.hasError) {
                       return Center(
                         child: Text('Error: ${artistSnapshot.error}'),
@@ -213,7 +213,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
                                   return const Center(
-                                    child: CircularProgressIndicator(),
+                                    child: CircularProgressIndicator.adaptive(),
                                   );
                                 } else if (snapshot.hasError) {
                                   return Center(
@@ -395,7 +395,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     }).toList(),
                   ),
                 ),
-                SwitchListTile(
+                SwitchListTile.adaptive(
                   title: const Text('Only followed artists'),
                   value: showOnlyFollowedArtists,
                   onChanged: (bool value) {

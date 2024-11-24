@@ -137,7 +137,7 @@ Future<Widget> buildListView(
                           customName ??
                               artists.map((artist) => artist.name).join(', '),
                         ),
-                        trailing: const CircularProgressIndicator(),
+                        trailing: const CircularProgressIndicator.adaptive(),
                       );
                     } else if (snapshot.hasError) {
                       return ListTile(

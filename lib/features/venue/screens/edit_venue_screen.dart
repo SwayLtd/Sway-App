@@ -127,7 +127,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                   widget.venue.id, 'venue', 'admin',),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
+                  return const CircularProgressIndicator.adaptive();
                 } else if (snapshot.hasError ||
                     !snapshot.hasData ||
                     !snapshot.data!) {

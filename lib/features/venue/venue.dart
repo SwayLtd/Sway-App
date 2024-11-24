@@ -149,7 +149,7 @@ class _VenueScreenState extends State<VenueScreen> {
           future: _venueFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator.adaptive());
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data == null) {
@@ -245,7 +245,7 @@ class _VenueScreenState extends State<VenueScreen> {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
-                                child: CircularProgressIndicator());
+                                child: CircularProgressIndicator.adaptive());
                           } else if (snapshot.hasError) {
                             return Center(
                                 child: Text('Error: ${snapshot.error}'));
@@ -324,7 +324,7 @@ class _VenueScreenState extends State<VenueScreen> {
                         builder: (context, artistSnapshot) {
                           if (artistSnapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
+                            return const CircularProgressIndicator.adaptive();
                           } else if (artistSnapshot.hasError) {
                             return Text('Error: ${artistSnapshot.error}');
                           } else if (!artistSnapshot.hasData ||
@@ -398,7 +398,7 @@ class _VenueScreenState extends State<VenueScreen> {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
-                                child: CircularProgressIndicator());
+                                child: CircularProgressIndicator.adaptive());
                           } else if (snapshot.hasError) {
                             return Center(
                                 child: Text('Error: ${snapshot.error}'));

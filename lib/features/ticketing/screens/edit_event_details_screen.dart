@@ -62,7 +62,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching events: $e')),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error fetching events: $e')),
       );
     }
   }
@@ -110,7 +110,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving event details: $e')),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error saving event details: $e')),
       );
     }
   }

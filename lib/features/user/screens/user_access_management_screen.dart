@@ -124,7 +124,7 @@ class _UserAccessManagementScreenState
               ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator.adaptive());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -140,7 +140,7 @@ class _UserAccessManagementScreenState
                         builder: (context, userSnapshot) {
                           if (userSnapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
+                            return const CircularProgressIndicator.adaptive();
                           } else if (userSnapshot.hasError) {
                             return ListTile(
                               title: Text('Error: ${userSnapshot.error}'),

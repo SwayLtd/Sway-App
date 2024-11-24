@@ -72,11 +72,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await _authService.signOut();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Successfully signed out')),
+        const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Successfully signed out')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error signing out: $e')),
+        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error signing out: $e')),
       );
     }
   }
@@ -112,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () {
               // Navigate to additional settings if implemented
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings to be implemented')),
+                const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Settings to be implemented')),
               );
             },
           ),

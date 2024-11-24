@@ -41,7 +41,7 @@ class UserEntitiesScreen extends StatelessWidget {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Event not found')),
+            const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Event not found')),
           );
         }
         break;
@@ -56,7 +56,7 @@ class UserEntitiesScreen extends StatelessWidget {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Venue not found')),
+            const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Venue not found')),
           );
         }
         break;
@@ -72,13 +72,13 @@ class UserEntitiesScreen extends StatelessWidget {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Promoter not found')),
+            const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Promoter not found')),
           );
         }
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unknown entity type')),
+          const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Unknown entity type')),
         );
     }
   }
@@ -100,7 +100,7 @@ class UserEntitiesScreen extends StatelessWidget {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Event not found')),
+            const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Event not found')),
           );
         }
         break;
@@ -115,7 +115,7 @@ class UserEntitiesScreen extends StatelessWidget {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Venue not found')),
+            const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Venue not found')),
           );
         }
         break;
@@ -131,13 +131,13 @@ class UserEntitiesScreen extends StatelessWidget {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Promoter not found')),
+            const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Promoter not found')),
           );
         }
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unknown entity type')),
+          const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Unknown entity type')),
         );
     }
   }
@@ -164,7 +164,7 @@ class UserEntitiesScreen extends StatelessWidget {
               future: _getPermissions('event'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator.adaptive());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -179,7 +179,7 @@ class UserEntitiesScreen extends StatelessWidget {
                         builder: (context, eventSnapshot) {
                           if (eventSnapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
+                            return const CircularProgressIndicator.adaptive();
                           } else if (eventSnapshot.hasError ||
                               !eventSnapshot.hasData) {
                             return const SizedBox.shrink();
@@ -217,7 +217,7 @@ class UserEntitiesScreen extends StatelessWidget {
               future: _getPermissions('venue'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator.adaptive());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -232,7 +232,7 @@ class UserEntitiesScreen extends StatelessWidget {
                         builder: (context, venueSnapshot) {
                           if (venueSnapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
+                            return const CircularProgressIndicator.adaptive();
                           } else if (venueSnapshot.hasError ||
                               !venueSnapshot.hasData) {
                             return const SizedBox.shrink();
@@ -270,7 +270,7 @@ class UserEntitiesScreen extends StatelessWidget {
               future: _getPermissions('promoter'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator.adaptive());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -285,7 +285,7 @@ class UserEntitiesScreen extends StatelessWidget {
                         builder: (context, promoterSnapshot) {
                           if (promoterSnapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
+                            return const CircularProgressIndicator.adaptive();
                           } else if (promoterSnapshot.hasError ||
                               !promoterSnapshot.hasData) {
                             return const SizedBox.shrink();
