@@ -1,5 +1,6 @@
 // lib/features/user/services/auth_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
@@ -18,6 +19,14 @@ class AuthService {
 
       // Optionally, manage additional actions after the creation of an anonymous user.
     }
+  }
+
+  /// Méthode pour envoyer un email de réinitialisation du mot de passe
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _supabase.auth.resetPasswordForEmail(
+      email,
+      redirectTo: kIsWeb ? null : 'app.sway.main://reset-password/',
+    );
   }
 
   /// Connect a user anonymously.
@@ -54,7 +63,7 @@ class AuthService {
   }
 
   /// Async method to check if username already exists
-  Future<bool> _doesUsernameExist(String username) async {
+  Future<bool> doesUsernameExist(String username) async {
     final supabase = Supabase.instance.client;
     final response = await supabase
         .from('users')
