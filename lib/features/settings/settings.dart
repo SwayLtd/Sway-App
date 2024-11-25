@@ -72,11 +72,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await _authService.signOut();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Successfully signed out')),
+        const SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Successfully signed out'),
+        ),
       );
+      // Optionally navigate to the login screen or another screen
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error signing out: $e')),
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Error signing out: $e'),
+        ),
       );
     }
   }
@@ -88,64 +95,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: const Text('Settings'),
       ),
-      body: ListView(
+      body: Column(
         children: [
-          if (_isLoggedIn && _currentUser != null)
-            ListTile(
-              leading: CircleAvatar(
-                backgroundImage: NetworkImage(_currentUser!.profilePictureUrl),
-              ),
-              title: Text(_currentUser!.username),
-              subtitle: Text(_currentUser!.email),
-              onTap: _navigateToProfile,
-            )
-          else
-            ListTile(
-              leading: const Icon(Icons.login),
-              title: const Text('Sign Up or Login'),
-              onTap: _showAuthModal,
-            ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {
-              // Navigate to additional settings if implemented
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Settings to be implemented')),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('About'),
-            onTap: _navigateToAbout,
-          ),
-          const Divider(),
-          SizedBox(height: sectionSpacing),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Copyright © 2024 - '),
-              Text(
-                'Sway',
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: sectionSpacing),
-          if (_isLoggedIn)
-            Center(
-              child: TextButton(
-                child: Text(
-                  'Logout',
-                  style: TextStyle(
-                    color: Theme.of(context).disabledColor,
+          // Contenu défilable
+          Expanded(
+            child: ListView(
+              children: [
+                if (_isLoggedIn && _currentUser != null)
+                  ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage:
+                          NetworkImage(_currentUser!.profilePictureUrl),
+                    ),
+                    title: Text(_currentUser!.username),
+                    subtitle: Text(_currentUser!.email),
+                    onTap: _navigateToProfile,
+                  )
+                else
+                  ListTile(
+                    leading: const Icon(Icons.login),
+                    title: const Text('Sign Up or Login'),
+                    onTap: _showAuthModal,
                   ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.settings),
+                  title: const Text('Settings'),
+                  onTap: () {
+                    // Navigate to additional settings if implemented
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        content: Text('Settings to be implemented'),
+                      ),
+                    );
+                  },
                 ),
-                onPressed: () => _handleSignOut,
+                ListTile(
+                  leading: const Icon(Icons.info),
+                  title: const Text('About'),
+                  onTap: _navigateToAbout,
+                ),
+                const Divider(),
+                SizedBox(height: sectionSpacing),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Copyright © 2025 - '),
+                    Text(
+                      'Sway',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: sectionSpacing),
+              ],
+            ),
+          ),
+          // Bouton "Log out" en bas
+          if (_isLoggedIn)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 150,
+                child: TextButton(
+                  child: Text(
+                    'Logout',
+                    style: TextStyle(
+                      color: Theme.of(context).disabledColor,
+                    ),
+                  ),
+                  onPressed: _handleSignOut,
+                ),
               ),
             ),
         ],
