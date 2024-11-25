@@ -11,6 +11,9 @@ import 'package:sway/core/utils/error/error_not_found.dart';
 import 'package:sway/core/widgets/bottom_navigation_bar.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/discovery/discovery.dart';
+import 'package:sway/features/event/event.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/user/user.dart';
@@ -98,6 +101,38 @@ List<Map<String, dynamic>> standaloneRoutes = [
       return UserScreen(userId: userId);
     },
   },
+  {
+    'name': 'EventDetail',
+    'path': '/event/:id',
+    'screenBuilder': (BuildContext context, GoRouterState state) {
+      final int idParam = int.parse(state.pathParameters['id']!);
+      final EventService _eventService = EventService();
+      return FutureBuilder<Event?>(
+        future: _eventService.getEventById(idParam),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Loading Event')),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          } else if (snapshot.hasError) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: Center(child: Text('Error: ${snapshot.error}')),
+            );
+          } else if (!snapshot.hasData || snapshot.data == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Event Not Found')),
+              body: const Center(child: Text('Event not found.')),
+            );
+          } else {
+            final event = snapshot.data!;
+            return EventScreen(event: event);
+          }
+        },
+      );
+    },
+  },
 ];
 
 final authStateManager = AuthStateManager();
@@ -164,6 +199,9 @@ final GoRouter router = GoRouter(
           break;
         case 'user':
           print('User entity found');
+          break;
+        case 'event':
+          print('Event entity found');
           break;
         default:
           // No action needed for other paths
@@ -243,7 +281,8 @@ List<RouteBase> getStandaloneRoutes() {
           path: route['path'] as String,
           name: route['name'] as String,
           pageBuilder: (context, state) {
-            return fadeTransitionPage(context, state, route['screen'] as Widget);
+            return fadeTransitionPage(
+                context, state, route['screen'] as Widget);
           },
         ),
       );
@@ -253,7 +292,8 @@ List<RouteBase> getStandaloneRoutes() {
           path: route['path'] as String,
           name: route['name'] as String,
           pageBuilder: (context, state) {
-            final widget = (route['screenBuilder'] as Widget Function(BuildContext, GoRouterState))(context, state);
+            final widget = (route['screenBuilder'] as Widget Function(
+                BuildContext, GoRouterState))(context, state);
             return fadeTransitionPage(context, state, widget);
           },
         ),

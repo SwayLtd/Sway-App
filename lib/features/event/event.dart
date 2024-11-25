@@ -48,11 +48,6 @@ class _EventScreenState extends State<EventScreen> {
     super.initState();
   }
 
-  void _onAppBarItemTap(int index) {
-    setState(() {
-      _selectedTabIndex = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {

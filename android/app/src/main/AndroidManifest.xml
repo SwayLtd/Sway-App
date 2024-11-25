@@ -43,7 +43,7 @@
                     android:scheme="app.sway.main"
                     android:host="login-callback" />
             </intent-filter>
-            
+
             <!-- Intent filter for password reset deep links -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -76,6 +76,7 @@
                 <data android:pathPattern="/venue/.*" />
                 <data android:pathPattern="/genre/.*" />
                 <data android:pathPattern="/user/.*" />
+                <data android:pathPattern="/event/.*" />
                 <!-- Add more data tags as needed -->
             </intent-filter>
         </activity>
