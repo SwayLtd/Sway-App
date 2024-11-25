@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:expandable_text/expandable_text.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/utils/date_utils.dart';
+import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -60,12 +61,12 @@ class _EventScreenState extends State<EventScreen> {
         title: Text(widget.event.title),
         actions: [
           // TODO Implement sharing system for events
-          /*IconButton(
+          IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
               shareEntity('event', widget.event.id, widget.event.title);
             },
-          ),*/
+          ),
           FutureBuilder<Map<String, bool>>(
             future: _getEventStatus(widget.event.id),
             builder: (context, snapshot) {

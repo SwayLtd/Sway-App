@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:expandable_text/expandable_text.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -134,6 +135,30 @@ class _VenueScreenState extends State<VenueScreen> {
               } else {
                 return const SizedBox.shrink();
                 // TODO: Implement insights for venues
+              }
+            },
+          ),
+          // Bouton de Partage
+          FutureBuilder<Venue?>(
+            future: VenueService().getVenueById(widget.venueId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                // Afficher rien pendant le chargement
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  snapshot.data == null) {
+                // Afficher rien en cas d'erreur ou si le lieu n'est pas trouvé
+                return const SizedBox.shrink();
+              } else {
+                final venue = snapshot.data!;
+                return IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: () {
+                    // Appeler la fonction de partage avec les paramètres appropriés
+                    shareEntity('venue', widget.venueId, venue.name);
+                  },
+                );
               }
             },
           ),

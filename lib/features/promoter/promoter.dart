@@ -3,6 +3,7 @@
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart'; // Import des constantes
+import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/widgets/artist_item_widget.dart';
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
@@ -134,6 +135,30 @@ class _PromoterScreenState extends State<PromoterScreen> {
                   icon: const Icon(Icons.insights),
                   onPressed: () {
                     // Action pour le bouton d'insight
+                  },
+                );
+              }
+            },
+          ),
+          // Bouton de Partage
+          FutureBuilder<Promoter?>(
+            future: PromoterService().getPromoterById(widget.promoterId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                // Afficher rien pendant le chargement
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  snapshot.data == null) {
+                // Afficher rien en cas d'erreur ou si le lieu n'est pas trouvé
+                return const SizedBox.shrink();
+              } else {
+                final promoter = snapshot.data!;
+                return IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: () {
+                    // Appeler la fonction de partage avec les paramètres appropriés
+                    shareEntity('promoter', widget.promoterId, promoter.name);
                   },
                 );
               }
@@ -362,7 +387,8 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                           return const Padding(
                                             padding: EdgeInsets.symmetric(
                                                 vertical: 8.0, horizontal: 8.0),
-                                            child: CircularProgressIndicator.adaptive(),
+                                            child: CircularProgressIndicator
+                                                .adaptive(),
                                           );
                                         } else if (eventSnapshot.hasError ||
                                             !eventSnapshot.hasData ||

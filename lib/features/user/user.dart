@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/utils/date_utils.dart';
+import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -36,28 +37,31 @@ class UserScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('User Profile'),
         actions: [
+          // Bouton de Partage
           FutureBuilder<User?>(
             future: UserService().getUserById(userId),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
+                // Afficher rien pendant le chargement
                 return const SizedBox.shrink();
               } else if (snapshot.hasError ||
                   !snapshot.hasData ||
                   snapshot.data == null) {
+                // Afficher rien en cas d'erreur ou si l'utilisateur n'est pas trouvé
                 return const SizedBox.shrink();
               } else {
-                return const SizedBox.shrink();
-                // TODO Implement sharing system for users
-                /*final user = snapshot.data!;
+                final user = snapshot.data!;
                 return IconButton(
                   icon: const Icon(Icons.share),
                   onPressed: () {
+                    // Appeler la fonction de partage avec les paramètres appropriés
                     shareEntity('user', userId, user.username);
                   },
-                );*/
+                );
               }
             },
           ),
+          // Bouton de Suivi
           FollowingButtonWidget(entityId: userId, entityType: 'user'),
         ],
       ),
@@ -78,6 +82,7 @@ class UserScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Photo de Profil
                     Center(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(15),
@@ -89,6 +94,7 @@ class UserScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    // Nom d'Utilisateur
                     Text(
                       user.username,
                       style: const TextStyle(
@@ -97,6 +103,7 @@ class UserScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 5),
+                    // Date d'Inscription
                     Text(
                       'Member since: ${user.createdAt.toLocal()}',
                       style: const TextStyle(
@@ -105,11 +112,13 @@ class UserScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    // Compte de Followers
                     FollowersCountWidget(
                       entityId: userId,
                       entityType: 'user',
                     ),
                     const SizedBox(height: 20),
+                    // Section MOOD
                     Text(
                       "MOOD",
                       style: const TextStyle(
@@ -151,6 +160,7 @@ class UserScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 20),
+                    // Section ARTISTS
                     Text(
                       "ARTISTS",
                       style: const TextStyle(
@@ -211,6 +221,7 @@ class UserScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 20),
+                    // Section VENUES
                     Text(
                       "VENUES",
                       style: const TextStyle(
@@ -271,6 +282,7 @@ class UserScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 20),
+                    // Section PROMOTERS
                     Text(
                       "PROMOTERS",
                       style: const TextStyle(
@@ -331,6 +343,7 @@ class UserScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 20),
+                    // Section INTERESTED EVENTS
                     Text(
                       "INTERESTED EVENTS",
                       style: const TextStyle(
@@ -372,6 +385,7 @@ class UserScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 20),
+                    // Section ATTENDED EVENTS
                     Text(
                       "ATTENDED EVENTS",
                       style: const TextStyle(

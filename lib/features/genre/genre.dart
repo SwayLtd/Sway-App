@@ -1,6 +1,7 @@
 // genre.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -29,12 +30,12 @@ class _GenreScreenState extends State<GenreScreen> {
         title: Text('$genreName Details'),
         actions: [
           // TODO Implement sharing system for genres
-          /*IconButton(
+          IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
               shareEntity('genre', widget.genreId, genreName);
             },
-          ),*/
+          ),
           FollowingButtonWidget(entityId: widget.genreId, entityType: 'genre'),
         ],
       ),
