@@ -75,7 +75,7 @@ class _ScrollingTextScreenState extends State<ScrollingTextScreen>
                 child: SizedBox(
                   height: MediaQuery.of(context).size.width,
                   child: Text(
-                    widget.text.toUpperCase(),
+                    '${widget.text.toUpperCase()}. ',
                     style: const TextStyle(
                       fontSize: 175,
                       color: Colors.white,
