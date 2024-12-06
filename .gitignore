@@ -73,6 +73,7 @@ supabase/seed.sql
 
 # Supabase secrets and keys
 /supabase/.supabase
+/supabase/functions/service-account.json
 
 # Supabase project files
 /supabase/config.toml
@@ -80,6 +81,9 @@ supabase/seed.sql
 # Supabase build artifacts
 /build/
 /dist/
+
+# Node
+/node_modules/
 
 # Temporary files
 *.tmp

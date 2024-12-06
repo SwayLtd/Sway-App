@@ -1,0 +1,7 @@
+{
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.47.1",
+    "google-auth-library": "npm:google-auth-library@^9.15.0"
+  }
+}
