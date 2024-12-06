@@ -14,12 +14,17 @@ import 'package:sway/features/security/utils/security_utils.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 // mport 'package:hive_flutter/hive_flutter.dart';
 import 'package:sway/features/user/services/auth_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   usePathUrlStrategy(); // Remove # from URL
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   DatabaseService().initialize();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   // await Hive.initFlutter();
   // NotificationService().initialize();
 

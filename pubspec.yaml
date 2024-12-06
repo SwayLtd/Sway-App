@@ -54,6 +54,9 @@ dependencies:
   hcaptcha: ^0.0.2
   supabase_auth_ui: ^0.5.4
   cached_network_image: ^3.4.1
+  firebase_messaging: ^15.1.5
+  firebase_core: ^3.8.0
+  firebase_analytics: ^11.3.5
   # isar_flutter_libs: ^3.1.0+1 # For Isar
 
 dev_dependencies:
