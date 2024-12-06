@@ -9,7 +9,7 @@ import 'package:sway/core/constants/app_theme.dart';
 import 'package:sway/core/constants/l10n.dart';
 import 'package:sway/core/routes.dart';
 import 'package:sway/core/services/database_service.dart';
-// import 'package:sway/core/services/notification_service.dart';
+import 'package:sway/core/services/notification_service.dart';
 import 'package:sway/features/security/utils/security_utils.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 // mport 'package:hive_flutter/hive_flutter.dart';
@@ -26,7 +26,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   // await Hive.initFlutter();
-  // NotificationService().initialize();
+  NotificationService().initialize();
 
   final authService = AuthService();
   // Make sure a user is logged in (authenticated or anonymous)

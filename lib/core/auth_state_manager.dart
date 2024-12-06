@@ -19,6 +19,7 @@ class AuthStateManager extends ChangeNotifier {
     if (supabaseId != null) {
       print('Upserting FCM token for supabase_id: $supabaseId');
       try {
+        // TODO Check the other user information to work only on the right entry
         await supabase.from('users').upsert(
           {
             'supabase_id': supabaseId,
@@ -43,7 +44,7 @@ class AuthStateManager extends ChangeNotifier {
 
       // Push Notifications
       if (data.event == AuthChangeEvent.signedIn) {
-        await FirebaseMessaging.instance.requestPermission();
+        // await FirebaseMessaging.instance.requestPermission();
         await FirebaseMessaging.instance.getAPNSToken();
         final fcmToken =
             await FirebaseMessaging.instance.getToken(); // Utilisez await ici
