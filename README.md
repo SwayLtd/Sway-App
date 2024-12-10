@@ -15,7 +15,7 @@ intuitive experience for both event attendees and promoters.
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
-
+- Local notifications, IOS notification permission, local schedule notification, immediate and scheduled push notification - Notifications
 - Event deep link, fix log out, fix auth modal height, add reset password
 - Image caching, floating snackbar, adaptive widgets, login snackbar open auth
   modal
@@ -29,9 +29,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 - Enhance VenueScreen and PromoterScreen UI/UX
 
 ### Known Issues
-
-- (Notification) The notification images and maybe other parameters are not
-  collected correctly.
+- (Notification) Push notification image is not correct
 - (Timetable) The day selection show days without artists programmed.
 - (FIXED)(Ticketing) Delete white margins on PDF during import
 - (FIXED)(Ticketing) Multiple pages PDF are not unpacked a multiple tickets

@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/ticketing/models/ticket_model.dart';
 import 'package:sway/features/ticketing/services/ticket_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
+import 'package:sway/features/ticketing/ticketing.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:sway/core/services/notification_service.dart';
+import 'package:sway/features/event/services/event_promoter_service.dart'; // Importez le service promoteur
 
 class EditEventDetailsScreen extends StatefulWidget {
   final Ticket ticket;
@@ -22,6 +26,8 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
   final EventService _eventService = EventService();
   final TicketService _ticketService = TicketService();
   final EventVenueService _eventVenueService = EventVenueService();
+  final EventPromoterService _eventPromoterService =
+      EventPromoterService(); // Instanciez le service promoteur
 
   final TextEditingController _eventNameController = TextEditingController();
   final TextEditingController _eventLocationController =
@@ -62,7 +68,9 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error fetching events: $e')),
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Error fetching events: $e')),
       );
     }
   }
@@ -81,7 +89,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
       eventLocation: _eventLocationController.text,
       ticketType: widget.ticket.ticketType,
       importedDate: widget.ticket.importedDate,
-      groupId: widget.ticket.groupId, // Assurer que groupId est conservé
+      groupId: widget.ticket.groupId,
     );
 
     try {
@@ -107,10 +115,50 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
         }
       }
 
-      Navigator.pop(context, true);
+      // Programmer la notification 1 heure avant l'événement
+      if (_selectedEvent != null && _eventDate != null) {
+        // Récupérer le nom du promoteur
+        List<Promoter> promoters = await _eventPromoterService
+            .getPromotersByEventId(_selectedEvent!.id);
+        String promoterName = promoters.isNotEmpty
+            ? promoters.map((p) => p.name).join(', ')
+            : 'Promoteur non disponible';
+
+        // Calculer la date de notification (1 heure avant l'événement)
+        DateTime notificationTime = _eventDate!.subtract(Duration(hours: 2));
+
+        // Vérifier que la date de notification n'est pas dans le passé
+        if (notificationTime.isAfter(DateTime.now())) {
+          print("Notification 2 heures avant programmées");
+          await NotificationService().scheduleNotification(
+              title: "$promoterName",
+              body: "Ticket for ${_selectedEvent!.title}",
+              scheduledNotificationDateTime: notificationTime);
+        } else {
+          print("La date de notification est dans le passé.");
+          print("Notification 10 secondes avant programmées");
+
+          await NotificationService().scheduleNotification(
+            title: "$promoterName",
+            body: "Ticket for ${_selectedEvent!.title}",
+            scheduledNotificationDateTime: DateTime.now().add(
+              Duration(seconds: 10),
+            ),
+          );
+        }
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TicketingScreen(),
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error saving event details: $e')),
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Error saving event details: $e')),
       );
     }
   }
@@ -129,7 +177,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Event Details'),
+        title: const Text('Add event details'),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
