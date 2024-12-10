@@ -15,21 +15,19 @@ intuitive experience for both event attendees and promoters.
 Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
-- Local notifications, IOS notification permission, local schedule notification, immediate and scheduled push notification - Notifications
+
+- FCM default and high priority channel, foreground notifications, push
+  notification icon fix
+- Local notifications, IOS notification permission, local schedule notification,
+  immediate and scheduled push notification - Notifications
 - Event deep link, fix log out, fix auth modal height, add reset password
 - Image caching, floating snackbar, adaptive widgets, login snackbar open auth
   modal
 - Deep link support for entities
-- Authentication update with 'supabase_auth-ui' and password reset -
-  Authentication system
-- Email change - Authentication system
-- Sign-up and follow system update - Authentication system
-- Implementation of user registration using database function and database
-  triggers - Authentication system
 - Enhance VenueScreen and PromoterScreen UI/UX
 
 ### Known Issues
-- (Notification) Push notification image is not correct
+
 - (Timetable) The day selection show days without artists programmed.
 - (FIXED)(Ticketing) Delete white margins on PDF during import
 - (FIXED)(Ticketing) Multiple pages PDF are not unpacked a multiple tickets

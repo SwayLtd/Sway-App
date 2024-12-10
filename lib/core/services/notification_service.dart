@@ -1,7 +1,6 @@
-// notification_service.dart
+// lib/core/services/notification_service.dart
 
 import 'dart:io';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -11,21 +10,19 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
+  /// Initialize the [FlutterLocalNotificationsPlugin] package.
   final FlutterLocalNotificationsPlugin notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  /// To verify that your messages are being received, you ought to see a notification appearon your device/emulator via the flutter_local_notifications plugin.
   /// Define a top-level named handler which background/terminated messages will
   /// call. Be sure to annotate the handler with `@pragma('vm:entry-point')` above the function declaration.
   @pragma('vm:entry-point')
-  Future<void> _firebaseMessagingBackgroundHandler(
+  static Future<void> _firebaseMessagingBackgroundHandler(
       RemoteMessage message) async {
     await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
-    await setupFlutterNotifications();
-    showFlutterNotification(message);
-    // If you're going to use other Firebase services in the background, such as Firestore,
-    // make sure you call `initializeApp` before using other Firebase services.
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    // Ne pas afficher la notification ici pour éviter les doublons
     print('Handling a background message ${message.messageId}');
   }
 
@@ -34,37 +31,33 @@ class NotificationService {
 
   bool isFlutterLocalNotificationsInitialized = false;
 
+  // https://firebase.flutter.dev/docs/messaging/notifications/#foreground-notifications
   Future<void> setupFlutterNotifications() async {
     if (isFlutterLocalNotificationsInitialized) {
       return;
     }
     channel = const AndroidNotificationChannel(
       'high_importance_channel', // id
-      'High Importance Notifications', // title
+      'Sway', // title
       description:
           'This channel is used for important notifications.', // description
-      importance: Importance.high,
+      importance: Importance
+          .high, // Importance.high pour les notifications prioritaires
     );
 
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-    /// Create an Android Notification Channel.
-    ///
-    /// We use this channel in the `AndroidManifest.xml` file to override the
-    /// default FCM channel to enable heads up notifications.
-    await flutterLocalNotificationsPlugin
+    await notificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
-    /// Update the iOS foreground notification presentation options to allow
-    /// heads up notifications.
+    // Update the iOS foreground notification presentation options to allow heads up notifications.
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
     );
+
     isFlutterLocalNotificationsInitialized = true;
   }
 
@@ -72,7 +65,7 @@ class NotificationService {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
     if (notification != null && android != null && !kIsWeb) {
-      flutterLocalNotificationsPlugin.show(
+      notificationsPlugin.show(
         notification.hashCode,
         notification.title,
         notification.body,
@@ -81,17 +74,14 @@ class NotificationService {
             channel.id,
             channel.name,
             channelDescription: channel.description,
-            // TODO add a proper drawable resource to android, for now using
-            //      one that already exists in example app.
             icon: 'notification',
+            priority: Priority.high, // Assurer une priorité élevée
+            importance: Importance.high,
           ),
         ),
       );
     }
   }
-
-  /// Initialize the [FlutterLocalNotificationsPlugin] package.
-  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   Future<void> initialize() async {
     // Initialisation des fuseaux horaires
@@ -113,43 +103,97 @@ class NotificationService {
         onDidReceiveNotificationResponse:
             (NotificationResponse notificationResponse) async {});
 
-    await FirebaseMessaging.instance.requestPermission();
+    // Initialiser Firebase Messaging
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-        FlutterLocalNotificationsPlugin();
-    flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-    flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestExactAlarmsPermission();
+    // Configurer le gestionnaire de messages en foreground
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+
+      if (notification != null && android != null) {
+        // Assurer que le channel est initialisé
+        if (!isFlutterLocalNotificationsInitialized) {
+          setupFlutterNotifications().then((_) {
+            notificationsPlugin.show(
+              notification.hashCode,
+              "${notification.title}",
+              notification.body,
+              NotificationDetails(
+                android: AndroidNotificationDetails(
+                  channel.id,
+                  channel.name,
+                  channelDescription: channel.description,
+                  icon: 'notification',
+                  priority: Priority.high,
+                  importance: Importance.high,
+                ),
+              ),
+            );
+          });
+        } else {
+          notificationsPlugin.show(
+            notification.hashCode,
+            "${notification.title}",
+            notification.body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                channel.id,
+                channel.name,
+                channelDescription: channel.description,
+                icon: 'notification',
+                priority: Priority.high,
+                importance: Importance.high,
+              ),
+            ),
+          );
+        }
+      }
+    });
+
+    // Demander les permissions
+    NotificationSettings settings =
+        await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
 
     if (Platform.isIOS) {
-      flutterLocalNotificationsPlugin
+      await notificationsPlugin
           .resolvePlatformSpecificImplementation<
               IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, badge: true, sound: true);
     }
+
+    print('User granted permission: ${settings.authorizationStatus}');
   }
 
-  notificationDetails() {
-    return const NotificationDetails(
-        android: AndroidNotificationDetails('channelId', 'channelName',
-            importance: Importance.max),
-        iOS: DarwinNotificationDetails());
+  NotificationDetails notificationDetails() {
+    return NotificationDetails(
+      android: AndroidNotificationDetails(
+        channel.id,
+        channel.name,
+        channelDescription: channel.description,
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: 'notification',
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
   }
 
-  // https://www.youtube.com/watch?v=26TTYlwc6FM
-  Future showNotification(
+  Future<void> showNotification(
       {int id = 0, String? title, String? body, String? payLoad}) async {
     return notificationsPlugin.show(
-        id, "Sway - ${title}", body, await notificationDetails());
+        id, "$title", body, await notificationDetails());
   }
 
-  // https://www.youtube.com/watch?v=T6Wg0AmIESE
-  Future scheduleNotification(
+  Future<void> scheduleNotification(
       {int id = 0,
       String? title,
       String? body,
@@ -157,7 +201,7 @@ class NotificationService {
       required DateTime scheduledNotificationDateTime}) async {
     return notificationsPlugin.zonedSchedule(
       id,
-      "Sway - ${title}",
+      "$title",
       body,
       tz.TZDateTime.from(
         scheduledNotificationDateTime,

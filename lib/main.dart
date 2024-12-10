@@ -21,12 +21,13 @@ Future<void> main() async {
   usePathUrlStrategy(); // Remove # from URL
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
+
   DatabaseService().initialize();
+  // await Hive.initFlutter();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
-  // await Hive.initFlutter();
   NotificationService().initialize();
 
   final authService = AuthService();
