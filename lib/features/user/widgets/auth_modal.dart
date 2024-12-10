@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
+import 'package:sway/core/services/notification_service.dart';
 import 'package:sway/features/user/screens/terms_and_conditions_screen.dart';
 import 'package:sway/features/user/utils/auth_validator.dart';
 
@@ -47,7 +48,7 @@ class AuthModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Définir une hauteur maximale pour le modal (75% de la hauteur de l'écran)
+    // Définir une hauteur maximale pour le modal (43% de la hauteur de l'écran)
     final double maxHeight = MediaQuery.of(context).size.height * 0.43;
 
     return SafeArea(
