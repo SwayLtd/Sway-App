@@ -21,6 +21,16 @@ class AuthService {
     }
   }
 
+  /// Check if the user is anonymous or logged in
+  Future<bool> checkAnonUser() async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      return true;
+    }
+    return false;
+  }
+
   /// Méthode pour envoyer un email de réinitialisation du mot de passe
   Future<void> sendPasswordResetEmail(String email) async {
     await _supabase.auth.resetPasswordForEmail(
