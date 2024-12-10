@@ -25,6 +25,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
   // await Hive.initFlutter();
   NotificationService().initialize();
 
