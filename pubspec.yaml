@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.4.6+1 # FCM default and high priority channel, foreground notifications, push notification icon fix - Notifications
+version: 0.4.6+2 # Different notification channels/types, user notification preferences, notification RLS policies - Notifications
 
 environment:
   sdk: ">=2.18.5 <4.0.0"

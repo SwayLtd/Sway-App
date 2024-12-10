@@ -16,6 +16,8 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Different notification channels/types, user notification preferences,
+  notification RLS policies
 - FCM default and high priority channel, foreground notifications, push
   notification icon fix
 - Local notifications, IOS notification permission, local schedule notification,
@@ -28,6 +30,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Known Issues
 
+- (Notification) Fix user notification setting screen
 - (Timetable) The day selection show days without artists programmed.
 - (FIXED)(Ticketing) Delete white margins on PDF during import
 - (FIXED)(Ticketing) Multiple pages PDF are not unpacked a multiple tickets

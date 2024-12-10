@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/features/notification/screens/notification_preferences_screen.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/services/auth_service.dart';
@@ -119,17 +120,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 const Divider(),
                 ListTile(
-                  leading: const Icon(Icons.settings),
-                  title: const Text('Settings'),
-                  onTap: () {
-                    // Navigate to additional settings if implemented
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        content: Text('Settings to be implemented'),
-                      ),
-                    );
-                  },
+                  leading: const Icon(Icons.notifications),
+                  title: const Text('Notification Preferences'),
+                  onTap: _isLoggedIn
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const NotificationPreferencesScreen(),
+                            ),
+                          );
+                        }
+                      : _showAuthModal,
                 ),
                 ListTile(
                   leading: const Icon(Icons.info),
