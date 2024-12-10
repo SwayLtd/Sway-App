@@ -1,11 +1,9 @@
 // lib/features/promoter/services/promoter_genre_service.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sway/features/genre/services/genre_service.dart';
 
 class PromoterGenreService {
   final SupabaseClient _supabase = Supabase.instance.client;
-  final GenreService _genreService = GenreService();
 
   /// Récupère les genres associés à un promoteur.
   Future<List<int>> getGenresByPromoterId(int promoterId) async {

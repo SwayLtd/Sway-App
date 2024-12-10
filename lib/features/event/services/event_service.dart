@@ -94,32 +94,6 @@ class EventService {
     return response.map<Event>((json) => Event.fromJson(json)).toList();
   }
 
-  /// Helper method to check if two dates are on the same day.
-  bool _isSameDate(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
-  }
-
-  /// Retrieves event genres from the 'event_genre' join table.
-  Future<Map<int, List<int>>> _getEventGenres() async {
-    final response = await _supabase.from('event_genre').select();
-
-    if (response.isEmpty) {
-      return {};
-    }
-
-    final Map<int, List<int>> eventGenres = {};
-
-    for (final entry in response) {
-      final int eventId = entry['event_id'] as int;
-      final int genreId = entry['genre_id'] as int;
-      eventGenres.putIfAbsent(eventId, () => []).add(genreId);
-    }
-
-    return eventGenres;
-  }
-
   /// Adds a new event to Supabase.
   Future<void> addEvent(Event event) async {
     final bool hasPermission =

@@ -144,7 +144,6 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               await _eventService.getEventById(currentTicket.eventId!);
           if (event != null) {
             // Optional: Load associated venue
-            final venue = await _eventVenueService.getVenueByEventId(event.id);
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -334,8 +333,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final Ticket currentTicket = _ticketsForEvent[_currentIndex];
-    final fileExtension =
-        _getFileExtension(currentTicket.filePath).toLowerCase();
+    _getFileExtension(currentTicket.filePath).toLowerCase();
 
     return Scaffold(
       appBar: AppBar(

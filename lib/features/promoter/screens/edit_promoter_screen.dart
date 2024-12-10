@@ -54,7 +54,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
     _descriptionController =
         TextEditingController(text: widget.promoter.description);
     _imageUrlController =
-        TextEditingController(text: widget.promoter.imageUrl ?? '');
+        TextEditingController(text: widget.promoter.imageUrl);
     _loadAssociatedData();
   }
 

@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/dimensions.dart';
-import 'package:sway/core/services/notification_service.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/services/auth_service.dart';
