@@ -53,8 +53,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
     _nameController = TextEditingController(text: widget.promoter.name);
     _descriptionController =
         TextEditingController(text: widget.promoter.description);
-    _imageUrlController =
-        TextEditingController(text: widget.promoter.imageUrl);
+    _imageUrlController = TextEditingController(text: widget.promoter.imageUrl);
     _loadAssociatedData();
   }
 
@@ -79,7 +78,9 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error loading data: ${e.toString()}')),
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Error loading data: ${e.toString()}')),
       );
     } finally {
       setState(() {
@@ -121,7 +122,9 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
           widget.promoter.id, _selectedArtists);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Promoter updated successfully!')),
+        const SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Promoter updated successfully!')),
       );
 
       Navigator.pop(context, updatedPromoter);
@@ -134,7 +137,8 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: Text(errorMessage)),
+        SnackBar(
+            behavior: SnackBarBehavior.floating, content: Text(errorMessage)),
       );
     } finally {
       setState(() {
@@ -167,12 +171,15 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                   await _promoterService.deletePromoter(permission.entityId);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
+                        behavior: SnackBarBehavior.floating,
                         content: Text('Promoter deleted successfully.')),
                   );
                   Navigator.of(context).pop(); // Return to previous screen
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error: ${e.toString()}')),
+                    SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        content: Text('Error: ${e.toString()}')),
                   );
                 }
               },
@@ -207,7 +214,9 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error loading genres: ${e.toString()}')),
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Error loading genres: ${e.toString()}')),
       );
     }
   }
@@ -236,7 +245,9 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error loading artists: ${e.toString()}')),
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Error loading artists: ${e.toString()}')),
       );
     }
   }
@@ -495,7 +506,9 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error searching genres: ${e.toString()}')),
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Error searching genres: ${e.toString()}')),
       );
     } finally {
       setState(() {
@@ -663,7 +676,9 @@ class _ArtistSelectionBottomSheetState
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Error searching artists: ${e.toString()}')),
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Error searching artists: ${e.toString()}')),
       );
     } finally {
       setState(() {
