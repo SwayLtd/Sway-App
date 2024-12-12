@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:sway/core/routes.dart';
 import 'package:flutter/services.dart';
+// Ensure GoRouter is imported
 
 class ScaffoldWithNavBarWithoutAppBar extends StatefulWidget {
   const ScaffoldWithNavBarWithoutAppBar({super.key, required this.child});
@@ -27,9 +28,9 @@ class _ScaffoldWithNavBarWithoutAppBarState
       DeviceOrientation.portraitDown,
     ]);
     int index = selectedIndex();
-    // Assurer que l'index est valide
+    // Ensure the index is valid
     if (index < 0 || index >= 4) {
-      // 4 étant le nombre d'items
+      // 4 being the number of items
       index = 0;
     }
     _currentIndex = index;
@@ -53,30 +54,103 @@ class _ScaffoldWithNavBarWithoutAppBarState
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.settings_outlined),
-        label: "Settings", // Modifier le label
+        label: "Settings",
       ),
     ];
 
-    // Calculer un index valide
+    final List<NavigationDestination> destinations = <NavigationDestination>[
+      const NavigationDestination(
+        icon: Icon(Icons.local_library_outlined),
+        label: "Discovery",
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.search_outlined),
+        label: "Search",
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.local_activity_outlined),
+        label: "Tickets",
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.settings_outlined),
+        label: "Settings",
+      ),
+    ];
+
+    // Calculate a valid index
     final int validIndex = (_currentIndex < 0 || _currentIndex >= items.length)
         ? 0
         : _currentIndex;
 
+    // Get screen width to calculate indicator position
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final int numberOfItems = items.length;
+    final double itemWidth = screenWidth / numberOfItems;
+
+    // Define indicator properties
+    final double indicatorWidth = 48.0;
+    final double indicatorHeight = 2.0;
+    final Color indicatorColor = Theme.of(context).primaryColor;
+
     return Scaffold(
       key: _scaffoldKey,
       body: widget.child,
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Theme.of(context).disabledColor,
-        items: items,
-        onTap: (int index) {
-          onTap(context, index);
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        currentIndex: validIndex,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Divider line to separate BottomNavigationBar from content
+          /* Divider(
+            height: 1,
+            thickness: 1,
+            color: Colors.grey[300],
+          ), */
+          // Stack to overlay the BottomNavigationBar and the indicator
+          Stack(
+            children: [
+              /* BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                selectedItemColor: Theme.of(context).primaryColor,
+                unselectedItemColor: Theme.of(context).disabledColor,
+                items: items,
+                onTap: (int index) {
+                  onTap(context, index);
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                currentIndex: validIndex,
+              ), */
+              NavigationBar(
+                selectedIndex: validIndex,
+                onDestinationSelected: (int index) {
+                  onTap(context, index);
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                destinations: destinations,
+                // Optionally customize the NavigationBar appearance
+                // You can adjust the height, background color, etc., here
+              ),
+              // Positioned indicator above the selected BottomNavigationBarItem
+              /* AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                top:
+                    0, // Position the indicator at the top of the BottomNavigationBar
+                left:
+                    (itemWidth * validIndex) + (itemWidth - indicatorWidth) / 2,
+                child: Container(
+                  width: indicatorWidth,
+                  height: indicatorHeight,
+                  decoration: BoxDecoration(
+                    color: indicatorColor,
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
+              ), */
+            ],
+          ),
+        ],
       ),
     );
   }

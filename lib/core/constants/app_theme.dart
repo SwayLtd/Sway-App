@@ -127,11 +127,11 @@ class AppTheme {
         statusBarBrightness: Brightness.light,
       ),
       elevation: 0.5,
-      color: Colors.grey[900], // Fond de l'AppBar légèrement grisé
+      color: Colors.black, // grey[900] // Fond de l'AppBar légèrement grisé
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor:
-          Colors.grey[900], // Fond de la BottomNavigationBar légèrement grisé
+          Colors.black, // grey[900] // Fond de l'AppBar légèrement grisé
       selectedItemColor: Colors.amber,
       unselectedItemColor: Colors.white70,
     ),
