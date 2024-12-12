@@ -20,7 +20,7 @@ import 'package:sway/features/promoter/services/promoter_resident_artists_servic
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/user/widgets/following_button_widget.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
-import 'package:sway/features/venue/services/venue_service.dart';
+import 'package:sway/features/venue/services/venue_resident_artists_service.dart';
 import 'package:sway/features/venue/venue.dart';
 
 class ArtistScreen extends StatefulWidget {
@@ -331,8 +331,8 @@ class _ArtistScreenState extends State<ArtistScreen> {
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Venue>>(
-                      future:
-                          VenueService().getVenuesByArtistId(widget.artistId),
+                      future: VenueResidentArtistsService()
+                          .getVenuesByArtistId(widget.artistId),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -404,7 +404,8 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                   builder: (context, similarArtistSnapshot) {
                                     if (similarArtistSnapshot.connectionState ==
                                         ConnectionState.waiting) {
-                                      return const CircularProgressIndicator.adaptive();
+                                      return const CircularProgressIndicator
+                                          .adaptive();
                                     } else if (similarArtistSnapshot.hasError ||
                                         !similarArtistSnapshot.hasData ||
                                         similarArtistSnapshot.data == null) {

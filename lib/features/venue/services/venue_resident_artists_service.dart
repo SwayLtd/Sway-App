@@ -3,6 +3,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
+import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:sway/features/venue/services/venue_service.dart';
 
 class VenueResidentArtistsService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -22,6 +24,22 @@ class VenueResidentArtistsService {
         response.map((entry) => entry['artist_id'] as int).toList();
 
     return await _artistService.getArtistsByIds(artistIds);
+  }
+
+  Future<List<Venue>> getVenuesByArtistId(int artistId) async {
+    final response = await _supabase
+        .from('venue_resident_artists')
+        .select('venue_id')
+        .eq('artist_id', artistId);
+
+    if (response.isEmpty) {
+      return [];
+    }
+
+    final List<int> venueIds =
+        response.map((item) => item['venue_id'] as int).toList();
+
+    return await VenueService().getVenuesByIds(venueIds);
   }
 
   Future<void> addArtistToVenue(int venueId, int artistId) async {

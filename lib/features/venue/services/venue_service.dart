@@ -79,23 +79,6 @@ class VenueService {
     return await _promoterService.getPromotersByIds(promoterIds);
   }
 
-  // TODO Migrate the method "getVenuesByArtistId" to "VenueResidentArtistsService"
-  Future<List<Venue>> getVenuesByArtistId(int artistId) async {
-    final response = await _supabase
-        .from('venue_resident_artists')
-        .select('venue_id')
-        .eq('artist_id', artistId);
-
-    if (response.isEmpty) {
-      return [];
-    }
-
-    final List<int> venueIds =
-        response.map((item) => item['venue_id'] as int).toList();
-
-    return await getVenuesByIds(venueIds);
-  }
-
   Future<List<Venue>> getVenuesByIds(List<int> venueIds) async {
     if (venueIds.isEmpty) {
       return [];
