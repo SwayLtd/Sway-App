@@ -48,14 +48,12 @@ class _EventScreenState extends State<EventScreen> {
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.event.title),
         actions: [
-          // TODO Implement sharing system for events
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {

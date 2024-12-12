@@ -29,7 +29,6 @@ class _GenreScreenState extends State<GenreScreen> {
       appBar: AppBar(
         title: Text('$genreName Details'),
         actions: [
-          // TODO Implement sharing system for genres
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
@@ -60,10 +59,13 @@ class _GenreScreenState extends State<GenreScreen> {
                     Text(
                       genre.name,
                       style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold,),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 10),
-                    FollowersCountWidget(entityId: widget.genreId, entityType: 'genre'),
+                    FollowersCountWidget(
+                        entityId: widget.genreId, entityType: 'genre'),
                     const SizedBox(height: 20),
                     const Text(
                       "ABOUT",
@@ -77,20 +79,26 @@ class _GenreScreenState extends State<GenreScreen> {
                     const SizedBox(height: 20),
                     const Text(
                       "TOP ARTISTS",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     FutureBuilder<List<Artist>>(
-                      future: ArtistService().getTopArtistsByGenreId(widget.genreId),
+                      future: ArtistService()
+                          .getTopArtistsByGenreId(widget.genreId),
                       builder: (context, artistSnapshot) {
-                        if (artistSnapshot.connectionState == ConnectionState.waiting) {
+                        if (artistSnapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator.adaptive();
                         } else if (artistSnapshot.hasError) {
                           return Text('Error: ${artistSnapshot.error}');
-                        } else if (!artistSnapshot.hasData || artistSnapshot.data!.isEmpty) {
+                        } else if (!artistSnapshot.hasData ||
+                            artistSnapshot.data!.isEmpty) {
                           return const Text('No artists found');
                         } else {
-                          final artists = artistSnapshot.data!.take(5).toList(); // Limiting to 5 artists
+                          final artists = artistSnapshot.data!
+                              .take(5)
+                              .toList(); // Limiting to 5 artists
                           return SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
@@ -100,7 +108,8 @@ class _GenreScreenState extends State<GenreScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ArtistScreen(artistId: artist.id),
+                                        builder: (context) =>
+                                            ArtistScreen(artistId: artist.id),
                                       ),
                                     );
                                   },
@@ -109,7 +118,8 @@ class _GenreScreenState extends State<GenreScreen> {
                                     child: Column(
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                           child: ImageWithErrorHandler(
                                             imageUrl: artist.imageUrl,
                                             width: 100,
