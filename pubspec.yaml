@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.4.6+2 # Different notification channels/types, user notification preferences, notification RLS policies - Notifications
+version: 0.4.6+4 # Enhanced Notification System with History, Relative Days, and Deep Linking - Notifications
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
@@ -59,6 +59,8 @@ dependencies:
   firebase_analytics: ^11.3.5
   flutter_local_notifications: ^18.0.1
   in_app_purchase: ^3.2.0
+  infinite_scroll_pagination: ^4.1.0
+  timeago: ^3.7.0
   # isar_flutter_libs: ^3.1.0+1 # For Isar
 
 dev_dependencies:

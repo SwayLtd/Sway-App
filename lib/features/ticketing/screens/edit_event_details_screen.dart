@@ -10,7 +10,7 @@ import 'package:sway/features/ticketing/services/ticket_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/ticketing/ticketing.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
-import 'package:sway/core/services/notification_service.dart';
+import 'package:sway/features/notification/services/notification_service.dart';
 import 'package:sway/features/event/services/event_promoter_service.dart'; // Importez le service promoteur
 
 class EditEventDetailsScreen extends StatefulWidget {

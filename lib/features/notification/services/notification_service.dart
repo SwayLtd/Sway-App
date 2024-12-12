@@ -32,7 +32,6 @@ class NotificationService {
       return;
     }
 
-    // https://firebase.flutter.dev/docs/messaging/notifications/#foreground-notifications
     channels = NotificationChannels.channelNames.keys.map((channelId) {
       return AndroidNotificationChannel(
         channelId,
@@ -62,11 +61,10 @@ class NotificationService {
   void showFlutterNotification(RemoteMessage message) {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
-    String? notificationType = message
-        .data['type']; // Assurez-vous que le type est envoyé dans les données
+    String? notificationType = message.data['type'];
 
     if (notification != null && android != null && !kIsWeb) {
-      String channelId = NotificationChannels.event; // Valeur par défaut
+      String channelId = NotificationChannels.event;
 
       if (notificationType != null &&
           NotificationChannels.channelNames.containsKey(notificationType)) {
@@ -162,7 +160,7 @@ class NotificationService {
   }) async {
     if (channelId == null ||
         !NotificationChannels.channelNames.containsKey(channelId)) {
-      channelId = NotificationChannels.event; // Valeur par défaut
+      channelId = NotificationChannels.event;
     }
     return notificationsPlugin.show(
         id, "$title", body, notificationDetails(channelId));
@@ -178,11 +176,11 @@ class NotificationService {
   }) async {
     if (channelId == null ||
         !NotificationChannels.channelNames.containsKey(channelId)) {
-      channelId = NotificationChannels.event; // Valeur par défaut
+      channelId = NotificationChannels.event;
     }
     return notificationsPlugin.zonedSchedule(
       id,
-      title,
+      "$title",
       body,
       tz.TZDateTime.from(
         scheduledNotificationDateTime,

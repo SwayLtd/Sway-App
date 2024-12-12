@@ -14,6 +14,7 @@ import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/notification/notification.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
@@ -196,16 +197,15 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       appBar: AppBar(
         title: const Text("Discovery"),
         actions: [
-          // TODO Implement notification system
-          /*IconButton(
+          IconButton(
             icon: Stack(
               children: <Widget>[
                 const Icon(Icons.notifications),
-                if (unreadNotifications > 0)
-                  Positioned(
-                    right: 0,
-                    child: Badge(), // Keep Badge empty as per your requirement
-                  ),
+                // if (unreadNotifications > 0)
+                Positioned(
+                  right: 0,
+                  child: Badge(), // Keep Badge empty as per your requirement
+                ),
               ],
             ),
             onPressed: () {
@@ -214,7 +214,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 MaterialPageRoute(builder: (context) => NotificationScreen()),
               );
             },
-          ),*/
+          ),
         ],
       ),
       body: RefreshIndicator(

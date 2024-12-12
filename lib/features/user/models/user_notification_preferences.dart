@@ -21,12 +21,12 @@ class UserNotificationPreferences extends Equatable {
 
   factory UserNotificationPreferences.fromMap(Map<String, dynamic> map) {
     return UserNotificationPreferences(
-      userId: map['user_id'],
-      eventNotifications: map['event_notifications'] ?? true,
-      artistNotifications: map['artist_notifications'] ?? true,
-      promoterNotifications: map['promoter_notifications'] ?? true,
-      venueNotifications: map['venue_notifications'] ?? true,
-      socialNotifications: map['social_notifications'] ?? true,
+      userId: map['user_id'] as int,
+      eventNotifications: map['event_notifications'] as bool? ?? true,
+      artistNotifications: map['artist_notifications'] as bool? ?? true,
+      promoterNotifications: map['promoter_notifications'] as bool? ?? true,
+      venueNotifications: map['venue_notifications'] as bool? ?? true,
+      socialNotifications: map['social_notifications'] as bool? ?? true,
     );
   }
 

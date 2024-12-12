@@ -6,6 +6,10 @@ class NotificationChannels {
   static const String promoter = 'promoter_notifications';
   static const String venue = 'venue_notifications';
   static const String social = 'social_notifications';
+  static const String alert = 'alert_notifications';
+  static const String promotional = 'promotional_notifications';
+  static const String transactional = 'transactional_notifications';
+  static const String system = 'system_notifications';
 
   static const Map<String, String> channelNames = {
     event: 'Event Notifications',
@@ -13,6 +17,10 @@ class NotificationChannels {
     promoter: 'Promoter Notifications',
     venue: 'Venue Notifications',
     social: 'Social Notifications',
+    alert: 'Alert Notifications',
+    promotional: 'Promotional Notifications',
+    transactional: 'Transactional Notifications',
+    system: 'System Notifications',
   };
 
   static const Map<String, String> channelDescriptions = {
@@ -21,5 +29,9 @@ class NotificationChannels {
     promoter: 'Notifications related to promoters.',
     venue: 'Notifications related to venues.',
     social: 'Social interaction notifications.',
+    alert: 'Alert notifications.',
+    promotional: 'Promotional notifications.',
+    transactional: 'Transactional notifications.',
+    system: 'System notifications.',
   };
 }
