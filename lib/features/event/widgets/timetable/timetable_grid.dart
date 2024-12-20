@@ -491,26 +491,43 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                                       if (100 *
                                                               durationInHours >=
                                                           100)
-                                                        ClipRRect(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                            8.0,
+                                                        Container(
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            border: Border.all(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .onPrimary, // Couleur de la bordure
+                                                              width:
+                                                                  2.0, // Épaisseur de la bordure
+                                                            ),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        12), // Coins arrondis de la bordure
                                                           ),
-                                                          child: artists
-                                                                      .length ==
-                                                                  1
-                                                              ? ImageWithErrorHandler(
-                                                                  imageUrl: artists
-                                                                      .first
-                                                                      .imageUrl,
-                                                                  width: 40,
-                                                                  height: 40,
-                                                                )
-                                                              : ArtistImageRotator(
-                                                                  artists:
-                                                                      artists,
-                                                                ),
+                                                          child: ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                              8.0,
+                                                            ),
+                                                            child: artists
+                                                                        .length ==
+                                                                    1
+                                                                ? ImageWithErrorHandler(
+                                                                    imageUrl: artists
+                                                                        .first
+                                                                        .imageUrl,
+                                                                    width: 40,
+                                                                    height: 40,
+                                                                  )
+                                                                : ArtistImageRotator(
+                                                                    artists:
+                                                                        artists,
+                                                                  ),
+                                                          ),
                                                         ),
                                                       const SizedBox(
                                                         width: 8.0,

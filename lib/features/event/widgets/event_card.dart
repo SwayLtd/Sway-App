@@ -34,13 +34,25 @@ class EventCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Image de l'événement
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: ImageWithErrorHandler(
-                  imageUrl: event.imageUrl,
-                  width: double.infinity,
-                  height: 150,
-                  fit: BoxFit.cover,
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onPrimary, // Couleur de la bordure
+                    width: 2.0, // Épaisseur de la bordure
+                  ),
+                  borderRadius:
+                      BorderRadius.circular(12), // Coins arrondis de la bordure
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: ImageWithErrorHandler(
+                    imageUrl: event.imageUrl,
+                    width: double.infinity,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),

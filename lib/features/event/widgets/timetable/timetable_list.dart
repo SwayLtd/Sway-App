@@ -97,10 +97,8 @@ Future<Widget> buildListView(
                 for (final otherEntry in artistsByStage[stage]!) {
                   if (entry == otherEntry) continue;
 
-                  final DateTime? otherStartTime =
-                      otherEntry['start_time'];
-                  final DateTime? otherEndTime =
-                      otherEntry['end_time'];
+                  final DateTime? otherStartTime = otherEntry['start_time'];
+                  final DateTime? otherEndTime = otherEntry['end_time'];
 
                   if (startTime != null &&
                       endTime != null &&
@@ -195,19 +193,45 @@ Future<Widget> buildListView(
                               title: Row(
                                 children: [
                                   if (artists.length == 1) ...[
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      child: ImageWithErrorHandler(
-                                        imageUrl: artists.first.imageUrl,
-                                        width: 40,
-                                        height: 40,
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary, // Couleur de la bordure
+                                          width: 2.0, // Épaisseur de la bordure
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                            12), // Coins arrondis de la bordure
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                        child: ImageWithErrorHandler(
+                                          imageUrl: artists.first.imageUrl,
+                                          width: 40,
+                                          height: 40,
+                                        ),
                                       ),
                                     ),
                                   ] else ...[
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      child: ArtistImageRotator(
-                                        artists: artists,
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary, // Couleur de la bordure
+                                          width: 2.0, // Épaisseur de la bordure
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                            12), // Coins arrondis de la bordure
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                        child: ArtistImageRotator(
+                                          artists: artists,
+                                        ),
                                       ),
                                     ),
                                   ],

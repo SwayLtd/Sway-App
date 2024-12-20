@@ -1,6 +1,7 @@
 // lib/features/artist/widgets/artist_item_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 
@@ -25,13 +26,25 @@ class ArtistListItemWidget extends StatelessWidget {
         : artist.name;
 
     return ListTile(
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: ImageWithErrorHandler(
-          imageUrl: artist.imageUrl,
-          width: 50,
-          height: 50,
-          fit: BoxFit.cover,
+      leading: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context)
+                .colorScheme
+                .onPrimary, // Couleur de la bordure
+            width: 2.0, // Épaisseur de la bordure
+          ),
+          borderRadius:
+              BorderRadius.circular(12), // Coins arrondis de la bordure
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: ImageWithErrorHandler(
+            imageUrl: artist.imageUrl,
+            width: 50,
+            height: 50,
+            fit: BoxFit.cover,
+          ),
         ),
       ),
       title: Text(
@@ -71,16 +84,28 @@ class ArtistCardItemWidget extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            // Image de l'artiste
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: ImageWithErrorHandler(
-                imageUrl: artist.imageUrl,
-                width: 100,
-                height: 100,
+            // Container avec bordure autour de l'image de l'artiste
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onPrimary, // Couleur de la bordure
+                  width: 2.0, // Épaisseur de la bordure
+                ),
+                borderRadius:
+                    BorderRadius.circular(12), // Coins arrondis de la bordure
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: ImageWithErrorHandler(
+                  imageUrl: artist.imageUrl,
+                  width: 100,
+                  height: 100,
+                ),
               ),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: sectionTitleSpacing),
             // Nom de l'artiste avec troncature et retour à la ligne
             Text(
               truncatedName,

@@ -64,13 +64,25 @@ class _VenueListItemWidgetState extends State<VenueListItemWidget> {
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
         onTap: widget.onTap,
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: ImageWithErrorHandler(
-            imageUrl: widget.venue.imageUrl,
-            width: 50,
-            height: 50,
-            fit: BoxFit.cover,
+        leading: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onPrimary, // Couleur de la bordure
+              width: 2.0, // Épaisseur de la bordure
+            ),
+            borderRadius:
+                BorderRadius.circular(12), // Coins arrondis de la bordure
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: ImageWithErrorHandler(
+              imageUrl: widget.venue.imageUrl,
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+            ),
           ),
         ),
         title: Text(
@@ -163,12 +175,24 @@ class VenueCardItemWidget extends StatelessWidget {
         child: Column(
           children: [
             // Image du lieu
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: ImageWithErrorHandler(
-                imageUrl: venue.imageUrl,
-                width: 100,
-                height: 100,
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onPrimary, // Couleur de la bordure
+                  width: 2.0, // Épaisseur de la bordure
+                ),
+                borderRadius:
+                    BorderRadius.circular(12), // Coins arrondis de la bordure
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: ImageWithErrorHandler(
+                  imageUrl: venue.imageUrl,
+                  width: 100,
+                  height: 100,
+                ),
               ),
             ),
             const SizedBox(height: 5),

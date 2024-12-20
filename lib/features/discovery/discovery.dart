@@ -217,106 +217,110 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _refreshRecommendations,
-        child: FutureBuilder<Map<String, dynamic>?>(
-          future: _recommendationsFuture,
-          builder: (context, snapshot) {
-            if (_recommendationsFuture == null ||
-                snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator.adaptive());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Center(child: Text('No recommendations found'));
-            } else {
-              final recommendations = snapshot.data!;
-              return ListView(
-                children: [
-                  // Section "Suggested Events"
-                  if ((recommendations['suggestedEvents'] as List<Event>)
-                      .isNotEmpty) ...[
-                    _buildSectionTitle('Suggested Events'),
-                    SizedBox(height: sectionTitleSpacing),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: _buildEventCards(
-                          context,
-                          recommendations['suggestedEvents'] as List<Event>,
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        child: RefreshIndicator(
+          onRefresh: _refreshRecommendations,
+          child: FutureBuilder<Map<String, dynamic>?>(
+            future: _recommendationsFuture,
+            builder: (context, snapshot) {
+              if (_recommendationsFuture == null ||
+                  snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                    child: CircularProgressIndicator.adaptive());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data == null) {
+                return const Center(child: Text('No recommendations found'));
+              } else {
+                final recommendations = snapshot.data!;
+                return ListView(
+                  children: [
+                    // Section "Suggested Events"
+                    if ((recommendations['suggestedEvents'] as List<Event>)
+                        .isNotEmpty) ...[
+                      _buildSectionTitle('Suggested Events'),
+                      SizedBox(height: sectionTitleSpacing),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _buildEventCards(
+                            context,
+                            recommendations['suggestedEvents'] as List<Event>,
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: sectionSpacing),
-                  ],
+                      SizedBox(height: sectionSpacing),
+                    ],
 
-                  // Section "Upcoming Events" (Existante)
-                  if ((recommendations['events']).isNotEmpty) ...[
-                    _buildSectionTitle('Upcoming Events'),
-                    SizedBox(height: sectionTitleSpacing),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: _buildEventCards(
-                          context,
-                          recommendations['events'] as List<Event>,
+                    // Section "Upcoming Events" (Existante)
+                    if ((recommendations['events']).isNotEmpty) ...[
+                      _buildSectionTitle('Upcoming Events'),
+                      SizedBox(height: sectionTitleSpacing),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _buildEventCards(
+                            context,
+                            recommendations['events'] as List<Event>,
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: sectionSpacing),
-                  ],
+                      SizedBox(height: sectionSpacing),
+                    ],
 
-                  // Section "Suggested Promoters"
-                  if ((recommendations['promoters'] as List<Promoter>)
-                      .isNotEmpty) ...[
-                    _buildSectionTitle('Suggested Promoters'),
-                    SizedBox(height: sectionTitleSpacing),
-                    ..._buildPromoterCards(
-                      context,
-                      recommendations['promoters'] as List<Promoter>,
-                    ),
-                    SizedBox(height: sectionSpacing),
-                  ],
+                    // Section "Suggested Promoters"
+                    if ((recommendations['promoters'] as List<Promoter>)
+                        .isNotEmpty) ...[
+                      _buildSectionTitle('Suggested Promoters'),
+                      SizedBox(height: sectionTitleSpacing),
+                      ..._buildPromoterCards(
+                        context,
+                        recommendations['promoters'] as List<Promoter>,
+                      ),
+                      SizedBox(height: sectionSpacing),
+                    ],
 
-                  // Section "Suggested Artists"
-                  if ((recommendations['artists'] as List<Artist>)
-                      .isNotEmpty) ...[
-                    _buildSectionTitle('Suggested Artists'),
-                    SizedBox(height: sectionTitleSpacing),
-                    ..._buildArtistCards(
-                      context,
-                      recommendations['artists'] as List<Artist>,
-                    ),
-                    SizedBox(height: sectionSpacing),
-                  ],
+                    // Section "Suggested Artists"
+                    if ((recommendations['artists'] as List<Artist>)
+                        .isNotEmpty) ...[
+                      _buildSectionTitle('Suggested Artists'),
+                      SizedBox(height: sectionTitleSpacing),
+                      ..._buildArtistCards(
+                        context,
+                        recommendations['artists'] as List<Artist>,
+                      ),
+                      SizedBox(height: sectionSpacing),
+                    ],
 
-                  // Section "Suggested Venues"
-                  if ((recommendations['venues'] as List<Venue>)
-                      .isNotEmpty) ...[
-                    _buildSectionTitle('Suggested Venues'),
-                    SizedBox(height: sectionTitleSpacing),
-                    ..._buildVenueCards(
-                      context,
-                      recommendations['venues'] as List<Venue>,
-                    ),
-                    SizedBox(height: sectionSpacing),
-                  ],
+                    // Section "Suggested Venues"
+                    if ((recommendations['venues'] as List<Venue>)
+                        .isNotEmpty) ...[
+                      _buildSectionTitle('Suggested Venues'),
+                      SizedBox(height: sectionTitleSpacing),
+                      ..._buildVenueCards(
+                        context,
+                        recommendations['venues'] as List<Venue>,
+                      ),
+                      SizedBox(height: sectionSpacing),
+                    ],
 
-                  // Section "Suggested Genres"
-                  if ((recommendations['genres'] as List<Genre>)
-                      .isNotEmpty) ...[
-                    _buildSectionTitle('Suggested Genres'),
-                    SizedBox(height: sectionTitleSpacing),
-                    _buildGenreChips(
-                      context,
-                      recommendations['genres'] as List<Genre>,
-                    ),
-                    SizedBox(height: sectionSpacing),
+                    // Section "Suggested Genres"
+                    if ((recommendations['genres'] as List<Genre>)
+                        .isNotEmpty) ...[
+                      _buildSectionTitle('Suggested Genres'),
+                      SizedBox(height: sectionTitleSpacing),
+                      _buildGenreChips(
+                        context,
+                        recommendations['genres'] as List<Genre>,
+                      ),
+                      SizedBox(height: sectionSpacing),
+                    ],
                   ],
-                ],
-              );
-            }
-          },
+                );
+              }
+            },
+          ),
         ),
       ),
     );
@@ -368,12 +372,24 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         .map<Widget>(
           (artist) => ListTile(
             title: Text(artist.name),
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: ImageWithErrorHandler(
-                imageUrl: artist.imageUrl,
-                width: 50,
-                height: 50,
+            leading: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onPrimary, // Couleur de la bordure
+                  width: 2.0, // Épaisseur de la bordure
+                ),
+                borderRadius:
+                    BorderRadius.circular(12), // Coins arrondis de la bordure
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: ImageWithErrorHandler(
+                  imageUrl: artist.imageUrl,
+                  width: 50,
+                  height: 50,
+                ),
               ),
             ),
             onTap: () {

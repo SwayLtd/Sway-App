@@ -126,12 +126,24 @@ class _FollowersScreenState extends State<FollowersScreen>
             itemBuilder: (context, index) {
               final user = followers[index];
               return ListTile(
-                leading: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: ImageWithErrorHandler(
-                    imageUrl: user.profilePictureUrl,
-                    width: 50,
-                    height: 50,
+                leading: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onPrimary, // Couleur de la bordure
+                      width: 2.0, // Épaisseur de la bordure
+                    ),
+                    borderRadius: BorderRadius.circular(
+                        12), // Coins arrondis de la bordure
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: ImageWithErrorHandler(
+                      imageUrl: user.profilePictureUrl,
+                      width: 50,
+                      height: 50,
+                    ),
                   ),
                 ),
                 title: Text(user.username),

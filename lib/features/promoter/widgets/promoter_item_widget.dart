@@ -73,13 +73,25 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
             color: Theme.of(context).cardColor, // Apply cardColor from theme
             borderRadius: BorderRadius.circular(10),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: ImageWithErrorHandler(
-              imageUrl: widget.promoter.imageUrl,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onPrimary, // Couleur de la bordure
+                width: 2.0, // Épaisseur de la bordure
+              ),
+              borderRadius:
+                  BorderRadius.circular(12), // Coins arrondis de la bordure
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: ImageWithErrorHandler(
+                imageUrl: widget.promoter.imageUrl,
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         ),
@@ -239,16 +251,28 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
                 topRight: Radius.circular(10),
               ),
             ),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onPrimary, // Couleur de la bordure
+                  width: 2.0, // Épaisseur de la bordure
+                ),
+                borderRadius:
+                    BorderRadius.circular(12), // Coins arrondis de la bordure
               ),
-              child: ImageWithErrorHandler(
-                imageUrl: widget.promoter.imageUrl,
-                width: double.infinity,
-                height: 150,
-                fit: BoxFit.cover,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
+                ),
+                child: ImageWithErrorHandler(
+                  imageUrl: widget.promoter.imageUrl,
+                  width: double.infinity,
+                  height: 150,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),

@@ -224,12 +224,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Center(
                         child: Column(
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(15),
-                              child: ImageWithErrorHandler(
-                                imageUrl: widget.user.profilePictureUrl,
-                                width: 100,
-                                height: 100,
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimary, // Couleur de la bordure
+                                  width: 2.0, // Épaisseur de la bordure
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                    12), // Coins arrondis de la bordure
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: ImageWithErrorHandler(
+                                  imageUrl: widget.user.profilePictureUrl,
+                                  width: 100,
+                                  height: 100,
+                                ),
                               ),
                             ),
                             TextButton(

@@ -38,8 +38,7 @@ Future<List<DateTime>> calculateFestivalDays(Event event) async {
 
       if (artistStartTime.hour < 5) {
         if (i > 0) {
-          final DateTime previousArtistEndTime =
-              dayArtists[i - 1]['end_time'];
+          final DateTime previousArtistEndTime = dayArtists[i - 1]['end_time'];
 
           if (artistStartTime.difference(previousArtistEndTime).inMinutes <=
               60) {
@@ -71,10 +70,11 @@ Future<List<DateTime>> calculateFestivalDays(Event event) async {
     }
 
     // Ne pas ajouter le jour s'il n'a que des événements qui sont une continuation de la veille
-    if (!isContinuation || artistsByDay[day]!.any((artist) {
-      final DateTime artistStartTime = artist['start_time'];
-      return artistStartTime.hour >= 5;
-    })) {
+    if (!isContinuation ||
+        artistsByDay[day]!.any((artist) {
+          final DateTime artistStartTime = artist['start_time'];
+          return artistStartTime.hour >= 5;
+        })) {
       daysWithArtists.add(day);
     }
   }
@@ -113,12 +113,24 @@ void showArtistsBottomSheet(BuildContext context, List<Artist> artists) {
           const SizedBox(height: 10),
           ...artists.map((artist) {
             return ListTile(
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
-                child: ImageWithErrorHandler(
-                  imageUrl: artist.imageUrl,
-                  width: 40,
-                  height: 40,
+              leading: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onPrimary, // Couleur de la bordure
+                    width: 2.0, // Épaisseur de la bordure
+                  ),
+                  borderRadius:
+                      BorderRadius.circular(12), // Coins arrondis de la bordure
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: ImageWithErrorHandler(
+                    imageUrl: artist.imageUrl,
+                    width: 40,
+                    height: 40,
+                  ),
                 ),
               ),
               title: Text(artist.name),

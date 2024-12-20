@@ -36,13 +36,25 @@ class EventCardItemWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image de l'événement
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: ImageWithErrorHandler(
-                imageUrl: event.imageUrl,
-                width: 200,
-                height: 120,
-                fit: BoxFit.cover,
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onPrimary, // Couleur de la bordure
+                  width: 2.0, // Épaisseur de la bordure
+                ),
+                borderRadius:
+                    BorderRadius.circular(12), // Coins arrondis de la bordure
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: ImageWithErrorHandler(
+                  imageUrl: event.imageUrl,
+                  width: 200,
+                  height: 120,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -74,7 +86,8 @@ class EventCardItemWidget extends StatelessWidget {
                       color: Colors.grey,
                     ),
                   );
-                } else if (!venueSnapshot.hasData || venueSnapshot.data == null) {
+                } else if (!venueSnapshot.hasData ||
+                    venueSnapshot.data == null) {
                   return const Text(
                     'Unknown location',
                     style: TextStyle(
@@ -94,7 +107,8 @@ class EventCardItemWidget extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          venue.name, // Ou utilisez une autre propriété pertinente
+                          venue
+                              .name, // Ou utilisez une autre propriété pertinente
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
@@ -159,13 +173,25 @@ class EventListItemWidget extends StatelessWidget {
     final EventVenueService eventVenueService = EventVenueService();
 
     return ListTile(
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: ImageWithErrorHandler(
-          imageUrl: event.imageUrl,
-          width: 50,
-          height: 50,
-          fit: BoxFit.cover,
+      leading: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context)
+                .colorScheme
+                .onPrimary, // Couleur de la bordure
+            width: 2.0, // Épaisseur de la bordure
+          ),
+          borderRadius:
+              BorderRadius.circular(12), // Coins arrondis de la bordure
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: ImageWithErrorHandler(
+            imageUrl: event.imageUrl,
+            width: 50,
+            height: 50,
+            fit: BoxFit.cover,
+          ),
         ),
       ),
       title: Text(

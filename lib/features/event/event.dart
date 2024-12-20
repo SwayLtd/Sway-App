@@ -286,12 +286,24 @@ class _EventScreenState extends State<EventScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: ImageWithErrorHandler(
-                  imageUrl: widget.event.imageUrl,
-                  width: double.infinity,
-                  height: 200,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onPrimary, // Couleur de la bordure
+                    width: 2.0, // Épaisseur de la bordure
+                  ),
+                  borderRadius:
+                      BorderRadius.circular(12), // Coins arrondis de la bordure
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: ImageWithErrorHandler(
+                    imageUrl: widget.event.imageUrl,
+                    width: double.infinity,
+                    height: 200,
+                  ),
                 ),
               ),
             ),
@@ -410,7 +422,18 @@ class _EventScreenState extends State<EventScreen> {
                               padding: const EdgeInsets.all(8.0),
                               child: Column(
                                 children: [
-                                  ClipRRect(
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimary, // Couleur de la bordure
+                                        width: 2.0, // Épaisseur de la bordure
+                                      ),
+                                      borderRadius: BorderRadius.circular(
+                                          12), // Coins arrondis de la bordure
+                                    ),
+                                    child: ClipRRect(
                                       borderRadius: BorderRadius.circular(10),
                                       child: status == 'cancelled'
                                           ? ColorFiltered(
@@ -430,7 +453,9 @@ class _EventScreenState extends State<EventScreen> {
                                               width: 100,
                                               height: 100,
                                               fit: BoxFit.cover,
-                                            )),
+                                            ),
+                                    ),
+                                  ),
                                   const SizedBox(height: 5),
                                   Text(
                                     artist.name,

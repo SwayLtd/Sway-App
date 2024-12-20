@@ -145,7 +145,9 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(behavior: SnackBarBehavior.floating, content: Text('Erreur lors de la mise à jour du suivi.')),
+        SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Erreur lors de la mise à jour du suivi.')),
       );
     }
   }
@@ -178,7 +180,7 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
         } else {
           iconData = Icons.favorite_border;
         }
-        iconColor = Colors.white;
+        iconColor = Theme.of(context).iconTheme.color!;
         onPressed = _toggleFollow;
       }
 

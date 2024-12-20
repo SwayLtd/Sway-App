@@ -185,12 +185,24 @@ class _PromoterScreenState extends State<PromoterScreen> {
                       children: [
                         // Image du promoteur
                         Center(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: ImageWithErrorHandler(
-                              imageUrl: _promoter!.imageUrl,
-                              width: 200,
-                              height: 200,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onPrimary, // Couleur de la bordure
+                                width: 2.0, // Épaisseur de la bordure
+                              ),
+                              borderRadius: BorderRadius.circular(
+                                  12), // Coins arrondis de la bordure
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(15),
+                              child: ImageWithErrorHandler(
+                                imageUrl: _promoter!.imageUrl,
+                                width: 200,
+                                height: 200,
+                              ),
                             ),
                           ),
                         ),

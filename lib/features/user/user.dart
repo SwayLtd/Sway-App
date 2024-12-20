@@ -84,12 +84,24 @@ class UserScreen extends StatelessWidget {
                   children: [
                     // Photo de Profil
                     Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
-                        child: ImageWithErrorHandler(
-                          imageUrl: user.profilePictureUrl,
-                          width: 150,
-                          height: 150,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimary, // Couleur de la bordure
+                            width: 2.0, // Épaisseur de la bordure
+                          ),
+                          borderRadius: BorderRadius.circular(
+                              12), // Coins arrondis de la bordure
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: ImageWithErrorHandler(
+                            imageUrl: user.profilePictureUrl,
+                            width: 150,
+                            height: 150,
+                          ),
                         ),
                       ),
                     ),
@@ -199,13 +211,26 @@ class UserScreen extends StatelessWidget {
                                     padding: const EdgeInsets.all(8.0),
                                     child: Column(
                                       children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          child: ImageWithErrorHandler(
-                                            imageUrl: artist.imageUrl,
-                                            width: 100,
-                                            height: 100,
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimary, // Couleur de la bordure
+                                              width:
+                                                  2.0, // Épaisseur de la bordure
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                                12), // Coins arrondis de la bordure
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: ImageWithErrorHandler(
+                                              imageUrl: artist.imageUrl,
+                                              width: 100,
+                                              height: 100,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(height: 5),
@@ -260,13 +285,26 @@ class UserScreen extends StatelessWidget {
                                     padding: const EdgeInsets.all(8.0),
                                     child: Column(
                                       children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          child: ImageWithErrorHandler(
-                                            imageUrl: venue.imageUrl,
-                                            width: 100,
-                                            height: 100,
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimary, // Couleur de la bordure
+                                              width:
+                                                  2.0, // Épaisseur de la bordure
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                                12), // Coins arrondis de la bordure
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: ImageWithErrorHandler(
+                                              imageUrl: venue.imageUrl,
+                                              width: 100,
+                                              height: 100,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(height: 5),
@@ -321,13 +359,26 @@ class UserScreen extends StatelessWidget {
                                     padding: const EdgeInsets.all(8.0),
                                     child: Column(
                                       children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          child: ImageWithErrorHandler(
-                                            imageUrl: promoter.imageUrl,
-                                            width: 100,
-                                            height: 100,
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimary, // Couleur de la bordure
+                                              width:
+                                                  2.0, // Épaisseur de la bordure
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                                12), // Coins arrondis de la bordure
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: ImageWithErrorHandler(
+                                              imageUrl: promoter.imageUrl,
+                                              width: 100,
+                                              height: 100,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(height: 5),

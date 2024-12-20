@@ -38,12 +38,22 @@ class _ArtistImageRotatorState extends State<ArtistImageRotator> {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8.0),
-      child: ImageWithErrorHandler(
-        imageUrl: widget.artists[_currentIndex].imageUrl,
-        width: 40,
-        height: 40,
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color:
+              Theme.of(context).colorScheme.onPrimary, // Couleur de la bordure
+          width: 2.0, // Épaisseur de la bordure
+        ),
+        borderRadius: BorderRadius.circular(12), // Coins arrondis de la bordure
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8.0),
+        child: ImageWithErrorHandler(
+          imageUrl: widget.artists[_currentIndex].imageUrl,
+          width: 40,
+          height: 40,
+        ),
       ),
     );
   }
