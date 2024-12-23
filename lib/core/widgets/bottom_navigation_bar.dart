@@ -42,7 +42,7 @@ class _ScaffoldWithNavBarWithoutAppBarState
     final List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
       const BottomNavigationBarItem(
         icon: Icon(Icons.local_library_outlined),
-        label: "Discovery",
+        label: "Explore",
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.search_outlined),
@@ -60,19 +60,23 @@ class _ScaffoldWithNavBarWithoutAppBarState
 
     final List<NavigationDestination> destinations = <NavigationDestination>[
       const NavigationDestination(
-        icon: Icon(Icons.local_library_outlined),
-        label: "Discovery",
+        icon: Icon(Icons.explore_outlined),
+        selectedIcon: Icon(Icons.explore),
+        label: "Explore",
       ),
       const NavigationDestination(
         icon: Icon(Icons.search_outlined),
+        selectedIcon: Icon(Icons.search),
         label: "Search",
       ),
       const NavigationDestination(
         icon: Icon(Icons.local_activity_outlined),
+        selectedIcon: Icon(Icons.local_activity),
         label: "Tickets",
       ),
       const NavigationDestination(
         icon: Icon(Icons.settings_outlined),
+        selectedIcon: Icon(Icons.settings),
         label: "Settings",
       ),
     ];
@@ -83,14 +87,14 @@ class _ScaffoldWithNavBarWithoutAppBarState
         : _currentIndex;
 
     // Get screen width to calculate indicator position
-    final double screenWidth = MediaQuery.of(context).size.width;
+    /* final double screenWidth = MediaQuery.of(context).size.width;
     final int numberOfItems = items.length;
     final double itemWidth = screenWidth / numberOfItems;
 
     // Define indicator properties
     final double indicatorWidth = 48.0;
     final double indicatorHeight = 2.0;
-    final Color indicatorColor = Theme.of(context).primaryColor;
+    final Color indicatorColor = Theme.of(context).primaryColor; */
 
     return Scaffold(
       key: _scaffoldKey,
@@ -99,11 +103,11 @@ class _ScaffoldWithNavBarWithoutAppBarState
         mainAxisSize: MainAxisSize.min,
         children: [
           // Divider line to separate BottomNavigationBar from content
-          /* Divider(
+          Divider(
             height: 1,
             thickness: 1,
-            color: Colors.grey[300],
-          ), */
+            color: Color.fromRGBO(41, 36, 24, 1),
+          ),
           // Stack to overlay the BottomNavigationBar and the indicator
           Stack(
             children: [

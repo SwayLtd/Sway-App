@@ -1,17 +1,16 @@
-// lib/features/ticketing/screens/edit_event_details_screen.dart
+// lib\features\ticketing\screens\edit_event_details_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
-import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/ticketing/models/ticket_model.dart';
 import 'package:sway/features/ticketing/services/ticket_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/ticketing/ticketing.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/notification/services/notification_service.dart';
-import 'package:sway/features/event/services/event_promoter_service.dart'; // Importez le service promoteur
+import 'package:sway/features/user/services/user_service.dart';
 
 class EditEventDetailsScreen extends StatefulWidget {
   final Ticket ticket;
@@ -26,8 +25,6 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
   final EventService _eventService = EventService();
   final TicketService _ticketService = TicketService();
   final EventVenueService _eventVenueService = EventVenueService();
-  final EventPromoterService _eventPromoterService =
-      EventPromoterService(); // Instanciez le service promoteur
 
   final TextEditingController _eventNameController = TextEditingController();
   final TextEditingController _eventLocationController =
@@ -69,8 +66,9 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text('Error fetching events: $e')),
+          behavior: SnackBarBehavior.floating,
+          content: Text('Error fetching events: $e'),
+        ),
       );
     }
   }
@@ -80,6 +78,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
   }
 
   Future<void> _saveDetails() async {
+    print('[_saveDetails] Start saving details...'); // Log
     final updatedTicket = Ticket(
       id: widget.ticket.id,
       filePath: widget.ticket.filePath,
@@ -92,12 +91,14 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
       groupId: widget.ticket.groupId,
     );
 
-    try {
-      // Mettre à jour le ticket actuel
-      await _ticketService.updateTicket(updatedTicket);
+    print('[_saveDetails] Updated ticket: ${updatedTicket.toMap()}'); // Log
 
-      // Si groupId existe, mettre à jour tous les tickets avec le même groupId
+    try {
+      await _ticketService.updateTicket(updatedTicket);
+      print('[_saveDetails] Ticket updated in local storage'); // Log
+
       if (updatedTicket.groupId != null) {
+        print('[_saveDetails] groupId found, updating related tickets'); // Log
         List<Ticket> allTickets = await _ticketService.getTickets();
         List<Ticket> relatedTickets = allTickets
             .where((t) =>
@@ -111,43 +112,60 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
           t.eventLocation = updatedTicket.eventLocation;
           t.ticketType = updatedTicket.ticketType;
 
+          print(
+              '[_saveDetails] Updating related ticket with id ${t.id}'); // Log
           await _ticketService.updateTicket(t);
         }
       }
 
-      // Programmer la notification 1 heure avant l'événement
+      // Vérifier si l'événement n'est pas terminé
       if (_selectedEvent != null && _eventDate != null) {
-        // Récupérer le nom du promoteur
-        List<Promoter> promoters = await _eventPromoterService
-            .getPromotersByEventId(_selectedEvent!.id);
-        String promoterName = promoters.isNotEmpty
-            ? promoters.map((p) => p.name).join(', ')
-            : 'Promoteur non disponible';
+        print(
+            '[_saveDetails] Event selected. Attempting to set notification.'); // Log
 
-        // Calculer la date de notification (1 heure avant l'événement)
-        DateTime notificationTime = _eventDate!.subtract(Duration(hours: 2));
-
-        // Vérifier que la date de notification n'est pas dans le passé
-        if (notificationTime.isAfter(DateTime.now())) {
-          print("Notification 2 heures avant programmées");
-          await NotificationService().scheduleNotification(
-              title: "$promoterName",
-              body: "Ticket for ${_selectedEvent!.title}",
-              scheduledNotificationDateTime: notificationTime);
+        // Si l'événement est déjà passé, on ne programme pas de notif
+        final now = DateTime.now();
+        if (_eventDate!.isBefore(now)) {
+          print(
+              '[_saveDetails] Event ended. No ticket notification scheduled.');
         } else {
-          print("La date de notification est dans le passé.");
-          print("Notification 10 secondes avant programmées");
+          final user = await UserService().getCurrentUser();
+          if (user != null && user.supabaseId.isNotEmpty) {
+            final supabaseId = user.supabaseId;
+            print('[_saveDetails] User supabaseId: $supabaseId'); // Log
 
-          await NotificationService().scheduleNotification(
-            title: "$promoterName",
-            body: "Ticket for ${_selectedEvent!.title}",
-            scheduledNotificationDateTime: DateTime.now().add(
-              Duration(seconds: 10),
-            ),
+            print('[_saveDetails] Calling upsertTicketNotification...'); // Log
+            await NotificationService().upsertTicketNotification(
+              supabaseId: supabaseId,
+              ticket: updatedTicket,
+              eventStartTime: _eventDate!,
+            );
+            print('[_saveDetails] Notification upserted'); // Log
+          } else {
+            print(
+                '[_saveDetails] No user found or supabaseId is empty, cannot set notification');
+          }
+        }
+      } else {
+        print(
+            '[_saveDetails] No event selected, attempting to delete notification'); // Log
+        final user = await UserService().getCurrentUser();
+        if (user != null && user.supabaseId.isNotEmpty) {
+          final supabaseId = user.supabaseId;
+          print('[_saveDetails] User supabaseId: $supabaseId'); // Log
+
+          await NotificationService().deleteTicketNotification(
+            supabaseId: supabaseId,
+            ticketId: updatedTicket.id,
           );
+          print('[_saveDetails] Notification deleted'); // Log
+        } else {
+          print(
+              '[_saveDetails] No user found or supabaseId is empty, cannot delete notification');
         }
       }
 
+      print('[_saveDetails] Navigation to TicketingScreen'); // Log
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -155,15 +173,18 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
         ),
       );
     } catch (e) {
+      print('[_saveDetails] Error saving event details: $e'); // Log error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text('Error saving event details: $e')),
+          behavior: SnackBarBehavior.floating,
+          content: Text('Error saving event details: $e'),
+        ),
       );
     }
   }
 
   Future<void> _selectEvent(Event event) async {
+    print('[_selectEvent] Event selected: ${event.id} - ${event.title}'); // Log
     Venue? venue = await _eventVenueService.getVenueByEventId(event.id);
     setState(() {
       _selectedEvent = event;
@@ -175,6 +196,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('[EditEventDetailsScreen] build called'); // Log
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add event details'),
@@ -192,7 +214,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
             // Search Event Field
             TextField(
               controller: _searchController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Search Events',
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
@@ -214,7 +236,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
                                   height: 50,
                                   fit: BoxFit.cover,
                                 )
-                              : Icon(Icons.event, size: 50),
+                              : const Icon(Icons.event, size: 50),
                           title: Text(event.title),
                           subtitle: Text(
                               '${event.dateTime.toLocal().toString().split(' ')[0]}'),
@@ -222,7 +244,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
                         );
                       },
                     )
-                  : Center(
+                  : const Center(
                       child: Text(
                         'No events found',
                         style: TextStyle(fontSize: 16, color: Colors.grey),

@@ -234,6 +234,16 @@ class TicketService {
     return allTickets.where((t) => t.eventId == eventId).toList();
   }
 
+  /// Récupère un ticket par son ID local.
+  Future<Ticket?> getTicketById(int ticketId) async {
+    List<Ticket> currentTickets = await getTickets();
+    try {
+      return currentTickets.firstWhere((t) => t.id == ticketId);
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Récupère les tickets à venir en fonction de la date de fin de l'événement.
   Future<List<Ticket>> getUpcomingTickets() async {
     final now = DateTime.now();

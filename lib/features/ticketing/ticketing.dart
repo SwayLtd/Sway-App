@@ -112,6 +112,9 @@ class _TicketingScreenState extends State<TicketingScreen>
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow
+                      .ellipsis, // Ajoute des "..." si le texte dépasse
                 ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,6 +189,9 @@ class _TicketingScreenState extends State<TicketingScreen>
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow
+                    .ellipsis, // Ajoute des "..." si le texte dépasse
               ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

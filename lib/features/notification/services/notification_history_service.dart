@@ -1,7 +1,7 @@
 // lib/features/notification/services/notification_history_service.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sway/features/notification/screens/notification_model.dart';
+import 'package:sway/features/notification/models/notification_model.dart';
 
 class NotificationHistoryService {
   final SupabaseClient _supabaseClient = Supabase.instance.client;

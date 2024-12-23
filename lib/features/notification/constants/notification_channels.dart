@@ -1,6 +1,7 @@
 // lib/core/constants/notification_channels.dart
 
 class NotificationChannels {
+  static const String ticket = 'ticket_notifications';
   static const String event = 'event_notifications';
   static const String artist = 'artist_notifications';
   static const String promoter = 'promoter_notifications';
@@ -12,6 +13,7 @@ class NotificationChannels {
   static const String system = 'system_notifications';
 
   static const Map<String, String> channelNames = {
+    ticket: 'Ticket Notifications',
     event: 'Event Notifications',
     artist: 'Artist Notifications',
     promoter: 'Promoter Notifications',
@@ -24,6 +26,7 @@ class NotificationChannels {
   };
 
   static const Map<String, String> channelDescriptions = {
+    ticket: 'Notifications related to tickets.',
     event: 'Notifications related to events.',
     artist: 'Notifications related to artists.',
     promoter: 'Notifications related to promoters.',

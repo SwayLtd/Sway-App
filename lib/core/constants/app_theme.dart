@@ -8,12 +8,13 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData light = ThemeData(
-    primaryColor: Colors.amber,
+    primaryColor: Color.fromRGBO(255, 188, 0, 1),
     colorScheme: const ColorScheme.light(
-      primary: Colors.amber,
+      primary: Color.fromRGBO(255, 188, 0, 1),
       secondary: Colors.amberAccent,
       error: Colors.red,
       onPrimary: Colors.black,
+      surface: Colors.white, // Couleur de surface pour les dialogues
     ),
     primarySwatch: Colors.amber,
     brightness: Brightness.light,
@@ -22,18 +23,54 @@ class AppTheme {
     scaffoldBackgroundColor: Colors.grey[200], // Légèrement grisé pour le fond
     cardColor: Colors.white, // Couleur blanche pour les cartes
     appBarTheme: AppBarTheme(
+      scrolledUnderElevation: 0.0, // Disable appbar color change on scroll
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.light,
       ),
-      elevation: 0.5,
+      elevation: 0.0,
       color: Colors.grey[100], // Légèrement grisé pour harmoniser avec le fond
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor:
           Colors.grey[100], // Légèrement grisé pour harmoniser avec le fond
-      selectedItemColor: Colors.amber,
+      selectedItemColor: Color.fromRGBO(255, 188, 0, 1),
       unselectedItemColor: Colors.black54,
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor:
+          Colors.grey[100], // Légèrement grisé pour harmoniser avec le fond
+      indicatorColor: Color.fromRGBO(
+          255, 188, 0, 1), // Couleur de l'indicateur de sélection
+      labelTextStyle: WidgetStateProperty.all(
+        TextStyle(
+          fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 1.25,
+        ),
+      ),
+      iconTheme: WidgetStateProperty.all(
+        IconThemeData(
+          color: Colors.black, // Couleur des icônes sélectionnées
+        ),
+      ),
+    ),
+    popupMenuTheme: PopupMenuThemeData(
+      color: Colors
+          .white, // Arrière-plan opaque pour PopupMenuButton en mode clair
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      elevation: 4.0,
+    ),
+    dialogTheme: DialogTheme(
+      backgroundColor:
+          Colors.white, // Couleur de fond des dialogues en mode clair
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      elevation: 4.0,
     ),
     textTheme: TextTheme(
       displayLarge: GoogleFonts.spaceGrotesk(
@@ -103,14 +140,42 @@ class AppTheme {
       bodyColor: Colors.black,
       displayColor: Colors.black,
     ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: Colors.white, // Fond pour le BottomSheet en mode clair
+    ),
+    timePickerTheme: TimePickerThemeData(
+      backgroundColor:
+          Colors.white, // Fond opaque du timePicker         // Fond du picker
+      hourMinuteColor: Colors.grey[200],
+      hourMinuteTextStyle: TextStyle(
+        fontSize: 48,
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
+      ),
+      dayPeriodTextStyle: TextStyle(
+        fontSize: 48,
+        fontWeight: FontWeight.w400,
+        color: Colors.black,
+      ),
+      timeSelectorSeparatorTextStyle: WidgetStateProperty.all(
+        TextStyle(
+          fontSize: 48, // La taille désirée
+          fontWeight: FontWeight.bold,
+          color: Colors.black, // Couleur souhaitée
+        ),
+      ),
+      dialHandColor: const Color.fromRGBO(255, 188, 0, 1),
+      dialBackgroundColor: Colors.grey[200],
+      // Éventuellement d’autres propriétés, selon vos besoins
+    ),
   );
 
   static ThemeData dark = ThemeData(
-    primaryColor: Colors.amber,
+    primaryColor: Color.fromRGBO(255, 188, 0, 1),
     colorScheme: const ColorScheme.dark(
-      primary: Colors.amber,
+      primary: Color.fromRGBO(255, 188, 0, 1),
       secondary: Colors.amberAccent,
-      surface: Colors.black54,
+      surface: Colors.black54, // Couleur de surface pour les dialogues
       error: Colors.red,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
@@ -119,21 +184,60 @@ class AppTheme {
     brightness: Brightness.dark,
     fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
     disabledColor: Colors.white70,
-    scaffoldBackgroundColor: Colors.black, // Changer à noir opaque
-    cardColor: Colors.grey[850], // Couleur pour les cartes dans le thème sombre
+    scaffoldBackgroundColor:
+        Color.fromRGBO(15, 13, 8, 1), // Changer à noir opaque
+    cardColor: Colors.black54, // Couleur pour les cartes dans le thème sombre
     appBarTheme: AppBarTheme(
+      scrolledUnderElevation: 0.0, // Disable appbar color change on scroll
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.light,
       ),
-      elevation: 0.5,
-      color: Colors.black, // grey[900] // Fond de l'AppBar légèrement grisé
+      elevation: 0.0,
+      color: Color.fromRGBO(
+          15, 13, 8, 1), // grey[900] // Fond de l'AppBar légèrement grisé
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor:
-          Colors.black, // grey[900] // Fond de l'AppBar légèrement grisé
-      selectedItemColor: Colors.amber,
+      backgroundColor: Color.fromRGBO(
+          15, 13, 8, 1), // grey[900] // Fond de l'AppBar légèrement grisé
+      selectedItemColor: Color.fromRGBO(255, 188, 0, 1),
       unselectedItemColor: Colors.white70,
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: const Color.fromRGBO(
+          15, 13, 8, 1), // Fond pour la NavigationBar en mode sombre
+      indicatorColor: const Color.fromARGB(
+          255, 255, 188, 0), // Couleur de l'indicateur de sélection
+      labelTextStyle: WidgetStateProperty.all(
+        TextStyle(
+          fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 1.25,
+        ),
+      ),
+      iconTheme: WidgetStateProperty.all(
+        IconThemeData(
+          color: Colors
+              .white, // Couleur contrastante pour les icônes sélectionnées en mode sombre
+        ),
+      ),
+    ),
+    popupMenuTheme: PopupMenuThemeData(
+      color: Color.fromRGBO(15, 13, 8,
+          1), // Arrière-plan opaque pour PopupMenuButton en mode sombre
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      elevation: 4.0,
+    ),
+    dialogTheme: DialogTheme(
+      backgroundColor: Color.fromRGBO(
+          15, 13, 8, 1), // Couleur de fond des dialogues en mode sombre
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      elevation: 4.0,
     ),
     textTheme: TextTheme(
       displayLarge: GoogleFonts.spaceGrotesk(
@@ -204,8 +308,32 @@ class AppTheme {
       displayColor: Colors.white,
     ),
     bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor:
-          Colors.grey[900], // Fond pour le BottomSheet en mode sombre
+      backgroundColor: Color.fromRGBO(
+          15, 13, 8, 1), // Fond pour le BottomSheet en mode sombre
+    ),
+    timePickerTheme: TimePickerThemeData(
+      backgroundColor: const Color.fromRGBO(15, 13, 8, 1),
+      hourMinuteTextStyle: TextStyle(
+        fontSize: 48,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      // Couleur de fond de la zone cliquable (non sélectionnée vs sélectionnée)
+      hourMinuteColor: const Color.fromRGBO(255, 188, 0, 1),
+      dayPeriodTextStyle: TextStyle(
+        fontSize: 48,
+        fontWeight: FontWeight.w400,
+        color: Colors.white,
+      ),
+      timeSelectorSeparatorTextStyle: WidgetStateProperty.all(
+        TextStyle(
+          fontSize: 48, // La taille désirée
+          fontWeight: FontWeight.bold,
+          color: Colors.white, // Couleur souhaitée
+        ),
+      ),
+      dialHandColor: const Color.fromARGB(255, 255, 188, 0),
+      dialBackgroundColor: Colors.black54,
     ),
   );
 }

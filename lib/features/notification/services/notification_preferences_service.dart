@@ -1,7 +1,7 @@
 // lib/core/services/notification_preferences_service.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../user/models/user_notification_preferences.dart';
+import '../models/user_notification_preferences_model.dart';
 
 class NotificationPreferencesService {
   final SupabaseClient _supabaseClient = Supabase.instance.client;
@@ -20,13 +20,14 @@ class NotificationPreferencesService {
       if (response == null) {
         // Aucune préférence trouvée, créer des préférences par défaut
         final defaultPreferences = UserNotificationPreferences(
-          userId: userId,
-          eventNotifications: true,
-          artistNotifications: true,
-          promoterNotifications: true,
-          venueNotifications: true,
-          socialNotifications: true,
-        );
+            userId: userId,
+            ticketNotifications: true,
+            eventNotifications: true,
+            artistNotifications: true,
+            promoterNotifications: true,
+            venueNotifications: true,
+            socialNotifications: true,
+            ticketReminderHours: 120);
 
         // Utiliser upsert avec onConflict en tant que chaîne
         await _supabaseClient
@@ -47,27 +48,26 @@ class NotificationPreferencesService {
 
   /// Updates the notification preferences for a given user.
   Future<bool> updatePreferences(
-      int userId, UserNotificationPreferences preferences) async {
+      int userId, UserNotificationPreferences prefs) async {
     try {
-      // Utiliser upsert avec onConflict en tant que chaîne et ajouter .select()
-      final response =
-          await _supabaseClient.from('user_notification_preferences').upsert(
-        {
-          'user_id': userId,
-          'event_notifications': preferences.eventNotifications,
-          'artist_notifications': preferences.artistNotifications,
-          'promoter_notifications': preferences.promoterNotifications,
-          'venue_notifications': preferences.venueNotifications,
-          'social_notifications': preferences.socialNotifications,
-        },
-        onConflict: 'user_id', // Passer onConflict comme chaîne
-      ).select(); // Ajouter .select() pour obtenir une réponse non nulle
+      final response = await _supabaseClient
+          .from('user_notification_preferences')
+          .upsert(
+            prefs.toMap(),
+            onConflict: 'user_id',
+          )
+          .select()
+          .maybeSingle();
 
-      print('Response from upsert: $response'); // Log pour débogage
-
+      if (response == null) {
+        print('No row returned after upsert, check constraints or RLS.');
+        return false;
+      }
+      // Log pour debug
+      print('Update response: $response');
       return true;
     } catch (e) {
-      print('Exception in updatePreferences: $e');
+      print('Error updatePreferences: $e');
       return false;
     }
   }

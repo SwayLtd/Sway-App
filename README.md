@@ -16,18 +16,21 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Enhanced Ticket Notification Flow - Notifications
 - Enhanced Notification System with History, Relative Days, and Deep Linking -
   Notifications
 - Different notification channels/types, user notification preferences,
   notification RLS policies - Notifications
 - FCM default and high priority channel, foreground notifications, push
   notification icon fix - Notifications
-- Local notifications, IOS notification permission, local schedule notification,
-  immediate and scheduled push notification - Notifications
 - Enhance VenueScreen and PromoterScreen UI/UX
 
 ### Known Issues
 
+- (Notification) Ticket notification actions are not working
+- (Notification) Ticket notification doesn't show the ticket on click
+- (Notification) Remote notification preferences not linked to notification
+  channels
 - (Timetable) The day selection show days without artists programmed.
 - (FIXED)(Ticketing) Delete white margins on PDF during import
 - (FIXED)(Ticketing) Multiple pages PDF are not unpacked a multiple tickets

@@ -1,6 +1,6 @@
 // lib/features/notification/models/list_item.dart
 
-import 'package:sway/features/notification/screens/notification_model.dart';
+import 'package:sway/features/notification/models/notification_model.dart';
 
 abstract class ListItem {}
 

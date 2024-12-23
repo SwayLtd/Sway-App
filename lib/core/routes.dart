@@ -10,12 +10,14 @@ import 'package:sway/core/auth_state_manager.dart';
 import 'package:sway/core/utils/error/error_not_found.dart';
 import 'package:sway/core/widgets/bottom_navigation_bar.dart';
 import 'package:sway/features/artist/artist.dart';
-import 'package:sway/features/discovery/discovery.dart';
+import 'package:sway/features/explore/explore.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/promoter/promoter.dart';
+import 'package:sway/features/ticketing/screens/ticket_detail_screen.dart';
+import 'package:sway/features/ticketing/services/ticket_service.dart';
 import 'package:sway/features/user/user.dart';
 import 'package:sway/features/search/search.dart';
 import 'package:sway/features/settings/settings.dart';
@@ -128,6 +130,36 @@ List<Map<String, dynamic>> standaloneRoutes = [
           } else {
             final event = snapshot.data!;
             return EventScreen(event: event);
+          }
+        },
+      );
+    },
+  },
+  {
+    'name': 'TicketDetail',
+    'path': '/ticket/:id',
+    'screenBuilder': (BuildContext context, GoRouterState state) {
+      final String ticketIdParam = state.pathParameters['id']!;
+      final int ticketId = int.tryParse(ticketIdParam) ?? -1;
+      return FutureBuilder(
+        future: TicketService().getTicketById(ticketId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Loading Ticket')),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          } else if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Ticket Not Found')),
+              body: const Center(child: Text('Ticket not found.')),
+            );
+          } else {
+            final ticket = snapshot.data!;
+            return TicketDetailScreen(
+              tickets: [ticket],
+              initialTicket: ticket,
+            );
           }
         },
       );

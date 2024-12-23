@@ -1,9 +1,9 @@
-// lib/features/notification/screens/notification_screen.dart
+// lib/features/notification/notification.dart
 
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:sway/features/notification/models/notification_list_item.dart';
-import 'package:sway/features/notification/screens/notification_model.dart';
+import 'package:sway/features/notification/widgets/notification_list_item.dart';
+import 'package:sway/features/notification/models/notification_model.dart';
 import 'package:sway/features/notification/services/notification_history_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:go_router/go_router.dart'; // Ensure GoRouter is importé
@@ -119,6 +119,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
   /// Returns the appropriate Material icon based on the notification type.
   IconData getIconForNotificationType(String type) {
     switch (type) {
+      case 'ticket':
+        return Icons.local_activity;
       case 'event':
         return Icons.event;
       case 'artist':
@@ -137,7 +139,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return Icons.payment;
       case 'system':
         return Icons.settings;
-      case 'default':
       default:
         return Icons.notifications;
     }
@@ -233,6 +234,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
               break;
             case 'genre':
               context.push('/genre/$id');
+              break;
+            case 'ticket':
+              context.push('/ticket/$id'); // Ajout du cas ticket
               break;
             // Add more cases as needed for different entity types
             default:
