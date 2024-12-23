@@ -195,7 +195,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Discovery"),
+        title: const Text("Explore"),
         actions: [
           IconButton(
             icon: Stack(
@@ -454,21 +454,22 @@ class Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
-        color: Colors.red,
+        color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(8),
       ),
       constraints: const BoxConstraints(
-        minWidth: 16,
-        minHeight: 16,
+        minWidth: 12,
+        minHeight: 12,
       ),
-      child: const Text(
-        '5', // Remplacez par le nombre réel de notifications non lues
+      /* child: Text(
+        '5'
         style: TextStyle(
-          color: Colors.white,
-          fontSize: 12,
+          color: Theme.of(context).colorScheme.surface,
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
         ),
         textAlign: TextAlign.center,
-      ),
+      ), */
     );
   }
 }
