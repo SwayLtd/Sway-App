@@ -15,8 +15,12 @@ import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/firebase_options.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-// Importez votre routeur ou vos utilitaires de navigation si besoin
-// import 'package:sway/core/routes.dart'; // Par exemple
+
+/// NotificationService is responsible for:
+/// 1) Initializing Firebase + flutter_local_notifications.
+/// 2) Handling foreground messages (showFlutterNotification).
+/// 3) Scheduling local notifications if needed (scheduleNotification).
+/// 4) Opening the correct screen (ticket, etc.) when the user clicks on the notification.
 
 class NotificationService {
   final NotificationPreferencesService _prefsService =
@@ -41,11 +45,13 @@ class NotificationService {
     print('Handling a background message ${message.messageId}');
   }
 
+  /// Sets up local notification channels and foreground presentation options.
   Future<void> setupFlutterNotifications() async {
     if (isFlutterLocalNotificationsInitialized) {
       return;
     }
 
+    // Create channels from the defined NotificationChannels
     channels = NotificationChannels.channelNames.keys.map((channelId) {
       return AndroidNotificationChannel(
         channelId,
@@ -62,6 +68,7 @@ class NotificationService {
           ?.createNotificationChannel(channel);
     }
 
+    // iOS: show alert, badge and sound in foreground
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
       alert: true,
@@ -72,43 +79,31 @@ class NotificationService {
     isFlutterLocalNotificationsInitialized = true;
   }
 
+  /// If we want to show a local notification for messages that contain a 'notification' block,
+  /// we do it here. However, for "ticket" type, we'll rely on the default system notification
+  /// and onMessageOpenedApp logic to open the ticket. We won't override that with a persistent local notif.
   void showFlutterNotification(RemoteMessage message) {
-    RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
-    String? notificationType = message.data['type'];
+    final notification = message.notification;
+    final android = message.notification?.android;
+    final notificationType = message.data['type'];
 
+    // If the push contains a "notification" block and we're on Android,
+    // the OS will show a system notification automatically.
+    // This method just displays a possible duplicate if we want.
     if (notification != null && android != null && !kIsWeb) {
-      // Si c'est un "ticket_notifications", on veut une notif persistante
-      // avec boutons, et on veut annuler la notif système d'origine.
+      // We'll do nothing special if it's a "ticket".
+      // We'll let the OS handle it normally. We'll rely on onMessageOpenedApp to open the ticket.
       if (notificationType == NotificationChannels.ticket) {
-        // 1. Annuler rapidement la notif système
-        final int sysNotifId = notification.hashCode;
-        notificationsPlugin.cancel(sysNotifId);
-
-        // 2. Construire un Ticket minimal
-        //    (vous n'avez pas l'objet Ticket complet,
-        //     mais vous pouvez reconstituer ce qu'il faut
-        //     via message.data['ticket_id'], etc.)
-        final dummyTicket = Ticket(
-          id: int.tryParse(message.data['ticket_id'] ?? '0') ?? 0,
-          filePath: '',
-          importedDate: DateTime.now(),
-          eventName: notification.title ?? 'Unnamed Ticket',
-          // le reste, placeholders
-        );
-
-        // 3. Appeler showPersistentTicketNotification
-        showPersistentTicketNotification(
-          notificationId: sysNotifId, // Reprend le même ID si vous voulez
-          ticket: dummyTicket,
-        );
+        // We do NOT create a local persistent notification or remove the system one anymore.
+        print(
+            '[NotificationService] Ticket type notification handled by the system. '
+            'We rely on onMessageOpenedApp for navigation.');
       } else {
-        // Comportement normal (non ticket),
-        // on laisse la notif "system" + on en affiche une via flutter_local_notifications
-        final channelId = notificationType != null &&
-                NotificationChannels.channelNames.containsKey(notificationType)
+        // For other types, we might show a fallback local notification
+        final channelId = (notificationType != null &&
+                NotificationChannels.channelNames.containsKey(notificationType))
             ? notificationType
-            : NotificationChannels.event;
+            : NotificationChannels.event; // Fallback if unknown
 
         notificationsPlugin.show(
           notification.hashCode,
@@ -131,13 +126,14 @@ class NotificationService {
     }
   }
 
+  /// Initialize Firebase, flutter_local_notifications, and handle the user
+  /// clicking on the notification.
   Future<void> initialize() async {
     tz.initializeTimeZones();
 
-    // Paramètres d'initialisation pour Android / iOS
-    const initializationSettingsAndroid = AndroidInitializationSettings(
-      'notification',
-    );
+    // Initialization settings for Android and iOS
+    const initializationSettingsAndroid =
+        AndroidInitializationSettings('notification');
     final initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -149,36 +145,32 @@ class NotificationService {
       iOS: initializationSettingsIOS,
     );
 
-    // Gérer les actions sur les notifications
+    // Local notifications plugin init
     await notificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (notificationResponse) async {
-        final actionId = notificationResponse.actionId; // ex: "dismiss_action"
-        final notificationId = notificationResponse.id; // ID de la notif
-        final payload = notificationResponse.payload; // ex: "ticket:123"
+        final actionId = notificationResponse.actionId; // e.g. "dismiss_action"
+        final notificationId = notificationResponse.id; // Notification's ID
+        final payload = notificationResponse.payload; // e.g. "ticket:123"
         print('[NotificationService] onDidReceiveNotificationResponse: '
             'actionId=$actionId, payload=$payload');
 
+        // If we had local actions like "dismiss_action" or "settings_action", they'd be handled here.
         if (actionId == 'dismiss_action') {
-          // Fermer la notification
           if (notificationId != null) {
             await notificationsPlugin.cancel(notificationId);
           }
         } else if (actionId == 'settings_action') {
-          // Aller vers la page de préférences
-          print(
-              '[NotificationService] User clicked on "Notification settings"');
-          // Naviguez vers NotificationPreferencesScreen selon votre architecture
-          // ex: router.push('/notification-preferences');
+          print('[NotificationService] User clicked "Notification settings"');
+          // E.g.: router.push('/notification-preferences');
         } else {
-          // Si actionId est vide ou vaut NotificationResponse.defaultActionId,
-          // c'est le clic principal sur le corps de la notif
-          // => Ouvrir l'écran du ticket
+          // If actionId is empty or NotificationResponse.defaultActionId,
+          // it means the user clicked the main body of the notification.
           if (payload != null && payload.startsWith('ticket:')) {
             final ticketIdString = payload.split(':').last;
             final ticketId = int.tryParse(ticketIdString);
             if (ticketId != null) {
-              print('[NotificationService] Opening ticket $ticketId');
+              print('[NotificationService] Opening ticket with ID = $ticketId');
               router.push('/ticket/$ticketId');
             }
           }
@@ -188,14 +180,14 @@ class NotificationService {
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
+    // Foreground messages: showFlutterNotification is optional if you want a second local notification
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       showFlutterNotification(message);
     });
 
     await setupFlutterNotifications();
 
-    NotificationSettings settings =
-        await FirebaseMessaging.instance.requestPermission(
+    final settings = await FirebaseMessaging.instance.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -204,7 +196,6 @@ class NotificationService {
       provisional: false,
       sound: true,
     );
-
     if (Platform.isIOS) {
       await notificationsPlugin
           .resolvePlatformSpecificImplementation<
@@ -215,6 +206,7 @@ class NotificationService {
     print('User granted permission: ${settings.authorizationStatus}');
   }
 
+  /// Builds NotificationDetails for local notifications if we need them.
   NotificationDetails notificationDetails(String channelId) {
     return NotificationDetails(
       android: AndroidNotificationDetails(
@@ -230,6 +222,7 @@ class NotificationService {
     );
   }
 
+  /// A basic "showNotification" utility if needed for local notifications.
   Future<void> showNotification({
     int id = 0,
     String? title,
@@ -249,6 +242,7 @@ class NotificationService {
     );
   }
 
+  /// A basic scheduling method if needed for local notifications.
   Future<void> scheduleNotification({
     int id = 0,
     String? title,
@@ -274,34 +268,28 @@ class NotificationService {
     );
   }
 
-  // ---------------------------------------------------------------
-  // PERSISTANT TICKET NOTIFICATION (NOUVEAU)
-  // ---------------------------------------------------------------
-  /// Affiche une notification "ticket_notifications" persistante avec deux actions :
-  /// "Dismiss" et "Notifications settings".
+  // ----------------------------------------------------------------
+  // FOR TICKET NOTIFICATIONS (LOCAL, if we choose)
+  // ----------------------------------------------------------------
+  /// If you ever need to show a persistent local notification for tickets,
+  /// you can do it here. But for now, we do not forcibly override the system notification:
   Future<void> showPersistentTicketNotification({
     required int notificationId,
     required Ticket ticket,
   }) async {
-    // On utilise le channel "ticket_notifications"
     final androidDetails = AndroidNotificationDetails(
-      'ticket_notifications', // ID du channel
+      'ticket_notifications',
       'Ticket Notifications',
       channelDescription: 'Notifications for tickets',
       importance: Importance.high,
       priority: Priority.high,
-      ongoing: true, // Notification persistante
-      autoCancel: false, // Ne se ferme pas au clic sur le corps
-      icon: 'notification', color: Colors.white,
+      ongoing: true,
+      autoCancel: false,
+      icon: 'notification',
+      color: Colors.white,
       actions: <AndroidNotificationAction>[
-        AndroidNotificationAction(
-          'dismiss_action',
-          'Dismiss',
-        ),
-        AndroidNotificationAction(
-          'settings_action',
-          'Notification settings',
-        ),
+        AndroidNotificationAction('dismiss_action', 'Dismiss'),
+        AndroidNotificationAction('settings_action', 'Notification settings'),
       ],
     );
 
@@ -310,29 +298,27 @@ class NotificationService {
       iOS: const DarwinNotificationDetails(),
     );
 
-    // On injecte l'ID du ticket dans le payload pour rediriger l'utilisateur
-    // vers le bon ticket au clic principal.
     final payload = 'ticket:${ticket.id}';
 
     await notificationsPlugin.show(
       notificationId,
-      'Your Ticket', // Titre
-      ticket.eventName ?? '', // Corps
+      'Your Ticket',
+      ticket.eventName ?? '',
       notificationDetails,
       payload: payload,
     );
   }
 
-  // ---------------------------------------------------------------
-  // EXISTING TICKET NOTIFICATION LOGIC (DATABASE + SCHEDULING)
-  // ---------------------------------------------------------------
-  /// Ajoute une notification "ticket" programmée côté base de données (Supabase).
+  // ----------------------------------------------------------------
+  // SUPABASE DATABASE LOGIC (INSERTING, DELETING NOTIFICATIONS)
+  // ----------------------------------------------------------------
+  /// Schedules a "ticket" notification in Supabase DB, which is ultimately
+  /// handled by your Edge Function or scheduled function.
   Future<void> addTicketNotification({
     required String supabaseId,
     required Ticket ticket,
     required DateTime eventStartTime,
   }) async {
-    // ... inchangé ...
     final currentUser = await _userService.getCurrentUser();
     if (currentUser == null) {
       print('Cannot addTicketNotification, user not authenticated');
@@ -344,8 +330,8 @@ class NotificationService {
 
     final int hoursBefore = userPrefs?.ticketReminderHours ?? 2;
 
-    DateTime now = DateTime.now().toUtc();
-    Duration diff = eventStartTime.difference(now);
+    final now = DateTime.now().toUtc();
+    final diff = eventStartTime.difference(now);
     DateTime notificationTime;
 
     if (diff.inHours < hoursBefore) {
@@ -355,6 +341,13 @@ class NotificationService {
           eventStartTime.subtract(Duration(hours: hoursBefore)).toUtc();
     }
 
+    /// In the "action" field, we store the deeplink JSON for the ticket:
+    /// {
+    ///   "data": "app.sway.main://app/ticket/1001021607",
+    ///   "type": "deeplink"
+    /// }
+    /// We'll parse that in Edge Function to extract "1001021607" if we want
+    /// to pass it in "data" for the FCM push.
     final actionData = {
       "data": "app.sway.main://app/ticket/${ticket.id}",
       "type": "deeplink"
@@ -363,9 +356,9 @@ class NotificationService {
     final insertData = {
       'supabase_id': supabaseId,
       'title': 'View ticket',
-      'body': '${ticket.eventName ?? 'Event Ticket'}',
+      'body': ticket.eventName ?? 'Event Ticket',
       'type': 'ticket',
-      'action': actionData,
+      'action': actionData, // store JSON for reference
       'scheduled_time': notificationTime.toIso8601String(),
     };
 
@@ -386,7 +379,6 @@ class NotificationService {
     required String supabaseId,
     required int ticketId,
   }) async {
-    // ... inchangé ...
     final actionData = "app.sway.main://app/ticket/$ticketId";
     final deleteResponse = await _supabaseClient
         .from('notifications')
@@ -407,7 +399,6 @@ class NotificationService {
     required Ticket ticket,
     required DateTime eventStartTime,
   }) async {
-    // ... inchangé ...
     await deleteTicketNotification(supabaseId: supabaseId, ticketId: ticket.id);
     await addTicketNotification(
       supabaseId: supabaseId,
