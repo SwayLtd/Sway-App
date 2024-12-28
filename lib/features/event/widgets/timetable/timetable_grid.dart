@@ -617,8 +617,8 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                               width: 200 * durationInHours,
                                               height: 100,
                                               decoration: BoxDecoration(
-                                                color: Colors.blue.withOpacity(
-                                                  0.5,
+                                                color: Colors.blue.withValues(
+                                                  alpha: 0.5,
                                                 ), // Blue color with reduced opacity
                                                 borderRadius:
                                                     BorderRadius.circular(10.0),

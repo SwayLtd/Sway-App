@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:sway/core/routes.dart';
 import 'package:flutter/services.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 // Ensure GoRouter is imported
 
 class ScaffoldWithNavBarWithoutAppBar extends StatefulWidget {
@@ -20,6 +22,10 @@ class _ScaffoldWithNavBarWithoutAppBarState
   final GlobalKey<ScaffoldState> _scaffoldKey =
       GlobalKey<ScaffoldState>(debugLabel: 'navbar');
 
+  late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
+
+  bool _isOffline = false;
+
   @override
   void initState() {
     super.initState();
@@ -34,12 +40,36 @@ class _ScaffoldWithNavBarWithoutAppBarState
       index = 0;
     }
     _currentIndex = index;
+
+    // Vérification initiale de la connectivité
+    Connectivity().checkConnectivity().then((result) {
+      setState(() {
+        _isOffline = result == ConnectivityResult.none;
+      });
+    });
+
+    // Écoute des changements de connectivité
+    _connectivitySubscription = Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      setState(() {
+        _isOffline =
+            results.isEmpty || results.contains(ConnectivityResult.none);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    // Annule l'écouteur de connectivité lorsque le widget est supprimé
+    _connectivitySubscription.cancel();
+    super.dispose();
   }
 
   /// The widget to display in the body of the Scaffold.
   @override
   Widget build(BuildContext context) {
-    final List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
+    /* final List<BottomNavigationBarItem> items = <BottomNavigationBarItem>[
       const BottomNavigationBarItem(
         icon: Icon(Icons.local_library_outlined),
         label: "Explore",
@@ -56,7 +86,7 @@ class _ScaffoldWithNavBarWithoutAppBarState
         icon: Icon(Icons.settings_outlined),
         label: "Settings",
       ),
-    ];
+    ]; */
 
     final List<NavigationDestination> destinations = <NavigationDestination>[
       const NavigationDestination(
@@ -82,9 +112,10 @@ class _ScaffoldWithNavBarWithoutAppBarState
     ];
 
     // Calculate a valid index
-    final int validIndex = (_currentIndex < 0 || _currentIndex >= items.length)
-        ? 0
-        : _currentIndex;
+    final int validIndex =
+        (_currentIndex < 0 || _currentIndex >= destinations.length)
+            ? 0
+            : _currentIndex;
 
     // Get screen width to calculate indicator position
     /* final double screenWidth = MediaQuery.of(context).size.width;
@@ -102,6 +133,27 @@ class _ScaffoldWithNavBarWithoutAppBarState
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Affiche la banderole si l'appareil est hors ligne
+          if (_isOffline)
+            Container(
+              width: double.infinity,
+              color: Colors.red,
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.wifi_off, color: Colors.white),
+                  SizedBox(width: 8.0),
+                  Text(
+                    'No connection',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           // Divider line to separate BottomNavigationBar from content
           Divider(
             height: 1,

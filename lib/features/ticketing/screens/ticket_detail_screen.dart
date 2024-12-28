@@ -151,7 +151,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Event not found')),
+              const SnackBar(
+                  behavior: SnackBarBehavior.floating,
+                  content: Text('Event not found')),
             );
           }
         }
@@ -168,7 +170,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       case 'dissociate_group':
         await _ticketService.dissociateGroupFromTicket(currentTicket.id);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(behavior: SnackBarBehavior.floating, content: Text('Ticket dissociated from group')),
+          SnackBar(
+              behavior: SnackBarBehavior.floating,
+              content: Text('Ticket dissociated from group')),
         );
         // Refresh the UI to reflect changes
         setState(() {});
@@ -215,7 +219,9 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
         });
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(behavior: SnackBarBehavior.floating, content: Text('Ticket deleted successfully')),
+        const SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Ticket deleted successfully')),
       );
     }
   }
@@ -243,7 +249,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             top: 10,
             left: 10,
             child: Container(
-              color: Colors.green.withOpacity(0.5),
+              color: Colors.green.withValues(alpha: 0.5),
               padding: const EdgeInsets.all(4.0),
               child: const Text(
                 'Imported',
@@ -256,7 +262,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               bottom: 10,
               left: 10,
               child: Container(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 padding: const EdgeInsets.all(4.0),
                 child: Text(
                   _venue!.name,
@@ -288,7 +294,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             top: 10,
             left: 10,
             child: Container(
-              color: Colors.green.withOpacity(0.5),
+              color: Colors.green.withValues(alpha: 0.5),
               padding: const EdgeInsets.all(4.0),
               child: const Text(
                 'Imported',
@@ -300,7 +306,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
             bottom: 10,
             left: 10,
             child: Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               padding: const EdgeInsets.all(4.0),
               child: Text(
                 ticket.eventLocation ?? 'Unknown location',

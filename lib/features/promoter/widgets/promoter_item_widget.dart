@@ -1,4 +1,4 @@
-// // lib/features/promoter/widgets/promoter_item_widget.dart
+// lib/features/promoter/widgets/promoter_item_widget.dart
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
@@ -61,118 +61,151 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
         ? '${widget.promoter.name.substring(0, widget.maxNameLength)}...'
         : widget.promoter.name;
 
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      elevation: 3,
-      child: ListTile(
-        onTap: widget.onTap,
-        leading: Container(
+    // Déterminez la couleur de la carte en fonction du thème
+    Color cardBackgroundColor;
+    if (Theme.of(context).brightness == Brightness.dark) {
+      // Utilisez la couleur 'surfaceVariant' définie dans le thème sombre
+      cardBackgroundColor =
+          Theme.of(context).colorScheme.surfaceContainerHighest;
+    } else {
+      // Utilisez la couleur de carte par défaut en mode clair
+      cardBackgroundColor = Theme.of(context).cardColor;
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 2),
+      child: Card(
+        color: cardBackgroundColor, // Appliquez la couleur personnalisée
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        elevation: 3,
+        child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor, // Apply cardColor from theme
-            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onPrimary
+                  .withValues(alpha: 0.1), // Couleur de la bordure
+              width: 2.0, // Épaisseur de la bordure
+            ),
+            borderRadius:
+                BorderRadius.circular(12), // Coins arrondis de la bordure
           ),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(
+          child: ListTile(
+            onTap: widget.onTap,
+            leading: Container(
+              decoration: BoxDecoration(
                 color: Theme.of(context)
-                    .colorScheme
-                    .onPrimary, // Couleur de la bordure
-                width: 2.0, // Épaisseur de la bordure
+                    .cardColor, // Appliquer cardColor from theme
+                borderRadius: BorderRadius.circular(10),
               ),
-              borderRadius:
-                  BorderRadius.circular(12), // Coins arrondis de la bordure
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: ImageWithErrorHandler(
-                imageUrl: widget.promoter.imageUrl,
-                width: 50,
-                height: 50,
-                fit: BoxFit.cover,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onPrimary, // Couleur de la bordure
+                    width: 2.0, // Épaisseur de la bordure
+                  ),
+                  borderRadius:
+                      BorderRadius.circular(12), // Coins arrondis de la bordure
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: ImageWithErrorHandler(
+                    imageUrl: widget.promoter.imageUrl,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-        title: Text(
-          truncatedName,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FutureBuilder<int>(
-              future: _followersCountFuture,
+            title: Text(
+              truncatedName,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FutureBuilder<int>(
+                  future: _followersCountFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text(
+                        '',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Text(
+                        'Error: ${snapshot.error}',
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    } else {
+                      return Text(
+                        '${snapshot.data} followers',
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    }
+                  },
+                ),
+                FutureBuilder<int>(
+                  future: _upcomingEventsCountFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text(
+                        'Loading events...',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Text(
+                        'Error: ${snapshot.error}',
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    } else {
+                      return Text(
+                        '${snapshot.data} upcoming events',
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+            trailing: FutureBuilder<bool>(
+              future: _isFollowingFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Text(
-                    '',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  return const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   );
                 } else if (snapshot.hasError) {
-                  return Text(
-                    'Error: ${snapshot.error}',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  );
+                  return const Icon(Icons.error, color: Colors.red);
                 } else {
-                  return Text(
-                    '${snapshot.data} followers',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  bool isFollowing = snapshot.data ?? false;
+                  return IconButton(
+                    icon: isFollowing
+                        ? Icon(Icons.favorite,
+                            color: Theme.of(context).colorScheme.secondary)
+                        : Icon(Icons.favorite_border),
+                    onPressed: () => _toggleFollow(isFollowing),
                   );
                 }
               },
             ),
-            FutureBuilder<int>(
-              future: _upcomingEventsCountFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Text(
-                    'Loading events...',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  );
-                } else if (snapshot.hasError) {
-                  return Text(
-                    'Error: ${snapshot.error}',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  );
-                } else {
-                  return Text(
-                    '${snapshot.data} upcoming events',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-        trailing: FutureBuilder<bool>(
-          future: _isFollowingFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              );
-            } else if (snapshot.hasError) {
-              return const Icon(Icons.error, color: Colors.red);
-            } else {
-              bool isFollowing = snapshot.data ?? false;
-              return IconButton(
-                icon: isFollowing
-                    ? Icon(Icons.favorite,
-                        color: Theme.of(context).colorScheme.secondary)
-                    : Icon(Icons.favorite_border),
-                onPressed: () => _toggleFollow(isFollowing),
-              );
-            }
-          },
+          ),
         ),
       ),
     );

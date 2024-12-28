@@ -172,13 +172,16 @@ class AppTheme {
 
   static ThemeData dark = ThemeData(
     primaryColor: Color.fromRGBO(255, 188, 0, 1),
-    colorScheme: const ColorScheme.dark(
+    colorScheme: ColorScheme.dark(
       primary: Color.fromRGBO(255, 188, 0, 1),
       secondary: Colors.amberAccent,
       surface: Colors.black54, // Couleur de surface pour les dialogues
       error: Colors.red,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
+      // Ajoutez une nouvelle couleur pour les éléments de liste des promoteurs
+      surfaceContainerHighest: const Color.fromRGBO(
+          60, 52, 32, 0.33), // Couleur légèrement plus claire
     ),
     primarySwatch: Colors.amber,
     brightness: Brightness.dark,
@@ -194,12 +197,11 @@ class AppTheme {
         statusBarBrightness: Brightness.light,
       ),
       elevation: 0.0,
-      color: Color.fromRGBO(
-          15, 13, 8, 1), // grey[900] // Fond de l'AppBar légèrement grisé
+      color: Color.fromRGBO(15, 13, 8, 1), // Fond de l'AppBar légèrement grisé
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: Color.fromRGBO(
-          15, 13, 8, 1), // grey[900] // Fond de l'AppBar légèrement grisé
+      backgroundColor:
+          Color.fromRGBO(15, 13, 8, 1), // Fond de la barre de navigation
       selectedItemColor: Color.fromRGBO(255, 188, 0, 1),
       unselectedItemColor: Colors.white70,
     ),

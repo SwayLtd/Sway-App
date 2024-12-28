@@ -195,7 +195,24 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Explore"),
+        // title: const Text("Explore"),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Image.asset(
+              'assets/images/logotype_transparent.png',
+              fit: BoxFit.contain,
+              height: 28,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+            ),
+            /* Container(
+              padding: const EdgeInsets.all(8.0),
+              child: Text('Explore'),
+            ), */
+          ],
+        ),
         actions: [
           IconButton(
             icon: Stack(

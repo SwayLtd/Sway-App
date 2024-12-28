@@ -160,7 +160,9 @@ Future<Widget> buildListView(
                       return Container(
                         decoration: BoxDecoration(
                           color: isFollowing
-                              ? Theme.of(context).primaryColor.withOpacity(0.3)
+                              ? Theme.of(context)
+                                  .primaryColor
+                                  .withValues(alpha: 0.3)
                               : null,
                           borderRadius: BorderRadius.circular(10.0),
                         ),
@@ -291,7 +293,7 @@ Future<Widget> buildListView(
                               Positioned.fill(
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.5),
+                                    color: Colors.blue.withValues(alpha: 0.5),
                                     borderRadius: BorderRadius.circular(10.0),
                                     border: Border.all(
                                       color: Colors.blue,
