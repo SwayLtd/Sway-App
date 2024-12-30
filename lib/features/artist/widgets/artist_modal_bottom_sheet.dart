@@ -67,7 +67,6 @@ Future<void> showArtistModalBottomSheet(
                         ),
                       );
                     },
-                    maxTitleLength: 30, // Définissez la longueur maximale ici
                   );
                 },
               ),

@@ -10,14 +10,16 @@ class UserAccessSearchScreen extends StatefulWidget {
   final String entityType;
   final bool isCurrentUserAdmin;
 
-  const UserAccessSearchScreen(
-      {required this.entityId,
-      required this.entityType,
-      required this.isCurrentUserAdmin,});
+  const UserAccessSearchScreen({
+    required this.entityId,
+    required this.entityType,
+    required this.isCurrentUserAdmin,
+  });
 
   @override
   _UserAccessSearchScreenState createState() => _UserAccessSearchScreenState();
 }
+
 class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<User> _searchResults = [];
@@ -30,6 +32,7 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
     final existingUserIds =
         existingPermissions.map((permission) => permission.userId).toSet();
 
+    if (!mounted) return;
     setState(() {
       _searchResults =
           users.where((user) => !existingUserIds.contains(user.id)).toList();
@@ -57,6 +60,7 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
                 }).toList(),
                 onChanged: (String? newRole) {
                   if (newRole != null) {
+                    if (!mounted) return;
                     setState(() {
                       selectedRole = newRole;
                     });
@@ -82,6 +86,7 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
                   selectedRole,
                 );
                 Navigator.of(context).pop();
+                if (!mounted) return;
                 setState(() {
                   _searchResults.remove(user);
                 });

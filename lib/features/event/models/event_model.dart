@@ -14,6 +14,7 @@ class Event {
   final List<int> promoters;
   final List<int> genres;
   final List<int> artists;
+  final int? interestedUsersCount; // Nouveau champ
 
   Event({
     required this.id,
@@ -29,6 +30,7 @@ class Event {
     required this.promoters,
     required this.genres,
     required this.artists,
+    this.interestedUsersCount, // Initialisation
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -47,14 +49,14 @@ class Event {
               ?.map((e) => e as int)
               .toList() ??
           [],
-      genres: (json['genres'] as List<dynamic>?)
-              ?.map((e) => e as int)
-              .toList() ??
-          [],
-      artists: (json['artists'] as List<dynamic>?)
-              ?.map((e) => e as int)
-              .toList() ??
-          [],
+      genres:
+          (json['genres'] as List<dynamic>?)?.map((e) => e as int).toList() ??
+              [],
+      artists:
+          (json['artists'] as List<dynamic>?)?.map((e) => e as int).toList() ??
+              [],
+      interestedUsersCount:
+          json['interested_users_count'] as int?, // Initialisation
     );
   }
 
@@ -73,6 +75,7 @@ class Event {
       'promoters': promoters,
       'genres': genres,
       'artists': artists,
+      // 'interested_users_count' n'est pas inclus dans toJson car c'est un champ calculé
     };
   }
 }

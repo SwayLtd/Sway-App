@@ -58,6 +58,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
   }
 
   Future<void> _loadAssociatedData() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -66,6 +67,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       // Load associated genres
       final genres =
           await _promoterGenreService.getGenresByPromoterId(widget.promoter.id);
+      if (!mounted) return;
       setState(() {
         _selectedGenres = genres;
       });
@@ -73,6 +75,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       // Load associated resident artists
       final artists = await _promoterArtistService
           .getArtistsByPromoterId(widget.promoter.id);
+      if (!mounted) return;
       setState(() {
         _selectedArtists = artists.map((artist) => artist.id).toList();
       });
@@ -83,6 +86,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
             content: Text('Error loading data: ${e.toString()}')),
       );
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -106,6 +110,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       upcomingEvents: widget.promoter.upcomingEvents,
     );
 
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -141,6 +146,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
             behavior: SnackBarBehavior.floating, content: Text(errorMessage)),
       );
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -208,6 +214,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       );
 
       if (saved == true) {
+        if (!mounted) return;
         setState(() {
           _selectedGenres = selectedGenres.toList();
         });
@@ -239,6 +246,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       );
 
       if (saved == true) {
+        if (!mounted) return;
         setState(() {
           _selectedArtists = selectedArtists.toList();
         });
@@ -289,6 +297,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                         ),
                       ),
                     );
+                    if (!mounted) return;
                     setState(() {});
                   },
           ),
@@ -327,6 +336,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                       controller: _imageUrlController,
                       decoration: const InputDecoration(labelText: 'Image URL'),
                       onChanged: (value) {
+                        if (!mounted) return;
                         setState(() {
                           // Update to trigger image preview
                         });
@@ -480,6 +490,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
   }
 
   Future<void> _searchGenres() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -501,6 +512,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
         return a.name.compareTo(b.name);
       });
 
+      if (!mounted) return;
       setState(() {
         _genres = genres;
       });
@@ -511,6 +523,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
             content: Text('Error searching genres: ${e.toString()}')),
       );
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -590,6 +603,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
                                 value: isSelected,
                                 title: Text(genre.name),
                                 onChanged: (bool? value) {
+                                  if (!mounted) return;
                                   setState(() {
                                     if (value == true) {
                                       widget.selectedGenres.add(genre.id);
@@ -603,6 +617,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
                               // Show "Show More" button
                               return TextButton(
                                 onPressed: () {
+                                  if (!mounted) return;
                                   setState(() {
                                     _showAll = true;
                                   });
@@ -650,6 +665,7 @@ class _ArtistSelectionBottomSheetState
   }
 
   Future<void> _searchArtists() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -671,6 +687,7 @@ class _ArtistSelectionBottomSheetState
         return a.name.compareTo(b.name);
       });
 
+      if (!mounted) return;
       setState(() {
         _artists = artists;
       });
@@ -681,6 +698,7 @@ class _ArtistSelectionBottomSheetState
             content: Text('Error searching artists: ${e.toString()}')),
       );
     } finally {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -760,6 +778,7 @@ class _ArtistSelectionBottomSheetState
                                 value: isSelected,
                                 title: Text(artist.name),
                                 onChanged: (bool? value) {
+                                  if (!mounted) return;
                                   setState(() {
                                     if (value == true) {
                                       widget.selectedArtists.add(artist.id);
@@ -773,6 +792,7 @@ class _ArtistSelectionBottomSheetState
                               // Show "Show More" button
                               return TextButton(
                                 onPressed: () {
+                                  if (!mounted) return;
                                   setState(() {
                                     _showAll = true;
                                   });

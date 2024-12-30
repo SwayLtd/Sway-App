@@ -59,6 +59,7 @@ class _VenueScreenState extends State<VenueScreen> {
   }
 
   Future<void> _refresh() async {
+    if (!mounted) return;
     setState(() {
       _fetchData();
     });
@@ -152,12 +153,15 @@ class _VenueScreenState extends State<VenueScreen> {
                 return const SizedBox.shrink();
               } else {
                 final venue = snapshot.data!;
-                return IconButton(
-                  icon: const Icon(Icons.share),
-                  onPressed: () {
-                    // Appeler la fonction de partage avec les paramètres appropriés
-                    shareEntity('venue', widget.venueId, venue.name);
-                  },
+                return Transform.flip(
+                  flipX: true,
+                  child: IconButton(
+                    icon: const Icon(Icons.reply),
+                    onPressed: () {
+                      // Appeler la fonction de partage avec les paramètres appropriés
+                      shareEntity('venue', widget.venueId, venue.name);
+                    },
+                  ),
                 );
               }
             },
@@ -195,14 +199,16 @@ class _VenueScreenState extends State<VenueScreen> {
                             border: Border.all(
                               color: Theme.of(context)
                                   .colorScheme
-                                  .onPrimary, // Couleur de la bordure
+                                  .onPrimary
+                                  .withValues(
+                                      alpha: 0.5), // Couleur de la bordure
                               width: 2.0, // Épaisseur de la bordure
                             ),
                             borderRadius: BorderRadius.circular(
                                 12), // Coins arrondis de la bordure
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
+                            borderRadius: BorderRadius.circular(10),
                             child: ImageWithErrorHandler(
                               imageUrl: venue.imageUrl,
                               width: 200,

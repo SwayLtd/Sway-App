@@ -10,6 +10,7 @@ import 'package:sway/features/user/services/auth_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/auth_modal.dart';
 import 'package:sway/features/user/profile.dart';
+import 'package:adaptive_theme/adaptive_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -89,6 +90,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  /// Change the theme mode
+  void _changeTheme(AdaptiveThemeMode mode) async {
+    AdaptiveTheme.of(context).setThemeMode(mode);
+  }
+
+  /// Affiche un dialogue pour sélectionner le thème
+  void _showThemeSelectionDialog() {
+    AdaptiveThemeMode currentMode = AdaptiveTheme.of(context).mode;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Choose Theme'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<AdaptiveThemeMode>(
+                title: const Text('System Default'),
+                value: AdaptiveThemeMode.system,
+                groupValue: currentMode,
+                onChanged: (AdaptiveThemeMode? value) {
+                  if (value != null) {
+                    _changeTheme(value);
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+              RadioListTile<AdaptiveThemeMode>(
+                title: const Text('Light'),
+                value: AdaptiveThemeMode.light,
+                groupValue: currentMode,
+                onChanged: (AdaptiveThemeMode? value) {
+                  if (value != null) {
+                    _changeTheme(value);
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+              RadioListTile<AdaptiveThemeMode>(
+                title: const Text('Dark'),
+                value: AdaptiveThemeMode.dark,
+                groupValue: currentMode,
+                onChanged: (AdaptiveThemeMode? value) {
+                  if (value != null) {
+                    _changeTheme(value);
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   /// Builds the UI for the settings screen.
   @override
   Widget build(BuildContext context) {
@@ -135,6 +192,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       : _showAuthModal,
                 ),
                 ListTile(
+                  leading: const Icon(Icons.color_lens),
+                  title: const Text('Theme'),
+                  subtitle: const Text('Choose light, dark or system theme'),
+                  onTap: _showThemeSelectionDialog,
+                ),
+                ListTile(
                   leading: const Icon(Icons.info),
                   title: const Text('About'),
                   onTap: _navigateToAbout,
@@ -144,7 +207,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Copyright © 2025 - '),
+                    const Text('Copyright © 2025 - '),
                     Text(
                       'Sway',
                       style: TextStyle(

@@ -24,6 +24,7 @@ class _ArtistImageRotatorState extends State<ArtistImageRotator> {
 
   void _startImageRotation() {
     _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (!mounted) return;
       setState(() {
         _currentIndex = (_currentIndex + 1) % widget.artists.length;
       });
@@ -41,8 +42,10 @@ class _ArtistImageRotatorState extends State<ArtistImageRotator> {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
-          color:
-              Theme.of(context).colorScheme.onPrimary, // Couleur de la bordure
+          color: Theme.of(context)
+              .colorScheme
+              .onPrimary
+              .withValues(alpha: 0.5), // Couleur de la bordure
           width: 2.0, // Épaisseur de la bordure
         ),
         borderRadius: BorderRadius.circular(12), // Coins arrondis de la bordure

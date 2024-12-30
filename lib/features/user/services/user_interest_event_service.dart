@@ -91,25 +91,6 @@ class UserInterestEventService {
     }
   }
 
-  /// Marque un événement comme "attended"
-  Future<void> markEventAsAttended(int eventId) async {
-    final userId = await _getCurrentUserId();
-    if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
-    }
-
-    final response = await _supabase
-        .from('user_interest_event')
-        .update({'status': 'attended'})
-        .eq('user_id', userId)
-        .eq('event_id', eventId);
-
-    if (response.error != null) {
-      throw Exception(
-          'Erreur lors du marquage de l\'événement comme "attended": ${response.error!.message}');
-    }
-  }
-
   /// Récupère le nombre d'intérêts pour un événement avec un statut spécifique
   Future<int> getEventInterestCount(int eventId, String status) async {
     final response = await _supabase
@@ -139,7 +120,7 @@ class UserInterestEventService {
   }
 
   /// Vérifie si l'utilisateur a assisté à un événement spécifique
-  Future<bool> isAttendedEvent(int eventId) async {
+  Future<bool> isGoingEvent(int eventId) async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
       throw Exception('Utilisateur non authentifié.');
@@ -150,7 +131,7 @@ class UserInterestEventService {
         .select()
         .eq('user_id', userId)
         .eq('event_id', eventId)
-        .eq('status', 'attended');
+        .eq('status', 'going');
 
     return response.isNotEmpty;
   }
@@ -175,33 +156,13 @@ class UserInterestEventService {
         .toList();
   }
 
-  /// Récupère les événements que l'utilisateur est "going" à
+  /// Récupère les événements que l'utilisateur est "going"
   Future<List<Event>> getGoingEventsByUserId(int userId) async {
     final response = await _supabase
         .from('user_interest_event')
         .select('event_id')
         .eq('user_id', userId)
         .eq('status', 'going');
-
-    final List<int> eventIds =
-        response.map((item) => item['event_id'] as int).toList();
-
-    final List<Event> allEvents = await EventService().getEvents();
-    final DateTime now = DateTime.now();
-
-    return allEvents
-        .where((event) =>
-            eventIds.contains(event.id) && event.dateTime.isBefore(now))
-        .toList();
-  }
-
-  /// Récupère les événements que l'utilisateur a "attended"
-  Future<List<Event>> getAttendedEventsByUserId(int userId) async {
-    final response = await _supabase
-        .from('user_interest_event')
-        .select('event_id')
-        .eq('user_id', userId)
-        .eq('status', 'attended');
 
     final List<int> eventIds =
         response.map((item) => item['event_id'] as int).toList();

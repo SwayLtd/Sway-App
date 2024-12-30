@@ -29,11 +29,14 @@ class _GenreScreenState extends State<GenreScreen> {
       appBar: AppBar(
         title: Text('$genreName Details'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              shareEntity('genre', widget.genreId, genreName);
-            },
+          Transform.flip(
+            flipX: true,
+            child: IconButton(
+              icon: const Icon(Icons.reply),
+              onPressed: () {
+                shareEntity('genre', widget.genreId, genreName);
+              },
+            ),
           ),
           FollowingButtonWidget(entityId: widget.genreId, entityType: 'genre'),
         ],
@@ -122,7 +125,10 @@ class _GenreScreenState extends State<GenreScreen> {
                                             border: Border.all(
                                               color: Theme.of(context)
                                                   .colorScheme
-                                                  .onPrimary, // Couleur de la bordure
+                                                  .onPrimary
+                                                  .withValues(
+                                                      alpha:
+                                                          0.5), // Couleur de la bordure
                                               width:
                                                   2.0, // Épaisseur de la bordure
                                             ),

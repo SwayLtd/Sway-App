@@ -38,6 +38,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
         await EventArtistService().getArtistsByEventId(widget.event.id);
     final stageSet = artists.map((e) => e['stage'] as String).toSet().toList();
 
+    if (!mounted) return;
     setState(() {
       stages = stageSet;
       selectedStages = List.from(stageSet);
@@ -47,6 +48,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
     await _initializeSelectedDay();
 
     // Forcer la mise à jour de la vue après l'initialisation des artistes
+    if (!mounted) return;
     setState(() {
       eventArtists = artists;
     });
@@ -69,6 +71,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
     final shouldResetDay = lastSelectedTime == null ||
         now.difference(lastSelectedTime).inMinutes > 15;
 
+    if (!mounted) return;
     setState(() {
       if (shouldResetDay || lastSelectedDay == null) {
         selectedDay = festivalDays.firstWhere(
@@ -119,6 +122,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         value: effectiveSelectedDay,
                         onChanged: (DateTime? newValue) async {
                           if (newValue != null && newValue != selectedDay) {
+                            if (!mounted) return;
                             setState(() {
                               selectedDay = newValue;
                             });
@@ -144,6 +148,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                             isGridView ? Icons.view_list : Icons.grid_view,
                           ),
                           onPressed: () {
+                            if (!mounted) return;
                             setState(() {
                               isGridView = !isGridView;
                             });
@@ -165,7 +170,8 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                   builder: (context, artistSnapshot) {
                     if (artistSnapshot.connectionState ==
                         ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator.adaptive());
+                      return const Center(
+                          child: CircularProgressIndicator.adaptive());
                     } else if (artistSnapshot.hasError) {
                       return Center(
                         child: Text('Error: ${artistSnapshot.error}'),
@@ -233,6 +239,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
+                        if (!mounted) return;
                         setState(() {
                           showOnlyFollowedArtists = true;
                         });
@@ -259,6 +266,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
+                        if (!mounted) return;
                         setState(() {
                           showOnlyFollowedArtists = false;
                         });
@@ -328,6 +336,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         child: IconButton(
                           icon: const Icon(Icons.refresh),
                           onPressed: () {
+                            if (!mounted) return;
                             setState(() {
                               selectedStages = List.from(initialStages);
                               stages = List.from(initialStages);
@@ -358,6 +367,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                       if (newIndex > oldIndex) {
                         newIndex -= 1;
                       }
+                      if (!mounted) return;
                       setState(() {
                         final String stage = stages.removeAt(oldIndex);
                         stages.insert(newIndex, stage);
@@ -375,6 +385,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                             trailing: Checkbox(
                               value: selectedStages.contains(stage),
                               onChanged: (bool? value) {
+                                if (!mounted) return;
                                 setState(() {
                                   if (value == true) {
                                     selectedStages.add(stage);
@@ -399,6 +410,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                   title: const Text('Only followed artists'),
                   value: showOnlyFollowedArtists,
                   onChanged: (bool value) {
+                    if (!mounted) return;
                     setState(() {
                       showOnlyFollowedArtists = value;
                     });
@@ -413,6 +425,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         backgroundColor: Theme.of(context).primaryColor,
                       ),
                       onPressed: () {
+                        if (!mounted) return;
                         setState(() {
                           Navigator.pop(context);
                         });

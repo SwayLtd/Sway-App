@@ -62,6 +62,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _isUpdating = true;
       _errorMessage = null;
@@ -102,6 +103,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }
     } on AuthenticationException catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = e.message;
       });
@@ -113,6 +115,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = 'An unexpected error occurred.';
       });
@@ -124,6 +127,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
     } finally {
+      if (!mounted) return;
       setState(() {
         _isUpdating = false;
       });
@@ -144,6 +148,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _isResettingPassword = true;
       _errorMessage = null;
@@ -159,6 +164,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
     } on AuthenticationException catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = e.message;
       });
@@ -170,6 +176,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = 'An unexpected error occurred.';
       });
@@ -181,6 +188,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
     } finally {
+      if (!mounted) return;
       setState(() {
         _isResettingPassword = false;
       });
@@ -229,7 +237,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 border: Border.all(
                                   color: Theme.of(context)
                                       .colorScheme
-                                      .onPrimary, // Couleur de la bordure
+                                      .onPrimary
+                                      .withValues(
+                                          alpha: 0.5), // Couleur de la bordure
                                   width: 2.0, // Épaisseur de la bordure
                                 ),
                                 borderRadius: BorderRadius.circular(

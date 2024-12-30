@@ -6,7 +6,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.4.6+5 # Enhanced Ticket Notification Flow - Notifications
+version: 0.4.7 # Better error handling, theme standardization and correction, theme switcher, explore screen fixes, top events rpc function
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
@@ -124,5 +124,6 @@ flutter:
     - assets/
     - assets/images/icon.png
     - assets/images/logotype_transparent.png
+    - assets/images/404.png
 
   generate: true

@@ -131,7 +131,8 @@ class _FollowersScreenState extends State<FollowersScreen>
                     border: Border.all(
                       color: Theme.of(context)
                           .colorScheme
-                          .onPrimary, // Couleur de la bordure
+                          .onPrimary
+                          .withValues(alpha: 0.5), // Couleur de la bordure
                       width: 2.0, // Épaisseur de la bordure
                     ),
                     borderRadius: BorderRadius.circular(

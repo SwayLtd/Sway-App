@@ -61,6 +61,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     if (currentTicket.eventId != null) {
       Venue? venue =
           await _eventVenueService.getVenueByEventId(currentTicket.eventId!);
+      if (!mounted) return;
       setState(() {
         _venue = venue;
       });
@@ -175,6 +176,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
               content: Text('Ticket dissociated from group')),
         );
         // Refresh the UI to reflect changes
+        if (!mounted) return;
         setState(() {});
         break;
       case 'delete_ticket':
@@ -214,6 +216,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       if (_ticketsForEvent.isEmpty) {
         Navigator.pop(context);
       } else {
+        if (!mounted) return;
         setState(() {
           _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : 0;
         });
@@ -378,6 +381,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   icon: Icon(Icons.arrow_left, size: 30),
                   onPressed: _currentIndex > 0
                       ? () {
+                          if (!mounted) return;
                           setState(() {
                             _currentIndex--;
                             // Charger la venue pour le ticket précédent
@@ -403,6 +407,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                   icon: Icon(Icons.arrow_right, size: 30),
                   onPressed: _currentIndex < _ticketsForEvent.length - 1
                       ? () {
+                          if (!mounted) return;
                           setState(() {
                             _currentIndex++;
                             // Charger la venue pour le ticket suivant
@@ -426,6 +431,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                     await _loadTicketsForEvent();
                     // Recharger la venue après la mise à jour
                     _loadVenue();
+                    if (!mounted) return;
                     setState(() {});
                   },
                 ),

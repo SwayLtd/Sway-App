@@ -6,6 +6,7 @@ import 'package:sway/features/user/services/user_follow_genre_service.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway/features/user/services/user_follow_user_service.dart';
 import 'package:sway/features/user/services/user_follow_venue_service.dart';
+import 'package:sway/features/user/services/user_interest_event_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/snackbar_login.dart';
 
@@ -16,7 +17,8 @@ class FollowingButtonWidget extends StatefulWidget {
   const FollowingButtonWidget({
     required this.entityId,
     required this.entityType,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   _FollowingButtonWidgetState createState() => _FollowingButtonWidgetState();
@@ -40,6 +42,7 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
       final currentUser = await _userService.getCurrentUser();
       if (currentUser == null) {
         // L'utilisateur est anonyme
+        if (!mounted) return;
         setState(() {
           isAnonymous = true;
           isLoading = false;
@@ -47,6 +50,7 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
       } else {
         // L'utilisateur est authentifié, vérifier s'il suit l'entité
         bool following = await _isFollowing();
+        if (!mounted) return;
         setState(() {
           isFollowing = following;
           isAnonymous = false;
@@ -55,6 +59,7 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
       }
     } catch (e) {
       print('Error loading user status: $e');
+      if (!mounted) return;
       setState(() {
         isAnonymous = false;
         isFollowing = false;
@@ -63,7 +68,7 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
     }
   }
 
-  Future<bool> _isFollowing() {
+  Future<bool> _isFollowing() async {
     switch (widget.entityType) {
       case 'artist':
         return UserFollowArtistService().isFollowingArtist(widget.entityId);
@@ -125,6 +130,7 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
   }
 
   Future<void> _toggleFollow() async {
+    if (!mounted) return;
     setState(() {
       isLoading = true;
     });
@@ -135,19 +141,22 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
         await _followEntity();
       }
       bool updatedStatus = await _isFollowing();
+      if (!mounted) return;
       setState(() {
         isFollowing = updatedStatus;
         isLoading = false;
       });
     } catch (e) {
       print('Error toggling follow status: $e');
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text('Erreur lors de la mise à jour du suivi.')),
+          behavior: SnackBarBehavior.floating,
+          content: Text('Erreur lors de la mise à jour du suivi.'),
+        ),
       );
     }
   }
@@ -177,10 +186,12 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
         // Utilisateur authentifié
         if (isFollowing) {
           iconData = Icons.favorite;
+          iconColor = Theme.of(context).primaryColor;
         } else {
           iconData = Icons.favorite_border;
+          // Utiliser une valeur par défaut si color est null
+          iconColor = Theme.of(context).iconTheme.color ?? Colors.grey;
         }
-        iconColor = Theme.of(context).iconTheme.color!;
         onPressed = _toggleFollow;
       }
 

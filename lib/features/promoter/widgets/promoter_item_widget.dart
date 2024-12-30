@@ -5,6 +5,7 @@ import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
+import 'package:sway/features/user/widgets/following_button_widget.dart';
 
 /// Widget to display a promoter as a list item with image, name, followers, upcoming events, and follow button.
 class PromoterListItemWidget extends StatefulWidget {
@@ -26,32 +27,19 @@ class PromoterListItemWidget extends StatefulWidget {
 class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
   late Future<int> _followersCountFuture;
   late Future<int> _upcomingEventsCountFuture;
-  late Future<bool> _isFollowingFuture;
+
+  final UserFollowPromoterService _userFollowPromoterService =
+      UserFollowPromoterService();
+  final PromoterService _promoterService = PromoterService();
 
   @override
   void initState() {
     super.initState();
-    _followersCountFuture = UserFollowPromoterService()
+    _followersCountFuture = _userFollowPromoterService
         .getPromoterFollowersCount(widget.promoter.id);
-    _isFollowingFuture =
-        UserFollowPromoterService().isFollowingPromoter(widget.promoter.id);
-    _upcomingEventsCountFuture = PromoterService()
+    _upcomingEventsCountFuture = _promoterService
         .getPromoterByIdWithEvents(widget.promoter.id)
         .then((promoter) => promoter?.upcomingEvents.length ?? 0);
-  }
-
-  void _toggleFollow(bool isFollowing) async {
-    if (isFollowing) {
-      await UserFollowPromoterService().unfollowPromoter(widget.promoter.id);
-    } else {
-      await UserFollowPromoterService().followPromoter(widget.promoter.id);
-    }
-    setState(() {
-      _isFollowingFuture =
-          UserFollowPromoterService().isFollowingPromoter(widget.promoter.id);
-      _followersCountFuture = UserFollowPromoterService()
-          .getPromoterFollowersCount(widget.promoter.id);
-    });
   }
 
   @override
@@ -61,23 +49,13 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
         ? '${widget.promoter.name.substring(0, widget.maxNameLength)}...'
         : widget.promoter.name;
 
-    // Déterminez la couleur de la carte en fonction du thème
-    Color cardBackgroundColor;
-    if (Theme.of(context).brightness == Brightness.dark) {
-      // Utilisez la couleur 'surfaceVariant' définie dans le thème sombre
-      cardBackgroundColor =
-          Theme.of(context).colorScheme.surfaceContainerHighest;
-    } else {
-      // Utilisez la couleur de carte par défaut en mode clair
-      cardBackgroundColor = Theme.of(context).cardColor;
-    }
-
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Card(
-        color: cardBackgroundColor, // Appliquez la couleur personnalisée
+        color:
+            Theme.of(context).cardColor, // Appliquez la couleur personnalisée
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
         ),
         elevation: 3,
         child: Container(
@@ -86,7 +64,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
               color: Theme.of(context)
                   .colorScheme
                   .onPrimary
-                  .withValues(alpha: 0.1), // Couleur de la bordure
+                  .withValues(alpha: 0.5), // Couleur de la bordure avec opacité
               width: 2.0, // Épaisseur de la bordure
             ),
             borderRadius:
@@ -105,7 +83,8 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
                   border: Border.all(
                     color: Theme.of(context)
                         .colorScheme
-                        .onPrimary, // Couleur de la bordure
+                        .onPrimary
+                        .withValues(alpha: 0.5), // Couleur de la bordure
                     width: 2.0, // Épaisseur de la bordure
                   ),
                   borderRadius:
@@ -182,28 +161,9 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
                 ),
               ],
             ),
-            trailing: FutureBuilder<bool>(
-              future: _isFollowingFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  );
-                } else if (snapshot.hasError) {
-                  return const Icon(Icons.error, color: Colors.red);
-                } else {
-                  bool isFollowing = snapshot.data ?? false;
-                  return IconButton(
-                    icon: isFollowing
-                        ? Icon(Icons.favorite,
-                            color: Theme.of(context).colorScheme.secondary)
-                        : Icon(Icons.favorite_border),
-                    onPressed: () => _toggleFollow(isFollowing),
-                  );
-                }
-              },
+            trailing: FollowingButtonWidget(
+              entityId: widget.promoter.id,
+              entityType: 'promoter',
             ),
           ),
         ),
@@ -252,6 +212,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
     } else {
       await UserFollowPromoterService().followPromoter(widget.promoter.id);
     }
+    if (!mounted) return;
     setState(() {
       _isFollowingFuture =
           UserFollowPromoterService().isFollowingPromoter(widget.promoter.id);
@@ -289,7 +250,8 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
                 border: Border.all(
                   color: Theme.of(context)
                       .colorScheme
-                      .onPrimary, // Couleur de la bordure
+                      .onPrimary
+                      .withValues(alpha: 0.5), // Couleur de la bordure
                   width: 2.0, // Épaisseur de la bordure
                 ),
                 borderRadius:

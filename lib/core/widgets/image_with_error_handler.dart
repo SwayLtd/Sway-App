@@ -23,20 +23,38 @@ class ImageWithErrorHandler extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
-      placeholder: (context, url) => Container(
+      /* placeholder: (context, url) => Container(
         width: width,
         height: height,
-        // color: Colors.grey.shade200,
         child: const Center(
           child: CircularProgressIndicator.adaptive(),
         ),
-      ),
+      ),*/
       errorWidget: (context, url, error) => Container(
         width: width,
         height: height,
-        color: Colors.grey,
-        child: const Center(
-          child: Icon(Icons.error, color: Colors.white),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/404.png', // Votre image par défaut
+              width: width * 0.66,
+              height: height * 0.66,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Image not available',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       ),
       fadeInDuration: const Duration(milliseconds: 200),

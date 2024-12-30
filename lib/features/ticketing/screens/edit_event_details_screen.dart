@@ -60,6 +60,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
     try {
       _events =
           await _eventService.searchEvents(_searchController.text, _filters);
+      if (!mounted) return;
       setState(() {
         _filteredEvents = _events.take(5).toList();
       });
@@ -186,6 +187,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
   Future<void> _selectEvent(Event event) async {
     print('[_selectEvent] Event selected: ${event.id} - ${event.title}'); // Log
     Venue? venue = await _eventVenueService.getVenueByEventId(event.id);
+    if (!mounted) return;
     setState(() {
       _selectedEvent = event;
       _eventNameController.text = event.title;
@@ -276,6 +278,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
                     lastDate: DateTime(2100),
                   );
                   if (pickedDate != null) {
+                    if (!mounted) return;
                     setState(() {
                       _eventDate = pickedDate;
                     });

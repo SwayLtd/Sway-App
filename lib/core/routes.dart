@@ -31,10 +31,10 @@ final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 List<Map<String, dynamic>> shellRoutes = [
   {
-    'name': 'Discovery',
+    'name': 'Explore',
     'path': '/',
     'index': 0,
-    'screen': DiscoveryScreen(),
+    'screen': ExploreScreen(),
   },
   {
     'name': 'Search',
@@ -149,7 +149,9 @@ List<Map<String, dynamic>> standaloneRoutes = [
               appBar: AppBar(title: const Text('Loading Ticket')),
               body: const Center(child: CircularProgressIndicator()),
             );
-          } else if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+          } else if (snapshot.hasError ||
+              !snapshot.hasData ||
+              snapshot.data == null) {
             return Scaffold(
               appBar: AppBar(title: const Text('Ticket Not Found')),
               body: const Center(child: Text('Ticket not found.')),

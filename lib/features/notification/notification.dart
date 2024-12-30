@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:sway/features/notification/screens/notification_preferences_screen.dart';
 import 'package:sway/features/notification/widgets/notification_list_item.dart';
 import 'package:sway/features/notification/models/notification_model.dart';
 import 'package:sway/features/notification/services/notification_history_service.dart';
@@ -264,6 +265,23 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifications'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => _pagingController.refresh(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            onPressed: () => {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationPreferencesScreen(),
+                ),
+              )
+            },
+          ),
+        ],
       ),
       body: PagedListView<int, ListItem>(
         pagingController: _pagingController,

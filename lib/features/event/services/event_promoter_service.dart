@@ -18,16 +18,15 @@ class EventPromoterService {
           .eq('event_id', eventId);
 
       // Log the response
-      print('getPromotersByEventId Response: $response');
+      // print('getPromotersByEventId Response: $response');
 
       if (response.isEmpty) {
         return [];
       }
 
       // Extract promoter IDs
-      final List<int> promoterIds = response
-          .map<int>((entry) => entry['promoter_id'] as int)
-          .toList();
+      final List<int> promoterIds =
+          response.map<int>((entry) => entry['promoter_id'] as int).toList();
 
       // Fetch promoters by IDs
       return await _promoterService.getPromotersByIds(promoterIds);

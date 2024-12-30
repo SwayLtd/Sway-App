@@ -34,6 +34,7 @@ class _TicketingScreenState extends State<TicketingScreen>
   Future<void> _loadTickets() async {
     List<Ticket> upcoming = await _ticketService.getUpcomingTickets();
     List<Ticket> past = await _ticketService.getPastTickets();
+    if (!mounted) return;
     setState(() {
       _upcomingTickets = upcoming;
       _pastTickets = past;
@@ -249,7 +250,7 @@ class _TicketingScreenState extends State<TicketingScreen>
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Text(
-                  'No tickets imported',
+                  'No tickets here',
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               ),
@@ -360,7 +361,7 @@ class _TicketingScreenState extends State<TicketingScreen>
             _upcomingTickets.isEmpty
                 ? Center(
                     child: Text(
-                      'No tickets imported',
+                      'No tickets here',
                       style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   )
@@ -371,7 +372,7 @@ class _TicketingScreenState extends State<TicketingScreen>
             _pastTickets.isEmpty
                 ? Center(
                     child: Text(
-                      'No tickets imported',
+                      'No tickets here',
                       style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   )

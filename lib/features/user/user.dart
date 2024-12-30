@@ -51,12 +51,15 @@ class UserScreen extends StatelessWidget {
                 return const SizedBox.shrink();
               } else {
                 final user = snapshot.data!;
-                return IconButton(
-                  icon: const Icon(Icons.share),
-                  onPressed: () {
-                    // Appeler la fonction de partage avec les paramètres appropriés
-                    shareEntity('user', userId, user.username);
-                  },
+                return Transform.flip(
+                  flipX: true,
+                  child: IconButton(
+                    icon: const Icon(Icons.reply),
+                    onPressed: () {
+                      // Appeler la fonction de partage avec les paramètres appropriés
+                      shareEntity('user', userId, user.username);
+                    },
+                  ),
                 );
               }
             },
@@ -89,7 +92,9 @@ class UserScreen extends StatelessWidget {
                           border: Border.all(
                             color: Theme.of(context)
                                 .colorScheme
-                                .onPrimary, // Couleur de la bordure
+                                .onPrimary
+                                .withValues(
+                                    alpha: 0.5), // Couleur de la bordure
                             width: 2.0, // Épaisseur de la bordure
                           ),
                           borderRadius: BorderRadius.circular(
@@ -216,7 +221,10 @@ class UserScreen extends StatelessWidget {
                                             border: Border.all(
                                               color: Theme.of(context)
                                                   .colorScheme
-                                                  .onPrimary, // Couleur de la bordure
+                                                  .onPrimary
+                                                  .withValues(
+                                                      alpha:
+                                                          0.5), // Couleur de la bordure
                                               width:
                                                   2.0, // Épaisseur de la bordure
                                             ),
@@ -290,7 +298,10 @@ class UserScreen extends StatelessWidget {
                                             border: Border.all(
                                               color: Theme.of(context)
                                                   .colorScheme
-                                                  .onPrimary, // Couleur de la bordure
+                                                  .onPrimary
+                                                  .withValues(
+                                                      alpha:
+                                                          0.5), // Couleur de la bordure
                                               width:
                                                   2.0, // Épaisseur de la bordure
                                             ),
@@ -364,7 +375,10 @@ class UserScreen extends StatelessWidget {
                                             border: Border.all(
                                               color: Theme.of(context)
                                                   .colorScheme
-                                                  .onPrimary, // Couleur de la bordure
+                                                  .onPrimary
+                                                  .withValues(
+                                                      alpha:
+                                                          0.5), // Couleur de la bordure
                                               width:
                                                   2.0, // Épaisseur de la bordure
                                             ),
@@ -445,7 +459,7 @@ class UserScreen extends StatelessWidget {
                     SizedBox(height: sectionTitleSpacing),
                     FutureBuilder<List<Event>>(
                       future: UserInterestEventService()
-                          .getAttendedEventsByUserId(userId),
+                          .getGoingEventsByUserId(userId),
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -454,7 +468,7 @@ class UserScreen extends StatelessWidget {
                           return Text('Error: ${eventSnapshot.error}');
                         } else if (!eventSnapshot.hasData ||
                             eventSnapshot.data!.isEmpty) {
-                          return const Text('No attended events found');
+                          return const Text('No going events found');
                         } else {
                           final events = eventSnapshot.data!;
                           return Column(

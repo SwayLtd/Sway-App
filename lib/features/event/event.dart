@@ -54,11 +54,14 @@ class _EventScreenState extends State<EventScreen> {
       appBar: AppBar(
         title: Text(widget.event.title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              shareEntity('event', widget.event.id, widget.event.title);
-            },
+          Transform.flip(
+            flipX: true,
+            child: IconButton(
+              icon: const Icon(Icons.reply),
+              onPressed: () {
+                shareEntity('event', widget.event.id, widget.event.title);
+              },
+            ),
           ),
           FutureBuilder<Map<String, bool>>(
             future: _getEventStatus(widget.event.id),
@@ -76,16 +79,16 @@ class _EventScreenState extends State<EventScreen> {
               } else if (snapshot.hasData) {
                 final bool isInterested =
                     snapshot.data?['isInterested'] ?? false;
-                final bool isAttended = snapshot.data?['isAttended'] ?? false;
+                final bool isGoing = snapshot.data?['isGoing'] ?? false;
 
                 // Déterminer le statut basé sur les booléens
                 String status;
-                if (isAttended) {
+                if (isGoing) {
                   status = 'going';
                 } else if (isInterested) {
                   status = 'interested';
                 } else {
-                  status = 'ignored';
+                  status = 'not_going';
                 }
 
                 // Sélectionner l'icône appropriée
@@ -97,7 +100,7 @@ class _EventScreenState extends State<EventScreen> {
                   case 'interested':
                     icon = Icons.favorite;
                     break;
-                  case 'ignored':
+                  case 'not_going':
                   default:
                     icon = Icons.favorite_border;
                     break;
@@ -127,7 +130,7 @@ class _EventScreenState extends State<EventScreen> {
                         child: Text('Going'),
                       ),
                       PopupMenuItem<String>(
-                        value: 'ignored',
+                        value: 'not_going',
                         child: Text(notOptionText),
                       ),
                     ];
@@ -291,14 +294,15 @@ class _EventScreenState extends State<EventScreen> {
                   border: Border.all(
                     color: Theme.of(context)
                         .colorScheme
-                        .onPrimary, // Couleur de la bordure
+                        .onPrimary
+                        .withValues(alpha: 0.5), // Couleur de la bordure
                     width: 2.0, // Épaisseur de la bordure
                   ),
                   borderRadius:
                       BorderRadius.circular(12), // Coins arrondis de la bordure
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(10),
                   child: ImageWithErrorHandler(
                     imageUrl: widget.event.imageUrl,
                     width: double.infinity,
@@ -427,7 +431,10 @@ class _EventScreenState extends State<EventScreen> {
                                       border: Border.all(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .onPrimary, // Couleur de la bordure
+                                            .onPrimary
+                                            .withValues(
+                                                alpha:
+                                                    0.5), // Couleur de la bordure
                                         width: 2.0, // Épaisseur de la bordure
                                       ),
                                       borderRadius: BorderRadius.circular(
@@ -707,9 +714,8 @@ class _EventScreenState extends State<EventScreen> {
   Future<Map<String, bool>> _getEventStatus(int eventId) async {
     final bool isInterested =
         await UserInterestEventService().isInterestedInEvent(eventId);
-    final bool isAttended =
-        await UserInterestEventService().isAttendedEvent(eventId);
-    return {'isInterested': isInterested, 'isAttended': isAttended};
+    final bool isGoing = await UserInterestEventService().isGoingEvent(eventId);
+    return {'isInterested': isInterested, 'isGoing': isGoing};
   }
 
   void _handleMenuSelection(
@@ -722,9 +728,9 @@ class _EventScreenState extends State<EventScreen> {
         UserInterestEventService().addInterest(eventId);
         break;
       case 'going':
-        UserInterestEventService().markEventAsAttended(eventId);
+        UserInterestEventService().markEventAsGoing(eventId);
         break;
-      case 'ignored':
+      case 'not_going':
         UserInterestEventService().removeInterest(eventId);
         break;
     }

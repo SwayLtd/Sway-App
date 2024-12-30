@@ -49,17 +49,20 @@ class _PromoterScreenState extends State<PromoterScreen> {
       final promoter =
           await PromoterService().getPromoterByIdWithEvents(widget.promoterId);
       if (promoter == null) {
+        if (!mounted) return;
         setState(() {
           _error = 'Promoter not found';
           _isLoading = false;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           _promoter = promoter;
           _isLoading = false;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -154,12 +157,15 @@ class _PromoterScreenState extends State<PromoterScreen> {
                 return const SizedBox.shrink();
               } else {
                 final promoter = snapshot.data!;
-                return IconButton(
-                  icon: const Icon(Icons.share),
-                  onPressed: () {
-                    // Appeler la fonction de partage avec les paramètres appropriés
-                    shareEntity('promoter', widget.promoterId, promoter.name);
-                  },
+                return Transform.flip(
+                  flipX: true,
+                  child: IconButton(
+                    icon: const Icon(Icons.reply),
+                    onPressed: () {
+                      // Appeler la fonction de partage avec les paramètres appropriés
+                      shareEntity('promoter', widget.promoterId, promoter.name);
+                    },
+                  ),
                 );
               }
             },
@@ -190,14 +196,16 @@ class _PromoterScreenState extends State<PromoterScreen> {
                               border: Border.all(
                                 color: Theme.of(context)
                                     .colorScheme
-                                    .onPrimary, // Couleur de la bordure
+                                    .onPrimary
+                                    .withValues(
+                                        alpha: 0.5), // Couleur de la bordure
                                 width: 2.0, // Épaisseur de la bordure
                               ),
                               borderRadius: BorderRadius.circular(
                                   12), // Coins arrondis de la bordure
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(15),
+                              borderRadius: BorderRadius.circular(10),
                               child: ImageWithErrorHandler(
                                 imageUrl: _promoter!.imageUrl,
                                 width: 200,

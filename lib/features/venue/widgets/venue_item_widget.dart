@@ -2,10 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/event/services/event_venue_service.dart';
+import 'package:sway/features/user/widgets/following_button_widget.dart';
 import 'package:sway/features/venue/models/venue_model.dart'; // Assurez-vous d'avoir ce modèle
 import 'package:sway/features/user/services/user_follow_venue_service.dart';
 
-/// Widget pour afficher un lieu sous forme de liste avec image, nom, followers, événements à venir et bouton de suivi.
+/// Widget pour afficher un lieu sous forme de liste avec image, nom, followers,
+/// événements à venir et bouton de suivi.
 class VenueListItemWidget extends StatefulWidget {
   final Venue venue;
   final VoidCallback onTap;
@@ -24,29 +27,20 @@ class VenueListItemWidget extends StatefulWidget {
 
 class _VenueListItemWidgetState extends State<VenueListItemWidget> {
   late Future<int> _followersCountFuture;
-  late Future<bool> _isFollowingFuture;
+  late Future<int> _upcomingEventsCountFuture;
+
+  final UserFollowVenueService _userFollowVenueService =
+      UserFollowVenueService();
+  final EventVenueService _eventVenueService = EventVenueService();
 
   @override
   void initState() {
     super.initState();
     _followersCountFuture =
-        UserFollowVenueService().getVenueFollowersCount(widget.venue.id);
-    _isFollowingFuture =
-        UserFollowVenueService().isFollowingVenue(widget.venue.id);
-  }
-
-  void _toggleFollow(bool isFollowing) async {
-    if (isFollowing) {
-      await UserFollowVenueService().unfollowVenue(widget.venue.id);
-    } else {
-      await UserFollowVenueService().followVenue(widget.venue.id);
-    }
-    setState(() {
-      _isFollowingFuture =
-          UserFollowVenueService().isFollowingVenue(widget.venue.id);
-      _followersCountFuture =
-          UserFollowVenueService().getVenueFollowersCount(widget.venue.id);
-    });
+        _userFollowVenueService.getVenueFollowersCount(widget.venue.id);
+    _upcomingEventsCountFuture = _eventVenueService
+        .getEventsByVenueId(widget.venue.id)
+        .then((events) => events.length);
   }
 
   @override
@@ -56,91 +50,117 @@ class _VenueListItemWidgetState extends State<VenueListItemWidget> {
         ? '${widget.venue.name.substring(0, widget.maxNameLength)}...'
         : widget.venue.name;
 
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ListTile(
-        onTap: widget.onTap,
-        leading: Container(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Card(
+        color:
+            Theme.of(context).cardColor, // Appliquez la couleur personnalisée
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 3,
+        child: Container(
           decoration: BoxDecoration(
             border: Border.all(
               color: Theme.of(context)
                   .colorScheme
-                  .onPrimary, // Couleur de la bordure
+                  .onPrimary
+                  .withValues(alpha: 0.5), // Couleur de la bordure avec opacité
               width: 2.0, // Épaisseur de la bordure
             ),
             borderRadius:
                 BorderRadius.circular(12), // Coins arrondis de la bordure
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: ImageWithErrorHandler(
-              imageUrl: widget.venue.imageUrl,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
+          child: ListTile(
+            onTap: widget.onTap,
+            leading: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .cardColor, // Appliquer cardColor from theme
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onPrimary
+                        .withValues(alpha: 0.5), // Couleur de la bordure
+                    width: 2.0, // Épaisseur de la bordure
+                  ),
+                  borderRadius:
+                      BorderRadius.circular(12), // Coins arrondis de la bordure
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: ImageWithErrorHandler(
+                    imageUrl: widget.venue.imageUrl,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+            title: Text(
+              truncatedName,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FutureBuilder<int>(
+                  future: _followersCountFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox.shrink();
+                    } else if (snapshot.hasError) {
+                      return Text(
+                        'Error: ${snapshot.error}',
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    } else {
+                      return Text(
+                        '${snapshot.data} followers',
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    }
+                  },
+                ),
+                FutureBuilder<int>(
+                  future: _upcomingEventsCountFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox.shrink();
+                    } else if (snapshot.hasError) {
+                      return Text(
+                        'Error: ${snapshot.error}',
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    } else {
+                      return Text(
+                        '${snapshot.data} upcoming events',
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+            trailing: FollowingButtonWidget(
+              entityId: widget.venue.id,
+              entityType: 'venue',
             ),
           ),
-        ),
-        title: Text(
-          truncatedName,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FutureBuilder<int>(
-              future: _followersCountFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Text(
-                    'Loading followers...',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  );
-                } else if (snapshot.hasError) {
-                  return Text(
-                    'Error: ${snapshot.error}',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  );
-                } else {
-                  return Text(
-                    '${snapshot.data} followers',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-        trailing: FutureBuilder<bool>(
-          future: _isFollowingFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              );
-            } else if (snapshot.hasError) {
-              return const Icon(Icons.error, color: Colors.red);
-            } else {
-              bool isFollowing = snapshot.data ?? false;
-              return IconButton(
-                icon: isFollowing
-                    ? Icon(Icons.favorite)
-                    : Icon(Icons.favorite_border),
-                onPressed: () => _toggleFollow(isFollowing),
-              );
-            }
-          },
         ),
       ),
     );
@@ -180,7 +200,8 @@ class VenueCardItemWidget extends StatelessWidget {
                 border: Border.all(
                   color: Theme.of(context)
                       .colorScheme
-                      .onPrimary, // Couleur de la bordure
+                      .onPrimary
+                      .withValues(alpha: 0.5), // Couleur de la bordure
                   width: 2.0, // Épaisseur de la bordure
                 ),
                 borderRadius:

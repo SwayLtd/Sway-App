@@ -194,24 +194,23 @@ class EventService {
     return null;
   }
 
-  /// Retrieves the top events based on popularity.
+  /// Récupère les événements les plus populaires basés sur le nombre d'utilisateurs intéressés.
   Future<List<Event>> getTopEvents({int limit = 5}) async {
-    // Assurez-vous que votre table 'events' a une colonne 'popularity' ou 'interested_users_count'
     try {
-      final response = await _supabase
-          .from('events')
-          .select()
-          .order('interested_users_count', ascending: false)
-          .limit(limit);
+      final data =
+          await _supabase.rpc('get_top_events', params: {'p_limit': limit});
+      // print('getTopEvents data: $data');
 
-      if (response.isEmpty) {
+      if (data == null || (data as List).isEmpty) {
         return [];
       }
 
-      return response.map<Event>((json) => Event.fromJson(json)).toList();
+      return (data)
+          .map<Event>((json) => Event.fromJson(json as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       print('Error fetching top events: $e');
-      return [];
+      throw e;
     }
   }
 }

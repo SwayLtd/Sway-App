@@ -112,6 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
                 if (updatedUser != null) {
                   // Rafraîchir l'état pour afficher les informations mises à jour
+                  if (!mounted) return;
                   setState(() {});
                 }
               }
@@ -159,7 +160,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             border: Border.all(
                               color: Theme.of(context)
                                   .colorScheme
-                                  .onPrimary, // Couleur de la bordure
+                                  .onPrimary
+                                  .withValues(
+                                      alpha: 0.5), // Couleur de la bordure
                               width: 2.0, // Épaisseur de la bordure
                             ),
                             borderRadius: BorderRadius.circular(
@@ -282,7 +285,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             border: Border.all(
                                               color: Theme.of(context)
                                                   .colorScheme
-                                                  .onPrimary, // Couleur de la bordure
+                                                  .onPrimary
+                                                  .withValues(
+                                                      alpha:
+                                                          0.5), // Couleur de la bordure
                                               width:
                                                   2.0, // Épaisseur de la bordure
                                             ),
@@ -397,7 +403,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             border: Border.all(
                                               color: Theme.of(context)
                                                   .colorScheme
-                                                  .onPrimary, // Couleur de la bordure
+                                                  .onPrimary
+                                                  .withValues(
+                                                      alpha:
+                                                          0.5), // Couleur de la bordure
                                               width:
                                                   2.0, // Épaisseur de la bordure
                                             ),
@@ -476,7 +485,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 10),
                     FutureBuilder<List<Event>>(
                       future: UserInterestEventService()
-                          .getAttendedEventsByUserId(user.id),
+                          .getGoingEventsByUserId(user.id),
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {

@@ -20,7 +20,7 @@ class GenreChip extends StatelessWidget {
       future: GenreService().getGenreById(genreId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Chip(
+          return Chip(
             label: Text('Loading...'),
           );
         } else if (snapshot.hasError ||

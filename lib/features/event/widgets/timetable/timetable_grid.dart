@@ -137,6 +137,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
     }
 
     _initializeScrollControllers();
+    if (!mounted) return;
     setState(() {
       _isScrollInitialized = true;
     });
@@ -498,7 +499,10 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                                               color: Theme.of(
                                                                       context)
                                                                   .colorScheme
-                                                                  .onPrimary, // Couleur de la bordure
+                                                                  .onPrimary
+                                                                  .withValues(
+                                                                      alpha:
+                                                                          0.5), // Couleur de la bordure
                                                               width:
                                                                   2.0, // Épaisseur de la bordure
                                                             ),

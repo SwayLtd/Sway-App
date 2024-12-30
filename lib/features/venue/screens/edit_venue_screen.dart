@@ -46,7 +46,9 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
   }
 
   Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, UserPermission permission,) async {
+    BuildContext context,
+    UserPermission permission,
+  ) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -65,8 +67,12 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
               child: const Text('Delete'),
               onPressed: () async {
                 await UserPermissionService().deleteUserPermission(
-                    permission.userId, widget.venue.id, 'venue',);
+                  permission.userId,
+                  widget.venue.id,
+                  'venue',
+                );
                 Navigator.of(context).pop();
+                if (!mounted) return;
                 setState(() {});
               },
             ),
@@ -98,6 +104,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                   ),
                 ),
               );
+              if (!mounted) return;
               setState(() {});
             },
           ),
@@ -124,7 +131,10 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
             ),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                  widget.venue.id, 'venue', 'admin',),
+                widget.venue.id,
+                'venue',
+                'admin',
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator.adaptive();
@@ -138,12 +148,14 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         _showDeleteConfirmationDialog(
-                            context,
-                            UserPermission(
-                                userId: 3,
-                                entityId: widget.venue.id,
-                                entityType: 'venue',
-                                permission: 'admin',),);
+                          context,
+                          UserPermission(
+                            userId: 3,
+                            entityId: widget.venue.id,
+                            entityType: 'venue',
+                            permission: 'admin',
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.red,

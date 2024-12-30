@@ -66,6 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _onSearchChanged() {
     if (_searchController.text.isEmpty) {
+      if (!mounted) return;
       setState(() {
         _searchResults = {};
       });
@@ -82,6 +83,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final genres = await _genreService.searchGenres(query);
     final users = await _userService.searchUsers(query);
 
+    if (!mounted) return;
     setState(() {
       _searchResults = {
         'Events': events.take(5).toList(),
@@ -110,6 +112,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
 
     if (selectedFilters != null) {
+      if (!mounted) return;
       setState(() {
         _filters = selectedFilters;
         _performSearch(_searchController.text);
@@ -135,6 +138,7 @@ class _SearchScreenState extends State<SearchScreen> {
         Chip(
           label: const Text('Near Me'),
           onDeleted: () {
+            if (!mounted) return;
             setState(() {
               _filters['near_me'] = false;
               _performSearch(_searchController.text);
@@ -150,6 +154,7 @@ class _SearchScreenState extends State<SearchScreen> {
               (city) => Chip(
                 label: Text('City: $city'),
                 onDeleted: () {
+                  if (!mounted) return;
                   setState(() {
                     (_filters['cities'] as List).remove(city);
                     _performSearch(_searchController.text);
@@ -165,6 +170,7 @@ class _SearchScreenState extends State<SearchScreen> {
         Chip(
           label: Text('Date: ${_filters['date'].toString().split(' ')[0]}'),
           onDeleted: () {
+            if (!mounted) return;
             setState(() {
               _filters['date'] = null;
               _performSearch(_searchController.text);
@@ -181,6 +187,7 @@ class _SearchScreenState extends State<SearchScreen> {
               (type) => Chip(
                 label: Text('Venue Type: $type'),
                 onDeleted: () {
+                  if (!mounted) return;
                   setState(() {
                     (_filters['venueTypes'] as List).remove(type);
                     _performSearch(_searchController.text);
@@ -207,6 +214,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     return Chip(
                       label: Text('Genre: ${genre.name}'),
                       onDeleted: () {
+                        if (!mounted) return;
                         setState(() {
                           (_filters['genres'] as List).remove(genreId);
                           _performSearch(_searchController.text);
@@ -252,6 +260,7 @@ class _SearchScreenState extends State<SearchScreen> {
               icon: const Icon(Icons.clear),
               onPressed: () {
                 _searchController.clear();
+                if (!mounted) return;
                 setState(() {
                   _searchResults = {};
                 });
@@ -300,7 +309,11 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildListTile(dynamic result) {
     if (result is User) {
       return ListTile(
-        title: Text(result.username),
+        title: Text(
+          result.username,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         onTap: () {
           Navigator.push(
             context,
@@ -312,7 +325,11 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     } else if (result is Genre) {
       return ListTile(
-        title: Text(result.name),
+        title: Text(
+          result.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         onTap: () {
           Navigator.push(
             context,
@@ -324,7 +341,11 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     } else if (result is Artist) {
       return ListTile(
-        title: Text(result.name),
+        title: Text(
+          result.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         onTap: () {
           Navigator.push(
             context,
@@ -336,7 +357,11 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     } else if (result is Venue) {
       return ListTile(
-        title: Text(result.name),
+        title: Text(
+          result.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         subtitle: Row(
           children: [
             const Icon(Icons.location_on, size: 16, color: Colors.grey),
@@ -355,7 +380,11 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     } else if (result is Promoter) {
       return ListTile(
-        title: Text(result.name),
+        title: Text(
+          result.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         onTap: () {
           Navigator.push(
             context,
@@ -367,7 +396,11 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     } else if (result is Event) {
       return ListTile(
-        title: Text(result.title),
+        title: Text(
+          result.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

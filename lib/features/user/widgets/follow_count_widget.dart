@@ -40,6 +40,7 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
     try {
       // Vérifie l'état d'authentification
       final user = await _userService.getCurrentUser();
+      if (!mounted) return;
       setState(() {
         isAuthenticated = user != null;
       });
@@ -53,11 +54,13 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
         counts['followersCount'] = await _getFollowersCountForEntity();
       }
 
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
     } catch (e) {
       print('Error initializing FollowersCountWidget: $e');
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });

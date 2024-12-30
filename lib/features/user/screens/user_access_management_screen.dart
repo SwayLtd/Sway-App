@@ -47,6 +47,7 @@ class _UserAccessManagementScreenState
         widget.entityType,
         'manager',
       );
+      if (!mounted) return;
       setState(() {
         isCurrentUserAdmin = isAdmin;
         isCurrentUserManager = isManager;
@@ -81,6 +82,7 @@ class _UserAccessManagementScreenState
                   widget.entityType,
                 );
                 Navigator.of(context).pop();
+                if (!mounted) return;
                 setState(() {});
               },
             ),
@@ -124,7 +126,8 @@ class _UserAccessManagementScreenState
               ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator.adaptive());
+                  return const Center(
+                      child: CircularProgressIndicator.adaptive());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -168,12 +171,15 @@ class _UserAccessManagementScreenState
                                           (String value) {
                                         return DropdownMenuItem<String>(
                                           value: value,
-                                          child: Text(value[0].toUpperCase() +
-                                              value.substring(1),),
+                                          child: Text(
+                                            value[0].toUpperCase() +
+                                                value.substring(1),
+                                          ),
                                         );
                                       }).toList(),
                                       onChanged: (String? newRole) {
                                         if (newRole != null) {
+                                          if (!mounted) return;
                                           setState(() {
                                             permission.permission = newRole;
                                             UserPermissionService()

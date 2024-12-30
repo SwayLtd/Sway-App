@@ -43,6 +43,7 @@ class _ScaffoldWithNavBarWithoutAppBarState
 
     // Vérification initiale de la connectivité
     Connectivity().checkConnectivity().then((result) {
+      if (!mounted) return;
       setState(() {
         _isOffline = result == ConnectivityResult.none;
       });
@@ -52,6 +53,7 @@ class _ScaffoldWithNavBarWithoutAppBarState
     _connectivitySubscription = Connectivity()
         .onConnectivityChanged
         .listen((List<ConnectivityResult> results) {
+      if (!mounted) return;
       setState(() {
         _isOffline =
             results.isEmpty || results.contains(ConnectivityResult.none);
@@ -170,7 +172,8 @@ class _ScaffoldWithNavBarWithoutAppBarState
                 items: items,
                 onTap: (int index) {
                   onTap(context, index);
-                  setState(() {
+                  if (!mounted) return;
+setState(() {
                     _currentIndex = index;
                   });
                 },
@@ -180,6 +183,7 @@ class _ScaffoldWithNavBarWithoutAppBarState
                 selectedIndex: validIndex,
                 onDestinationSelected: (int index) {
                   onTap(context, index);
+                  if (!mounted) return;
                   setState(() {
                     _currentIndex = index;
                   });

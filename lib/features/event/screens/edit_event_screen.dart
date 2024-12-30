@@ -93,6 +93,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                   'event',
                 );
                 Navigator.of(context).pop();
+                if (!mounted) return;
                 setState(() {});
               },
             ),
@@ -124,6 +125,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                   ),
                 ),
               );
+              if (!mounted) return;
               setState(() {});
             },
           ),
@@ -151,6 +153,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
             DropdownButton<String>(
               value: _selectedType,
               onChanged: (String? newValue) {
+                if (!mounted) return;
                 setState(() {
                   _selectedType = newValue!;
                 });
@@ -171,6 +174,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     (genre) => Chip(
                       label: Text(genre as String),
                       onDeleted: () {
+                        if (!mounted) return;
                         setState(() {
                           _selectedGenres.remove(genre);
                         });
@@ -186,6 +190,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     (artist) => Chip(
                       label: Text(artist as String),
                       onDeleted: () {
+                        if (!mounted) return;
                         setState(() {
                           _selectedArtists.remove(artist);
                         });
@@ -201,6 +206,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     (promoter) => Chip(
                       label: Text(promoter as String),
                       onDeleted: () {
+                        if (!mounted) return;
                         setState(() {
                           _selectedPromoters.remove(promoter);
                         });

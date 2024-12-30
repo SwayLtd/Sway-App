@@ -34,9 +34,11 @@ class _FiltersScreenState extends State<FiltersScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedCities = List<String>.from((widget.filters['cities'] ?? []) as Iterable);
+    _selectedCities =
+        List<String>.from((widget.filters['cities'] ?? []) as Iterable);
     _selectedDate = widget.filters['date'] as DateTime?;
-    _selectedVenueTypes = List<String>.from((widget.filters['venueTypes'] ?? []) as Iterable);
+    _selectedVenueTypes =
+        List<String>.from((widget.filters['venueTypes'] ?? []) as Iterable);
     _selectedGenres = List.from((widget.filters['genres'] ?? []));
     _nearMe = widget.filters['near_me'] as bool;
   }
@@ -49,6 +51,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
       lastDate: DateTime(2101),
     );
     if (picked != null && picked != _selectedDate) {
+      if (!mounted) return;
       setState(() {
         _selectedDate = picked;
       });
@@ -92,8 +95,10 @@ class _FiltersScreenState extends State<FiltersScreen> {
         ...visibleCities.map((city) {
           return ChoiceChip(
             label: Text(city),
-            selected: _nearMe ? city == 'Near Me' : _selectedCities.contains(city),
+            selected:
+                _nearMe ? city == 'Near Me' : _selectedCities.contains(city),
             onSelected: (bool selected) {
+              if (!mounted) return;
               setState(() {
                 if (city == 'Near Me') {
                   _nearMe = selected;
@@ -117,6 +122,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
             label: const Text('...'),
             selected: false,
             onSelected: (bool selected) {
+              if (!mounted) return;
               setState(() {
                 _visibleCityCount += 10;
               });
@@ -149,6 +155,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                   label: Text(genre.name),
                   selected: _selectedGenres.contains(genre.id),
                   onSelected: (bool selected) {
+                    if (!mounted) return;
                     setState(() {
                       if (selected) {
                         _selectedGenres.add(genre.id);
@@ -164,6 +171,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                   label: const Text('...'),
                   selected: false,
                   onSelected: (bool selected) {
+                    if (!mounted) return;
                     setState(() {
                       _visibleGenreCount += 10;
                     });
@@ -188,6 +196,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
             label: Text(type),
             selected: _selectedVenueTypes.contains(type),
             onSelected: (bool selected) {
+              if (!mounted) return;
               setState(() {
                 if (selected) {
                   _selectedVenueTypes.add(type);
@@ -203,6 +212,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
             label: const Text('...'),
             selected: false,
             onSelected: (bool selected) {
+              if (!mounted) return;
               setState(() {
                 _visibleVenueTypeCount += 10;
               });
@@ -221,6 +231,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
           IconButton(
             icon: const Icon(Icons.clear),
             onPressed: () {
+              if (!mounted) return;
               setState(() {
                 _selectedCities.clear();
                 _selectedDate = null;

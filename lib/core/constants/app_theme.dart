@@ -9,11 +9,13 @@ class AppTheme {
 
   static ThemeData light = ThemeData(
     primaryColor: Color.fromRGBO(255, 188, 0, 1),
-    colorScheme: const ColorScheme.light(
+    colorScheme: ColorScheme.light(
       primary: Color.fromRGBO(255, 188, 0, 1),
       secondary: Colors.amberAccent,
       error: Colors.red,
       onPrimary: Colors.black,
+      onSecondary: Colors.black,
+      surfaceContainerHighest: Colors.transparent,
       surface: Colors.white, // Couleur de surface pour les dialogues
     ),
     primarySwatch: Colors.amber,
@@ -21,12 +23,30 @@ class AppTheme {
     fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
     disabledColor: Colors.black54,
     scaffoldBackgroundColor: Colors.grey[200], // Légèrement grisé pour le fond
-    cardColor: Colors.white, // Couleur blanche pour les cartes
+    cardColor: Colors.transparent, // Couleur blanche pour les cartes
+    cardTheme: CardTheme(
+      color: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: Colors.grey[200],
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: const Color.fromRGBO(0, 0, 0, 0.25), // Couleur de la bordure
+          width: 2.0, // Épaisseur de la bordure
+        ),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      brightness: Brightness.light,
+    ),
     appBarTheme: AppBarTheme(
       scrolledUnderElevation: 0.0, // Disable appbar color change on scroll
-      systemOverlayStyle: const SystemUiOverlayStyle(
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.light,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.grey[100],
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.dark,
+        statusBarColor: Colors.transparent,
       ),
       elevation: 0.0,
       color: Colors.grey[100], // Légèrement grisé pour harmoniser avec le fond
@@ -180,8 +200,8 @@ class AppTheme {
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       // Ajoutez une nouvelle couleur pour les éléments de liste des promoteurs
-      surfaceContainerHighest: const Color.fromRGBO(
-          60, 52, 32, 0.33), // Couleur légèrement plus claire
+      surfaceContainerHighest:
+          Colors.grey[200], // Couleur légèrement plus claire
     ),
     primarySwatch: Colors.amber,
     brightness: Brightness.dark,
@@ -189,12 +209,32 @@ class AppTheme {
     disabledColor: Colors.white70,
     scaffoldBackgroundColor:
         Color.fromRGBO(15, 13, 8, 1), // Changer à noir opaque
-    cardColor: Colors.black54, // Couleur pour les cartes dans le thème sombre
+    cardColor: Color.fromRGBO(
+        15, 13, 8, 1), // Couleur pour les cartes dans le thème sombre
+    cardTheme: CardTheme(
+      color: Color.fromRGBO(15, 13, 8, 1),
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: Color.fromRGBO(15, 13, 8, 1),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: const Color.fromRGBO(
+              255, 255, 255, 0.25), // Couleur de la bordure
+          width: 2.0, // Épaisseur de la bordure
+        ),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      brightness: Brightness.light,
+    ),
     appBarTheme: AppBarTheme(
       scrolledUnderElevation: 0.0, // Disable appbar color change on scroll
       systemOverlayStyle: const SystemUiOverlayStyle(
+        systemNavigationBarColor: Color.fromRGBO(15, 13, 8, 1),
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.light,
+        statusBarColor: Colors.transparent,
       ),
       elevation: 0.0,
       color: Color.fromRGBO(15, 13, 8, 1), // Fond de l'AppBar légèrement grisé
@@ -208,8 +248,8 @@ class AppTheme {
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: const Color.fromRGBO(
           15, 13, 8, 1), // Fond pour la NavigationBar en mode sombre
-      indicatorColor: const Color.fromARGB(
-          255, 255, 188, 0), // Couleur de l'indicateur de sélection
+      indicatorColor: const Color.fromRGBO(
+          255, 188, 0, 1), // Couleur de l'indicateur de sélection
       labelTextStyle: WidgetStateProperty.all(
         TextStyle(
           fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
@@ -334,8 +374,11 @@ class AppTheme {
           color: Colors.white, // Couleur souhaitée
         ),
       ),
-      dialHandColor: const Color.fromARGB(255, 255, 188, 0),
+      dialHandColor: const Color.fromRGBO(255, 188, 0, 1),
       dialBackgroundColor: Colors.black54,
+    ),
+    datePickerTheme: DatePickerThemeData(
+      backgroundColor: const Color.fromRGBO(15, 13, 8, 1),
     ),
   );
 }
