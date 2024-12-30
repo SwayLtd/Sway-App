@@ -118,7 +118,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Text(
-                        '',
+                        '0 followers',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       );
                     } else if (snapshot.hasError) {
@@ -141,7 +141,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Text(
-                        'Loading events...',
+                        '0 upcoming events', // 'Loading events...',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       );
                     } else if (snapshot.hasError) {
@@ -293,7 +293,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Text(
-                        '',
+                        '0 followers',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       );
                     } else if (snapshot.hasError) {
@@ -318,7 +318,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Text(
-                        'Loading events...',
+                        '0 upcoming events', // 'Loading events...',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       );
                     } else if (snapshot.hasError) {

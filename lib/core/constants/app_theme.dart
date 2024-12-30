@@ -379,6 +379,16 @@ class AppTheme {
     ),
     datePickerTheme: DatePickerThemeData(
       backgroundColor: const Color.fromRGBO(15, 13, 8, 1),
-    ),
+    ),  
   );
+}
+
+extension ShimmerColors on ThemeData {
+  Color get shimmerBaseColor => this.brightness == Brightness.dark
+      ? Colors.grey.shade700
+      : Colors.grey.shade300;
+
+  Color get shimmerHighlightColor => this.brightness == Brightness.dark
+      ? Colors.grey.shade500
+      : Colors.grey.shade100;
 }

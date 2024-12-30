@@ -239,7 +239,11 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
                                   fit: BoxFit.cover,
                                 )
                               : const Icon(Icons.event, size: 50),
-                          title: Text(event.title),
+                          title: Text(
+                            event.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           subtitle: Text(
                               '${event.dateTime.toLocal().toString().split(' ')[0]}'),
                           onTap: () => _selectEvent(event),
@@ -286,7 +290,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
                 }
               },
             ),
-            const SizedBox(height: 16),
+
             // Event Location
             TextField(
               controller: _eventLocationController,

@@ -1,34 +1,37 @@
 // lib/features/explore/explore.dart
 
 import 'package:flutter/material.dart';
-import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
 import 'package:sway/features/artist/services/similar_artist_service.dart';
+import 'package:sway/features/artist/widgets/artist_item_shimmer.dart';
 import 'package:sway/features/artist/widgets/artist_item_widget.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/event/widgets/event_item_shimmer.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/genre/widgets/genre_item_shimmer.dart';
 import 'package:sway/features/notification/notification.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
+import 'package:sway/features/promoter/widgets/promoter_item_shimmer.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
 import 'package:sway/features/user/services/user_follow_genre_service.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway/features/user/services/user_follow_venue_service.dart';
-import 'package:sway/features/user/services/user_interest_event_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/venue/venue.dart';
 import 'package:sway/features/promoter/widgets/promoter_item_widget.dart';
+import 'package:sway/features/venue/widgets/venue_item_shimmer.dart';
 import 'package:sway/features/venue/widgets/venue_item_widget.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -48,9 +51,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
       UserFollowPromoterService();
   final UserFollowVenueService _userFollowVenueService =
       UserFollowVenueService();
+  // TODO : Implémenter la méthode getEventsFilteredForUser
+  // final UserInterestEventService _userInterestEventService = UserInterestEventService();
   final SimilarArtistService _similarArtistService = SimilarArtistService();
-  final UserInterestEventService _userInterestEventService =
-      UserInterestEventService();
   final PromoterService _promoterService = PromoterService();
   final ArtistService _artistService = ArtistService();
   final GenreService _genreService = GenreService();
@@ -58,7 +61,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   // Futures séparés pour chaque section
   Future<List<Event>>? _suggestedEventsFuture;
-  Future<List<Event>>? _upcomingEventsFuture;
+  // TODO : Implémenter la méthode getEventsFilteredForUser
+  // Future<List<Event>>? _upcomingEventsFuture;
   Future<List<Promoter>>? _suggestedPromotersFuture;
   Future<List<Artist>>? _suggestedArtistsFuture;
   Future<List<Venue>>? _suggestedVenuesFuture;
@@ -73,10 +77,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Future<void> _loadRecommendations() async {
     final user = await _userService.getCurrentUser();
     if (user != null) {
-      _fetchUserRecommendations(user.id);
+      await _fetchUserRecommendations(user.id);
     } else {
       // Pour les utilisateurs anonymes, fournir des recommandations génériques
-      _fetchGenericRecommendations();
+      await _fetchGenericRecommendations();
     }
     if (!mounted) return;
     setState(() {});
@@ -87,6 +91,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _suggestedEventsFuture = _eventService.getTopEvents(limit: 5);
 
     // Charger les événements à venir filtrés pour l'utilisateur
+    // TODO : Implémenter la méthode getEventsFilteredForUser
     // _upcomingEventsFuture = _eventService.getEventsFilteredForUser(userId);
 
     // Charger les promoteurs suggérés
@@ -157,7 +162,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _suggestedEventsFuture = _eventService.getTopEvents(limit: 5);
 
     // Pas de filtres spécifiques pour les événements
-    _upcomingEventsFuture = Future.value([]);
+    // TODO : Implémenter la méthode getEventsFilteredForUser
+    // _upcomingEventsFuture = Future.value([]);
 
     // Charger les promoteurs suggérés
     _suggestedPromotersFuture = _promoterService
@@ -181,256 +187,97 @@ class _ExploreScreenState extends State<ExploreScreen> {
     await _loadRecommendations();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+  /// Méthode pour construire les sections de chargement avec Shimmer
+  Widget _buildLoadingSection(String title) {
+    switch (title) {
+      case 'Suggested Events':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
-              'assets/images/logotype_transparent.png',
-              fit: BoxFit.contain,
-              height: 28,
-              color: Theme.of(context).brightness == Brightness.light
-                  ? Colors.black
-                  : Colors.white,
+            const SizedBox(height: 16.0),
+            _buildSectionTitle(title),
+            const SizedBox(height: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6.0),
+              child: EventCardShimmer(
+                itemCount: 2, // Nombre de shimmer items
+                itemWidth: 310.0,
+                itemHeight: 242.0,
+              ),
             ),
+            const SizedBox(height: 16.0),
           ],
-        ),
-        actions: [
-          IconButton(
-            icon: Stack(
-              children: <Widget>[
-                const Icon(Icons.notifications),
-                Positioned(
-                  right: 0,
-                  child: Badge(), // Badge vide comme requis
-                ),
-              ],
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NotificationScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: RefreshIndicator(
-          onRefresh: _refreshRecommendations,
-          child: ListView(
+        );
+      case 'Upcoming Events':
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Section "Suggested Events"
-              FutureBuilder<List<Event>>(
-                future: _suggestedEventsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Events');
-                  } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Events', snapshot.error);
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Suggested Events');
-                  } else {
-                    final suggestedEvents = snapshot.data!;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Events'),
-                        SizedBox(height: sectionTitleSpacing),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: _buildEventCards(
-                              context,
-                              suggestedEvents,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: sectionTitleSpacing),
-                      ],
-                    );
-                  }
-                },
+              _buildSectionTitle(title),
+              const SizedBox(height: 16.0),
+              EventCardShimmer(
+                itemCount: 2, // Ajustez selon vos besoins
+                itemWidth: 310.0,
+                itemHeight: 240.0,
               ),
-
-              // Section "Upcoming Events"
-              FutureBuilder<List<Event>>(
-                future: _upcomingEventsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Upcoming Events');
-                  } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Upcoming Events', snapshot.error);
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Upcoming Events');
-                  } else {
-                    final upcomingEvents = snapshot.data!;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Upcoming Events'),
-                        SizedBox(height: sectionTitleSpacing),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: _buildEventCards(
-                              context,
-                              upcomingEvents,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: sectionTitleSpacing),
-                      ],
-                    );
-                  }
-                },
-              ),
-
-              // Section "Suggested Promoters"
-              FutureBuilder<List<Promoter>>(
-                future: _suggestedPromotersFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Promoters');
-                  } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Promoters', snapshot.error);
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Suggested Promoters');
-                  } else {
-                    final suggestedPromoters = snapshot.data!;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Promoters'),
-                        SizedBox(height: sectionTitleSpacing),
-                        ..._buildPromoterCards(
-                          context,
-                          suggestedPromoters,
-                        ),
-                        SizedBox(height: sectionSpacing),
-                      ],
-                    );
-                  }
-                },
-              ),
-
-              // Section "Suggested Artists"
-              FutureBuilder<List<Artist>>(
-                future: _suggestedArtistsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Artists');
-                  } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Artists', snapshot.error);
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Suggested Artists');
-                  } else {
-                    final suggestedArtists = snapshot.data!;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Artists'),
-                        SizedBox(height: sectionTitleSpacing),
-                        ..._buildArtistCards(
-                          context,
-                          suggestedArtists,
-                        ),
-                        SizedBox(height: sectionSpacing),
-                      ],
-                    );
-                  }
-                },
-              ),
-
-              // Section "Suggested Venues"
-              FutureBuilder<List<Venue>>(
-                future: _suggestedVenuesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Venues');
-                  } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Venues', snapshot.error);
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Suggested Venues');
-                  } else {
-                    final suggestedVenues = snapshot.data!;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Venues'),
-                        SizedBox(height: sectionTitleSpacing),
-                        ..._buildVenueCards(
-                          context,
-                          suggestedVenues,
-                        ),
-                        SizedBox(height: sectionSpacing),
-                      ],
-                    );
-                  }
-                },
-              ),
-
-              // Section "Suggested Genres"
-              FutureBuilder<List<Genre>>(
-                future: _suggestedGenresFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Genres');
-                  } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Genres', snapshot.error);
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Suggested Genres');
-                  } else {
-                    final suggestedGenres = snapshot.data!;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Genres'),
-                        SizedBox(height: sectionTitleSpacing),
-                        _buildGenreChips(
-                          context,
-                          suggestedGenres,
-                        ),
-                        SizedBox(height: sectionSpacing),
-                      ],
-                    );
-                  }
-                },
-              ),
+              const SizedBox(height: 16.0),
             ],
           ),
-        ),
-      ),
-    );
+        );
+      case 'Suggested Promoters':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle(title),
+            const SizedBox(height: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6.0),
+              child: Column(
+                children: [
+                  ...List.generate(3, (index) => const PromoterShimmer())
+                ],
+              ),
+            ),
+            const SizedBox(height: 16.0),
+          ],
+        );
+      case 'Suggested Artists':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle(title),
+            const SizedBox(height: 16.0),
+            ...List.generate(3, (index) => const ArtistShimmer()),
+            const SizedBox(height: 16.0),
+          ],
+        );
+      case 'Suggested Venues':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle(title),
+            const SizedBox(height: 16.0),
+            ...List.generate(3, (index) => const VenueShimmer()),
+            const SizedBox(height: 16.0),
+          ],
+        );
+      case 'Suggested Genres':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle(title),
+            const SizedBox(height: 16.0),
+            const GenreShimmer(),
+            const SizedBox(height: 16.0),
+          ],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
-  // Méthodes utilitaires pour les sections
-
-  Widget _buildLoadingSection(String title) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          /* _buildSectionTitle(title),
-          SizedBox(height: sectionTitleSpacing),
-          Center(child: CircularProgressIndicator()),
-          SizedBox(height: sectionTitleSpacing), */
-        ],
-      ),
-    );
-  }
-
+  /// Méthode pour construire les sections en cas d'erreur
   Widget _buildErrorSection(String title, Object? error) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -438,31 +285,28 @@ class _ExploreScreenState extends State<ExploreScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionTitle(title),
-          SizedBox(height: sectionTitleSpacing),
+          const SizedBox(height: 16.0),
           Center(child: Text('Erreur: $error')),
-          SizedBox(height: sectionTitleSpacing),
+          const SizedBox(height: 16.0),
         ],
       ),
     );
   }
 
+  /// Méthode pour construire les sections vides
   Widget _buildEmptySection(String title) {
-    return SizedBox.shrink();
-    /* return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle(title),
-          SizedBox(height: sectionTitleSpacing),
-          Center(child: Text('Aucune donnée disponible.')),
-          SizedBox(height: sectionTitleSpacing),
-        ],
-      ),
-    ); */
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        /* _buildSectionTitle(title),
+        const SizedBox(height: 16.0),
+        const Center(child: Text('Aucune donnée disponible.')),
+        const SizedBox(height: 16.0), */
+      ],
+    );
   }
 
-  // Méthode pour construire les titres des sections
+  /// Méthode pour construire les titres des sections
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -473,7 +317,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  // Méthodes pour construire les widgets des sections
+  /// Méthodes pour construire les widgets des sections
   List<Widget> _buildEventCards(BuildContext context, List<Event> events) {
     return events.map<Widget>((event) {
       return Container(
@@ -563,6 +407,224 @@ class _ExploreScreenState extends State<ExploreScreen> {
             child: GenreChip(genreId: genre.id),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Image.asset(
+              'assets/images/logotype_transparent.png',
+              fit: BoxFit.contain,
+              height: 28,
+              color: Theme.of(context).brightness == Brightness.light
+                  ? Colors.black
+                  : Colors.white,
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: Stack(
+              children: <Widget>[
+                const Icon(Icons.notifications),
+                Positioned(
+                  right: 0,
+                  child: Badge(), // Badge vide comme requis
+                ),
+              ],
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: RefreshIndicator(
+          onRefresh: _refreshRecommendations,
+          child: ListView(
+            children: [
+              // Section "Suggested Events"
+              FutureBuilder<List<Event>>(
+                future: _suggestedEventsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingSection('Suggested Events');
+                  } else if (snapshot.hasError) {
+                    return _buildErrorSection(
+                        'Suggested Events', snapshot.error);
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _buildEmptySection('Suggested Events');
+                  } else {
+                    final suggestedEvents = snapshot.data!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16.0),
+                        _buildSectionTitle('Suggested Events'),
+                        const SizedBox(height: 16.0),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children:
+                                _buildEventCards(context, suggestedEvents),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
+              ),
+
+              /* TODO : Implémenter la section "Upcoming Events"
+              // Section "Upcoming Events"
+              FutureBuilder<List<Event>>(
+                future: _upcomingEventsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingSection('Upcoming Events');
+                  } else if (snapshot.hasError) {
+                    return _buildErrorSection(
+                        'Upcoming Events', snapshot.error);
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _buildEmptySection('Upcoming Events');
+                  } else {
+                    final upcomingEvents = snapshot.data!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('Upcoming Events'),
+                        const SizedBox(height: 16.0),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: _buildEventCards(context, upcomingEvents),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                      ],
+                    );
+                  }
+                },
+              ),
+              */
+
+              // Section "Suggested Promoters"
+              FutureBuilder<List<Promoter>>(
+                future: _suggestedPromotersFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingSection('Suggested Promoters');
+                  } else if (snapshot.hasError) {
+                    return _buildErrorSection(
+                        'Suggested Promoters', snapshot.error);
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _buildEmptySection('Suggested Promoters');
+                  } else {
+                    final suggestedPromoters = snapshot.data!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('Suggested Promoters'),
+                        const SizedBox(height: 16.0),
+                        ..._buildPromoterCards(context, suggestedPromoters),
+                        const SizedBox(height: 16.0),
+                      ],
+                    );
+                  }
+                },
+              ),
+
+              // Section "Suggested Artists"
+              FutureBuilder<List<Artist>>(
+                future: _suggestedArtistsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingSection('Suggested Artists');
+                  } else if (snapshot.hasError) {
+                    return _buildErrorSection(
+                        'Suggested Artists', snapshot.error);
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _buildEmptySection('Suggested Artists');
+                  } else {
+                    final suggestedArtists = snapshot.data!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('Suggested Artists'),
+                        const SizedBox(height: 16.0),
+                        ..._buildArtistCards(context, suggestedArtists),
+                        const SizedBox(height: 16.0),
+                      ],
+                    );
+                  }
+                },
+              ),
+
+              // Section "Suggested Venues"
+              FutureBuilder<List<Venue>>(
+                future: _suggestedVenuesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingSection('Suggested Venues');
+                  } else if (snapshot.hasError) {
+                    return _buildErrorSection(
+                        'Suggested Venues', snapshot.error);
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _buildEmptySection('Suggested Venues');
+                  } else {
+                    final suggestedVenues = snapshot.data!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('Suggested Venues'),
+                        const SizedBox(height: 16.0),
+                        ..._buildVenueCards(context, suggestedVenues),
+                        const SizedBox(height: 16.0),
+                      ],
+                    );
+                  }
+                },
+              ),
+
+              // Section "Suggested Genres"
+              FutureBuilder<List<Genre>>(
+                future: _suggestedGenresFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingSection('Suggested Genres');
+                  } else if (snapshot.hasError) {
+                    return _buildErrorSection(
+                        'Suggested Genres', snapshot.error);
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _buildEmptySection('Suggested Genres');
+                  } else {
+                    final suggestedGenres = snapshot.data!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('Suggested Genres'),
+                        const SizedBox(height: 16.0),
+                        _buildGenreChips(context, suggestedGenres),
+                        const SizedBox(height: 16.0),
+                      ],
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
