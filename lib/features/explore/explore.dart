@@ -27,6 +27,7 @@ import 'package:sway/features/user/services/user_follow_genre_service.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway/features/user/services/user_follow_venue_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
+import 'package:sway/features/user/widgets/snackbar_login.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/venue/venue.dart';
@@ -78,6 +79,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
   List<Venue> _allSuggestedVenues = [];
   List<Genre> _allSuggestedGenres = [];
 
+  bool _isLoggedIn = false;
+
   @override
   void initState() {
     super.initState();
@@ -88,13 +91,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Future<void> _loadRecommendations() async {
     final user = await _userService.getCurrentUser();
     if (user != null) {
+      _isLoggedIn = true; // L'utilisateur est connecté
       await _fetchUserRecommendations(user.id);
     } else {
-      // Pour les utilisateurs anonymes, fournir des recommandations génériques
+      _isLoggedIn = false; // L'utilisateur n'est pas connecté
       await _fetchGenericRecommendations();
     }
     if (!mounted) return;
-    setState(() {});
+    setState(() {}); // Mettre à jour l'UI
   }
 
   /// Charge les recommandations spécifiques à l'utilisateur
@@ -209,7 +213,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 itemHeight: 242.0,
               ),
             ),
-            const SizedBox(height: 34.0),
+            const SizedBox(height: 41.0),
+          ],
+        );
+      case '':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle(title, false),
+            const SizedBox(height: 16.0),
+            ...List.generate(3, (index) => const ArtistShimmer()),
+            const SizedBox(height: 24.0),
           ],
         );
       case 'Suggested Promoters':
@@ -226,17 +240,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16.0),
-          ],
-        );
-      case 'Suggested Artists':
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle(title, false),
-            const SizedBox(height: 16.0),
-            ...List.generate(3, (index) => const ArtistShimmer()),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 24.0),
           ],
         );
       case 'Suggested Venues':
@@ -246,7 +250,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             _buildSectionTitle(title, false),
             const SizedBox(height: 16.0),
             ...List.generate(3, (index) => const VenueShimmer()),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 24.0),
           ],
         );
       case 'Suggested Genres':
@@ -256,7 +260,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             _buildSectionTitle(title, false),
             const SizedBox(height: 16.0),
             const GenreShimmer(),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 24.0),
           ],
         );
       default:
@@ -265,20 +269,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   /// Méthode pour construire les sections en cas d'erreur
-  Widget _buildErrorSection(String title, Object? error) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle(title, false),
-          const SizedBox(height: 16.0),
-          Center(child: Text('Erreur: $error')),
-          const SizedBox(height: 16.0),
-        ],
-      ),
+  /* Widget _buildErrorSection(String title, Object? error) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(title, false),
+        const SizedBox(height: 16.0),
+        Center(child: Text('Error: $error')),
+        const SizedBox(height: 16.0),
+      ],
     );
-  }
+  } */
 
   /// Méthode pour construire les sections vides
   Widget _buildEmptySection(String title) {
@@ -313,7 +314,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               icon: const Icon(Icons.arrow_forward),
               onPressed: () {
                 switch (title) {
-                  case 'Suggested Artists':
+                  case '':
                     _showMoreArtists(_allSuggestedArtists);
                     break;
                   case 'Suggested Promoters':
@@ -479,7 +480,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
           IconButton(
             icon: Stack(
               children: <Widget>[
-                const Icon(Icons.notifications),
+                Icon(
+                  Icons.notifications,
+                  color: _isLoggedIn
+                      ? Theme.of(context).iconTheme.color
+                      : Colors.grey, // Couleur conditionnelle
+                ),
                 Positioned(
                   right: 0,
                   child: Badge(), // Badge vide comme requis
@@ -487,10 +493,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ],
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NotificationScreen()),
-              );
+              if (_isLoggedIn) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationScreen()),
+                );
+              } else {
+                SnackbarLogin.showLoginSnackBar(context);
+              }
             },
           ),
         ],
@@ -508,8 +518,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return _buildLoadingSection('Suggested Events');
                   } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Events', snapshot.error);
+                    return _buildLoadingSection('Suggested Events');
+                    // return _buildErrorSection('Suggested Events', snapshot.error);
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return _buildEmptySection('Suggested Events');
                   } else {
@@ -535,7 +545,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             children: _buildEventCards(context, displayEvents),
                           ),
                         ),
-                        const SizedBox(height: 16.0),
+                        const SizedBox(height: 24.0),
                       ],
                     );
                   }
@@ -549,8 +559,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return _buildLoadingSection('Suggested Artists');
                   } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Artists', snapshot.error);
+                    return _buildLoadingSection('Suggested Artists');
+                    // return _buildErrorSection('Suggested Artists', snapshot.error);
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return _buildEmptySection('Suggested Artists');
                   } else {
@@ -570,7 +580,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         _buildSectionTitle('Suggested Artists', hasMore),
                         const SizedBox(height: 16.0),
                         ..._buildArtistCards(context, displayArtists),
-                        const SizedBox(height: 16.0),
+                        const SizedBox(height: 24.0),
                       ],
                     );
                   }
@@ -584,8 +594,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return _buildLoadingSection('Suggested Promoters');
                   } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Promoters', snapshot.error);
+                    return _buildLoadingSection('Suggested Promoters');
+                    // return _buildErrorSection('Suggested Promoters', snapshot.error);
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return _buildEmptySection('Suggested Promoters');
                   } else {
@@ -605,7 +615,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         _buildSectionTitle('Suggested Promoters', hasMore),
                         const SizedBox(height: 16.0),
                         ..._buildPromoterCards(context, displayPromoters),
-                        const SizedBox(height: 16.0),
+                        const SizedBox(height: 24.0),
                       ],
                     );
                   }
@@ -619,8 +629,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return _buildLoadingSection('Suggested Venues');
                   } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Venues', snapshot.error);
+                    return _buildLoadingSection('Suggested Venues');
+                    // return _buildErrorSection('Suggested Venues', snapshot.error);
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return _buildEmptySection('Suggested Venues');
                   } else {
@@ -640,7 +650,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         _buildSectionTitle('Suggested Venues', hasMore),
                         const SizedBox(height: 16.0),
                         ..._buildVenueCards(context, displayVenues),
-                        const SizedBox(height: 16.0),
+                        const SizedBox(height: 24.0),
                       ],
                     );
                   }
@@ -654,8 +664,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return _buildLoadingSection('Suggested Genres');
                   } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Genres', snapshot.error);
+                    return _buildLoadingSection('Suggested Genres');
+                    // return _buildErrorSection('Suggested Genres', snapshot.error);
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return _buildEmptySection('Suggested Genres');
                   } else {
@@ -675,7 +685,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         _buildSectionTitle('Suggested Genres', hasMore),
                         const SizedBox(height: 16.0),
                         _buildGenreChips(context, displayGenres),
-                        const SizedBox(height: 16.0),
+                        const SizedBox(height: 24.0),
                       ],
                     );
                   }
@@ -689,7 +699,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 }
 
-/// Widget Badge (inchangé)
+/// Widget Badge
 class Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
