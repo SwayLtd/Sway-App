@@ -49,20 +49,17 @@ class _PromoterScreenState extends State<PromoterScreen> {
       final promoter =
           await PromoterService().getPromoterByIdWithEvents(widget.promoterId);
       if (promoter == null) {
-        if (!mounted) return;
         setState(() {
           _error = 'Promoter not found';
           _isLoading = false;
         });
       } else {
-        if (!mounted) return;
         setState(() {
           _promoter = promoter;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;

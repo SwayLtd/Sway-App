@@ -26,19 +26,22 @@ class GenreShimmer extends StatelessWidget {
     return Wrap(
       spacing: 8.0,
       children: List.generate(6, (index) {
-        return Shimmer.fromColors(
-          baseColor: baseColor,
-          highlightColor: highlightColor,
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-            decoration: BoxDecoration(
-              color: containerColor,
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            child: const SizedBox(
-              width: 60,
-              height: 24,
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2.0),
+          child: Shimmer.fromColors(
+            baseColor: baseColor,
+            highlightColor: highlightColor,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: containerColor,
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              child: const SizedBox(
+                width: 60,
+                height: 24,
+              ),
             ),
           ),
         );

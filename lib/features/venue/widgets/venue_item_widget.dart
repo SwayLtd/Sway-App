@@ -108,7 +108,7 @@ class _VenueListItemWidgetState extends State<VenueListItemWidget> {
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             subtitle: Column(
@@ -221,7 +221,7 @@ class VenueCardItemWidget extends StatelessWidget {
             Text(
               truncatedName,
               style: const TextStyle(fontSize: 14),
-              maxLines: 2, // Permet jusqu'à 2 lignes
+              maxLines: 1, // Permet jusqu'à 2 lignes
               overflow:
                   TextOverflow.ellipsis, // Ajoute des ellipses si nécessaire
               textAlign: TextAlign.center, // Optionnel : centre le texte

@@ -228,7 +228,7 @@ class ArtistCardItemWidget extends StatelessWidget {
             Text(
               truncatedName,
               style: const TextStyle(fontSize: 14),
-              maxLines: 2, // Permet jusqu'à 2 lignes
+              maxLines: 1, // Permet jusqu'à 2 lignes
               overflow:
                   TextOverflow.ellipsis, // Ajoute des ellipses si nécessaire
               textAlign: TextAlign.center, // Optionnel : centre le texte

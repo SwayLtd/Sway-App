@@ -332,7 +332,7 @@ class _EventScreenState extends State<EventScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const InfoCard(
                     title: "Location",
-                    content: 'Loading...',
+                    content: 'Loading',
                   );
                 } else if (snapshot.hasError ||
                     !snapshot.hasData ||

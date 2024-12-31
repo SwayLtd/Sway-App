@@ -33,17 +33,15 @@ class EventListItemWidget extends StatelessWidget {
       leading: Container(
         decoration: BoxDecoration(
           border: Border.all(
-            color: Theme.of(context)
-                .colorScheme
-                .onPrimary
-                .withValues(alpha: 0.5), // Couleur de la bordure
+            color:
+                Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.5),
             width: 2.0, // Épaisseur de la bordure
           ),
           borderRadius:
               BorderRadius.circular(12), // Coins arrondis de la bordure
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           child: ImageWithErrorHandler(
             imageUrl: event.imageUrl,
             width: 50,
@@ -63,9 +61,9 @@ class EventListItemWidget extends StatelessWidget {
         future: eventVenueService.getVenueByEventId(event.id),
         builder: (context, venueSnapshot) {
           if (venueSnapshot.connectionState == ConnectionState.waiting) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 4.0),
-              child: CircularProgressIndicator(strokeWidth: 2),
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: SizedBox.shrink(),
             );
           } else if (venueSnapshot.hasError) {
             return const Text(
@@ -88,6 +86,32 @@ class EventListItemWidget extends StatelessWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Afficher la date en premier avec icône rouge
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today,
+                      color:
+                          Colors.red, // Changer la couleur de l'icône en rouge
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${formatEventDate(event.dateTime)}, ${formatEventTime(event.dateTime)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                        maxLines: 1, // Limiter à une ligne
+                        overflow: TextOverflow
+                            .ellipsis, // Troncature avec points de suspension
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                // Afficher le lieu ensuite
                 Row(
                   children: [
                     const Icon(
@@ -105,24 +129,6 @@ class EventListItemWidget extends StatelessWidget {
                           color: Colors.grey,
                         ),
                         overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today,
-                      color: Colors.grey,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${formatEventDate(event.dateTime)}, ${formatEventTime(event.dateTime)}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
                       ),
                     ),
                   ],
@@ -231,6 +237,8 @@ class EventCardItemWidget extends StatelessWidget {
                             fontSize: 14,
                             color: Colors.grey,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -247,7 +255,7 @@ class EventCardItemWidget extends StatelessWidget {
                                   size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(
-                                'Loading...', // 'Venue loading...',
+                                'Loading', // 'Venue Loading',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey,

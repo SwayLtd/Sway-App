@@ -34,6 +34,13 @@ import 'package:sway/features/promoter/widgets/promoter_item_widget.dart';
 import 'package:sway/features/venue/widgets/venue_item_shimmer.dart';
 import 'package:sway/features/venue/widgets/venue_item_widget.dart';
 
+// Import des modal bottom sheets existants
+import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
+import 'package:sway/features/promoter/widgets/promoter_modal_bottom_sheet.dart';
+import 'package:sway/features/venue/widgets/venue_modal_bottom_sheet.dart';
+import 'package:sway/features/genre/widgets/genre_modal_bottom_sheet.dart';
+import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart'; // Import de EventModalBottomSheet
+
 class ExploreScreen extends StatefulWidget {
   @override
   _ExploreScreenState createState() => _ExploreScreenState();
@@ -51,8 +58,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
       UserFollowPromoterService();
   final UserFollowVenueService _userFollowVenueService =
       UserFollowVenueService();
-  // TODO : Implémenter la méthode getEventsFilteredForUser
-  // final UserInterestEventService _userInterestEventService = UserInterestEventService();
   final SimilarArtistService _similarArtistService = SimilarArtistService();
   final PromoterService _promoterService = PromoterService();
   final ArtistService _artistService = ArtistService();
@@ -61,12 +66,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   // Futures séparés pour chaque section
   Future<List<Event>>? _suggestedEventsFuture;
-  // TODO : Implémenter la méthode getEventsFilteredForUser
-  // Future<List<Event>>? _upcomingEventsFuture;
   Future<List<Promoter>>? _suggestedPromotersFuture;
   Future<List<Artist>>? _suggestedArtistsFuture;
   Future<List<Venue>>? _suggestedVenuesFuture;
   Future<List<Genre>>? _suggestedGenresFuture;
+
+  // Variables pour stocker toutes les suggestions afin de les passer aux modals
+  List<Event> _allSuggestedEvents = [];
+  List<Promoter> _allSuggestedPromoters = [];
+  List<Artist> _allSuggestedArtists = [];
+  List<Venue> _allSuggestedVenues = [];
+  List<Genre> _allSuggestedGenres = [];
 
   @override
   void initState() {
@@ -74,6 +84,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _loadRecommendations();
   }
 
+  /// Charge les recommandations en fonction de l'utilisateur connecté
   Future<void> _loadRecommendations() async {
     final user = await _userService.getCurrentUser();
     if (user != null) {
@@ -86,24 +97,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
     setState(() {});
   }
 
+  /// Charge les recommandations spécifiques à l'utilisateur
   Future<void> _fetchUserRecommendations(int userId) async {
     // Charger les événements suggérés
-    _suggestedEventsFuture = _eventService.getTopEvents(limit: 5);
-
-    // Charger les événements à venir filtrés pour l'utilisateur
-    // TODO : Implémenter la méthode getEventsFilteredForUser
-    // _upcomingEventsFuture = _eventService.getEventsFilteredForUser(userId);
+    _suggestedEventsFuture =
+        _eventService.getTopEvents(limit: 10); // Fetch more for modal
 
     // Charger les promoteurs suggérés
     _suggestedPromotersFuture = _userFollowPromoterService
         .getFollowedPromotersByUserId(userId)
-        .then((followedPromoters) {
+        .then((followedPromoters) async {
       final followedPromoterIds =
           followedPromoters.map((promoter) => promoter.id).toList();
-      return _promoterService.getPromoters().then((allPromoters) => allPromoters
+      final allPromoters = await _promoterService.getPromoters();
+      return allPromoters
           .where((promoter) => !followedPromoterIds.contains(promoter.id))
-          .take(3)
-          .toList());
+          .toList();
     });
 
     // Charger les artistes suggérés
@@ -128,61 +137,56 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
       final suggestedArtists = allArtists
           .where((artist) => !followedArtistIds.contains(artist.id))
-          .take(3)
           .toList();
 
-      return [...similarArtists, ...suggestedArtists].take(3).toList();
+      return [...similarArtists, ...suggestedArtists];
     });
 
     // Charger les venues suggérées
     _suggestedVenuesFuture = _userFollowVenueService
         .getFollowedVenuesByUserId(userId)
-        .then((followedVenues) {
+        .then((followedVenues) async {
       final followedVenueIds = followedVenues.map((venue) => venue.id).toList();
-      return _venueService.getVenues().then((allVenues) => allVenues
+      final allVenues = await _venueService.getVenues();
+      return allVenues
           .where((venue) => !followedVenueIds.contains(venue.id))
-          .take(3)
-          .toList());
+          .toList();
     });
 
     // Charger les genres suggérés
     _suggestedGenresFuture = _userFollowGenreService
         .getFollowedGenresByUserId(userId)
-        .then((followedGenres) {
+        .then((followedGenres) async {
       final followedGenreIds = followedGenres.map((genre) => genre.id).toList();
-      return _genreService.getGenres().then((allGenres) => allGenres
+      final allGenres = await _genreService.getGenres();
+      return allGenres
           .where((genre) => !followedGenreIds.contains(genre.id))
-          .take(3)
-          .toList());
+          .toList();
     });
   }
 
+  /// Charge des recommandations génériques pour les utilisateurs anonymes
   Future<void> _fetchGenericRecommendations() async {
     // Charger les événements suggérés
-    _suggestedEventsFuture = _eventService.getTopEvents(limit: 5);
-
-    // Pas de filtres spécifiques pour les événements
-    // TODO : Implémenter la méthode getEventsFilteredForUser
-    // _upcomingEventsFuture = Future.value([]);
+    _suggestedEventsFuture =
+        _eventService.getTopEvents(limit: 10); // Fetch more for modal
 
     // Charger les promoteurs suggérés
-    _suggestedPromotersFuture = _promoterService
-        .getPromoters()
-        .then((promoters) => promoters.take(3).toList());
+    _suggestedPromotersFuture =
+        _promoterService.getPromoters().then((promoters) => promoters);
 
     // Charger les artistes suggérés
     _suggestedArtistsFuture =
-        _artistService.getArtists().then((artists) => artists.take(3).toList());
+        _artistService.getArtists().then((artists) => artists);
 
     // Charger les venues suggérées
-    _suggestedVenuesFuture =
-        _venueService.getVenues().then((venues) => venues.take(3).toList());
+    _suggestedVenuesFuture = _venueService.getVenues().then((venues) => venues);
 
     // Charger les genres suggérés
-    _suggestedGenresFuture =
-        _genreService.getGenres().then((genres) => genres.take(6).toList());
+    _suggestedGenresFuture = _genreService.getGenres().then((genres) => genres);
   }
 
+  /// Rafraîchit les recommandations
   Future<void> _refreshRecommendations() async {
     await _loadRecommendations();
   }
@@ -195,8 +199,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16.0),
-            _buildSectionTitle(title),
-            const SizedBox(height: 16.0),
+            _buildSectionTitle(title, false),
+            const SizedBox(height: 28.0),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6.0),
               child: EventCardShimmer(
@@ -205,31 +209,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 itemHeight: 242.0,
               ),
             ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 34.0),
           ],
-        );
-      case 'Upcoming Events':
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionTitle(title),
-              const SizedBox(height: 16.0),
-              EventCardShimmer(
-                itemCount: 2, // Ajustez selon vos besoins
-                itemWidth: 310.0,
-                itemHeight: 240.0,
-              ),
-              const SizedBox(height: 16.0),
-            ],
-          ),
         );
       case 'Suggested Promoters':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle(title),
+            _buildSectionTitle(title, false),
             const SizedBox(height: 16.0),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6.0),
@@ -246,7 +233,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle(title),
+            _buildSectionTitle(title, false),
             const SizedBox(height: 16.0),
             ...List.generate(3, (index) => const ArtistShimmer()),
             const SizedBox(height: 16.0),
@@ -256,7 +243,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle(title),
+            _buildSectionTitle(title, false),
             const SizedBox(height: 16.0),
             ...List.generate(3, (index) => const VenueShimmer()),
             const SizedBox(height: 16.0),
@@ -266,7 +253,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle(title),
+            _buildSectionTitle(title, false),
             const SizedBox(height: 16.0),
             const GenreShimmer(),
             const SizedBox(height: 16.0),
@@ -284,7 +271,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle(title),
+          _buildSectionTitle(title, false),
           const SizedBox(height: 16.0),
           Center(child: Text('Erreur: $error')),
           const SizedBox(height: 16.0),
@@ -295,24 +282,58 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   /// Méthode pour construire les sections vides
   Widget _buildEmptySection(String title) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        /* _buildSectionTitle(title),
-        const SizedBox(height: 16.0),
-        const Center(child: Text('Aucune donnée disponible.')),
-        const SizedBox(height: 16.0), */
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /* _buildSectionTitle(title, false),
+          const SizedBox(height: 16.0),
+          const Center(child: Text('Aucune donnée disponible.')),
+          const SizedBox(height: 16.0), */
+        ],
+      ),
     );
   }
 
-  /// Méthode pour construire les titres des sections
-  Widget _buildSectionTitle(String title) {
+  /// Méthode pour construire les titres des sections avec icône "Voir plus" si nécessaire
+  Widget _buildSectionTitle(String title, bool hasMore) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      child: Row(
+        mainAxisAlignment:
+            hasMore ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          if (hasMore)
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: () {
+                switch (title) {
+                  case 'Suggested Artists':
+                    _showMoreArtists(_allSuggestedArtists);
+                    break;
+                  case 'Suggested Promoters':
+                    _showMorePromoters(_allSuggestedPromoters);
+                    break;
+                  case 'Suggested Venues':
+                    _showMoreVenues(_allSuggestedVenues);
+                    break;
+                  case 'Suggested Genres':
+                    _showMoreGenres(_allSuggestedGenres);
+                    break;
+                  case 'Suggested Events':
+                    _showMoreEvents(_allSuggestedEvents);
+                    break;
+                  default:
+                    break;
+                }
+              },
+            ),
+        ],
       ),
     );
   }
@@ -339,9 +360,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   List<Widget> _buildPromoterCards(
-    BuildContext context,
-    List<Promoter> promoters,
-  ) {
+      BuildContext context, List<Promoter> promoters) {
     return promoters.map<Widget>((promoter) {
       return PromoterListItemWidget(
         promoter: promoter,
@@ -353,6 +372,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
           );
         },
+        maxNameLength: 20, // Définissez la longueur maximale ici
       );
     }).toList();
   }
@@ -385,6 +405,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
           );
         },
+        maxNameLength: 20, // Définissez la longueur maximale ici
       );
     }).toList();
   }
@@ -409,6 +430,32 @@ class _ExploreScreenState extends State<ExploreScreen> {
         }).toList(),
       ),
     );
+  }
+
+  // Fonctions pour ouvrir les modal bottom sheets avec limitation
+  void _showMoreArtists(List<Artist> artists) {
+    final limitedArtists = artists.take(12).toList();
+    showArtistModalBottomSheet(context, limitedArtists);
+  }
+
+  void _showMorePromoters(List<Promoter> promoters) {
+    final limitedPromoters = promoters.take(12).toList();
+    showPromoterModalBottomSheet(context, limitedPromoters);
+  }
+
+  void _showMoreVenues(List<Venue> venues) {
+    final limitedVenues = venues.take(12).toList();
+    showVenueModalBottomSheet(context, limitedVenues);
+  }
+
+  void _showMoreGenres(List<Genre> genres) {
+    final limitedGenres = genres.map((genre) => genre.id).take(12).toList();
+    showGenreModalBottomSheet(context, limitedGenres);
+  }
+
+  void _showMoreEvents(List<Event> events) {
+    final limitedEvents = events.take(12).toList();
+    showEventModalBottomSheet(context, limitedEvents);
   }
 
   @override
@@ -467,77 +514,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return _buildEmptySection('Suggested Events');
                   } else {
                     final suggestedEvents = snapshot.data!;
+                    _allSuggestedEvents =
+                        suggestedEvents; // Stockage pour modal (si nécessaire)
+                    final displayCount =
+                        5; // Nombre d'événements à afficher initialement
+                    final hasMore = suggestedEvents.length > displayCount;
+                    final displayEvents = hasMore
+                        ? suggestedEvents.sublist(0, displayCount)
+                        : suggestedEvents;
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 16.0),
-                        _buildSectionTitle('Suggested Events'),
+                        const SizedBox(height: 8.0),
+                        _buildSectionTitle('Suggested Events', hasMore),
                         const SizedBox(height: 16.0),
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
-                            children:
-                                _buildEventCards(context, suggestedEvents),
+                            children: _buildEventCards(context, displayEvents),
                           ),
                         ),
-                      ],
-                    );
-                  }
-                },
-              ),
-
-              /* TODO : Implémenter la section "Upcoming Events"
-              // Section "Upcoming Events"
-              FutureBuilder<List<Event>>(
-                future: _upcomingEventsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Upcoming Events');
-                  } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Upcoming Events', snapshot.error);
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Upcoming Events');
-                  } else {
-                    final upcomingEvents = snapshot.data!;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Upcoming Events'),
-                        const SizedBox(height: 16.0),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: _buildEventCards(context, upcomingEvents),
-                          ),
-                        ),
-                        const SizedBox(height: 16.0),
-                      ],
-                    );
-                  }
-                },
-              ),
-              */
-
-              // Section "Suggested Promoters"
-              FutureBuilder<List<Promoter>>(
-                future: _suggestedPromotersFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Promoters');
-                  } else if (snapshot.hasError) {
-                    return _buildErrorSection(
-                        'Suggested Promoters', snapshot.error);
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Suggested Promoters');
-                  } else {
-                    final suggestedPromoters = snapshot.data!;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Promoters'),
-                        const SizedBox(height: 16.0),
-                        ..._buildPromoterCards(context, suggestedPromoters),
                         const SizedBox(height: 16.0),
                       ],
                     );
@@ -558,12 +555,56 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return _buildEmptySection('Suggested Artists');
                   } else {
                     final suggestedArtists = snapshot.data!;
+                    _allSuggestedArtists =
+                        suggestedArtists; // Stockage pour modal
+                    final displayCount =
+                        3; // Nombre d'artistes à afficher initialement
+                    final hasMore = suggestedArtists.length > displayCount;
+                    final displayArtists = hasMore
+                        ? suggestedArtists.sublist(0, displayCount)
+                        : suggestedArtists;
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionTitle('Suggested Artists'),
+                        _buildSectionTitle('Suggested Artists', hasMore),
                         const SizedBox(height: 16.0),
-                        ..._buildArtistCards(context, suggestedArtists),
+                        ..._buildArtistCards(context, displayArtists),
+                        const SizedBox(height: 16.0),
+                      ],
+                    );
+                  }
+                },
+              ),
+
+              // Section "Suggested Promoters"
+              FutureBuilder<List<Promoter>>(
+                future: _suggestedPromotersFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingSection('Suggested Promoters');
+                  } else if (snapshot.hasError) {
+                    return _buildErrorSection(
+                        'Suggested Promoters', snapshot.error);
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _buildEmptySection('Suggested Promoters');
+                  } else {
+                    final suggestedPromoters = snapshot.data!;
+                    _allSuggestedPromoters =
+                        suggestedPromoters; // Stockage pour modal
+                    final displayCount =
+                        3; // Nombre de promoteurs à afficher initialement
+                    final hasMore = suggestedPromoters.length > displayCount;
+                    final displayPromoters = hasMore
+                        ? suggestedPromoters.sublist(0, displayCount)
+                        : suggestedPromoters;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('Suggested Promoters', hasMore),
+                        const SizedBox(height: 16.0),
+                        ..._buildPromoterCards(context, displayPromoters),
                         const SizedBox(height: 16.0),
                       ],
                     );
@@ -584,12 +625,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return _buildEmptySection('Suggested Venues');
                   } else {
                     final suggestedVenues = snapshot.data!;
+                    _allSuggestedVenues =
+                        suggestedVenues; // Stockage pour modal
+                    final displayCount =
+                        3; // Nombre de lieux à afficher initialement
+                    final hasMore = suggestedVenues.length > displayCount;
+                    final displayVenues = hasMore
+                        ? suggestedVenues.sublist(0, displayCount)
+                        : suggestedVenues;
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionTitle('Suggested Venues'),
+                        _buildSectionTitle('Suggested Venues', hasMore),
                         const SizedBox(height: 16.0),
-                        ..._buildVenueCards(context, suggestedVenues),
+                        ..._buildVenueCards(context, displayVenues),
                         const SizedBox(height: 16.0),
                       ],
                     );
@@ -610,12 +660,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return _buildEmptySection('Suggested Genres');
                   } else {
                     final suggestedGenres = snapshot.data!;
+                    _allSuggestedGenres =
+                        suggestedGenres; // Stockage pour modal
+                    final displayCount =
+                        6; // Nombre de genres à afficher initialement
+                    final hasMore = suggestedGenres.length > displayCount;
+                    final displayGenres = hasMore
+                        ? suggestedGenres.sublist(0, displayCount)
+                        : suggestedGenres;
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionTitle('Suggested Genres'),
+                        _buildSectionTitle('Suggested Genres', hasMore),
                         const SizedBox(height: 16.0),
-                        _buildGenreChips(context, suggestedGenres),
+                        _buildGenreChips(context, displayGenres),
                         const SizedBox(height: 16.0),
                       ],
                     );
@@ -630,7 +689,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 }
 
-// Widget Badge (inchangé)
+/// Widget Badge (inchangé)
 class Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

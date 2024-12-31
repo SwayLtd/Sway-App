@@ -206,7 +206,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 future: _genreService.getGenreById(genreId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Chip(label: Text('Loading...'));
+                    return const Chip(label: Text('Loading'));
                   } else if (snapshot.hasError || !snapshot.hasData) {
                     return const Chip(label: Text('Error'));
                   } else {

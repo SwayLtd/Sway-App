@@ -39,7 +39,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('$artistName Details'),
+        title: Text('$artistName'),
         actions: [
           FollowingButtonWidget(
             entityId: widget.artistId,
@@ -80,7 +80,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                               12), // Coins arrondis de la bordure
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
+                          borderRadius: BorderRadius.circular(10),
                           child: ImageWithErrorHandler(
                             imageUrl: artist.imageUrl,
                             width: 200,
@@ -180,8 +180,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                                 if (venueSnapshot
                                                         .connectionState ==
                                                     ConnectionState.waiting) {
-                                                  return const Text(
-                                                      'Loading...');
+                                                  return const Text('Loading');
                                                 } else if (venueSnapshot
                                                         .hasError ||
                                                     !venueSnapshot.hasData ||
@@ -465,7 +464,10 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                                   border: Border.all(
                                                     color: Theme.of(context)
                                                         .colorScheme
-                                                        .onPrimary.withValues(alpha: 0.5), // Couleur de la bordure
+                                                        .onPrimary
+                                                        .withValues(
+                                                            alpha:
+                                                                0.5), // Couleur de la bordure
                                                     width:
                                                         2.0, // Épaisseur de la bordure
                                                   ),
@@ -475,7 +477,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                                 ),
                                                 child: ClipRRect(
                                                   borderRadius:
-                                                      BorderRadius.circular(10),
+                                                      BorderRadius.circular(8),
                                                   child: ImageWithErrorHandler(
                                                     imageUrl:
                                                         similarArtist.imageUrl,

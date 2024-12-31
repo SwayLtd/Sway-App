@@ -17,7 +17,7 @@ class ArtistChip extends StatelessWidget {
       future: ArtistService().getArtistById(artistId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Chip(label: Text('Loading...'));
+          return const Chip(label: Text('Loading'));
         } else if (snapshot.hasError ||
             !snapshot.hasData ||
             snapshot.data == null) {

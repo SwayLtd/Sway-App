@@ -16,7 +16,7 @@ class PromoterListItemWidget extends StatefulWidget {
   const PromoterListItemWidget({
     required this.promoter,
     required this.onTap,
-    this.maxNameLength = 16, // Default maximum name length
+    this.maxNameLength = 24, // Default maximum name length
     Key? key,
   }) : super(key: key);
 
@@ -107,7 +107,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             subtitle: Column(
@@ -283,7 +283,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),

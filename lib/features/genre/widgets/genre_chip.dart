@@ -21,7 +21,7 @@ class GenreChip extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Chip(
-            label: Text('Loading...'),
+            label: Text('Loading'),
           );
         } else if (snapshot.hasError ||
             !snapshot.hasData ||
