@@ -8,9 +8,15 @@ class AuthService {
 
   /// Ensures that a user is logged in. If no user is logged in, logs in anonymously.
   Future<void> ensureUser() async {
+    final session = _supabase.auth.currentSession;
     final user = _supabase.auth.currentUser;
 
-    if (user == null) {
+    /*
+    print('Session: $session');
+    print('User: $user');
+    */
+
+    if (user == null && session == null) {
       final response = await _supabase.auth.signInAnonymously();
 
       if (response.user == null) {

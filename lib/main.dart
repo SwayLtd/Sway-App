@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sway/core/auth_cubit.dart';
 import 'package:sway/core/constants/app_theme.dart';
 import 'package:sway/core/constants/l10n.dart';
 import 'package:sway/core/routes.dart';
@@ -25,7 +23,6 @@ Future<void> main() async {
   await dotenv.load();
 
   DatabaseService().initialize();
-  final supabaseClient = Supabase.instance.client;
   // await Hive.initFlutter();
 
   await Firebase.initializeApp(
@@ -38,10 +35,7 @@ Future<void> main() async {
   await authService.ensureUser();
 
   runApp(
-    BlocProvider(
-      create: (_) => AuthCubit(supabase: supabaseClient),
-      child: const SwayApp(),
-    ),
+    const SwayApp(),
   );
 }
 
