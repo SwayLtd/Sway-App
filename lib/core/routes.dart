@@ -1,7 +1,6 @@
 // lib/core/routes.dart
 
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -26,9 +25,11 @@ import 'package:sway/features/user/profile.dart';
 import 'package:sway/features/user/screens/reset_password_screen.dart';
 import 'package:sway/features/venue/venue.dart';
 
+// Clés de navigation
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
+// Définition des routes avec barre de navigation
 List<Map<String, dynamic>> shellRoutes = [
   {
     'name': 'Explore',
@@ -56,13 +57,14 @@ List<Map<String, dynamic>> shellRoutes = [
   },
 ];
 
+// Définition des routes standalone sans barre de navigation
 List<Map<String, dynamic>> standaloneRoutes = [
   {
     'name': 'ResetPassword',
     'path': '/reset-password',
     'screen': const ResetPasswordScreen(),
   },
-  // New standalone routes for artist and user
+  // Routes des artistes
   {
     'name': 'ArtistDetail',
     'path': '/artist/:id',
@@ -71,6 +73,7 @@ List<Map<String, dynamic>> standaloneRoutes = [
       return ArtistScreen(artistId: artistId);
     },
   },
+  // Routes des promoteurs
   {
     'name': 'PromoterDetail',
     'path': '/promoter/:id',
@@ -79,6 +82,7 @@ List<Map<String, dynamic>> standaloneRoutes = [
       return PromoterScreen(promoterId: promoterId);
     },
   },
+  // Routes des lieux
   {
     'name': 'VenueDetail',
     'path': '/venue/:id',
@@ -87,6 +91,7 @@ List<Map<String, dynamic>> standaloneRoutes = [
       return VenueScreen(venueId: venueId);
     },
   },
+  // Routes des genres
   {
     'name': 'GenreDetail',
     'path': '/genre/:id',
@@ -95,6 +100,7 @@ List<Map<String, dynamic>> standaloneRoutes = [
       return GenreScreen(genreId: genreId);
     },
   },
+  // Routes des utilisateurs
   {
     'name': 'UserDetail',
     'path': '/user/:id',
@@ -103,6 +109,7 @@ List<Map<String, dynamic>> standaloneRoutes = [
       return UserScreen(userId: userId);
     },
   },
+  // Routes des événements
   {
     'name': 'EventDetail',
     'path': '/event/:id',
@@ -135,6 +142,7 @@ List<Map<String, dynamic>> standaloneRoutes = [
       );
     },
   },
+  // Routes des tickets
   {
     'name': 'TicketDetail',
     'path': '/ticket/:id',
@@ -169,12 +177,12 @@ List<Map<String, dynamic>> standaloneRoutes = [
   },
 ];
 
+// Gestionnaire d'état d'authentification
 final authStateManager = AuthStateManager();
 
+// Configuration de GoRouter
 final GoRouter router = GoRouter(
   navigatorKey: rootNavigatorKey,
-  // Remove or comment out the initialLocation parameter
-  // initialLocation: '/',
   initialLocation: Uri.base.toString(),
   debugLogDiagnostics: false,
   redirect: (context, state) async {
@@ -182,20 +190,20 @@ final GoRouter router = GoRouter(
     final bool loggedIn = user != null;
     final bool isAuthPath = state.matchedLocation == '/auth';
 
-    // Access the authChangeEvent from authStateManager
+    // Accès à l'événement de changement d'authentification
     final authChangeEvent = authStateManager.authChangeEvent;
 
-    // Check if the user is recovering password
+    // Vérifier si l'utilisateur est en train de récupérer son mot de passe
     final recoveringPassword =
         authChangeEvent == AuthChangeEvent.passwordRecovery;
 
-    // Define protected paths that require authentication
+    // Définir les chemins protégés nécessitant une authentification
     final List<String> protectedPaths = [
       '/settings/profile',
-      // Add more protected paths if needed
+      // Ajoutez d'autres chemins protégés si nécessaire
     ];
 
-    // Check if the current path is protected
+    // Vérifier si le chemin actuel est protégé
     bool isProtected =
         protectedPaths.any((path) => state.uri.toString().startsWith(path));
 
@@ -203,15 +211,14 @@ final GoRouter router = GoRouter(
       return '/';
     }
 
-    // If the user is recovering password, redirect to '/reset-password'
+    // Si l'utilisateur est en train de récupérer son mot de passe, rediriger vers '/reset-password'
     if (recoveringPassword && state.uri.toString() != '/reset-password') {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).removeCurrentSnackBar();
       return '/reset-password';
     }
 
-    // Handle deep links for 'artist', 'promoter', 'venue', 'genre' and 'user'
-    // Extract the entity type from the path
+    // Gérer les liens profonds pour 'artist', 'promoter', 'venue', 'genre' et 'user'
     final uri = Uri.parse(state.uri.toString());
     final pathSegments = uri.pathSegments;
 
@@ -238,14 +245,14 @@ final GoRouter router = GoRouter(
           print('Event entity found');
           break;
         default:
-          // No action needed for other paths
+          // Pas d'action nécessaire pour d'autres chemins
           break;
       }
-      // No redirect needed for entity deep links
+      // Aucune redirection nécessaire pour les liens profonds d'entités
       return null;
     }
 
-    // If already logged in and trying to access auth, redirect to home
+    // Si déjà connecté et que l'utilisateur essaie d'accéder à l'authentification, rediriger vers l'accueil
     if (loggedIn && isAuthPath) {
       return '/';
     }
@@ -253,10 +260,11 @@ final GoRouter router = GoRouter(
     print('Navigating to: ${state.uri.toString()}');
     print('Matched location: ${state.matchedLocation}');
 
-    return null; // No redirect needed
+    return null; // Aucune redirection nécessaire
   },
   refreshListenable: authStateManager,
   routes: [
+    // Définir le ShellRoute pour les routes avec barre de navigation
     ShellRoute(
       navigatorKey: shellNavigatorKey,
       builder: (BuildContext context, GoRouterState state, Widget child) {
@@ -272,14 +280,16 @@ final GoRouter router = GoRouter(
         );
       },
       routes: [
-        ...getShellRoutes(),
-        ...getStandaloneRoutes(),
+        ...getShellRoutes(), // Routes avec barre de navigation
       ],
     ),
+    // Définir les routes standalone en dehors du ShellRoute
+    ...getStandaloneRoutes(),
   ],
   errorBuilder: (context, state) => NotFoundError(state.error),
 );
 
+// Fonction pour générer les routes du ShellRoute
 List<RouteBase> getShellRoutes() {
   final List<RouteBase> generatedRoutes = [];
   for (final route in shellRoutes) {
@@ -291,7 +301,7 @@ List<RouteBase> getShellRoutes() {
           return fadeTransitionPage(context, state, route['screen'] as Widget);
         },
         routes: [
-          // Define subroutes if needed, e.g., '/settings/profile'
+          // Définir des sous-routes si nécessaire, par exemple '/settings/profile'
           if (route['path'] == '/settings')
             GoRoute(
               path: 'profile',
@@ -306,6 +316,7 @@ List<RouteBase> getShellRoutes() {
   return generatedRoutes;
 }
 
+// Fonction pour générer les routes standalone
 List<RouteBase> getStandaloneRoutes() {
   final List<RouteBase> generatedRoutes = [];
   for (final route in standaloneRoutes) {
@@ -337,7 +348,7 @@ List<RouteBase> getStandaloneRoutes() {
   return generatedRoutes;
 }
 
-/// Returns the name of the current route.
+/// Retourne le nom de la route actuelle.
 String routeName() {
   final route = shellRoutes.firstWhere(
     (route) =>
@@ -347,7 +358,7 @@ String routeName() {
   return route['name'] as String;
 }
 
-/// Returns the index of the current screen.
+/// Retourne l'index de l'écran actuel.
 int selectedIndex() {
   final route = shellRoutes.firstWhere(
     (route) =>
@@ -357,18 +368,19 @@ int selectedIndex() {
   return route['index'];
 }
 
-/// Navigates to the screen corresponding to the index.
+/// Navigue vers l'écran correspondant à l'index.
 void onTap(BuildContext context, int index) {
   final route = shellRoutes.firstWhere(
     (route) => route['index'] == index,
     orElse: () => shellRoutes.first,
   );
 
-  // Use context.go to navigate without stacking
-  context.go(route['path'] as String);
+  // Utiliser context.go pour naviguer sans empiler
+  // context.go(route['path'] as String);
+  context.push(route['path'] as String);
 }
 
-/// Class to listen to authentication state changes.
+/// Classe pour écouter les changements d'état d'authentification.
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
     _subscription = stream.listen((_) {
@@ -385,6 +397,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
   }
 }
 
+/// Fonction pour créer une page avec une transition de fondu.
 Page<void> fadeTransitionPage(
     BuildContext context, GoRouterState state, Widget child) {
   return CustomTransitionPage(
