@@ -68,5 +68,17 @@
     </array>
 	<key>FlutterDeepLinkingEnabled</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>$(PRODUCT_NAME) uses Face ID to authenticate the user.</string>
+	<!-- Runner > Signing & Capabilities -->
+	<key>Keychain Sharing</key>
+	<array>
+	<string>$(AppIdentifierPrefix)$(CFBundleIdentifier)</string>
+	</array>
 </dict>
 </plist>

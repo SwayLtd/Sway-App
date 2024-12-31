@@ -10,64 +10,64 @@ class AuthStateManager extends ChangeNotifier {
 
   AuthChangeEvent? get authChangeEvent => _authChangeEvent;
 
-  final supabase = Supabase.instance.client;
-
-  Future<void> _setFcmToken(String? fcmToken) async {
-    if (fcmToken == null) return; // Vérifiez si le token n'est pas nul
-    final supabaseId = supabase.auth.currentUser?.id;
-
-    if (supabaseId != null) {
-      print('Upserting FCM token for supabase_id: $supabaseId');
-      try {
-        // TODO Check the other user information to work only on the right entry
-        await supabase.from('users').upsert(
-          {
-            'supabase_id': supabaseId,
-            'fcm_token': fcmToken,
-          },
-          onConflict:
-              'supabase_id', // Assurez-vous que 'supabase_id' est une clé unique
-        );
-        print('FCM token upserted successfully.');
-      } catch (e) {
-        print('FCM token upsert error: $e');
-      }
-    } else {
-      print('No authenticated user found. Skipping FCM token upsert.');
-    }
-  }
+  final SupabaseClient supabase = Supabase.instance.client;
 
   AuthStateManager() {
-    supabase.auth.onAuthStateChange.listen((data) async {
-      _authChangeEvent = data.event;
+    // Écouter les changements d'état d'authentification
+    supabase.auth.onAuthStateChange.listen((AuthState authState) async {
+      _authChangeEvent = authState.event;
       notifyListeners();
 
-      // Push Notifications
-      if (data.event == AuthChangeEvent.signedIn) {
+      // Gestion des notifications push lors de la connexion
+      if (authState.event == AuthChangeEvent.signedIn) {
+        // Optionnel : Demander la permission pour les notifications (si nécessaire)
         // await FirebaseMessaging.instance.requestPermission();
+
+        // Obtenir le token APNS (iOS)
         await FirebaseMessaging.instance.getAPNSToken();
-        final fcmToken =
-            await FirebaseMessaging.instance.getToken(); // Utilisez await ici
+
+        // Obtenir le token FCM
+        final fcmToken = await FirebaseMessaging.instance.getToken();
         if (fcmToken != null) {
           await _setFcmToken(fcmToken);
         }
       }
     });
 
+    // Écouter le rafraîchissement des tokens FCM
     FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
       _setFcmToken(fcmToken);
     });
 
-    FirebaseMessaging.onMessage.listen((payload) {
-      final notification = payload.notification;
+    // Écouter les messages entrants
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final notification = message.notification;
 
       if (notification != null) {
-        /* ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              behavior: SnackBarBehavior.floating,
-              content: Text('${notification.title} ${notification.body}')),
-        ); */
+        // Gérer la notification (par exemple, afficher une snackbar)
+        // Vous pouvez utiliser un Service ou un Listener pour gérer cela
       }
     });
+  }
+
+  /// Met à jour le token FCM dans la base de données Supabase
+  Future<void> _setFcmToken(String fcmToken) async {
+    final user = supabase.auth.currentUser;
+    if (user != null) {
+      try {
+        await supabase.from('users').upsert(
+          {
+            'supabase_id': user.id,
+            'fcm_token': fcmToken,
+          },
+          onConflict: 'supabase_id', // Assurez-vous que 'supabase_id' est une clé unique
+        );
+        print('FCM token mis à jour avec succès.');
+      } catch (e) {
+        print('Erreur lors de la mise à jour du token FCM: $e');
+      }
+    } else {
+      print('Aucun utilisateur authentifié trouvé.');
+    }
   }
 }

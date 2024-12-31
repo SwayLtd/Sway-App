@@ -13,7 +13,7 @@ class DatabaseService {
         authOptions: FlutterAuthClientOptions(
           localStorage: SecureStorage(),
         ),
-        debug: true,
+        // debug: true,
       );
     } catch (e) {
       print('Error initializing platform state: $e');
