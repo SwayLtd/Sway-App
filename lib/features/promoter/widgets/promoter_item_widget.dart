@@ -57,7 +57,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        elevation: 3,
+        elevation: 0,
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
@@ -232,7 +232,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      elevation: 3,
+      elevation: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

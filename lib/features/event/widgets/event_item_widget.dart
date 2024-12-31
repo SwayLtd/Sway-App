@@ -177,7 +177,7 @@ class EventCardItemWidget extends StatelessWidget {
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 3,
+        elevation: 0,
         child: Container(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

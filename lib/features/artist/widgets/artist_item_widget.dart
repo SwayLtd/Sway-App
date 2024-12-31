@@ -59,7 +59,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        elevation: 3,
+        elevation: 0,
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(

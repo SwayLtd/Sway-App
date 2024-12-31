@@ -216,7 +216,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             const SizedBox(height: 41.0),
           ],
         );
-      case '':
+      case 'Suggested Artists':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -283,17 +283,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   /// Méthode pour construire les sections vides
   Widget _buildEmptySection(String title) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          /* _buildSectionTitle(title, false),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        /* _buildSectionTitle(title, false),
           const SizedBox(height: 16.0),
           const Center(child: Text('Aucune donnée disponible.')),
           const SizedBox(height: 16.0), */
-        ],
-      ),
+      ],
     );
   }
 
@@ -314,7 +311,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               icon: const Icon(Icons.arrow_forward),
               onPressed: () {
                 switch (title) {
-                  case '':
+                  case 'Suggested Artists':
                     _showMoreArtists(_allSuggestedArtists);
                     break;
                   case 'Suggested Promoters':
@@ -360,6 +357,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }).toList();
   }
 
+  List<Widget> _buildArtistCards(BuildContext context, List<Artist> artists) {
+    return artists.map<Widget>((artist) {
+      return ArtistListItemWidget(
+        artist: artist,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ArtistScreen(artistId: artist.id),
+            ),
+          );
+        },
+      );
+    }).toList();
+  }
+
   List<Widget> _buildPromoterCards(
       BuildContext context, List<Promoter> promoters) {
     return promoters.map<Widget>((promoter) {
@@ -374,22 +387,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
           );
         },
         maxNameLength: 20, // Définissez la longueur maximale ici
-      );
-    }).toList();
-  }
-
-  List<Widget> _buildArtistCards(BuildContext context, List<Artist> artists) {
-    return artists.map<Widget>((artist) {
-      return ArtistListItemWidget(
-        artist: artist,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ArtistScreen(artistId: artist.id),
-            ),
-          );
-        },
       );
     }).toList();
   }
