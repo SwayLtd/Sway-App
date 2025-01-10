@@ -339,6 +339,7 @@ class _TicketingScreenState extends State<TicketingScreen>
       length: 2, // Deux onglets : Upcoming et Past
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: const Text('Tickets'),
           bottom: TabBar(
             controller: _tabController,
