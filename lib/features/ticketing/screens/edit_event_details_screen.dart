@@ -79,7 +79,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
   }
 
   Future<void> _saveDetails() async {
-    print('[_saveDetails] Start saving details...'); // Log
+    print('[_saveDetails] Start saving details'); // Log
     final updatedTicket = Ticket(
       id: widget.ticket.id,
       filePath: widget.ticket.filePath,

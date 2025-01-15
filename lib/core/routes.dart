@@ -367,7 +367,7 @@ void onTap(BuildContext context, int index) {
   // Use context.go to navigate without stacking
   // context.go(route['path'] as String);
   context.push(route['path'] as String);
-  context.pop(route['path'] as String);
+  // context.pop(route['path'] as String);
   // context.pushReplacement(route['path'] as String);
 }
 

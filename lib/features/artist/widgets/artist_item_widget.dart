@@ -199,7 +199,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Text(
-                        'Loading followers...',
+                        'Loading followers',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       );
                     } else if (snapshot.hasError) {
@@ -229,7 +229,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Text(
-                        'Loading upcoming events...',
+                        'Loading upcoming events',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       );
                     } else if (snapshot.hasError) {
@@ -288,9 +288,8 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                                       const Icon(
                                         Icons.navigate_next,
                                         size: 16,
-                                        color: Colors.red,
+                                        color: Colors.white,
                                       ),
-                                      const SizedBox(width: 2),
                                       Expanded(
                                         child: Text(
                                           '${upcomingEvents.first.title} on ${formatEventDate(upcomingEvents.first.dateTime)}',
@@ -343,7 +342,7 @@ class ArtistCardItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // Troncature du nom si nécessaire
     String truncatedName = artist.name.length > maxNameLength
-        ? '${artist.name.substring(0, maxNameLength)}...'
+        ? '${artist.name.substring(0, maxNameLength)}'
         : artist.name;
 
     return GestureDetector(

@@ -47,7 +47,7 @@ class _VenueListItemWidgetState extends State<VenueListItemWidget> {
   Widget build(BuildContext context) {
     // Troncature du nom si nécessaire
     String truncatedName = widget.venue.name.length > widget.maxNameLength
-        ? '${widget.venue.name.substring(0, widget.maxNameLength)}...'
+        ? '${widget.venue.name.substring(0, widget.maxNameLength)}'
         : widget.venue.name;
 
     return Padding(
@@ -185,7 +185,7 @@ class VenueCardItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // Troncature du nom si nécessaire
     String truncatedName = venue.name.length > maxNameLength
-        ? '${venue.name.substring(0, maxNameLength)}...'
+        ? '${venue.name.substring(0, maxNameLength)}'
         : venue.name;
 
     return GestureDetector(

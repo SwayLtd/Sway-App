@@ -429,7 +429,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     children: [
                       Icon(Icons.music_note, size: 16, color: Colors.grey),
                       SizedBox(width: 4),
-                      Text('Loading genres...'),
+                      Text('Loading genres'),
                     ],
                   );
                 } else if (snapshot.hasError) {
