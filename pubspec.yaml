@@ -7,7 +7,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.4.8 # Implement PDF import with timestamp-based filename
+version: 0.4.8+1 # Start implementation of user image upload and editing
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
@@ -65,6 +65,7 @@ dependencies:
   connectivity_plus: ^6.1.1
   shimmer: ^3.0.0
   app_links: ^6.3.3
+  image_picker: ^1.1.2
   # isar_flutter_libs: ^3.1.0+1 # For Isar
 
 dev_dependencies:

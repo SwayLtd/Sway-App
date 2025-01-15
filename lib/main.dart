@@ -20,8 +20,6 @@ import 'package:sway/features/user/services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
 Future<void> main() async {
   usePathUrlStrategy(); // Remove # from URL
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,27 +44,20 @@ Future<void> main() async {
     if (call.method == 'openPdf') {
       final pdfPath = call.arguments as String;
       if (pdfPath.isNotEmpty) {
-        // 1. Import
         await TicketService().importTicketFromPath(pdfPath);
 
-        // 2. Navigation via GoRouter (rootNavigatorKey défini dans router.dart)
         GoRouter.of(rootNavigatorKey.currentContext!).go('/tickets');
-
-        print('PDF imported from path: $pdfPath');
       }
     }
     return null;
   });
 
   runApp(
-    SwayApp(navigatorKey: navigatorKey),
+    SwayApp(),
   );
 }
 
 class SwayApp extends StatelessWidget {
-  final GlobalKey<NavigatorState> navigatorKey;
-  const SwayApp({Key? key, required this.navigatorKey}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -78,7 +69,6 @@ class SwayApp extends StatelessWidget {
             dark: AppTheme.dark,
             initial: AdaptiveThemeMode.system,
             builder: (theme, darkTheme) => MaterialApp.router(
-              key: navigatorKey,
               debugShowCheckedModeBanner: false, // Remove debug banner
               // showSemanticsDebugger: true, // Show Semantics Debugger on screen
               onGenerateTitle: (BuildContext context) => context.loc.title,

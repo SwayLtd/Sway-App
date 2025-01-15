@@ -1,11 +1,15 @@
 // lib/features/user/screens/edit_profile_screen.dart
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/user/models/user_model.dart';
 import 'package:sway/features/user/services/auth_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
-import 'package:sway/features/user/utils/auth_validator.dart'; // Import du validateur
+import 'package:sway/features/user/utils/auth_validator.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -22,18 +26,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   final UserService _userService = UserService();
   final AuthService _authService = AuthService();
+  final StorageService _storageService = StorageService();
 
   bool _isUpdating = false;
   bool _isResettingPassword = false;
   String? _errorMessage;
 
-  final _formKey = GlobalKey<FormState>(); // Clé du formulaire
+  final _formKey = GlobalKey<FormState>();
+
+  late User _currentUser; // Variable d'état pour l'utilisateur
 
   @override
   void initState() {
     super.initState();
-    _usernameController = TextEditingController(text: widget.user.username);
-    _emailController = TextEditingController(text: widget.user.email);
+    _currentUser =
+        widget.user; // Initialiser avec l'utilisateur passé en paramètre
+    _usernameController = TextEditingController(text: _currentUser.username);
+    _emailController = TextEditingController(text: _currentUser.email);
   }
 
   @override
@@ -53,8 +62,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final newUsername = _usernameController.text.trim();
     final newEmail = _emailController.text.trim();
 
-    final bool isUsernameChanged = newUsername != widget.user.username;
-    final bool isEmailChanged = newEmail != widget.user.email;
+    final bool isUsernameChanged = newUsername != _currentUser.username;
+    final bool isEmailChanged = newEmail != _currentUser.email;
 
     if (!isUsernameChanged && !isEmailChanged) {
       // Rien à mettre à jour
@@ -78,7 +87,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         }
 
         await _userService.updateUsername(
-          supabaseId: widget.user.supabaseId,
+          supabaseId: _currentUser.supabaseId,
           newUsername: newUsername,
         );
       }
@@ -90,17 +99,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // Récupérer l'utilisateur mis à jour
       final updatedUser = await _userService.getCurrentUser();
-      Navigator.pop(context, updatedUser);
 
-      // Afficher une boîte de dialogue pour informer l'utilisateur de vérifier son email
-      if (isEmailChanged) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-                'A confirmation email has been sent to your new email address.'),
-          ),
-        );
+      if (updatedUser != null) {
+        setState(() {
+          _currentUser = updatedUser; // Mettre à jour _currentUser
+        });
+        Navigator.pop(context, updatedUser);
+
+        // Afficher une boîte de dialogue pour informer l'utilisateur de vérifier son email
+        if (isEmailChanged) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              behavior: SnackBarBehavior.floating,
+              content: Text(
+                  'A confirmation email has been sent to your new email address.'),
+            ),
+          );
+        }
       }
     } on AuthenticationException catch (e) {
       if (!mounted) return;
@@ -195,6 +210,74 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  /// Méthode pour sélectionner et uploader une nouvelle image de profil
+  Future<void> _pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final imageFile =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (imageFile == null) return; // Pas d'image choisie
+
+    try {
+      // Lire les octets du fichier
+      final fileBytes = await File(imageFile.path).readAsBytes();
+
+      // Construire un nom de fichier unique
+      final fileExtension = imageFile.path.split('.').last;
+      final fileName =
+          "${DateTime.now().millisecondsSinceEpoch}.$fileExtension"; // Ex: "1627891234567.jpg"
+
+      // Construire le chemin complet du fichier
+      final filePath =
+          "${_currentUser.supabaseId}/$fileName"; // Ex: "user-id/1627891234567.jpg"
+
+      // Uploader dans le bucket "user-images"
+      final publicUrl = await _storageService.uploadFile(
+        bucketName: "user-images",
+        fileName: filePath, // Utilisez le chemin complet ici
+        fileData: fileBytes,
+      );
+
+      // (Optionnel) Supprimer l'ancien avatar si nécessaire
+      // Extraire le nom du fichier de l'URL actuelle
+      final oldFileName =
+          _currentUser.profilePictureUrl.split('/').last.split('?').first;
+      if (oldFileName.isNotEmpty) {
+        final oldFilePath = "${_currentUser.supabaseId}/$oldFileName";
+        await _storageService.deleteFile(
+          bucketName: "user-images",
+          fileName: oldFilePath,
+        );
+      }
+
+      // Mettre à jour l'URL de l'utilisateur dans la table users
+      await _userService.updateUserProfilePicture(
+        supabaseId: _currentUser.supabaseId,
+        profilePictureUrl: publicUrl,
+      );
+
+      // Récupérer le user mis à jour
+      final updatedUser = await _userService.getCurrentUser();
+
+      if (updatedUser != null && mounted) {
+        setState(() {
+          _currentUser = updatedUser; // Mettre à jour _currentUser
+        });
+      }
+
+      // Afficher un message de succès
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Avatar updated successfully!'),
+        backgroundColor: Colors.green,
+      ));
+    } catch (e) {
+      // Gérer l'erreur
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: ${e.toString()}'),
+        backgroundColor: Colors.red,
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -248,16 +331,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(15),
                                 child: ImageWithErrorHandler(
-                                  imageUrl: widget.user.profilePictureUrl,
+                                  imageUrl: _currentUser
+                                      .profilePictureUrl, // Utiliser _currentUser
                                   width: 100,
                                   height: 100,
                                 ),
                               ),
                             ),
                             TextButton(
-                              onPressed: () {
-                                // Logique pour éditer l'avatar sera ici
-                              },
+                              onPressed:
+                                  _isUpdating ? null : _pickAndUploadAvatar,
                               child: const Text('Edit avatar'),
                             ),
                           ],
