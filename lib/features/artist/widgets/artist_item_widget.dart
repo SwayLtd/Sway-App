@@ -84,9 +84,6 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
       List<Event> upcomingEvents =
           events.where((event) => event.dateTime.isAfter(now)).toList();
 
-      print(
-          'Nombre d\'événements à venir pour l\'artiste ID: ${widget.artist.id} est ${upcomingEvents.length}');
-
       if (upcomingEvents.isEmpty) {
         return [];
       }
@@ -144,7 +141,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
               color: Theme.of(context)
                   .colorScheme
                   .onPrimary
-                  .withOpacity(0.5), // Couleur de la bordure avec opacité
+                  .withValues(alpha: 0.5), // Couleur de la bordure avec opacité
               width: 2.0, // Épaisseur de la bordure
             ),
             borderRadius:
@@ -164,7 +161,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                     color: Theme.of(context)
                         .colorScheme
                         .onPrimary
-                        .withOpacity(0.5), // Couleur de la bordure
+                        .withValues(alpha: 0.5), // Couleur de la bordure
                     width: 2.0, // Épaisseur de la bordure
                   ),
                   borderRadius:
@@ -358,7 +355,7 @@ class ArtistCardItemWidget extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .onPrimary
-                      .withOpacity(0.5), // Couleur de la bordure
+                      .withValues(alpha: 0.5), // Couleur de la bordure
                   width: 2.0, // Épaisseur de la bordure
                 ),
                 borderRadius:

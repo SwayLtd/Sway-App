@@ -70,6 +70,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '757784524747',
     projectId: 'sway-app-247f6',
     storageBucket: 'sway-app-247f6.firebasestorage.app',
-    iosBundleId: 'com.example.swayEvents',
+    iosBundleId: 'app.sway.main',
   );
 }
