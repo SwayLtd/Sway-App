@@ -123,6 +123,46 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".PdfImportActivity"
+            android:label="Import to Sway"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="content" android:mimeType="application/pdf" />
+                <data android:scheme="file" android:mimeType="application/pdf" />
+            </intent-filter>
+        </activity>
+
+        <!-- Alias pour l’ouverture PDF, label "Import to Sway" -->
+        <!-- <activity-alias
+            android:name=".PdfImportActivityAlias"
+            android:targetActivity=".PdfImportActivity"
+            android:label="Import to Sway"
+            android:enabled="true"
+            android:exported="true"
+            android:launchMode="singleTask">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="content" android:mimeType="application/pdf" />
+                <data android:scheme="file"   android:mimeType="application/pdf" />
+            </intent-filter>
+        </activity-alias> -->
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

@@ -9,6 +9,7 @@
 .svn/
 migrate_working_dir/
 /coverage/
+deps.txt
 
 # Logs and database backups
 *.log

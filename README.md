@@ -16,15 +16,12 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Implement PDF import with timestamp-based filename
 - Better error handling, theme standardization and correction, theme switcher,
   explore screen fixes, top events rpc function
 - Enhanced Ticket Notification Flow - Notifications
 - Enhanced Notification System with History, Relative Days, and Deep Linking -
   Notifications
-- Different notification channels/types, user notification preferences,
-  notification RLS policies - Notifications
-- FCM default and high priority channel, foreground notifications, push
-  notification icon fix - Notifications
 - Enhance VenueScreen and PromoterScreen UI/UX
 
 ### Known Issues

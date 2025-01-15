@@ -67,125 +67,41 @@ class _TicketingScreenState extends State<TicketingScreen>
       groupedUncategorized.putIfAbsent(key, () => []).add(ticket);
     }
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16.0,
-        right: 16.0,
-        top: 16.0,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section des Tickets Non Catégorisés
-          if (groupedUncategorized.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Uncategorized',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section des Tickets Non Catégorisés
+        if (groupedUncategorized.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Uncategorized',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-          if (isUpcoming)
-            ...groupedUncategorized.entries.map((entry) {
-              final groupKey = entry.key;
-              final groupTickets = entry.value;
-              final ticketCount = groupTickets.length;
+          ),
+        if (isUpcoming)
+          ...groupedUncategorized.entries.map((entry) {
+            final groupKey = entry.key;
+            final groupTickets = entry.value;
+            final ticketCount = groupTickets.length;
 
-              // Déterminer le titre à afficher
-              String displayTitle;
-              if (groupTickets.first.groupId != null) {
-                // Si le ticket appartient à un groupe (multi-pages PDF), afficher le nom de base sans le suffixe
-                displayTitle = groupTickets.first.eventName != null
-                    ? groupTickets.first.eventName!.split('_ticket')[0]
-                    : 'Unnamed Event';
-              } else {
-                // Si le ticket est importé individuellement, utiliser le nom de l'événement ou le nom du fichier
-                displayTitle =
-                    groupTickets.first.eventName ?? _getFileName(groupKey);
-              }
-
-              return ListTile(
-                leading: _buildLeadingImage(groupTickets.first),
-                title: Text(
-                  displayTitle,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow
-                      .ellipsis, // Ajoute des "..." si le texte dépasse
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      groupTickets.first.eventLocation ??
-                          'Unknown event details',
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          color: Colors.red,
-                          size: 16,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          formatEventDate(groupTickets.first.eventDate ??
-                              groupTickets.first.importedDate),
-                          style: TextStyle(
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '$ticketCount ticket${ticketCount > 1 ? 's' : ''}',
-                      style: TextStyle(
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                trailing: Icon(Icons.arrow_forward_ios),
-                onTap: () {
-                  // Naviguer vers TicketDetailScreen avec tous les tickets du groupe
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TicketDetailScreen(
-                        tickets: groupTickets,
-                        initialTicket: groupTickets.first,
-                      ),
-                    ),
-                  ).then((_) => _loadTickets());
-                },
-              );
-            }).toList(),
-
-          // Section des Tickets Catégorisés
-          if (categorizedByEvent.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Categorized',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          // ListTiles regroupés par eventName
-          ...categorizedByEvent.entries.map((entry) {
-            final eventName = entry.key;
-            final eventTickets = entry.value;
-            final ticketCount = eventTickets.length;
+            // Déterminer le titre à afficher
+            String displayTitle;
+            if (groupTickets.first.groupId != null) {
+              // Si le ticket appartient à un groupe (multi-pages PDF), afficher le nom de base sans le suffixe
+              displayTitle = groupTickets.first.eventName != null
+                  ? groupTickets.first.eventName!.split('_ticket')[0]
+                  : 'Unnamed Event';
+            } else {
+              // Si le ticket est importé individuellement, utiliser le nom de l'événement ou le nom du fichier
+              displayTitle =
+                  groupTickets.first.eventName ?? _getFileName(groupKey);
+            }
 
             return ListTile(
-              leading: _buildLeadingImage(eventTickets.first),
+              leading: _buildLeadingImage(groupTickets.first),
               title: Text(
-                eventName,
+                displayTitle,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -198,7 +114,7 @@ class _TicketingScreenState extends State<TicketingScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    eventTickets.first.eventLocation ?? 'Venue not found',
+                    groupTickets.first.eventLocation ?? 'Unknown event details',
                   ),
                   SizedBox(height: 4),
                   Row(
@@ -210,8 +126,8 @@ class _TicketingScreenState extends State<TicketingScreen>
                       ),
                       SizedBox(width: 4),
                       Text(
-                        formatEventDate(eventTickets.first.eventDate ??
-                            eventTickets.first.importedDate),
+                        formatEventDate(groupTickets.first.eventDate ??
+                            groupTickets.first.importedDate),
                         style: TextStyle(
                           fontSize: 12,
                         ),
@@ -229,13 +145,13 @@ class _TicketingScreenState extends State<TicketingScreen>
               ),
               trailing: Icon(Icons.arrow_forward_ios),
               onTap: () {
-                // Naviguer vers TicketDetailScreen avec tous les tickets de cet eventName
+                // Naviguer vers TicketDetailScreen avec tous les tickets du groupe
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => TicketDetailScreen(
-                      tickets: eventTickets,
-                      initialTicket: eventTickets.first,
+                      tickets: groupTickets,
+                      initialTicket: groupTickets.first,
                     ),
                   ),
                 ).then((_) => _loadTickets());
@@ -243,20 +159,95 @@ class _TicketingScreenState extends State<TicketingScreen>
             );
           }).toList(),
 
-          // Message lorsqu'il n'y a aucun ticket
-          if (categorizedByEvent.isEmpty &&
-              (isUpcoming ? uncategorizedTickets.isEmpty : true))
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Text(
-                  'No tickets here',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+        // Section des Tickets Catégorisés
+        if (categorizedByEvent.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Categorized',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+        // ListTiles regroupés par eventName
+        ...categorizedByEvent.entries.map((entry) {
+          final eventName = entry.key;
+          final eventTickets = entry.value;
+          final ticketCount = eventTickets.length;
+
+          return ListTile(
+            leading: _buildLeadingImage(eventTickets.first),
+            title: Text(
+              eventName,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 2,
+              overflow:
+                  TextOverflow.ellipsis, // Ajoute des "..." si le texte dépasse
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  eventTickets.first.eventLocation ?? 'Venue not found',
                 ),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      color: Colors.red,
+                      size: 16,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      formatEventDate(eventTickets.first.eventDate ??
+                          eventTickets.first.importedDate),
+                      style: TextStyle(
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4),
+                Text(
+                  '$ticketCount ticket${ticketCount > 1 ? 's' : ''}',
+                  style: TextStyle(
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              // Naviguer vers TicketDetailScreen avec tous les tickets de cet eventName
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TicketDetailScreen(
+                    tickets: eventTickets,
+                    initialTicket: eventTickets.first,
+                  ),
+                ),
+              ).then((_) => _loadTickets());
+            },
+          );
+        }).toList(),
+
+        // Message lorsqu'il n'y a aucun ticket
+        if (categorizedByEvent.isEmpty &&
+            (isUpcoming ? uncategorizedTickets.isEmpty : true))
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                'No tickets here',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 

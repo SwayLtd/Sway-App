@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sway/features/ticketing/models/ticket_model.dart';
 import 'package:file_picker/file_picker.dart';
@@ -81,6 +82,71 @@ class TicketService {
     } catch (e) {
       // Gérer les erreurs de manière appropriée
       print('Error importing ticket: $e');
+    }
+  }
+
+  Future<void> importTicketFromPath(String path) async {
+    try {
+      final File file = File(path);
+      final fileName = file.path.split('/').last;
+      final fileExtension = _getFileExtension(fileName).toLowerCase();
+
+      // Répertoire de destination
+      final Directory appDocDir = await getApplicationDocumentsDirectory();
+      final String savedDirPath = '${appDocDir.path}/tickets';
+      final Directory savedDir = Directory(savedDirPath);
+      if (!await savedDir.exists()) {
+        await savedDir.create(recursive: true);
+      }
+
+      List<Ticket> newTickets = [];
+
+      // 1. Générer un timestamp "yyyyMMdd_HHmmss"
+      final now = DateTime.now();
+      final dateFormat = DateFormat('yyyyMMdd_HHmm');
+      final timestamp = dateFormat.format(now);
+
+      // 2. Extraire le "basename" (sans extension) pour l'inclure dans le nouveau nom
+      final baseName = _removeFileExtension(fileName);
+      // 3. Construire un nouveau nom avec date+heure + extension
+      final newFileName = '${baseName}_$timestamp.$fileExtension';
+
+      if (fileExtension == 'pdf') {
+        // Utiliser ta méthode interne pour splitter ou copier
+        // => Ici, on va passer "newFileName" au lieu de "fileName"
+        final List<Ticket> tickets = await _splitPdfAndSaveSyncfusion(
+          file,
+          newFileName,
+          savedDirPath,
+        );
+        newTickets.addAll(tickets);
+      } else if (['png', 'jpg', 'jpeg'].contains(fileExtension)) {
+        // Copier l’image en ajoutant le timestamp
+        final String savedPath = '$savedDirPath/$newFileName';
+        await file.copy(savedPath);
+
+        final Ticket ticket = Ticket(
+          id: Uuid().v4().hashCode,
+          filePath: savedPath,
+          importedDate: DateTime.now(),
+          eventName: _removeFileExtension(newFileName),
+          groupId: null,
+        );
+        newTickets.add(ticket);
+      } else {
+        print('Unsupported file extension: $fileExtension');
+      }
+
+      if (newTickets.isNotEmpty) {
+        // Charger les tickets existants
+        List<Ticket> currentTickets = await getTickets();
+        // Ajouter les nouveaux
+        currentTickets.addAll(newTickets);
+        // Sauvegarder le tout
+        await _saveTickets(currentTickets);
+      }
+    } catch (e) {
+      print('Error importing ticket from path: $e');
     }
   }
 

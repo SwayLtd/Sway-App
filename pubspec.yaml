@@ -1,12 +1,13 @@
 # https://stackoverflow.com/questions/51809421/flutter-is-not-able-to-install-the-apk-into-the-real-device-suddenly
 # flutter build apk --obfuscate --split-debug-info=Sway/debug_info
+# flutter pub deps > deps.txt
 
 name: sway
 description: Sway is a mobile event management application that helps users discover, organize, and manage events effortlessly. Sway aims to provide a seamless and intuitive experience for both event attendees and promoters.
 
 publish_to: "none"
 
-version: 0.4.7 # Better error handling, theme standardization and correction, theme switcher, explore screen fixes, top events rpc function
+version: 0.4.8 # Implement PDF import with timestamp-based filename
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
@@ -63,6 +64,7 @@ dependencies:
   timeago: ^3.7.0
   connectivity_plus: ^6.1.1
   shimmer: ^3.0.0
+  app_links: ^6.3.3
   # isar_flutter_libs: ^3.1.0+1 # For Isar
 
 dev_dependencies:

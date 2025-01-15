@@ -175,12 +175,20 @@ final GoRouter router = GoRouter(
   navigatorKey: rootNavigatorKey,
   // Remove or comment out the initialLocation parameter
   // initialLocation: '/',
-  initialLocation: Uri.base.toString(),
+  // initialLocation: Uri.base.toString(),
   debugLogDiagnostics: false,
   redirect: (context, state) async {
     final user = Supabase.instance.client.auth.currentUser;
     final bool loggedIn = user != null;
     final bool isAuthPath = state.matchedLocation == '/auth';
+
+    // LIGNE À AJOUTER : si la route commence par "content://", on force la route à "/"
+    final location = state.uri.toString();
+    if (location.startsWith('content://')) {
+      // On ignore la tentative de route sur content://…
+      // et on redirige vers la home page (ou '/tickets', selon tes besoins).
+      return '/';
+    }
 
     // Access the authChangeEvent from authStateManager
     final authChangeEvent = authStateManager.authChangeEvent;
