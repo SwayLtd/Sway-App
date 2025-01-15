@@ -13,13 +13,13 @@ environment:
 
 dependencies:
   adaptive_theme: ^3.6.0
-  bloc: ^8.1.4
+  bloc: ^9.0.0
   crypto: ^3.0.3
   cupertino_icons: ^1.0.8
   equatable: ^2.0.5
   flutter:
     sdk: flutter
-  flutter_bloc: ^8.1.5
+  flutter_bloc: ^9.0.0
   flutter_dotenv: ^5.0.2
   root_jailbreak_sniffer: ^1.0.6
   flutter_localizations:
