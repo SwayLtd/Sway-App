@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Username and profile picture editing implementation
 - Start implementation of user image upload and editing
 - Enable system-level PDF import into tickets
 - Better error handling, theme standardization and correction, theme switcher,

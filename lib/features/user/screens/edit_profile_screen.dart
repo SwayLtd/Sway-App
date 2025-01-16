@@ -99,6 +99,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // Récupérer l'utilisateur mis à jour
       final updatedUser = await _userService.getCurrentUser();
+      print('Updated User: ${updatedUser?.toJson()}');
 
       if (updatedUser != null) {
         setState(() {
@@ -130,6 +131,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
     } catch (e) {
+      print('Update Profile Error: $e');
       if (!mounted) return;
       setState(() {
         _errorMessage = 'An unexpected error occurred.';
@@ -175,7 +177,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         const SnackBar(
           content: Text('Password reset email has been sent.'),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.green,
         ),
       );
     } on AuthenticationException catch (e) {
@@ -191,6 +192,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
     } catch (e) {
+      print('Reset Password Error: $e');
       if (!mounted) return;
       setState(() {
         _errorMessage = 'An unexpected error occurred.';
@@ -237,6 +239,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         fileData: fileBytes,
       );
 
+      print('Image Uploaded: $publicUrl');
+
       // (Optionnel) Supprimer l'ancien avatar si nécessaire
       // Extraire le nom du fichier de l'URL actuelle
       final oldFileName =
@@ -247,6 +251,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           bucketName: "user-images",
           fileName: oldFilePath,
         );
+        print('Old Image Deleted: $oldFilePath');
       }
 
       // Mettre à jour l'URL de l'utilisateur dans la table users
@@ -255,8 +260,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         profilePictureUrl: publicUrl,
       );
 
+      print('Profile Picture Updated in Database');
+
       // Récupérer le user mis à jour
       final updatedUser = await _userService.getCurrentUser();
+      print('Updated User after avatar upload: ${updatedUser?.toJson()}');
 
       if (updatedUser != null && mounted) {
         setState(() {
@@ -267,14 +275,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       // Afficher un message de succès
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Avatar updated successfully!'),
-        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
       ));
     } catch (e) {
+      print('Pick and Upload Avatar Error: $e');
       // Gérer l'erreur
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Error: ${e.toString()}'),
         backgroundColor: Colors.red,
       ));
+      throw Exception(
+          'Error updating profile picture'); // Throw to trigger higher catch
     }
   }
 
@@ -311,37 +322,91 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      // Avatar et bouton d'édition
+                      // Avatar et bouton d'édition améliorés
                       Center(
-                        child: Column(
+                        child: Stack(
                           children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimary
-                                      .withValues(
-                                          alpha: 0.5), // Couleur de la bordure
-                                  width: 2.0, // Épaisseur de la bordure
+                            GestureDetector(
+                              onTap: _isUpdating
+                                  ? null
+                                  : _pickAndUploadAvatar, // Rendre l'image cliquable
+                              child: Container(
+                                width: 150, // Taille de l'avatar
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary
+                                        .withValues(
+                                            alpha:
+                                                0.5), // Couleur de la bordure
+                                    width: 2.0, // Épaisseur de la bordure
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                      15), // Coins arrondis
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
                                 ),
-                                borderRadius: BorderRadius.circular(
-                                    12), // Coins arrondis de la bordure
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(15),
-                                child: ImageWithErrorHandler(
-                                  imageUrl: _currentUser
-                                      .profilePictureUrl, // Utiliser _currentUser
-                                  width: 100,
-                                  height: 100,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      12), // Assurer les coins arrondis
+                                  child: ImageWithErrorHandler(
+                                    imageUrl: _currentUser
+                                        .profilePictureUrl, // Utiliser _currentUser
+                                    width: 150,
+                                    height: 150,
+                                    fit: BoxFit
+                                        .cover, // Assurer que l'image couvre le conteneur
+                                  ),
                                 ),
                               ),
                             ),
-                            TextButton(
-                              onPressed:
-                                  _isUpdating ? null : _pickAndUploadAvatar,
-                              child: const Text('Edit avatar'),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: _isUpdating
+                                    ? null
+                                    : _pickAndUploadAvatar, // Rendre l'icône cliquable
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    shape: BoxShape
+                                        .circle, // Forme circulaire pour l'icône
+                                    /* border: Border.all(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimary
+                                          .withValues(
+                                              alpha:
+                                                  0.5), // Bordure blanche autour de l'icône
+                                      width: 2.0,
+                                    ) */
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            Colors.black.withValues(alpha: 0.2),
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),

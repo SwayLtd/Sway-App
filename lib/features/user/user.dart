@@ -98,10 +98,10 @@ class UserScreen extends StatelessWidget {
                             width: 2.0, // Épaisseur de la bordure
                           ),
                           borderRadius: BorderRadius.circular(
-                              12), // Coins arrondis de la bordure
+                              15), // Coins arrondis de la bordure
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
+                          borderRadius: BorderRadius.circular(12),
                           child: ImageWithErrorHandler(
                             imageUrl: user.profilePictureUrl,
                             width: 150,
@@ -122,10 +122,9 @@ class UserScreen extends StatelessWidget {
                     const SizedBox(height: 5),
                     // Date d'Inscription
                     Text(
-                      'Member since: ${user.createdAt.toLocal()}',
+                      '${formatEventDate(user.createdAt.toLocal())}',
                       style: const TextStyle(
                         fontSize: 16,
-                        fontStyle: FontStyle.italic,
                       ),
                     ),
                     const SizedBox(height: 20),

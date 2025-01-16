@@ -6,6 +6,31 @@ import 'package:sway/features/user/models/user_model.dart' as AppUser;
 class UserService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  /// Met à jour l'URL de l'image de profil de l'utilisateur
+  Future<void> updateUserProfilePicture({
+    required String supabaseId,
+    required String profilePictureUrl,
+  }) async {
+    try {
+      final data = await _supabase
+          .from('users')
+          .update({'profile_picture_url': profilePictureUrl})
+          .eq('supabase_id', supabaseId)
+          .select(); // Ajout de .select() pour récupérer les données mises à jour
+
+      // Logs pour débogage
+      print('Update Profile Picture Data: $data');
+
+      // Vérifier que la mise à jour a affecté au moins une ligne
+      if ((data.isEmpty)) {
+        throw Exception('Error updating profile picture: No rows affected');
+      }
+    } catch (e) {
+      print('Error updating profile picture: $e');
+      throw Exception('Error updating profile picture');
+    }
+  }
+
   /// Retrieves a user by their Supabase ID.
   Future<AppUser.User?> getUserBySupabaseId(String supabaseId) async {
     try {
@@ -23,6 +48,65 @@ class UserService {
     } catch (e) {
       print('Error fetching user by Supabase ID: $e');
       return null;
+    }
+  }
+
+  /// Retrieves the currently authenticated user.
+  Future<AppUser.User?> getCurrentUser() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return null;
+    }
+
+    return await getUserBySupabaseId(user.id);
+  }
+
+  /// Met à jour le nom d'utilisateur de l'utilisateur dans la table 'users'
+  Future<void> updateUsername({
+    required String supabaseId,
+    required String newUsername,
+  }) async {
+    try {
+      final data = await _supabase
+          .from('users')
+          .update({'username': newUsername})
+          .eq('supabase_id', supabaseId)
+          .select(); // Ajout de .select()
+
+      // Logs pour débogage
+      print('Update Username Data: $data');
+
+      if ((data.isEmpty)) {
+        throw Exception('Error updating username: No rows affected');
+      }
+    } catch (e) {
+      print('Error updating username: $e');
+      throw Exception('Error updating username: $e');
+    }
+  }
+
+  /// Met à jour l'adresse email de l'utilisateur dans la table 'users'
+  Future<void> updateUserEmail({
+    required String supabaseId,
+    required String newEmail,
+  }) async {
+    try {
+      final data = await _supabase
+          .from('users')
+          .update({'email': newEmail})
+          .eq('supabase_id', supabaseId)
+          .select(); // Ajout de .select()
+
+      // Logs pour débogage
+      print('Update Email Data: $data');
+
+      if ((data.isEmpty)) {
+        throw Exception(
+            'Failed to update email in users table: No rows affected');
+      }
+    } catch (e) {
+      print('Error updating email in users table: $e');
+      throw Exception('Error updating email in users table.');
     }
   }
 
@@ -49,7 +133,7 @@ class UserService {
       final data =
           await _supabase.from('users').select().ilike('username', '%$query%');
 
-      return data
+      return (data as List<dynamic>)
           .map<AppUser.User>((json) => AppUser.User.fromJson(json))
           .toList();
     } catch (e) {
@@ -69,7 +153,7 @@ class UserService {
       final data = await _supabase
           .from('users')
           .select()
-          .filter('supabase_id', 'in', '($supabaseIds)');
+          .filter('supabase_id', 'in', '(${supabaseIds.join(",")})');
 
       return (data as List<dynamic>)
           .map<AppUser.User>((json) => AppUser.User.fromJson(json))
@@ -90,85 +174,14 @@ class UserService {
       final data = await _supabase
           .from('users')
           .select()
-          .filter('id', 'in', '($userIds)');
+          .filter('id', 'in', '(${userIds.join(",")})');
 
-      return data
+      return (data as List<dynamic>)
           .map<AppUser.User>((json) => AppUser.User.fromJson(json))
           .toList();
     } catch (e) {
       print('Error fetching users by IDs: $e');
       return [];
     }
-  }
-
-  /// Updates the profile picture URL of a user.
-  Future<void> updateUserProfilePicture({
-    required String supabaseId,
-    required String profilePictureUrl,
-  }) async {
-    try {
-      final response = await _supabase
-          .from('users')
-          .update({'profile_picture_url': profilePictureUrl}).eq(
-              'supabase_id', supabaseId);
-
-      if (response.error != null) {
-        throw Exception(
-            'Failed to update profile picture: ${response.error!.message}');
-      }
-    } catch (e) {
-      print('Error updating profile picture: $e');
-      throw Exception('Error updating profile picture.');
-    }
-  }
-
-  /// Met à jour l'adresse email de l'utilisateur dans la table 'users'
-  Future<void> updateUserEmail({
-    required String supabaseId,
-    required String newEmail,
-  }) async {
-    try {
-      final response = await _supabase
-          .from('users')
-          .update({'email': newEmail}).eq('supabase_id', supabaseId);
-
-      if (response.error != null) {
-        throw Exception(
-            'Failed to update email in users table: ${response.error!.message}');
-      }
-    } catch (e) {
-      print('Error updating email in users table: $e');
-      throw Exception('Error updating email in users table.');
-    }
-  }
-
-  /// Met à jour le nom d'utilisateur de l'utilisateur dans la table 'users'
-  Future<void> updateUsername({
-    required String supabaseId,
-    required String newUsername,
-  }) async {
-    try {
-      final response = await _supabase
-          .from('users')
-          .update({'username': newUsername}).eq('supabase_id', supabaseId);
-
-      if (response.error != null) {
-        throw Exception(
-            'Failed to update username: ${response.error!.message}');
-      }
-    } catch (e) {
-      print('Error updating username: $e');
-      throw Exception('Error updating username.');
-    }
-  }
-
-  /// Retrieves the currently authenticated user.
-  Future<AppUser.User?> getCurrentUser() async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) {
-      return null;
-    }
-
-    return await getUserBySupabaseId(user.id);
   }
 }
