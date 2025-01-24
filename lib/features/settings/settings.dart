@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/notification/screens/notification_preferences_screen.dart';
+import 'package:sway/features/promoter/screens/create_promoter_screen.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/services/auth_service.dart';
@@ -171,10 +172,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.person, color: Colors.grey),
+                leading: const Icon(Icons.person, color: Colors.green),
                 title: const Text('Create Promoter'),
-                enabled: false, // Désactivé
-                onTap: null, // Inactif
+                onTap: () {
+                  Navigator.pop(context); // Fermer le menu
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const CreatePromoterScreen()),
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.mic, color: Colors.grey),

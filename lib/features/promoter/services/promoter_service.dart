@@ -76,7 +76,7 @@ class PromoterService {
 
     if (eventIds.isEmpty) {
       // Aucun événement associé
-      return Promoter.fromJson(response, []);
+      return Promoter.fromJsonWithoutEvents(response);
     }
 
     // Filtrer les événements à venir
@@ -120,30 +120,23 @@ class PromoterService {
   }
 
   /// Ajoute un nouveau promoteur.
-  Future<void> addPromoter(Promoter promoter) async {
-    final hasAdminPermission = await _permissionService.hasPermissionForCurrentUser(
-      promoter.id,
-      'promoter',
-      'admin',
-    );
+  Future<Promoter> addPromoter(Promoter promoter) async {
+    final promoterData = promoter.toJson();
 
-    if (!hasAdminPermission) {
-      throw Exception(
-          'Permission denied: You do not have the necessary rights to add a promoter.');
-    }
+    // Insérer le promoter dans la base de données et récupérer l'objet créé
+    final response = await _supabase
+        .from('promoters')
+        .insert(promoterData)
+        .select()
+        .single();
 
-    final response =
-        await _supabase.from('promoters').insert(promoter.toJson());
-
-    if (response.isEmpty) {
-      throw Exception('Failed to add promoter.');
-    }
+    return Promoter.fromJsonWithoutEvents(response);
   }
 
   /// Met à jour un promoteur existant.
-  Future<void> updatePromoter(Promoter promoter) async {
+  Future<Promoter> updatePromoter(Promoter promoter) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
-      promoter.id,
+      promoter.id!,
       'promoter',
       'manager', // 'manager' ou supérieur peut mettre à jour
     );
@@ -156,16 +149,17 @@ class PromoterService {
     final response = await _supabase
         .from('promoters')
         .update(promoter.toJson())
-        .eq('id', promoter.id);
+        .eq('id', promoter.id!)
+        .select()
+        .single();
 
-    if (response.isEmpty) {
-      throw Exception('Failed to update promoter.');
-    }
+    return Promoter.fromJsonWithoutEvents(response);
   }
 
   /// Supprime un promoteur par son ID.
   Future<void> deletePromoter(int promoterId) async {
-    final hasAdminPermission = await _permissionService.hasPermissionForCurrentUser(
+    final hasAdminPermission =
+        await _permissionService.hasPermissionForCurrentUser(
       promoterId,
       'promoter',
       'admin',

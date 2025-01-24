@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Implement promoter creation
 - Implement venue creation
 - Username and profile picture editing implementation
 - Enable system-level PDF import into tickets

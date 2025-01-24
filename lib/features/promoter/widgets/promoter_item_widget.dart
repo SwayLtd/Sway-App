@@ -36,10 +36,10 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
   void initState() {
     super.initState();
     _followersCountFuture = _userFollowPromoterService
-        .getPromoterFollowersCount(widget.promoter.id);
+        .getPromoterFollowersCount(widget.promoter.id!);
     _upcomingEventsCountFuture = _promoterService
-        .getPromoterByIdWithEvents(widget.promoter.id)
-        .then((promoter) => promoter?.upcomingEvents.length ?? 0);
+        .getPromoterByIdWithEvents(widget.promoter.id!)
+        .then((promoter) => promoter?.upcomingEvents!.length ?? 0);
   }
 
   @override
@@ -162,7 +162,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
               ],
             ),
             trailing: FollowingButtonWidget(
-              entityId: widget.promoter.id,
+              entityId: widget.promoter.id!,
               entityType: 'promoter',
             ),
           ),
@@ -198,26 +198,26 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
   void initState() {
     super.initState();
     _followersCountFuture = UserFollowPromoterService()
-        .getPromoterFollowersCount(widget.promoter.id);
+        .getPromoterFollowersCount(widget.promoter.id!);
     _isFollowingFuture =
-        UserFollowPromoterService().isFollowingPromoter(widget.promoter.id);
+        UserFollowPromoterService().isFollowingPromoter(widget.promoter.id!);
     _upcomingEventsCountFuture = PromoterService()
-        .getPromoterByIdWithEvents(widget.promoter.id)
-        .then((promoter) => promoter?.upcomingEvents.length ?? 0);
+        .getPromoterByIdWithEvents(widget.promoter.id!)
+        .then((promoter) => promoter?.upcomingEvents!.length ?? 0);
   }
 
   void _toggleFollow(bool isFollowing) async {
     if (isFollowing) {
-      await UserFollowPromoterService().unfollowPromoter(widget.promoter.id);
+      await UserFollowPromoterService().unfollowPromoter(widget.promoter.id!);
     } else {
-      await UserFollowPromoterService().followPromoter(widget.promoter.id);
+      await UserFollowPromoterService().followPromoter(widget.promoter.id!);
     }
     if (!mounted) return;
     setState(() {
       _isFollowingFuture =
-          UserFollowPromoterService().isFollowingPromoter(widget.promoter.id);
+          UserFollowPromoterService().isFollowingPromoter(widget.promoter.id!);
       _followersCountFuture = UserFollowPromoterService()
-          .getPromoterFollowersCount(widget.promoter.id);
+          .getPromoterFollowersCount(widget.promoter.id!);
     });
   }
 

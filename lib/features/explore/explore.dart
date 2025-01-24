@@ -112,10 +112,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
         .getFollowedPromotersByUserId(userId)
         .then((followedPromoters) async {
       final followedPromoterIds =
-          followedPromoters.map((promoter) => promoter.id).toList();
+          followedPromoters.map((promoter) => promoter.id!).toList();
       final allPromoters = await _promoterService.getPromoters();
       return allPromoters
-          .where((promoter) => !followedPromoterIds.contains(promoter.id))
+          .where((promoter) => !followedPromoterIds.contains(promoter.id!))
           .toList();
     });
 
@@ -383,7 +383,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => PromoterScreen(promoterId: promoter.id),
+              builder: (context) => PromoterScreen(promoterId: promoter.id!),
             ),
           );
         },

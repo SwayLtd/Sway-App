@@ -493,7 +493,7 @@ class _VenueScreenState extends State<VenueScreen> {
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 PromoterScreen(
-                                              promoterId: promoter.id,
+                                              promoterId: promoter.id!,
                                             ),
                                           ),
                                         );

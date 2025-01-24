@@ -71,7 +71,7 @@ class UserEntitiesScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => PromoterScreen(promoterId: promoter.id),
+              builder: (context) => PromoterScreen(promoterId: promoter.id!),
             ),
           );
         } else {

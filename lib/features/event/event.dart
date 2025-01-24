@@ -537,7 +537,7 @@ class _EventScreenState extends State<EventScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      PromoterScreen(promoterId: promoter.id),
+                                      PromoterScreen(promoterId: promoter.id!),
                                 ),
                               );
                             },

@@ -390,7 +390,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => PromoterScreen(promoterId: result.id),
+              builder: (context) => PromoterScreen(promoterId: result.id!),
             ),
           );
         },

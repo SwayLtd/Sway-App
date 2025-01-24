@@ -84,7 +84,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
             future: _permissionService.hasPermissionForCurrentUser(
               widget.promoterId,
               'promoter',
-              'edit', // 'edit' correspond à 'manager' ou supérieur dans UserPermissionService
+              'manager', // 'manager' correspond à 'manager' ou supérieur
             ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -194,12 +194,11 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .onPrimary
-                                    .withValues(
-                                        alpha: 0.5), // Couleur de la bordure
+                                    .withOpacity(0.5), // Couleur de la bordure
                                 width: 2.0, // Épaisseur de la bordure
                               ),
-                              borderRadius: BorderRadius.circular(
-                                  12), // Coins arrondis de la bordure
+                              borderRadius:
+                                  BorderRadius.circular(12), // Coins arrondis
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10),

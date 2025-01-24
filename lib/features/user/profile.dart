@@ -389,7 +389,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PromoterScreen(
-                                            promoterId: promoter.id),
+                                            promoterId: promoter.id!),
                                       ),
                                     );
                                   },

@@ -361,7 +361,7 @@ class UserScreen extends StatelessWidget {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PromoterScreen(
-                                            promoterId: promoter.id),
+                                            promoterId: promoter.id!),
                                       ),
                                     );
                                   },

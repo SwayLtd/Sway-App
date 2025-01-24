@@ -64,7 +64,7 @@ Future<void> showPromoterModalBottomSheet(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
-                              PromoterScreen(promoterId: promoter.id),
+                              PromoterScreen(promoterId: promoter.id!),
                         ),
                       );
                     },

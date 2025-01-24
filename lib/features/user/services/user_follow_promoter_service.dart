@@ -82,7 +82,7 @@ class UserFollowPromoterService {
     final List<Promoter> allPromoters = await PromoterService().getPromoters();
 
     return allPromoters
-        .where((promoter) => followedPromoterIds.contains(promoter.id))
+        .where((promoter) => followedPromoterIds.contains(promoter.id!))
         .toList();
   }
 

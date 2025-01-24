@@ -304,7 +304,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 PromoterScreen(
-                                                    promoterId: promoter.id),
+                                                    promoterId: promoter.id!),
                                           ),
                                         );
                                       },

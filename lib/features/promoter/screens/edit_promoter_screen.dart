@@ -65,8 +65,8 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
 
     try {
       // Load associated genres
-      final genres =
-          await _promoterGenreService.getGenresByPromoterId(widget.promoter.id);
+      final genres = await _promoterGenreService
+          .getGenresByPromoterId(widget.promoter.id!);
       if (!mounted) return;
       setState(() {
         _selectedGenres = genres;
@@ -74,7 +74,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
 
       // Load associated resident artists
       final artists = await _promoterArtistService
-          .getArtistsByPromoterId(widget.promoter.id);
+          .getArtistsByPromoterId(widget.promoter.id!);
       if (!mounted) return;
       setState(() {
         _selectedArtists = artists.map((artist) => artist.id).toList();
@@ -103,7 +103,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
 
   Future<void> _updatePromoter() async {
     final updatedPromoter = Promoter(
-      id: widget.promoter.id,
+      id: widget.promoter.id!,
       name: _nameController.text,
       description: _descriptionController.text,
       imageUrl: _imageUrlController.text, // Update image URL
@@ -120,11 +120,11 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
 
       // Update associated genres
       await _promoterGenreService.updatePromoterGenres(
-          widget.promoter.id, _selectedGenres);
+          widget.promoter.id!, _selectedGenres);
 
       // Update associated resident artists
       await _promoterArtistService.updatePromoterArtists(
-          widget.promoter.id, _selectedArtists);
+          widget.promoter.id!, _selectedArtists);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -268,7 +268,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
         currentUser.id, 'promoter');
 
     for (var permission in permissions) {
-      if (permission.entityId == widget.promoter.id) {
+      if (permission.entityId == widget.promoter.id!) {
         return permission;
       }
     }
@@ -292,7 +292,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => UserAccessManagementScreen(
-                          entityId: widget.promoter.id,
+                          entityId: widget.promoter.id!,
                           entityType: 'promoter',
                         ),
                       ),
