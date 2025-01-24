@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/features/artist/screens/create_artist_screen.dart';
 import 'package:sway/features/notification/screens/notification_preferences_screen.dart';
 import 'package:sway/features/promoter/screens/create_promoter_screen.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
@@ -159,8 +160,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return SafeArea(
           child: Wrap(
             children: [
+              // Barre grise horizontale
+              Center(
+                child: Container(
+                  height: 5,
+                  width: 50,
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
               ListTile(
-                leading: const Icon(Icons.location_city, color: Colors.blue),
+                leading: const Icon(Icons.location_on),
                 title: const Text('Create Venue'),
                 onTap: () {
                   Navigator.pop(context); // Fermer le menu
@@ -172,7 +185,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.person, color: Colors.green),
+                leading:
+                    const Icon(Icons.whatshot), // Icons.confirmation_number
                 title: const Text('Create Promoter'),
                 onTap: () {
                   Navigator.pop(context); // Fermer le menu
@@ -184,10 +198,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.mic, color: Colors.grey),
+                leading: const Icon(Icons.headset_mic),
                 title: const Text('Create Artist'),
-                enabled: false, // Désactivé
-                onTap: null, // Inactif
+                onTap: () {
+                  Navigator.pop(context); // Close the menu
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const CreateArtistScreen()),
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.event, color: Colors.grey),

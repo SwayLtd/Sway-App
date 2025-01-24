@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Implement artist creation
 - Implement promoter creation
 - Implement venue creation
 - Username and profile picture editing implementation

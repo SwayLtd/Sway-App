@@ -39,7 +39,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
         .getPromoterFollowersCount(widget.promoter.id!);
     _upcomingEventsCountFuture = _promoterService
         .getPromoterByIdWithEvents(widget.promoter.id!)
-        .then((promoter) => promoter?.upcomingEvents!.length ?? 0);
+        .then((promoter) => promoter?.upcomingEvents.length ?? 0);
   }
 
   @override
@@ -203,7 +203,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
         UserFollowPromoterService().isFollowingPromoter(widget.promoter.id!);
     _upcomingEventsCountFuture = PromoterService()
         .getPromoterByIdWithEvents(widget.promoter.id!)
-        .then((promoter) => promoter?.upcomingEvents!.length ?? 0);
+        .then((promoter) => promoter?.upcomingEvents.length ?? 0);
   }
 
   void _toggleFollow(bool isFollowing) async {
