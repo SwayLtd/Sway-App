@@ -63,7 +63,7 @@ Future<void> showVenueModalBottomSheet(
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => VenueScreen(venueId: venue.id),
+                          builder: (context) => VenueScreen(venueId: venue.id!),
                         ),
                       );
                     },

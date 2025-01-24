@@ -374,7 +374,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => VenueScreen(venueId: result.id),
+              builder: (context) => VenueScreen(venueId: result.id!),
             ),
           );
         },

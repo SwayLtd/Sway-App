@@ -241,6 +241,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                               entityId: widget.event.id,
                               entityType: 'event',
                               permission: 'admin',
+                              permissionLevel: 3,
                             ),
                           );
                         },

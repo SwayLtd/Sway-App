@@ -386,7 +386,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          VenueScreen(venueId: venue.id),
+                                          VenueScreen(venueId: venue.id!),
                                     ),
                                   );
                                 },

@@ -348,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                              VenueScreen(venueId: venue.id),
+                                              VenueScreen(venueId: venue.id!),
                                         ),
                                       );
                                     },

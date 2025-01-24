@@ -150,10 +150,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _suggestedVenuesFuture = _userFollowVenueService
         .getFollowedVenuesByUserId(userId)
         .then((followedVenues) async {
-      final followedVenueIds = followedVenues.map((venue) => venue.id).toList();
+      final followedVenueIds =
+          followedVenues.map((venue) => venue.id!).toList();
       final allVenues = await _venueService.getVenues();
       return allVenues
-          .where((venue) => !followedVenueIds.contains(venue.id))
+          .where((venue) => !followedVenueIds.contains(venue.id!))
           .toList();
     });
 
@@ -399,7 +400,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => VenueScreen(venueId: venue.id),
+              builder: (context) => VenueScreen(venueId: venue.id!),
             ),
           );
         },

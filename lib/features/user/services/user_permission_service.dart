@@ -15,17 +15,20 @@ class UserPermissionService {
     'admin': 3,
   };
 
+  /// Récupère toutes les permissions des utilisateurs.
   Future<List<UserPermission>> getUserPermissions() async {
     final response = await _supabase.from('user_permissions').select();
     return response.map((json) => UserPermission.fromJson(json)).toList();
   }
 
+  /// Récupère les permissions d'un utilisateur spécifique.
   Future<List<UserPermission>> getPermissionsByUserId(int userId) async {
     final response =
         await _supabase.from('user_permissions').select().eq('user_id', userId);
     return response.map((json) => UserPermission.fromJson(json)).toList();
   }
 
+  /// Récupère les permissions pour une entité spécifique.
   Future<List<UserPermission>> getPermissionsByEntity(
       int entityId, String entityType) async {
     final response = await _supabase
@@ -36,6 +39,7 @@ class UserPermissionService {
     return response.map((json) => UserPermission.fromJson(json)).toList();
   }
 
+  /// Récupère les permissions d'un utilisateur pour un type d'entité spécifique.
   Future<List<UserPermission>> getPermissionsByUserIdAndType(
       int userId, String entityType) async {
     final response = await _supabase
@@ -49,42 +53,21 @@ class UserPermissionService {
   /// Vérifie si l'utilisateur a la permission requise en tenant compte de la hiérarchie des rôles.
   Future<bool> hasPermission(int userId, int entityId, String entityType,
       String requiredPermission) async {
-    final permissions = await getPermissionsByUserIdAndType(userId, entityType);
+    final requiredLevel = _roleHierarchy[requiredPermission] ?? 0;
+    print('Required Level for $requiredPermission: $requiredLevel');
 
-    // Définir le niveau requis basé sur la permission requise
-    int requiredLevel;
-    switch (requiredPermission) {
-      case 'admin':
-        requiredLevel = _roleHierarchy['admin']!;
-        break;
-      case 'manager':
-        requiredLevel = _roleHierarchy['manager']!;
-        break;
-      case 'user':
-        requiredLevel = _roleHierarchy['user']!;
-        break;
-      case 'edit':
-        requiredLevel =
-            _roleHierarchy['manager']!; // 'edit' nécessite 'manager' ou 'admin'
-        break;
-      case 'insight':
-        requiredLevel = _roleHierarchy[
-            'user']!; // 'insight' nécessite 'user', 'manager' ou 'admin'
-        break;
-      default:
-        requiredLevel = 0;
-    }
+    final response = await _supabase
+        .from('user_permissions')
+        .select('permission_level')
+        .eq('user_id', userId)
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType)
+        .gte('permission_level', requiredLevel)
+        .maybeSingle();
 
-    for (var permission in permissions) {
-      if (permission.entityId == entityId) {
-        final userRoleLevel = _roleHierarchy[permission.permission] ?? 0;
-        if (userRoleLevel >= requiredLevel) {
-          return true;
-        }
-      }
-    }
+    print('Permission Level response: $response');
 
-    return false;
+    return response != null;
   }
 
   /// Vérifie la permission pour l'utilisateur actuellement connecté.
@@ -92,19 +75,27 @@ class UserPermissionService {
       int entityId, String entityType, String requiredPermission) async {
     final currentUser = await _userService.getCurrentUser();
     if (currentUser == null) {
+      print('Current user is null');
       return false;
     }
-    return hasPermission(
+    final hasPerm = await hasPermission(
         currentUser.id, entityId, entityType, requiredPermission);
+    print(
+        'User has permission: $hasPerm for $requiredPermission on $entityType $entityId');
+    return hasPerm;
   }
 
+  /// Ajoute une permission pour un utilisateur.
   Future<void> addUserPermission(
       int userId, int entityId, String entityType, String permission) async {
+    final permissionLevel = _roleHierarchy[permission] ?? 0;
+
     final response = await _supabase.from('user_permissions').insert({
       'user_id': userId,
       'entity_id': entityId,
       'entity_type': entityType,
       'permission': permission,
+      'permission_level': permissionLevel,
     });
 
     if (response.isEmpty) {
@@ -112,6 +103,7 @@ class UserPermissionService {
     }
   }
 
+  /// Supprime une permission pour un utilisateur.
   Future<void> deleteUserPermission(
       int userId, int entityId, String entityType) async {
     final response = await _supabase
@@ -126,6 +118,7 @@ class UserPermissionService {
     }
   }
 
+  /// Sauvegarde les permissions des utilisateurs localement (implémentation dépendante).
   Future<void> saveUserPermissions(List<UserPermission> permissions) async {
     // Implémentation de la logique de sauvegarde, dépend de votre stockage local
   }

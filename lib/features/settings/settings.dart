@@ -11,6 +11,7 @@ import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/auth_modal.dart';
 import 'package:sway/features/user/profile.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:sway/features/venue/screens/create_venue_screen.dart'; // Importez le nouvel écran de création
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -35,9 +36,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  /// Checks if the user is currently authenticated.
+  /// Vérifie si l'utilisateur est connecté et son statut de confirmation d'email.
   Future<void> _checkAuthStatus() async {
     final fetchedUser = await _userService.getCurrentUser();
+
+    if (fetchedUser != null) {}
+
     setState(() {
       _isLoggedIn = fetchedUser != null;
       _currentUser = fetchedUser;
@@ -146,6 +150,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Affiche le menu de création d'entités
+  void _showCreateEntityMenu() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.location_city, color: Colors.blue),
+                title: const Text('Create Venue'),
+                onTap: () {
+                  Navigator.pop(context); // Fermer le menu
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const CreateVenueScreen()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.person, color: Colors.grey),
+                title: const Text('Create Promoter'),
+                enabled: false, // Désactivé
+                onTap: null, // Inactif
+              ),
+              ListTile(
+                leading: const Icon(Icons.mic, color: Colors.grey),
+                title: const Text('Create Artist'),
+                enabled: false, // Désactivé
+                onTap: null, // Inactif
+              ),
+              ListTile(
+                leading: const Icon(Icons.event, color: Colors.grey),
+                title: const Text('Create Event'),
+                enabled: false, // Désactivé
+                onTap: null, // Inactif
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   /// Builds the UI for the settings screen.
   @override
   Widget build(BuildContext context) {
@@ -240,6 +289,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
         ],
       ),
+      // Ajout du FloatingActionButton
+      floatingActionButton: _isLoggedIn
+          ? FloatingActionButton(
+              onPressed: _showCreateEntityMenu,
+              child: const Icon(Icons.add),
+              tooltip: 'Create Entity',
+            )
+          : null,
     );
   }
 }

@@ -1,14 +1,14 @@
 // lib/features/venue/models/venue_model.dart
 
 class Venue {
-  final int id;
+  final int? id;
   final String name;
   final String imageUrl;
   final String description;
   final String location;
 
   Venue({
-    required this.id,
+    this.id,
     required this.name,
     required this.imageUrl,
     required this.description,
@@ -17,7 +17,7 @@ class Venue {
 
   factory Venue.fromJson(Map<String, dynamic> json) {
     return Venue(
-      id: json['id'] as int? ?? 0,
+      id: json['id'] as int?,
       name: json['name'] as String? ?? '',
       imageUrl: json['image_url'] as String? ?? '',
       description: json['description'] as String? ?? '',
@@ -27,7 +27,7 @@ class Venue {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      if (id != null) 'id': id,
       'name': name,
       'image_url': imageUrl,
       'description': description,

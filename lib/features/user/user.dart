@@ -284,7 +284,7 @@ class UserScreen extends StatelessWidget {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            VenueScreen(venueId: venue.id),
+                                            VenueScreen(venueId: venue.id!),
                                       ),
                                     );
                                   },

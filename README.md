@@ -16,14 +16,9 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Implement venue creation
 - Username and profile picture editing implementation
-- Start implementation of user image upload and editing
 - Enable system-level PDF import into tickets
-- Better error handling, theme standardization and correction, theme switcher,
-  explore screen fixes, top events rpc function
-- Enhanced Ticket Notification Flow - Notifications
-- Enhanced Notification System with History, Relative Days, and Deep Linking -
-  Notifications
 - Enhance VenueScreen and PromoterScreen UI/UX
 
 ### Known Issues

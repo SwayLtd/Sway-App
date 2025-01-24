@@ -99,26 +99,24 @@ class VenueService {
     return response.map<Venue>((json) => Venue.fromJson(json)).toList();
   }
 
-  Future<void> addVenue(Venue venue) async {
-    final hasPermission = await _permissionService.hasPermissionForCurrentUser(
-      venue.id,
-      'venue',
-      'admin',
-    );
-    if (!hasPermission) {
-      throw Exception('Permission denied');
-    }
+  Future<Venue> addVenue(Venue venue) async {
+    final Map<String, dynamic> venueData = {
+      'name': venue.name,
+      'image_url': venue.imageUrl,
+      'description': venue.description,
+      'location': venue.location,
+      // Ne pas inclure 'id'
+    };
 
-    final response = await _supabase.from('venues').insert(venue.toJson());
+    final response =
+        await _supabase.from('venues').insert(venueData).select().single();
 
-    if (response.isEmpty) {
-      throw Exception('Failed to add venue.');
-    }
+    return Venue.fromJson(response);
   }
 
-  Future<void> updateVenue(Venue venue) async {
+  Future<Venue> updateVenue(Venue venue) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
-      venue.id,
+      venue.id!,
       'venue',
       'manager',
     );
@@ -129,11 +127,11 @@ class VenueService {
     final response = await _supabase
         .from('venues')
         .update(venue.toJson())
-        .eq('id', venue.id);
+        .eq('id', venue.id!)
+        .select()
+        .single();
 
-    if (response.isEmpty) {
-      throw Exception('Failed to update venue.');
-    }
+    return Venue.fromJson(response);
   }
 
   Future<void> deleteVenue(int venueId) async {

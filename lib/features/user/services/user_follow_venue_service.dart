@@ -82,7 +82,7 @@ class UserFollowVenueService {
     final List<Venue> allVenues = await VenueService().getVenues();
 
     return allVenues
-        .where((venue) => followedVenueIds.contains(venue.id))
+        .where((venue) => followedVenueIds.contains(venue.id!))
         .toList();
   }
 

@@ -37,9 +37,9 @@ class _VenueListItemWidgetState extends State<VenueListItemWidget> {
   void initState() {
     super.initState();
     _followersCountFuture =
-        _userFollowVenueService.getVenueFollowersCount(widget.venue.id);
+        _userFollowVenueService.getVenueFollowersCount(widget.venue.id!);
     _upcomingEventsCountFuture = _eventVenueService
-        .getEventsByVenueId(widget.venue.id)
+        .getEventsByVenueId(widget.venue.id!)
         .then((events) => events.length);
   }
 
@@ -157,7 +157,7 @@ class _VenueListItemWidgetState extends State<VenueListItemWidget> {
               ],
             ),
             trailing: FollowingButtonWidget(
-              entityId: widget.venue.id,
+              entityId: widget.venue.id!,
               entityType: 'venue',
             ),
           ),

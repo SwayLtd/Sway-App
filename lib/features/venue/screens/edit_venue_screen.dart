@@ -35,7 +35,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
 
   Future<void> _updateVenue() async {
     final updatedVenue = Venue(
-      id: widget.venue.id,
+      id: widget.venue.id!,
       name: _nameController.text,
       description: _descriptionController.text,
       imageUrl: widget.venue.imageUrl,
@@ -68,7 +68,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
               onPressed: () async {
                 await UserPermissionService().deleteUserPermission(
                   permission.userId,
-                  widget.venue.id,
+                  widget.venue.id!,
                   'venue',
                 );
                 Navigator.of(context).pop();
@@ -99,7 +99,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => UserAccessManagementScreen(
-                    entityId: widget.venue.id,
+                    entityId: widget.venue.id!,
                     entityType: 'venue',
                   ),
                 ),
@@ -131,7 +131,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
             ),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                widget.venue.id,
+                widget.venue.id!,
                 'venue',
                 'admin',
               ),
@@ -151,9 +151,10 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                           context,
                           UserPermission(
                             userId: 3,
-                            entityId: widget.venue.id,
+                            entityId: widget.venue.id!,
                             entityType: 'venue',
                             permission: 'admin',
+                            permissionLevel: 3,
                           ),
                         );
                       },

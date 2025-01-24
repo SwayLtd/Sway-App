@@ -89,6 +89,27 @@ class AuthService {
 
     return response != null;
   }
+
+  /// Vérifie si l'utilisateur actuel a confirmé son email
+  Future<bool> isEmailConfirmed() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return false;
+
+    try {
+      final response = await _supabase
+          .from('auth.users')
+          .select('email_confirmed_at')
+          .eq('id', user.id)
+          .single();
+
+      final data = response;
+      return data['email_confirmed_at'] != null;
+    } catch (e) {
+      print(
+          'Erreur lors de la récupération du statut de confirmation d\'email: $e');
+      return false;
+    }
+  }
 }
 
 /// Exception personnalisée pour gérer les erreurs d'authentification.

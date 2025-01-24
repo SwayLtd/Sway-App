@@ -281,11 +281,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       print('Pick and Upload Avatar Error: $e');
       // Gérer l'erreur
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        behavior: SnackBarBehavior.floating,
         content: Text('Error: ${e.toString()}'),
         backgroundColor: Colors.red,
       ));
-      throw Exception(
-          'Error updating profile picture'); // Throw to trigger higher catch
     }
   }
 
