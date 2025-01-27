@@ -2,19 +2,17 @@
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:go_router/go_router.dart';
 import 'package:sway/core/constants/app_theme.dart';
 import 'package:sway/core/constants/l10n.dart';
 import 'package:sway/core/routes.dart';
 import 'package:sway/core/services/database_service.dart';
+import 'package:sway/core/services/pdf_service.dart';
 import 'package:sway/features/notification/services/notification_service.dart';
 import 'package:sway/features/security/utils/security_utils.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'package:sway/features/ticketing/services/ticket_service.dart';
 // import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sway/features/user/services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -37,20 +35,9 @@ Future<void> main() async {
   // Make sure a user is logged in (authenticated or anonymous)
   await authService.ensureUser();
 
-  // Pour la communication avec la plateforme native
-  const MethodChannel pdfChannel = MethodChannel('app.sway.main/pdf');
-
-  pdfChannel.setMethodCallHandler((MethodCall call) async {
-    if (call.method == 'openPdf') {
-      final pdfPath = call.arguments as String;
-      if (pdfPath.isNotEmpty) {
-        await TicketService().importTicketFromPath(pdfPath);
-
-        GoRouter.of(rootNavigatorKey.currentContext!).go('/tickets');
-      }
-    }
-    return null;
-  });
+  final PdfService pdfService = PdfService(rootNavigatorKey);
+  
+  await pdfService.initialize();
 
   runApp(
     SwayApp(),
