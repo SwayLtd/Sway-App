@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Basic aenue editing feature
 - Implement artist creation
 - Implement promoter creation
 - Implement venue creation

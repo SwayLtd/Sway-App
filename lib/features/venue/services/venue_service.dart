@@ -144,10 +144,19 @@ class VenueService {
       throw Exception('Permission denied');
     }
 
-    final response = await _supabase.from('venues').delete().eq('id', venueId);
+    try {
+      print('Attempting to delete venue with ID: $venueId');
 
-    if (response.isEmpty) {
-      throw Exception('Failed to delete venue.');
+      // Exécuter la requête de suppression sans .select()
+      final response =
+          await _supabase.from('venues').delete().eq('id', venueId).select();
+
+      print('Delete Venue Response: $response');
+
+      print('Venue with ID: $venueId has been deleted successfully.');
+    } catch (e) {
+      print('Delete Venue Error: $e');
+      throw e; // Relancer l'exception pour qu'elle soit gérée dans l'UI
     }
   }
 
