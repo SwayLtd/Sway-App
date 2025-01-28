@@ -33,7 +33,7 @@ class PromoterResidentArtistsService {
     final response = await _supabase.from('promoter_resident_artists').insert({
       'promoter_id': promoterId,
       'artist_id': artistId,
-    });
+    }).select(); // Ajout de .select()
 
     if (response.isEmpty) {
       throw Exception('Failed to add artist to promoter.');
@@ -46,7 +46,8 @@ class PromoterResidentArtistsService {
         .from('promoter_resident_artists')
         .delete()
         .eq('promoter_id', promoterId)
-        .eq('artist_id', artistId);
+        .eq('artist_id', artistId)
+        .select(); // Ajout de .select()
 
     if (response.isEmpty) {
       throw Exception('Failed to remove artist from promoter.');
@@ -88,8 +89,11 @@ class PromoterResidentArtistsService {
         .toList();
 
     if (entries.isNotEmpty) {
-      final response =
-          await _supabase.from('promoter_resident_artists').insert(entries);
+      final response = await _supabase
+          .from('promoter_resident_artists')
+          .insert(entries)
+          .select(); // Ajout de .select()
+
       if (response.isEmpty) {
         throw Exception('Failed to update promoter artists.');
       }

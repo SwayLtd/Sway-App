@@ -9,8 +9,9 @@ import 'package:sway/features/user/services/user_permission_service.dart';
 class PromoterService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final UserPermissionService _permissionService = UserPermissionService();
+  final EventService _eventService = EventService();
 
-  /// Recherche des promoteurs par nom.
+  /// Searches promoters by name.
   Future<List<Promoter>> searchPromoters(String query) async {
     final response =
         await _supabase.from('promoters').select().ilike('name', '%$query%');
@@ -25,21 +26,22 @@ class PromoterService {
         .toList();
   }
 
-  /// Récupère tous les promoteurs avec leurs événements associés.
+  /// Retrieves all promoters with their associated events.
   Future<List<Promoter>> getPromotersWithEvents() async {
     final response = await _supabase.from('promoters').select();
+
     if (response.isEmpty) {
       throw Exception('No promoters found.');
     }
 
-    final events = await EventService().getEvents();
+    final events = await _eventService.getEvents();
 
     return response
         .map<Promoter>((json) => Promoter.fromJson(json, events))
         .toList();
   }
 
-  /// Récupère les événements par une liste d'IDs.
+  /// Retrieves events by a list of IDs.
   Future<List<Event>> getEventsByIds(List<int> eventIds) async {
     if (eventIds.isEmpty) {
       return [];
@@ -55,7 +57,7 @@ class PromoterService {
     return response.map<Event>((json) => Event.fromJson(json)).toList();
   }
 
-  /// Récupère un promoteur par son ID avec ses événements à venir.
+  /// Retrieves a promoter by ID with upcoming events.
   Future<Promoter?> getPromoterByIdWithEvents(int id) async {
     final response =
         await _supabase.from('promoters').select().eq('id', id).maybeSingle();
@@ -64,7 +66,7 @@ class PromoterService {
       return null;
     }
 
-    // Récupérer les IDs des événements associés au promoteur
+    // Retrieve associated event IDs
     final eventPromoterResponse = await _supabase
         .from('event_promoter')
         .select('event_id')
@@ -75,11 +77,11 @@ class PromoterService {
         .toList();
 
     if (eventIds.isEmpty) {
-      // Aucun événement associé
+      // No associated events
       return Promoter.fromJsonWithoutEvents(response);
     }
 
-    // Filtrer les événements à venir
+    // Filter upcoming events
     final now = DateTime.now();
     final upcomingEventsResponse = await _supabase
         .from('events')
@@ -94,7 +96,7 @@ class PromoterService {
     return Promoter.fromJson(response, upcomingEvents);
   }
 
-  /// Récupère tous les promoteurs sans leurs événements.
+  /// Retrieves all promoters without their events.
   Future<List<Promoter>> getPromoters() async {
     final response = await _supabase.from('promoters').select();
 
@@ -107,7 +109,7 @@ class PromoterService {
         .toList();
   }
 
-  /// Récupère un promoteur par son ID sans ses événements.
+  /// Retrieves a promoter by ID without events.
   Future<Promoter?> getPromoterById(int id) async {
     final response =
         await _supabase.from('promoters').select().eq('id', id).maybeSingle();
@@ -119,11 +121,11 @@ class PromoterService {
     return Promoter.fromJsonWithoutEvents(response);
   }
 
-  /// Ajoute un nouveau promoteur.
+  /// Adds a new promoter.
   Future<Promoter> addPromoter(Promoter promoter) async {
     final promoterData = promoter.toJson();
 
-    // Insérer le promoter dans la base de données et récupérer l'objet créé
+    // Insert promoter into the database and retrieve the created object
     final response = await _supabase
         .from('promoters')
         .insert(promoterData)
@@ -133,14 +135,13 @@ class PromoterService {
     return Promoter.fromJsonWithoutEvents(response);
   }
 
-  /// Met à jour un promoteur existant.
+  /// Updates an existing promoter.
   Future<Promoter> updatePromoter(Promoter promoter) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
       promoter.id!,
       'promoter',
-      'manager', // 'manager' ou supérieur peut mettre à jour
+      'manager', // 'manager' or higher can update
     );
-
     if (!hasPermission) {
       throw Exception(
           'Permission denied: You do not have the necessary rights to update this promoter.');
@@ -156,7 +157,7 @@ class PromoterService {
     return Promoter.fromJsonWithoutEvents(response);
   }
 
-  /// Supprime un promoteur par son ID.
+  /// Deletes a promoter by ID.
   Future<void> deletePromoter(int promoterId) async {
     final hasAdminPermission =
         await _permissionService.hasPermissionForCurrentUser(
@@ -170,15 +171,26 @@ class PromoterService {
           'Permission denied: You do not have the necessary rights to delete this promoter.');
     }
 
-    final response =
-        await _supabase.from('promoters').delete().eq('id', promoterId);
+    try {
+      print('Attempting to delete promoter with ID: $promoterId');
 
-    if (response.isEmpty) {
-      throw Exception('Failed to delete promoter.');
+      // Execute the delete request with .select().execute()
+      final response = await _supabase
+          .from('promoters')
+          .delete()
+          .eq('id', promoterId)
+          .select();
+
+      print('Delete Promoter Response: $response');
+
+      print('Promoter with ID: $promoterId has been deleted successfully.');
+    } catch (e) {
+      print('Delete Promoter Error: $e');
+      throw e; // Rethrow the exception to be handled in the UI
     }
   }
 
-  /// Récupère des promoteurs par une liste d'IDs.
+  /// Retrieves promoters by a list of IDs.
   Future<List<Promoter>> getPromotersByIds(List<int> promoterIds) async {
     if (promoterIds.isEmpty) {
       return [];

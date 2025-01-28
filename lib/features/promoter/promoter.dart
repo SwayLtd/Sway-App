@@ -116,7 +116,8 @@ class _PromoterScreenState extends State<PromoterScreen> {
             },
           ),
           // Bouton d'insight (vide pour l'instant)
-          FutureBuilder<bool>(
+          // TODO Implement insights for events
+          /* FutureBuilder<bool>(
             future: _permissionService.hasPermissionForCurrentUser(
               widget.promoterId,
               'promoter',
@@ -139,7 +140,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
                 );
               }
             },
-          ),
+          ), */
           // Bouton de Partage
           FutureBuilder<Promoter?>(
             future: PromoterService().getPromoterById(widget.promoterId),

@@ -38,7 +38,7 @@ class PromoterGenreService {
     final response = await _supabase.from('promoter_genre').insert({
       'promoter_id': promoterId,
       'genre_id': genreId,
-    });
+    }).select(); // Ajout de .select()
 
     if (response.isEmpty) {
       throw Exception('Failed to add genre to promoter.');
@@ -51,7 +51,8 @@ class PromoterGenreService {
         .from('promoter_genre')
         .delete()
         .eq('promoter_id', promoterId)
-        .eq('genre_id', genreId);
+        .eq('genre_id', genreId)
+        .select(); // Ajout de .select()
 
     if (response.isEmpty) {
       throw Exception('Failed to remove genre from promoter.');
@@ -75,7 +76,11 @@ class PromoterGenreService {
         .toList();
 
     if (entries.isNotEmpty) {
-      final response = await _supabase.from('promoter_genre').insert(entries);
+      final response = await _supabase
+          .from('promoter_genre')
+          .insert(entries)
+          .select(); // Ajout de .select()
+
       if (response.isEmpty) {
         throw Exception('Failed to update promoter genres.');
       }

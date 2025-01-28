@@ -1,6 +1,10 @@
 // lib/features/promoter/screens/edit_promoter_screen.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // Import pour listEquals
+import 'package:image_picker/image_picker.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
@@ -15,6 +19,7 @@ import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/artist/widgets/artist_chip.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
+import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/core/constants/dimensions.dart'; // Import spacing constants
 import 'dart:math'; // For min
 
@@ -31,7 +36,6 @@ class EditPromoterScreen extends StatefulWidget {
 class _EditPromoterScreenState extends State<EditPromoterScreen> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
-  late TextEditingController _imageUrlController; // Controller for image URL
 
   final PromoterService _promoterService = PromoterService();
   final PromoterGenreService _promoterGenreService = PromoterGenreService();
@@ -41,19 +45,31 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
   final UserService _userService = UserService(); // Added UserService
   final GenreService _genreService = GenreService();
   final ArtistService _artistService = ArtistService();
+  final StorageService _storageService =
+      StorageService(); // Added StorageService
 
   List<int> _selectedGenres = [];
   List<int> _selectedArtists = [];
+  List<int> _initialGenres = [];
+  List<int> _initialArtists = [];
 
   bool _isLoading = false;
+  bool _isDeleting = false; // To manage deletion state
+  String? _errorMessage;
+
+  final _formKey = GlobalKey<FormState>();
+
+  late Promoter _currentPromoter; // State variable for the promoter
+
+  File? _selectedImage; // Image sélectionnée pour mise à jour
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.promoter.name);
+    _currentPromoter = widget.promoter; // Initialize the state variable
+    _nameController = TextEditingController(text: _currentPromoter.name);
     _descriptionController =
-        TextEditingController(text: widget.promoter.description);
-    _imageUrlController = TextEditingController(text: widget.promoter.imageUrl);
+        TextEditingController(text: _currentPromoter.description);
     _loadAssociatedData();
   }
 
@@ -66,18 +82,20 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
     try {
       // Load associated genres
       final genres = await _promoterGenreService
-          .getGenresByPromoterId(widget.promoter.id!);
+          .getGenresByPromoterId(_currentPromoter.id!);
       if (!mounted) return;
       setState(() {
         _selectedGenres = genres;
+        _initialGenres = List.from(genres);
       });
 
       // Load associated resident artists
       final artists = await _promoterArtistService
-          .getArtistsByPromoterId(widget.promoter.id!);
+          .getArtistsByPromoterId(_currentPromoter.id!);
       if (!mounted) return;
       setState(() {
         _selectedArtists = artists.map((artist) => artist.id).toList();
+        _initialArtists = List.from(_selectedArtists);
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -97,53 +115,153 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _imageUrlController.dispose(); // Dispose the image URL controller
     super.dispose();
   }
 
-  Future<void> _updatePromoter() async {
-    final updatedPromoter = Promoter(
-      id: widget.promoter.id!,
-      name: _nameController.text,
-      description: _descriptionController.text,
-      imageUrl: _imageUrlController.text, // Update image URL
-      upcomingEvents: widget.promoter.upcomingEvents,
+  /// Method to select a new promoter image
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path); // Update selected image
+      });
+    }
+  }
+
+  /// Method to upload the selected image and get the public URL
+  Future<String> _uploadImage(int promoterId, File imageFile) async {
+    // Read the file bytes
+    final fileBytes = await imageFile.readAsBytes();
+
+    // Generate a unique file name
+    final fileExtension = imageFile.path.split('.').last;
+    final fileName =
+        "${DateTime.now().millisecondsSinceEpoch}.$fileExtension"; // Ex: "1627891234567.jpg"
+
+    // Build the complete file path
+    final filePath = "$promoterId/$fileName"; // Ex: "17/1627891234567.jpg"
+
+    // Upload to the "promoter-images" bucket
+    final publicUrl = await _storageService.uploadFile(
+      bucketName: "promoter-images",
+      fileName: filePath, // Use the complete path here
+      fileData: fileBytes,
     );
 
-    if (!mounted) return;
+    print('Image Uploaded: $publicUrl');
+    return publicUrl;
+  }
+
+  /// Method to update promoter details, including the image
+  Future<void> _updatePromoter() async {
+    if (!_formKey.currentState!.validate()) {
+      // If validation fails, do not proceed
+      return;
+    }
+
+    final newName = _nameController.text.trim();
+    final newDescription = _descriptionController.text.trim();
+
+    // Check if any changes have been made
+    final bool isNameChanged = newName != _currentPromoter.name;
+    final bool isDescriptionChanged =
+        newDescription != _currentPromoter.description;
+    final bool isImageChanged = _selectedImage != null;
+    final bool isGenresChanged = !listEquals(_selectedGenres, _initialGenres);
+    final bool isArtistsChanged =
+        !listEquals(_selectedArtists, _initialArtists);
+
+    if (!isNameChanged &&
+        !isDescriptionChanged &&
+        !isImageChanged &&
+        !isGenresChanged &&
+        !isArtistsChanged) {
+      // Nothing to update
+      Navigator.pop(context, _currentPromoter);
+      return;
+    }
+
     setState(() {
       _isLoading = true;
+      _errorMessage = null;
     });
 
     try {
-      await _promoterService.updatePromoter(updatedPromoter);
+      String updatedImageUrl = _currentPromoter.imageUrl;
 
-      // Update associated genres
-      await _promoterGenreService.updatePromoterGenres(
-          widget.promoter.id!, _selectedGenres);
+      if (isImageChanged) {
+        // Upload the new image and get the URL
+        updatedImageUrl =
+            await _uploadImage(_currentPromoter.id!, _selectedImage!);
 
-      // Update associated resident artists
-      await _promoterArtistService.updatePromoterArtists(
-          widget.promoter.id!, _selectedArtists);
+        // (Optional) Delete the old image if necessary
+        final oldFileName =
+            _currentPromoter.imageUrl.split('/').last.split('?').first;
+        if (oldFileName.isNotEmpty) {
+          final oldFilePath = "${_currentPromoter.id}/$oldFileName";
+          await _storageService.deleteFile(
+            bucketName: "promoter-images",
+            fileName: oldFilePath,
+          );
+          print('Old Image Deleted: $oldFilePath');
+        }
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text('Promoter updated successfully!')),
+      // Create the updated Promoter object
+      Promoter updatedPromoter = _currentPromoter.copyWith(
+        name: isNameChanged ? newName : null,
+        description: isDescriptionChanged ? newDescription : null,
+        imageUrl: isImageChanged ? updatedImageUrl : null,
       );
+
+      // Update the promoter via PromoterService if necessary
+      if (isNameChanged || isDescriptionChanged || isImageChanged) {
+        updatedPromoter =
+            await _promoterService.updatePromoter(updatedPromoter);
+        setState(() {
+          _currentPromoter = updatedPromoter; // Update local state
+          _selectedImage = null; // Reset selected image
+        });
+      }
+
+      // Update associated genres if necessary
+      if (isGenresChanged) {
+        await _promoterGenreService.updatePromoterGenres(
+            _currentPromoter.id!, _selectedGenres);
+        setState(() {
+          _initialGenres = List.from(_selectedGenres);
+        });
+      }
+
+      // Update associated resident artists if necessary
+      if (isArtistsChanged) {
+        await _promoterArtistService.updatePromoterArtists(
+            _currentPromoter.id!, _selectedArtists);
+        setState(() {
+          _initialArtists = List.from(_selectedArtists);
+        });
+      }
+
+      // Show a success message
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Promoter updated successfully!'),
+        behavior: SnackBarBehavior.floating,
+      ));
 
       Navigator.pop(context, updatedPromoter);
     } catch (e) {
-      String errorMessage = 'An error occurred while updating the promoter.';
-      if (e.toString().contains('Permission denied')) {
-        errorMessage = 'You do not have permission to update this promoter.';
-      } else if (e.toString().contains('Failed to update promoter')) {
-        errorMessage = 'Failed to update promoter. Please try again.';
-      }
-
+      print('Update Promoter Error: $e');
+      setState(() {
+        _errorMessage = 'An unexpected error occurred.';
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            behavior: SnackBarBehavior.floating, content: Text(errorMessage)),
+          content: Text('Error: ${e.toString()}'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (!mounted) return;
@@ -153,49 +271,24 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
     }
   }
 
-  Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, UserPermission permission) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete this promoter?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Delete'),
-              onPressed: () async {
-                Navigator.of(context).pop(); // Close the dialog first
-                try {
-                  await _promoterService.deletePromoter(permission.entityId);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        content: Text('Promoter deleted successfully.')),
-                  );
-                  Navigator.of(context).pop(); // Return to previous screen
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        content: Text('Error: ${e.toString()}')),
-                  );
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
+  /// Retrieves the current user's permission for the promoter
+  Future<UserPermission?> _getCurrentUserPermission() async {
+    final currentUser = await _userService.getCurrentUser(); // Use UserService
+    if (currentUser == null) return null;
+
+    final permissions = await _permissionService.getPermissionsByUserIdAndType(
+        currentUser.id, 'promoter');
+
+    for (var permission in permissions) {
+      if (permission.entityId == _currentPromoter.id!) {
+        return permission;
+      }
+    }
+
+    return null;
   }
 
+  /// Method to display the genre selection bottom sheet
   Future<void> _showSelectGenresBottomSheet() async {
     try {
       final selectedGenres = Set<int>.from(_selectedGenres);
@@ -228,6 +321,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
     }
   }
 
+  /// Method to display the artist selection bottom sheet
   Future<void> _showSelectArtistsBottomSheet() async {
     try {
       final selectedArtists = Set<int>.from(_selectedArtists);
@@ -260,39 +354,25 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
     }
   }
 
-  Future<UserPermission?> _getCurrentUserPermission() async {
-    final currentUser = await _userService.getCurrentUser(); // Use UserService
-    if (currentUser == null) return null;
-
-    final permissions = await _permissionService.getPermissionsByUserIdAndType(
-        currentUser.id, 'promoter');
-
-    for (var permission in permissions) {
-      if (permission.entityId == widget.promoter.id!) {
-        return permission;
-      }
-    }
-
-    return null;
-  }
-
+  /// Build the promoter editing form.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Supprimer le bouton "Manage Permissions" en bas
       appBar: AppBar(
-        title:
-            Text('Edit "${widget.promoter.name}"'), // Updated title with quotes
+        title: Text('Edit "${_currentPromoter.name}"'), // Use state variable
         actions: [
           IconButton(
-            icon: const Icon(Icons.verified_user), // Changed icon
-            onPressed: _isLoading
+            icon: const Icon(
+                Icons.verified_user), // Conserver l'icône "verified_user"
+            onPressed: _isLoading || _isDeleting
                 ? null
                 : () async {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => UserAccessManagementScreen(
-                          entityId: widget.promoter.id!,
+                          entityId: _currentPromoter.id!,
                           entityType: 'promoter',
                         ),
                       ),
@@ -302,8 +382,47 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                   },
           ),
           IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _isLoading ? null : _updatePromoter,
+            icon: _isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.save),
+            onPressed: _isLoading || _isDeleting ? null : _updatePromoter,
+          ),
+          IconButton(
+            icon: _isDeleting
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.delete),
+            onPressed: _isDeleting || _isLoading
+                ? null
+                : () async {
+                    final permission = await _getCurrentUserPermission();
+                    if (permission != null &&
+                        permission.permission == 'admin') {
+                      await _showDeleteConfirmationDialog();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'You do not have permission to delete this promoter.'),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
           ),
         ],
       ),
@@ -312,154 +431,299 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // Image Preview
-                    if (_imageUrlController.text.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Image.network(
-                          _imageUrlController.text,
-                          height: 200,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Text('Invalid image URL');
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return const CircularProgressIndicator.adaptive();
-                          },
-                        ),
-                      ),
-                    const SizedBox(height: sectionTitleSpacing),
-                    // Image URL Field
-                    TextField(
-                      controller: _imageUrlController,
-                      decoration: const InputDecoration(labelText: 'Image URL'),
-                      onChanged: (value) {
-                        if (!mounted) return;
-                        setState(() {
-                          // Update to trigger image preview
-                        });
-                      },
-                    ),
-                    const SizedBox(height: sectionSpacing),
-                    // Name Field
-                    TextField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Name'),
-                    ),
-                    const SizedBox(height: sectionSpacing),
-                    // Description Field with larger text area
-                    TextField(
-                      controller: _descriptionController,
-                      decoration:
-                          const InputDecoration(labelText: 'Description'),
-                      maxLines: 3, // Set maxLines to 3
-                    ),
-                    const SizedBox(height: sectionSpacing),
-                    // Genres Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Genres',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: _showSelectGenresBottomSheet,
-                          child: const Icon(Icons.edit),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: sectionTitleSpacing),
-                    if (_selectedGenres.isNotEmpty) // Hide if no genres
-                      Wrap(
-                        spacing: 8.0,
-                        children: _selectedGenres.map((genreId) {
-                          return GenreChip(
-                            genreId: genreId,
-                            // Removed onTap to prevent direct editing
-                          );
-                        }).toList(),
-                      ),
-                    const SizedBox(height: sectionSpacing),
-                    // Resident Artists Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Resident Artists',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: _showSelectArtistsBottomSheet,
-                          child: const Icon(Icons.edit),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: sectionTitleSpacing),
-                    if (_selectedArtists.isNotEmpty) // Hide if no artists
-                      Wrap(
-                        spacing: 8.0,
-                        children: _selectedArtists.map((artistId) {
-                          return ArtistChip(
-                            artistId: artistId,
-                            // Removed onTap to prevent direct editing and hide delete icon
-                          );
-                        }).toList(),
-                      ),
-                    const SizedBox(height: sectionSpacing),
-                    // Delete Button
-                    FutureBuilder<UserPermission?>(
-                      future: _getCurrentUserPermission(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator.adaptive();
-                        } else if (snapshot.hasError ||
-                            !snapshot.hasData ||
-                            snapshot.data == null) {
-                          return const SizedBox.shrink();
-                        } else {
-                          final permission = snapshot.data!;
-                          // Check if user has 'admin' role
-                          if (permission.permission != 'admin') {
-                            return const SizedBox.shrink();
-                          }
-                          return Align(
-                            alignment: Alignment.center,
-                            child: ElevatedButton(
-                              onPressed: _isLoading
-                                  ? null
-                                  : () {
-                                      _showDeleteConfirmationDialog(
-                                          context, permission);
-                                    },
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor: Colors.red,
-                                minimumSize: const Size.fromHeight(50),
+                child: Form(
+                  key: _formKey, // Added Form
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Image Picker and Preview (Forme carrée)
+                      Center(
+                        child: Stack(
+                          children: [
+                            GestureDetector(
+                              onTap:
+                                  _isLoading || _isDeleting ? null : _pickImage,
+                              child: Container(
+                                width: 150, // Taille carrée
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary
+                                        .withOpacity(0.5), // Border color
+                                    width: 2.0, // Border thickness
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                      15), // Rounded corners
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: _selectedImage != null
+                                      ? Image.file(
+                                          _selectedImage!,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          height: 150,
+                                        )
+                                      : ImageWithErrorHandler(
+                                          imageUrl: _currentPromoter.imageUrl,
+                                          width: 150,
+                                          height: 150,
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
                               ),
-                              child: const Text('Delete Promoter'),
                             ),
-                          );
-                        }
-                      },
-                    ),
-                  ],
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: _isLoading || _isDeleting
+                                    ? null
+                                    : _pickImage,
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue, // Icon color
+                                    shape: BoxShape.circle, // Circular shape
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: sectionSpacing),
+                      // Champ Nom du Promoteur avec validation
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Name',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter the promoter name.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: sectionSpacing),
+                      // Champ Description du Promoteur avec validation
+                      TextFormField(
+                        controller: _descriptionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Description',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a description.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: sectionSpacing),
+                      // Genres Section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Genres',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: _showSelectGenresBottomSheet,
+                            child: const Icon(Icons.edit),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: sectionTitleSpacing),
+                      if (_selectedGenres.isNotEmpty) // Hide if no genres
+                        Wrap(
+                          spacing: 8.0,
+                          children: _selectedGenres.map((genreId) {
+                            return GenreChip(
+                              genreId: genreId,
+                              // Removed onTap to prevent direct editing
+                            );
+                          }).toList(),
+                        ),
+                      const SizedBox(height: sectionSpacing),
+                      // Resident Artists Section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Resident Artists',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: _showSelectArtistsBottomSheet,
+                            child: const Icon(Icons.edit),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: sectionTitleSpacing),
+                      if (_selectedArtists.isNotEmpty) // Hide if no artists
+                        Wrap(
+                          spacing: 8.0,
+                          children: _selectedArtists.map((artistId) {
+                            return ArtistChip(
+                              artistId: artistId,
+                              // Removed onTap to prevent direct editing and hide delete icon
+                            );
+                          }).toList(),
+                        ),
+                      const SizedBox(height: sectionSpacing),
+                      // Display an error message if necessary
+                      if (_errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      // Supprimer le bouton "Manage Permissions" ici
+                    ],
+                  ),
                 ),
               ),
             ),
     );
   }
+
+  /// Method to display the deletion confirmation dialog
+  Future<void> _showDeleteConfirmationDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible:
+          false, // The user must tap a button to dismiss the dialog
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this promoter?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog first
+                await _deletePromoter();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Method to delete the promoter
+  Future<void> _deletePromoter() async {
+    setState(() {
+      _isDeleting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // (Optional) Delete the associated image first
+      final oldFileName =
+          _currentPromoter.imageUrl.split('/').last.split('?').first;
+      if (oldFileName.isNotEmpty) {
+        final oldFilePath = "${_currentPromoter.id}/$oldFileName";
+        await _storageService.deleteFile(
+          bucketName: "promoter-images",
+          fileName: oldFilePath,
+        );
+        print('Promoter ${_currentPromoter.id} Image Deleted: $oldFilePath');
+      }
+
+      // Delete the promoter
+      await _promoterService.deletePromoter(_currentPromoter.id!);
+
+      // Show a success message
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Promoter deleted successfully!'),
+        behavior: SnackBarBehavior.floating,
+      ));
+
+      Navigator.pop(context, null); // Return null to indicate deletion
+    } catch (e) {
+      print('Delete Promoter Error: $e');
+      setState(() {
+        _errorMessage = 'Failed to delete promoter.';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isDeleting = false;
+      });
+    }
+  }
+
+  /// Method to handle updating permissions via another screen
+  Future<void> _managePermissions() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserAccessManagementScreen(
+          entityId: _currentPromoter.id!,
+          entityType: 'promoter',
+        ),
+      ),
+    );
+    // Refresh state after returning
+    if (mounted) {
+      setState(() {});
+    }
+  }
 }
 
+/// Bottom sheet for selecting genres
 class GenreSelectionBottomSheet extends StatefulWidget {
   final Set<int> selectedGenres;
   final GenreService genreService;
@@ -634,6 +898,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
   }
 }
 
+/// Bottom sheet for selecting artists
 class ArtistSelectionBottomSheet extends StatefulWidget {
   final Set<int> selectedArtists;
   final ArtistService artistService;
