@@ -9,7 +9,6 @@ import 'package:sway/features/venue/services/venue_service.dart';
 class VenueResidentArtistsService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final ArtistService _artistService = ArtistService();
-  final VenueService _venueService = VenueService();
 
   Future<List<Artist>> getArtistsByVenueId(int venueId) async {
     final response = await _supabase

@@ -405,36 +405,6 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
     }
   }
 
-  /// Méthode pour afficher et gérer les permissions (bouton)
-  Widget _buildPermissionButton() {
-    return FutureBuilder<bool>(
-      future: _permissionService.hasPermissionForCurrentUser(
-        _currentVenue.id!,
-        'venue',
-        'admin',
-      ),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox.shrink();
-        } else if (snapshot.hasError || !snapshot.hasData || !snapshot.data!) {
-          return const SizedBox.shrink();
-        } else {
-          return Padding(
-            padding: const EdgeInsets.only(top: 20),
-            child: ElevatedButton.icon(
-              onPressed: _isUpdating || _isDeleting ? null : _managePermissions,
-              icon: const Icon(Icons.group),
-              label: const Text('Manage Permissions'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
-              ),
-            ),
-          );
-        }
-      },
-    );
-  }
-
   /// Méthode pour afficher le bottom sheet de sélection des genres
   Future<void> _showSelectGenresBottomSheet() async {
     try {
@@ -542,28 +512,32 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
         title: Text('Edit "${_currentVenue.name}"'),
         actions: [
           IconButton(
-            icon: _isUpdating
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(Icons.save),
+            icon: const Icon(
+                Icons.verified_user), // Conserver l'icône "verified_user"
+            onPressed: _isUpdating || _isDeleting
+                ? null
+                : () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserAccessManagementScreen(
+                          entityId: _currentVenue.id!,
+                          entityType: 'venue',
+                        ),
+                      ),
+                    );
+                    if (!mounted) return;
+                    setState(() {});
+                  },
+          ),
+          IconButton(
+            icon:
+                _isUpdating ? const SizedBox.shrink() : const Icon(Icons.save),
             onPressed: _isUpdating || _isDeleting ? null : _updateVenue,
           ),
           IconButton(
             icon: _isDeleting
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                ? const SizedBox.shrink()
                 : const Icon(Icons.delete),
             onPressed: _isDeleting ? null : _showDeleteConfirmationDialog,
           ),
@@ -641,18 +615,6 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                                 child: Container(
                                   width: 40,
                                   height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue, // Couleur de l'icône
-                                    shape: BoxShape
-                                        .circle, // Forme circulaire pour l'icône
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 5,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
                                   child: const Icon(
                                     Icons.edit,
                                     color: Colors.white,
@@ -811,37 +773,8 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                             style: const TextStyle(color: Colors.red),
                           ),
                         ),
-                      // Bouton pour gérer les permissions
-                      _buildPermissionButton(),
                     ],
                   ),
-                ),
-              ),
-            ),
-          ),
-          // Bouton de suppression en bas
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _isDeleting || _isUpdating
-                    ? null
-                    : _showDeleteConfirmationDialog,
-                icon: _isDeleting
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.delete, color: Colors.white),
-                label: const Text('Delete Venue'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red, // Couleur du bouton
-                  minimumSize: const Size.fromHeight(50),
                 ),
               ),
             ),

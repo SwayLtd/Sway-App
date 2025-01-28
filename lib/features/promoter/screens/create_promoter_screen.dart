@@ -121,7 +121,8 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
       final updatedPromoter = createdPromoter.copyWith(imageUrl: imageUrl);
       print('Updated Promoter Data: ${updatedPromoter.toJson()}');
 
-      final resultPromoter = await _promoterService.updatePromoter(updatedPromoter);
+      final resultPromoter =
+          await _promoterService.updatePromoter(updatedPromoter);
       print('Result Promoter: ${resultPromoter.toJson()}');
 
       // Vérifier que le promoter a été mis à jour correctement
@@ -181,8 +182,8 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
               GestureDetector(
                 onTap: _isSubmitting ? null : _pickImage,
                 child: Container(
-                  width: double.infinity,
-                  height: 200,
+                  width: 150,
+                  height: 150,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(12),

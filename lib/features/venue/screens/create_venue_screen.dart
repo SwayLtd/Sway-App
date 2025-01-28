@@ -179,8 +179,8 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
               GestureDetector(
                 onTap: _isSubmitting ? null : _pickImage,
                 child: Container(
-                  width: double.infinity,
-                  height: 200,
+                  width: 150,
+                  height: 150,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(12),

@@ -382,28 +382,12 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                   },
           ),
           IconButton(
-            icon: _isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(Icons.save),
+            icon: _isLoading ? const SizedBox.shrink() : const Icon(Icons.save),
             onPressed: _isLoading || _isDeleting ? null : _updatePromoter,
           ),
           IconButton(
             icon: _isDeleting
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                ? const SizedBox.shrink()
                 : const Icon(Icons.delete),
             onPressed: _isDeleting || _isLoading
                 ? null
@@ -492,17 +476,6 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                                 child: Container(
                                   width: 40,
                                   height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue, // Icon color
-                                    shape: BoxShape.circle, // Circular shape
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 5,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
                                   child: const Icon(
                                     Icons.edit,
                                     color: Colors.white,
