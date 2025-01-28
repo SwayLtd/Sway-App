@@ -15,42 +15,28 @@ class VenueGenreService {
       return [];
     }
 
-    return response.map((entry) => entry['genre_id'] as int).toList();
+    return response.map<int>((entry) => entry['genre_id'] as int).toList();
   }
 
-  Future<List<int>> getVenuesByGenreId(int genreId) async {
-    final response = await _supabase
-        .from('venue_genre')
-        .select('venue_id')
-        .eq('genre_id', genreId);
+  Future<void> updateVenueGenres(int venueId, List<int> genres) async {
+    // Supprimer les genres existants
+    await _supabase.from('venue_genre').delete().eq('venue_id', venueId);
 
-    if (response.isEmpty) {
-      return [];
-    }
+    // Ajouter les nouveaux genres
+    final entries = genres
+        .map((genreId) => {
+              'venue_id': venueId,
+              'genre_id': genreId,
+            })
+        .toList();
 
-    return response.map((entry) => entry['venue_id'] as int).toList();
-  }
+    if (entries.isNotEmpty) {
+      final response =
+          await _supabase.from('venue_genre').insert(entries).select();
 
-  Future<void> addGenreToVenue(int venueId, int genreId) async {
-    final response = await _supabase.from('venue_genre').insert({
-      'venue_id': venueId,
-      'genre_id': genreId,
-    });
-
-    if (response.isEmpty) {
-      throw Exception('Failed to add genre to venue.');
-    }
-  }
-
-  Future<void> removeGenreFromVenue(int venueId, int genreId) async {
-    final response = await _supabase
-        .from('venue_genre')
-        .delete()
-        .eq('venue_id', venueId)
-        .eq('genre_id', genreId);
-
-    if (response.isEmpty) {
-      throw Exception('Failed to remove genre from venue.');
+      if (response.isEmpty) {
+        throw Exception('Failed to update venue genres.');
+      }
     }
   }
 }

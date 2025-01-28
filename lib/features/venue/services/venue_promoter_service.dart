@@ -19,31 +19,33 @@ class VenuePromoterService {
     }
 
     final List<int> promoterIds =
-        response.map((entry) => entry['promoter_id'] as int).toList();
+        response.map<int>((entry) => entry['promoter_id'] as int).toList();
 
     return await _promoterService.getPromotersByIds(promoterIds);
   }
 
-  Future<void> addPromoterToVenue(int venueId, int promoterId) async {
-    final response = await _supabase.from('venue_promoter').insert({
-      'venue_id': venueId,
-      'promoter_id': promoterId,
-    });
-
-    if (response.isEmpty) {
-      throw Exception('Failed to add promoter to venue.');
-    }
-  }
-
-  Future<void> removePromoterFromVenue(int venueId, int promoterId) async {
-    final response = await _supabase
+  Future<void> updateVenuePromoters(int venueId, List<int> promoters) async {
+    // Supprimer les promoteurs existants
+    await _supabase
         .from('venue_promoter')
         .delete()
-        .eq('venue_id', venueId)
-        .eq('promoter_id', promoterId);
+        .eq('venue_id', venueId);
 
-    if (response.isEmpty) {
-      throw Exception('Failed to remove promoter from venue.');
+    // Ajouter les nouveaux promoteurs
+    final entries = promoters
+        .map((promoterId) => {
+              'venue_id': venueId,
+              'promoter_id': promoterId,
+            })
+        .toList();
+
+    if (entries.isNotEmpty) {
+      final response =
+          await _supabase.from('venue_promoter').insert(entries).select();
+
+      if (response.isEmpty) {
+        throw Exception('Failed to update venue promoters.');
+      }
     }
   }
 }

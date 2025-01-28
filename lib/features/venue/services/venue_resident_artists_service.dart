@@ -9,6 +9,7 @@ import 'package:sway/features/venue/services/venue_service.dart';
 class VenueResidentArtistsService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final ArtistService _artistService = ArtistService();
+  final VenueService _venueService = VenueService();
 
   Future<List<Artist>> getArtistsByVenueId(int venueId) async {
     final response = await _supabase
@@ -21,9 +22,36 @@ class VenueResidentArtistsService {
     }
 
     final List<int> artistIds =
-        response.map((entry) => entry['artist_id'] as int).toList();
+        response.map<int>((entry) => entry['artist_id'] as int).toList();
 
     return await _artistService.getArtistsByIds(artistIds);
+  }
+
+  Future<void> updateVenueArtists(int venueId, List<int> artists) async {
+    // Supprimer les artistes existants
+    await _supabase
+        .from('venue_resident_artists')
+        .delete()
+        .eq('venue_id', venueId);
+
+    // Ajouter les nouveaux artistes
+    final entries = artists
+        .map((artistId) => {
+              'venue_id': venueId,
+              'artist_id': artistId,
+            })
+        .toList();
+
+    if (entries.isNotEmpty) {
+      final response = await _supabase
+          .from('venue_resident_artists')
+          .insert(entries)
+          .select();
+
+      if (response.isEmpty) {
+        throw Exception('Failed to update venue artists.');
+      }
+    }
   }
 
   Future<List<Venue>> getVenuesByArtistId(int artistId) async {
@@ -40,28 +68,5 @@ class VenueResidentArtistsService {
         response.map((item) => item['venue_id'] as int).toList();
 
     return await VenueService().getVenuesByIds(venueIds);
-  }
-
-  Future<void> addArtistToVenue(int venueId, int artistId) async {
-    final response = await _supabase.from('venue_resident_artists').insert({
-      'venue_id': venueId,
-      'artist_id': artistId,
-    });
-
-    if (response.isEmpty) {
-      throw Exception('Failed to add artist to venue.');
-    }
-  }
-
-  Future<void> removeArtistFromVenue(int venueId, int artistId) async {
-    final response = await _supabase
-        .from('venue_resident_artists')
-        .delete()
-        .eq('venue_id', venueId)
-        .eq('artist_id', artistId);
-
-    if (response.isEmpty) {
-      throw Exception('Failed to remove artist from venue.');
-    }
   }
 }
