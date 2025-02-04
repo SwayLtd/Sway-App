@@ -16,6 +16,12 @@ import 'package:sway/features/venue/screens/edit_venue_screen.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/venue/venue.dart';
 
+// Nouveaux imports pour les artistes
+import 'package:sway/features/artist/artist.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/screens/edit_artist_screen.dart';
+import 'package:sway/features/artist/services/artist_service.dart';
+
 class UserEntitiesScreen extends StatelessWidget {
   final int userId;
 
@@ -79,6 +85,22 @@ class UserEntitiesScreen extends StatelessWidget {
             const SnackBar(
                 behavior: SnackBarBehavior.floating,
                 content: Text('Promoter not found')),
+          );
+        }
+        break;
+      case 'artist': // Nouveau cas pour les artistes
+        final artist = await ArtistService().getArtistById(entityId);
+        if (artist != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ArtistScreen(artistId: artist.id)),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                behavior: SnackBarBehavior.floating,
+                content: Text('Artist not found')),
           );
         }
         break;
@@ -146,6 +168,23 @@ class UserEntitiesScreen extends StatelessWidget {
             const SnackBar(
                 behavior: SnackBarBehavior.floating,
                 content: Text('Promoter not found')),
+          );
+        }
+        break;
+      case 'artist': // Nouveau cas pour les artistes
+        final artist = await ArtistService().getArtistById(entityId);
+        if (artist != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditArtistScreen(artist: artist),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                behavior: SnackBarBehavior.floating,
+                content: Text('Artist not found')),
           );
         }
         break;
@@ -318,6 +357,59 @@ class UserEntitiesScreen extends StatelessWidget {
                               ),
                               onTap: () => _navigateToEntity(
                                   context, 'promoter', permission.entityId),
+                            );
+                          }
+                        },
+                      );
+                    }).toList(),
+                  );
+                }
+              },
+            ),
+            // Artists Section
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Artists',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            FutureBuilder<List<UserPermission>>(
+              future: _getPermissions('artist'),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator.adaptive());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No artists found'));
+                } else {
+                  final artistPermissions = snapshot.data!;
+                  return Column(
+                    children: artistPermissions.map((permission) {
+                      return FutureBuilder<Artist?>(
+                        future:
+                            ArtistService().getArtistById(permission.entityId),
+                        builder: (context, artistSnapshot) {
+                          if (artistSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator.adaptive();
+                          } else if (artistSnapshot.hasError ||
+                              !artistSnapshot.hasData) {
+                            return const SizedBox.shrink();
+                          } else {
+                            final artist = artistSnapshot.data!;
+                            return ListTile(
+                              title: Text(artist.name),
+                              subtitle: Text('Role: ${permission.permission}'),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => _editEntity(
+                                    context, 'artist', permission.entityId),
+                              ),
+                              onTap: () => _navigateToEntity(
+                                  context, 'artist', permission.entityId),
                             );
                           }
                         },

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/screens/edit_artist_screen.dart';
 import 'package:sway/features/artist/services/artist_genre_service.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
 import 'package:sway/features/artist/services/similar_artist_service.dart';
@@ -17,6 +18,7 @@ import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_resident_artists_service.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/user/widgets/following_button_widget.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
@@ -41,6 +43,49 @@ class _ArtistScreenState extends State<ArtistScreen> {
       appBar: AppBar(
         title: Text('$artistName'),
         actions: [
+          // Bouton d'édition conditionnel
+          FutureBuilder<bool>(
+            future: UserPermissionService().hasPermissionForCurrentUser(
+              widget.artistId,
+              'artist', // Spécifiez le type d'entité
+              'manager', // Le niveau minimal de permission requis pour l'édition
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!) {
+                return const SizedBox.shrink();
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    // Récupérer l'objet complet de l'artiste via le service
+                    final currentArtist =
+                        await ArtistService().getArtistById(widget.artistId);
+                    if (currentArtist != null) {
+                      final updatedArtist = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              EditArtistScreen(artist: currentArtist),
+                        ),
+                      );
+                      if (updatedArtist != null) {
+                        // Mettre à jour l'UI avec le nom mis à jour de l'artiste
+                        setState(() {
+                          artistName = updatedArtist.name;
+                        });
+                      }
+                    }
+                  },
+                );
+              }
+            },
+          ),
+
+          // Bouton de suivi (déjà présent)
           FollowingButtonWidget(
             entityId: widget.artistId,
             entityType: 'artist',
