@@ -95,19 +95,28 @@ class EventService {
   }
 
   /// Adds a new event to Supabase.
+  /// Adds a new event to Supabase.
   Future<void> addEvent(Event event) async {
+    // Ensure that the event has at least one promoter.
+    if (event.promoters!.isEmpty) {
+      throw Exception('No promoter provided for the event.');
+    }
+    // Instead of checking event.id (which is null during creation),
+    // check permission on the selected promoter (assume first promoter in the list).
+    final int promoterId = event.promoters!.first;
     final bool hasPermission =
         await _permissionService.hasPermissionForCurrentUser(
-      event.id,
-      'event',
-      'admin',
+      promoterId,
+      'promoter',
+      'manager', // User must be at least manager (or admin) on the promoter.
     );
 
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
 
-    final response = await _supabase.from('events').insert(event.toJson());
+    final response =
+        await _supabase.from('events').insert(event.toJson()).select().single();
 
     if (response.isEmpty) {
       throw Exception('Failed to add event.');
@@ -118,7 +127,7 @@ class EventService {
   Future<void> updateEvent(Event event) async {
     final bool hasPermission =
         await _permissionService.hasPermissionForCurrentUser(
-      event.id,
+      event.id!,
       'event',
       'manager',
     );
@@ -130,7 +139,7 @@ class EventService {
     final response = await _supabase
         .from('events')
         .update(event.toJson())
-        .eq('id', event.id);
+        .eq('id', event.id!);
 
     if (response.isEmpty) {
       throw Exception('Failed to update event.');
@@ -163,7 +172,7 @@ class EventService {
   }
 
   /// Retrieves events by a list of event IDs.
-  Future<List<Event>> getEventsByIds(List<int> eventIds) async {
+  Future<List<Event>> getEventsByIds(List<int?> eventIds) async {
     if (eventIds.isEmpty) {
       return [];
     }

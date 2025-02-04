@@ -413,16 +413,8 @@ class _SearchScreenState extends State<SearchScreen> {
               ],
             ),
             const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.location_on, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(result.distance),
-              ],
-            ),
-            const SizedBox(height: 4),
             FutureBuilder<List<Genre>>(
-              future: _getEventGenres(result.id),
+              future: _getEventGenres(result.id!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Row(

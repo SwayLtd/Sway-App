@@ -35,7 +35,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
 
   Future<void> _initializeStages() async {
     final artists =
-        await EventArtistService().getArtistsByEventId(widget.event.id);
+        await EventArtistService().getArtistsByEventId(widget.event.id!);
     final stageSet = artists.map((e) => e['stage'] as String).toSet().toList();
 
     if (!mounted) return;
@@ -166,7 +166,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
               Expanded(
                 child: FutureBuilder<List<Map<String, dynamic>>>(
                   future: EventArtistService()
-                      .getArtistsByEventIdAndDay(widget.event.id, selectedDay),
+                      .getArtistsByEventIdAndDay(widget.event.id!, selectedDay),
                   builder: (context, artistSnapshot) {
                     if (artistSnapshot.connectionState ==
                         ConnectionState.waiting) {

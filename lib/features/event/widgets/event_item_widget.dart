@@ -58,7 +58,7 @@ class EventListItemWidget extends StatelessWidget {
         ),
       ),
       subtitle: FutureBuilder<Venue?>(
-        future: eventVenueService.getVenueByEventId(event.id),
+        future: eventVenueService.getVenueByEventId(event.id!),
         builder: (context, venueSnapshot) {
           if (venueSnapshot.connectionState == ConnectionState.waiting) {
             return Padding(
@@ -245,7 +245,7 @@ class EventCardItemWidget extends StatelessWidget {
                     const SizedBox(height: 4),
                     // Lieu (Nom du lieu récupéré via EventVenueService)
                     FutureBuilder<Venue?>(
-                      future: eventVenueService.getVenueByEventId(event.id),
+                      future: eventVenueService.getVenueByEventId(event.id!),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {

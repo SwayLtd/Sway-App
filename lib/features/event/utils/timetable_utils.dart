@@ -7,7 +7,7 @@ import 'package:sway/features/event/services/event_artist_service.dart';
 
 Future<List<DateTime>> calculateFestivalDays(Event event) async {
   final List<Map<String, dynamic>> artists =
-      await EventArtistService().getArtistsByEventId(event.id);
+      await EventArtistService().getArtistsByEventId(event.id!);
 
   final Set<DateTime> daysWithArtists = {};
   final Map<DateTime, List<Map<String, dynamic>>> artistsByDay = {};

@@ -1,81 +1,104 @@
 // lib/features/event/models/event_model.dart
 
 class Event {
-  final int id;
+  final int? id;
   final String title;
   final String type;
   final DateTime dateTime;
   final DateTime endDateTime;
-  final int venue;
+  final int? venue;
   final String description;
   final String imageUrl;
-  final String distance;
-  final String price;
-  final List<int> promoters;
-  final List<int> genres;
-  final List<int> artists;
-  final int? interestedUsersCount; // Nouveau champ
+  final String? price;
+  final List<int>? promoters;
+  final List<int>? genres;
+  final List<int>? artists;
+  final int? interestedUsersCount;
 
   Event({
-    required this.id,
+    this.id,
     required this.title,
     required this.type,
     required this.dateTime,
     required this.endDateTime,
-    required this.venue,
+    this.venue,
     required this.description,
     required this.imageUrl,
-    required this.distance,
-    required this.price,
-    required this.promoters,
-    required this.genres,
-    required this.artists,
-    this.interestedUsersCount, // Initialisation
+    this.price,
+    this.promoters,
+    this.genres,
+    this.artists,
+    this.interestedUsersCount,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
     return Event(
-      id: json['id'] as int,
+      id: json['id'] as int?,
       title: json['title'] as String? ?? '',
       type: json['type'] as String? ?? '',
       dateTime: DateTime.parse(json['date_time'] as String),
       endDateTime: DateTime.parse(json['end_date_time'] as String),
-      venue: json['venue'] as int? ?? 0,
+      // venue: json['venue'] as int? ?? 0,
       description: json['description'] as String? ?? '',
       imageUrl: json['image_url'] as String? ?? '',
-      distance: json['distance'] as String? ?? '',
-      price: json['price'] as String? ?? '',
-      promoters: (json['promoters'] as List<dynamic>?)
-              ?.map((e) => e as int)
-              .toList() ??
-          [],
-      genres:
-          (json['genres'] as List<dynamic>?)?.map((e) => e as int).toList() ??
-              [],
-      artists:
-          (json['artists'] as List<dynamic>?)?.map((e) => e as int).toList() ??
-              [],
-      interestedUsersCount:
-          json['interested_users_count'] as int?, // Initialisation
+      // distance: json['distance'] as String? ?? '',
+      // price: json['price'] as String? ?? '',
+      // promoters: (json['promoters'] as List<dynamic>?)?.map((e) => e as int).toList() ??[],
+      // genres: (json['genres'] as List<dynamic>?)?.map((e) => e as int).toList() ?? [],
+      // artists: (json['artists'] as List<dynamic>?)?.map((e) => e as int).toList() ?? [],
+      interestedUsersCount: json['interested_users_count'] as int?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      if (id != null) 'id': id,
       'title': title,
       'type': type,
       'date_time': dateTime.toIso8601String(),
       'end_date_time': endDateTime.toIso8601String(),
-      'venue': venue,
+      // 'venue': venue,
       'description': description,
       'image_url': imageUrl,
-      'distance': distance,
-      'price': price,
-      'promoters': promoters,
-      'genres': genres,
-      'artists': artists,
-      // 'interested_users_count' n'est pas inclus dans toJson car c'est un champ calculé
+      // 'distance': distance,
+      // 'price': price,
+      // 'promoters': promoters,
+      // 'genres': genres,
+      // 'artists': artists,
     };
+  }
+
+  // Added copyWith method to create modified copies of an Event
+  Event copyWith({
+    int? id,
+    String? title,
+    String? type,
+    DateTime? dateTime,
+    DateTime? endDateTime,
+    int? venue,
+    String? description,
+    String? imageUrl,
+    String? distance,
+    String? price,
+    List<int>? promoters,
+    List<int>? genres,
+    List<int>? artists,
+    int? interestedUsersCount,
+  }) {
+    return Event(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      type: type ?? this.type,
+      dateTime: dateTime ?? this.dateTime,
+      endDateTime: endDateTime ?? this.endDateTime,
+      venue: venue ?? this.venue,
+      description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
+      price: price ?? this.price,
+      promoters: promoters ?? this.promoters,
+      genres: genres ?? this.genres,
+      artists: artists ?? this.artists,
+      interestedUsersCount: interestedUsersCount ?? this.interestedUsersCount,
+    );
   }
 }

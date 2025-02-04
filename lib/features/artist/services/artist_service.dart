@@ -36,7 +36,7 @@ class ArtistService {
   }
 
   /// Get events by a list of IDs.
-  Future<List<Event>> getEventsByIds(List<int> eventIds) async {
+  Future<List<Event>> getEventsByIds(List<int?> eventIds) async {
     if (eventIds.isEmpty) {
       return [];
     }
@@ -66,7 +66,7 @@ class ArtistService {
         .select('event_id')
         .eq('artist_id', id);
 
-    final List<int> eventIds = eventArtistResponse
+    final List<int?> eventIds = eventArtistResponse
         .map<int>((entry) => entry['event_id'] as int)
         .toList();
 

@@ -20,7 +20,8 @@ class Promoter {
   /// Création à partir de JSON avec événements
   factory Promoter.fromJson(Map<String, dynamic> json, List<Event> events) {
     // Extraire les IDs des événements
-    final List<int> eventIds = events.map((event) => event.id).toList();
+    final List<int> eventIds =
+        events.map((event) => event.id).whereType<int>().toList();
 
     return Promoter(
       id: json['id'] as int?,

@@ -54,7 +54,7 @@ class EventVenueService {
 
       final List<Map<String, dynamic>> eventsData = [];
 
-      final List<int> eventIds = [];
+      final List<int?> eventIds = [];
 
       // Extraire les event_ids associés au venue_id
       for (final entry in response as List<dynamic>) {

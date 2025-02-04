@@ -144,7 +144,7 @@ class UserInterestEventService {
         .eq('user_id', userId)
         .filter('status', 'in', '("interested","going")');
 
-    final List<int> eventIds =
+    final List<int?> eventIds =
         response.map((item) => item['event_id'] as int).toList();
 
     final List<Event> allEvents = await EventService().getEvents();
@@ -152,7 +152,7 @@ class UserInterestEventService {
 
     return allEvents
         .where((event) =>
-            eventIds.contains(event.id) && event.dateTime.isAfter(now))
+            eventIds.contains(event.id!) && event.dateTime.isAfter(now))
         .toList();
   }
 
@@ -164,7 +164,7 @@ class UserInterestEventService {
         .eq('user_id', userId)
         .eq('status', 'going');
 
-    final List<int> eventIds =
+    final List<int?> eventIds =
         response.map((item) => item['event_id'] as int).toList();
 
     final List<Event> allEvents = await EventService().getEvents();
@@ -172,7 +172,7 @@ class UserInterestEventService {
 
     return allEvents
         .where((event) =>
-            eventIds.contains(event.id) && event.dateTime.isBefore(now))
+            eventIds.contains(event.id!) && event.dateTime.isBefore(now))
         .toList();
   }
 

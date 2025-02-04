@@ -32,9 +32,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _descriptionController =
         TextEditingController(text: widget.event.description);
     _priceController = TextEditingController(text: widget.event.price);
-    _selectedGenres = List.from(widget.event.genres);
-    _selectedArtists = List.from(widget.event.artists);
-    _selectedPromoters = List.from(widget.event.promoters);
+    _selectedGenres = List.from(widget.event.genres!);
+    _selectedArtists = List.from(widget.event.artists!);
+    _selectedPromoters = List.from(widget.event.promoters!);
     _selectedType = widget.event.type;
   }
 
@@ -48,7 +48,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
   Future<void> _updateEvent() async {
     final updatedEvent = Event(
-      id: widget.event.id,
+      id: widget.event.id!,
       title: _titleController.text,
       type: _selectedType,
       description: _descriptionController.text,
@@ -58,7 +58,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
       venue: widget.event.venue,
       imageUrl: widget.event.imageUrl,
       promoters: _selectedPromoters,
-      distance: widget.event.distance,
       genres: _selectedGenres,
       artists: _selectedArtists,
     );
@@ -89,7 +88,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
               onPressed: () async {
                 await UserPermissionService().deleteUserPermission(
                   permission.userId,
-                  widget.event.id,
+                  widget.event.id!,
                   'event',
                 );
                 Navigator.of(context).pop();
@@ -120,7 +119,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => UserAccessManagementScreen(
-                    entityId: widget.event.id,
+                    entityId: widget.event.id!,
                     entityType: 'event',
                   ),
                 ),
@@ -217,7 +216,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
             ),
             FutureBuilder<bool>(
               future: UserPermissionService().hasPermissionForCurrentUser(
-                widget.event.id,
+                widget.event.id!,
                 'event',
                 'admin',
               ),
@@ -238,7 +237,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                             context,
                             UserPermission(
                               userId: 3,
-                              entityId: widget.event.id,
+                              entityId: widget.event.id!,
                               entityType: 'event',
                               permission: 'admin',
                               permissionLevel: 3,

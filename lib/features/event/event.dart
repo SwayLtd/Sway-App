@@ -59,12 +59,12 @@ class _EventScreenState extends State<EventScreen> {
             child: IconButton(
               icon: const Icon(Icons.reply),
               onPressed: () {
-                shareEntity('event', widget.event.id, widget.event.title);
+                shareEntity('event', widget.event.id!, widget.event.title);
               },
             ),
           ),
           FutureBuilder<Map<String, bool>>(
-            future: _getEventStatus(widget.event.id),
+            future: _getEventStatus(widget.event.id!),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const IconButton(
@@ -109,7 +109,7 @@ class _EventScreenState extends State<EventScreen> {
                 return PopupMenuButton<String>(
                   icon: Icon(icon),
                   onSelected: (String value) {
-                    _handleMenuSelection(value, widget.event.id, context);
+                    _handleMenuSelection(value, widget.event.id!, context);
                   },
                   itemBuilder: (BuildContext context) {
                     String notOptionText;
@@ -147,7 +147,7 @@ class _EventScreenState extends State<EventScreen> {
           ),
           FutureBuilder<bool>(
             future: UserPermissionService()
-                .hasPermissionForCurrentUser(widget.event.id, 'event', 'edit'),
+                .hasPermissionForCurrentUser(widget.event.id!, 'event', 'edit'),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SizedBox.shrink();
@@ -176,7 +176,7 @@ class _EventScreenState extends State<EventScreen> {
           ),
           FutureBuilder<bool>(
             future: UserPermissionService().hasPermissionForCurrentUser(
-              widget.event.id,
+              widget.event.id!,
               'event',
               'insight',
             ),
@@ -197,7 +197,7 @@ class _EventScreenState extends State<EventScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => InsightScreen(
-                          entityId: widget.event.id,
+                          entityId: widget.event.id!,
                           entityType: 'event',
                         ),
                       ),
@@ -318,7 +318,7 @@ class _EventScreenState extends State<EventScreen> {
             ),
             const SizedBox(height: 5),
             FollowersCountWidget(
-              entityId: widget.event.id,
+              entityId: widget.event.id!,
               entityType: 'event',
             ),
             const SizedBox(height: 10),
@@ -327,7 +327,7 @@ class _EventScreenState extends State<EventScreen> {
               content: formatEventDateRange(eventDateTime, eventEndDateTime),
             ),
             FutureBuilder<Venue?>(
-              future: EventVenueService().getVenueByEventId(widget.event.id),
+              future: EventVenueService().getVenueByEventId(widget.event.id!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const InfoCard(
@@ -357,7 +357,7 @@ class _EventScreenState extends State<EventScreen> {
                 }
               },
             ),
-            InfoCard(title: "Price", content: widget.event.price),
+            InfoCard(title: "Price", content: widget.event.price!),
             const SizedBox(height: 20),
             Text(
               "ABOUT",
@@ -386,7 +386,7 @@ class _EventScreenState extends State<EventScreen> {
 
                   FutureBuilder<List<Map<String, dynamic>>>(
                 future:
-                    EventArtistService().getArtistsByEventId(widget.event.id),
+                    EventArtistService().getArtistsByEventId(widget.event.id!),
                 builder: (context, artistSnapshot) {
                   if (artistSnapshot.connectionState ==
                       ConnectionState.waiting) {
@@ -506,7 +506,7 @@ class _EventScreenState extends State<EventScreen> {
                     height: 16.0), // Espacement entre le titre et la liste
                 FutureBuilder<List<Promoter>>(
                   future: EventPromoterService()
-                      .getPromotersByEventId(widget.event.id),
+                      .getPromotersByEventId(widget.event.id!),
                   builder: (context, promoterSnapshot) {
                     if (promoterSnapshot.connectionState ==
                         ConnectionState.waiting) {
@@ -558,7 +558,7 @@ class _EventScreenState extends State<EventScreen> {
             ),
             SizedBox(height: sectionTitleSpacing),
             FutureBuilder<List>(
-              future: EventGenreService().getGenresByEventId(widget.event.id),
+              future: EventGenreService().getGenresByEventId(widget.event.id!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator.adaptive();

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/artist/screens/create_artist_screen.dart';
+import 'package:sway/features/event/screens/create_event_screen.dart';
 import 'package:sway/features/notification/screens/notification_preferences_screen.dart';
 import 'package:sway/features/promoter/screens/create_promoter_screen.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
@@ -13,7 +14,8 @@ import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/auth_modal.dart';
 import 'package:sway/features/user/profile.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:sway/features/venue/screens/create_venue_screen.dart'; // Importez le nouvel écran de création
+import 'package:sway/features/venue/screens/create_venue_screen.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -38,12 +40,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  /// Vérifie si l'utilisateur est connecté et son statut de confirmation d'email.
+  /// Checks if the user is authenticated.
   Future<void> _checkAuthStatus() async {
     final fetchedUser = await _userService.getCurrentUser();
-
-    if (fetchedUser != null) {}
-
     setState(() {
       _isLoggedIn = fetchedUser != null;
       _currentUser = fetchedUser;
@@ -85,7 +84,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           content: Text('Successfully signed out'),
         ),
       );
-      // Optionally navigate to the login screen or another screen
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -96,12 +94,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  /// Change the theme mode
+  /// Changes the theme mode.
   void _changeTheme(AdaptiveThemeMode mode) async {
     AdaptiveTheme.of(context).setThemeMode(mode);
   }
 
-  /// Affiche un dialogue pour sélectionner le thème
+  /// Shows a dialog for theme selection.
   void _showThemeSelectionDialog() {
     AdaptiveThemeMode currentMode = AdaptiveTheme.of(context).mode;
     showDialog(
@@ -152,15 +150,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Affiche le menu de création d'entités
-  void _showCreateEntityMenu() {
+  /// Checks if the current user has at least 'manager' permission on any promoter.
+  Future<bool> _canCreateEvent() async {
+    final currentUser = await _userService.getCurrentUser();
+    if (currentUser == null) return false;
+    // Get permissions for promoter entities.
+    final perms = await UserPermissionService()
+        .getPermissionsByUserIdAndType(currentUser.id, 'promoter');
+    // Return true if any permission has a permission level >= 2 (manager or admin).
+    return perms.any((p) => p.permissionLevel >= 2);
+  }
+
+  /// Shows the entity creation menu.
+  void _showCreateEntityMenu() async {
+    final bool canCreateEvent = await _canCreateEvent();
     showModalBottomSheet(
       context: context,
       builder: (context) {
         return SafeArea(
           child: Wrap(
             children: [
-              // Barre grise horizontale
+              // Grey horizontal bar.
               Center(
                 child: Container(
                   height: 5,
@@ -176,7 +186,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: const Icon(Icons.location_on),
                 title: const Text('Create Venue'),
                 onTap: () {
-                  Navigator.pop(context); // Fermer le menu
+                  Navigator.pop(context);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -185,11 +195,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               ListTile(
-                leading:
-                    const Icon(Icons.whatshot), // Icons.confirmation_number
+                leading: const Icon(Icons.whatshot),
                 title: const Text('Create Promoter'),
                 onTap: () {
-                  Navigator.pop(context); // Fermer le menu
+                  Navigator.pop(context);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -201,7 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: const Icon(Icons.headset_mic),
                 title: const Text('Create Artist'),
                 onTap: () {
-                  Navigator.pop(context); // Close the menu
+                  Navigator.pop(context);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -210,10 +219,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.event, color: Colors.grey),
+                leading: Icon(Icons.event,
+                    color: canCreateEvent ? null : Colors.grey),
                 title: const Text('Create Event'),
-                enabled: false, // Désactivé
-                onTap: null, // Inactif
+                enabled: canCreateEvent,
+                onTap: canCreateEvent
+                    ? () {
+                        Navigator.pop(context);
+                        // Navigate to CreateEventScreen (implementation assumed)
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const CreateEventScreen()),
+                        );
+                      }
+                    : () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'You must manage a promoter to create an event.'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
               ),
             ],
           ),
@@ -232,7 +261,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: Column(
         children: [
-          // Contenu défilable
+          // Scrollable content.
           Expanded(
             child: ListView(
               children: [
@@ -261,9 +290,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const NotificationPreferencesScreen(),
-                            ),
+                                builder: (context) =>
+                                    const NotificationPreferencesScreen()),
                           );
                         }
                       : _showAuthModal,
@@ -297,7 +325,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          // Bouton "Log out" en bas
+          // Logout button at the bottom.
           if (_isLoggedIn)
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -316,7 +344,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
         ],
       ),
-      // Ajout du FloatingActionButton
+      // FloatingActionButton for entity creation.
       floatingActionButton: _isLoggedIn
           ? FloatingActionButton(
               onPressed: _showCreateEntityMenu,

@@ -185,8 +185,9 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
   }
 
   Future<void> _selectEvent(Event event) async {
-    print('[_selectEvent] Event selected: ${event.id} - ${event.title}'); // Log
-    Venue? venue = await _eventVenueService.getVenueByEventId(event.id);
+    print(
+        '[_selectEvent] Event selected: ${event.id!} - ${event.title}'); // Log
+    Venue? venue = await _eventVenueService.getVenueByEventId(event.id!);
     if (!mounted) return;
     setState(() {
       _selectedEvent = event;

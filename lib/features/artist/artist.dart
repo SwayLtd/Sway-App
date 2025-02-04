@@ -171,7 +171,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                 {},
                                 (map, entry) {
                                   final event = entry['event'] as Event;
-                                  map[event.id] = event;
+                                  map[event.id!] = event;
                                   return map;
                                 },
                               )
@@ -219,7 +219,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                             const SizedBox(width: 4),
                                             FutureBuilder<Venue?>(
                                               future: EventVenueService()
-                                                  .getVenueByEventId(event.id),
+                                                  .getVenueByEventId(event.id!),
                                               builder:
                                                   (context, venueSnapshot) {
                                                 if (venueSnapshot
