@@ -338,7 +338,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onPrimary
-                                        .withOpacity(0.5),
+                                        .withValues(alpha: 0.5),
                                     width: 2.0,
                                   ),
                                   borderRadius: BorderRadius.circular(12),

@@ -1015,8 +1015,6 @@ class _VenueSelectionBottomSheetState extends State<VenueSelectionBottomSheet> {
                         itemBuilder: (context, index) {
                           if (index < displayedList.length) {
                             final venue = displayedList[index];
-                            final bool isSelected =
-                                (_tempSelectedVenue?.id == venue.id);
 
                             return RadioListTile<int>(
                               title: Text(venue.name),

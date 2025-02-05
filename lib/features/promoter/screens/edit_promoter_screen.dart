@@ -435,14 +435,15 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onPrimary
-                                        .withOpacity(0.5), // Border color
+                                        .withValues(alpha: 0.5), // Border color
                                     width: 2.0, // Border thickness
                                   ),
                                   borderRadius: BorderRadius.circular(
                                       15), // Rounded corners
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
+                                      color:
+                                          Colors.black.withValues(alpha: 0.1),
                                       blurRadius: 10,
                                       offset: const Offset(0, 5),
                                     ),
@@ -675,23 +676,6 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       setState(() {
         _isDeleting = false;
       });
-    }
-  }
-
-  /// Method to handle updating permissions via another screen
-  Future<void> _managePermissions() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => UserAccessManagementScreen(
-          entityId: _currentPromoter.id!,
-          entityType: 'promoter',
-        ),
-      ),
-    );
-    // Refresh state after returning
-    if (mounted) {
-      setState(() {});
     }
   }
 }

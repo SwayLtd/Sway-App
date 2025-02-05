@@ -195,7 +195,8 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .onPrimary
-                                    .withOpacity(0.5), // Couleur de la bordure
+                                    .withValues(
+                                        alpha: 0.5), // Couleur de la bordure
                                 width: 2.0, // Épaisseur de la bordure
                               ),
                               borderRadius:

@@ -10,7 +10,6 @@ import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/user/screens/user_access_management_screen.dart';
-import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/venue/services/venue_genre_service.dart';
@@ -44,7 +43,6 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
   final VenueResidentArtistsService _venueResidentArtistsService =
       VenueResidentArtistsService();
   final StorageService _storageService = StorageService();
-  final UserPermissionService _permissionService = UserPermissionService();
   final GenreService _genreService = GenreService();
   final PromoterService _promoterService = PromoterService();
   final ArtistService _artistService = ArtistService();
@@ -388,23 +386,6 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
     }
   }
 
-  /// Méthode pour gérer la mise à jour des permissions via un autre écran
-  Future<void> _managePermissions() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => UserAccessManagementScreen(
-          entityId: _currentVenue.id!,
-          entityType: 'venue',
-        ),
-      ),
-    );
-    // Rafraîchir l'état après retour
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
   /// Méthode pour afficher le bottom sheet de sélection des genres
   Future<void> _showSelectGenresBottomSheet() async {
     try {
@@ -572,15 +553,17 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onPrimary
-                                        .withOpacity(
-                                            0.5), // Couleur de la bordure
+                                        .withValues(
+                                            alpha:
+                                                0.5), // Couleur de la bordure
                                     width: 2.0, // Épaisseur de la bordure
                                   ),
                                   borderRadius: BorderRadius.circular(
                                       15), // Coins arrondis
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
+                                      color:
+                                          Colors.black.withValues(alpha: 0.1),
                                       blurRadius: 10,
                                       offset: const Offset(0, 5),
                                     ),
