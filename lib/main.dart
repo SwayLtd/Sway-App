@@ -36,7 +36,7 @@ Future<void> main() async {
   await authService.ensureUser();
 
   final PdfService pdfService = PdfService(rootNavigatorKey);
-  
+
   await pdfService.initialize();
 
   runApp(

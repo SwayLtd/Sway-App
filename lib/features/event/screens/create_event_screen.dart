@@ -437,7 +437,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               // End date/time
               TextFormField(
                 readOnly: true,
-                onTap: _pickStartDateTime,
+                onTap: _pickEndDateTime,
                 decoration: InputDecoration(
                   labelText: 'End Date & Time',
                   border: const OutlineInputBorder(),

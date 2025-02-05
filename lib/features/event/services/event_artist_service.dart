@@ -13,75 +13,144 @@ class EventArtistService {
 
   /// Retrieves artists associated with a specific event.
   Future<List<Map<String, dynamic>>> getArtistsByEventId(int eventId) async {
-  final response =
-      await _supabase.from('event_artist').select().eq('event_id', eventId);
+    final response =
+        await _supabase.from('event_artist').select().eq('event_id', eventId);
 
-  if (response.isEmpty) {
-    return [];
-  }
-
-  // Extract artist IDs
-  final Set<int> artistIds = {};
-
-  for (final entry in response) {
-    final artistIdField = entry['artist_id'];
-    if (artistIdField is int) {
-      artistIds.add(artistIdField);
-    } else if (artistIdField is List) {
-      artistIds.addAll(artistIdField.cast<int>());
-    } else if (artistIdField is String) {
-      final ids = artistIdField
-          .replaceAll('[', '')
-          .replaceAll(']', '')
-          .split(',')
-          .map((id) => int.parse(id.trim()))
-          .toList();
-      artistIds.addAll(ids);
-    } else {
-      continue;
-    }
-  }
-
-  final List<Artist> artists =
-      await _artistService.getArtistsByIds(artistIds.toList());
-
-  return response.map<Map<String, dynamic>>((entry) {
-    final artistIdField = entry['artist_id'];
-    List<Artist> associatedArtists = [];
-
-    if (artistIdField is int) {
-      associatedArtists =
-          artists.where((artist) => artist.id == artistIdField).toList();
-    } else if (artistIdField is List) {
-      final ids = artistIdField.cast<int>();
-      associatedArtists =
-          artists.where((artist) => ids.contains(artist.id)).toList();
-    } else if (artistIdField is String) {
-      final ids = artistIdField
-          .replaceAll('[', '')
-          .replaceAll(']', '')
-          .split(',')
-          .map((id) => int.parse(id.trim()))
-          .toList();
-      associatedArtists =
-          artists.where((artist) => ids.contains(artist.id)).toList();
+    if (response.isEmpty) {
+      return [];
     }
 
-    return {
-      'artists': associatedArtists,
-      'custom_name': entry['custom_name'] as String?,
-      'start_time': entry['start_time'] != null
-          ? DateTime.parse(entry['start_time'])
-          : null,
-      'end_time': entry['end_time'] != null
-          ? DateTime.parse(entry['end_time'])
-          : null,
-      'status': entry['status'] as String? ?? '',
-      'stage': entry['stage'] as String? ?? '',
+    // Extract artist IDs
+    final Set<int> artistIds = {};
+
+    for (final entry in response) {
+      final artistIdField = entry['artist_id'];
+      if (artistIdField is int) {
+        artistIds.add(artistIdField);
+      } else if (artistIdField is List) {
+        artistIds.addAll(artistIdField.cast<int>());
+      } else if (artistIdField is String) {
+        final ids = artistIdField
+            .replaceAll('[', '')
+            .replaceAll(']', '')
+            .split(',')
+            .map((id) => int.parse(id.trim()))
+            .toList();
+        artistIds.addAll(ids);
+      } else {
+        continue;
+      }
+    }
+
+    final List<Artist> artists =
+        await _artistService.getArtistsByIds(artistIds.toList());
+
+    return response.map<Map<String, dynamic>>((entry) {
+      final artistIdField = entry['artist_id'];
+      List<Artist> associatedArtists = [];
+
+      if (artistIdField is int) {
+        associatedArtists =
+            artists.where((artist) => artist.id == artistIdField).toList();
+      } else if (artistIdField is List) {
+        final ids = artistIdField.cast<int>();
+        associatedArtists =
+            artists.where((artist) => ids.contains(artist.id)).toList();
+      } else if (artistIdField is String) {
+        final ids = artistIdField
+            .replaceAll('[', '')
+            .replaceAll(']', '')
+            .split(',')
+            .map((id) => int.parse(id.trim()))
+            .toList();
+        associatedArtists =
+            artists.where((artist) => ids.contains(artist.id)).toList();
+      }
+
+      return {
+        'artists': associatedArtists,
+        'custom_name': entry['custom_name'] as String?,
+        'start_time': entry['start_time'] != null
+            ? DateTime.parse(entry['start_time'])
+            : null,
+        'end_time': entry['end_time'] != null
+            ? DateTime.parse(entry['end_time'])
+            : null,
+        'status': entry['status'] as String? ?? '',
+        'stage': entry['stage'] as String? ?? '',
+      };
+    }).toList();
+  }
+
+  /// Ajoute une assignation d'artistes à un event.
+  Future<void> addArtistAssignment({
+    required int eventId,
+    required List<int> artistIds,
+    required DateTime startTime,
+    required DateTime endTime,
+    String? customName,
+    String status = 'confirmed',
+    String? stage,
+  }) async {
+    final entry = {
+      'event_id': eventId,
+      'artist_id':
+          artistIds, // La colonne de type int4[] attend un tableau d'entiers
+      'start_time': startTime.toIso8601String(),
+      'end_time': endTime.toIso8601String(),
+      'custom_name': customName,
+      'status': status,
+      'stage': stage,
     };
-  }).toList();
-}
+    final response =
+        await _supabase.from('event_artist').insert(entry).select();
+    if ((response as List).isEmpty) {
+      throw Exception('Failed to add artist assignment.');
+    }
+  }
 
+  Future<void> updateArtistAssignment({
+    required int eventId,
+    required int assignmentId,
+    required List<int> artistIds,
+    required DateTime startTime,
+    required DateTime endTime,
+    String? customName,
+    String status = 'confirmed',
+    String? stage,
+  }) async {
+    final entry = {
+      'artist_id': artistIds, // expects an array of integers
+      'start_time': startTime.toIso8601String(),
+      'end_time': endTime.toIso8601String(),
+      'custom_name': customName,
+      'status': status,
+      'stage': stage,
+    };
+    final response = await _supabase
+        .from('event_artist')
+        .update(entry)
+        .eq('id', assignmentId)
+        .eq('event_id', eventId)
+        .select();
+    if ((response as List).isEmpty) {
+      throw Exception('Failed to update artist assignment.');
+    }
+  }
+
+  Future<void> deleteArtistAssignment({
+    required int eventId,
+    required int assignmentId,
+  }) async {
+    final response = await _supabase
+        .from('event_artist')
+        .delete()
+        .eq('id', assignmentId)
+        .eq('event_id', eventId);
+    if (response == null || (response as List).isEmpty) {
+      throw Exception('Failed to delete artist assignment.');
+    }
+  }
 
   /// Retrieves events associated with a specific artist.
   Future<List<Map<String, dynamic>>> getEventsByArtistId(int artistId) async {

@@ -1,29 +1,87 @@
-// edit_event_screen.dart
-
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:sway/features/event/models/event_model.dart';
-import 'package:sway/features/event/services/event_service.dart';
-import 'package:sway/features/user/models/user_permission_model.dart';
-import 'package:sway/features/user/screens/user_access_management_screen.dart';
-import 'package:sway/features/user/services/user_permission_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+// Importez vos services et modèles
+import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/screens/edit_event_artist_screen.dart';
+import 'package:sway/features/event/services/event_artist_service.dart';
+import 'package:sway/features/event/services/event_genre_service.dart';
+import 'package:sway/features/event/services/event_promoter_service.dart';
+import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/event/services/event_venue_service.dart';
+import 'package:sway/features/genre/models/genre_model.dart';
+import 'package:sway/features/genre/services/genre_service.dart';
+import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/promoter/models/promoter_model.dart';
+import 'package:sway/features/promoter/services/promoter_service.dart';
+import 'package:sway/features/security/services/storage_service.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
+import 'package:sway/features/user/services/user_service.dart';
+import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:sway/features/venue/services/venue_service.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/services/artist_service.dart';
+
+/// EditEventScreen: permet d'éditer un event existant.
+/// On peut modifier l'image, le titre, le type, les dates, la description,
+/// le promoter principal, la venue, les genres et les artistes.
 class EditEventScreen extends StatefulWidget {
   final Event event;
 
-  const EditEventScreen({required this.event});
+  const EditEventScreen({Key? key, required this.event}) : super(key: key);
 
   @override
   _EditEventScreenState createState() => _EditEventScreenState();
 }
 
 class _EditEventScreenState extends State<EditEventScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  // Contrôleurs pour le titre et la description
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
-  late TextEditingController _priceController;
-  late List<int> _selectedGenres;
-  late List<int> _selectedArtists;
-  late List<int> _selectedPromoters;
-  late String _selectedType;
+
+  // Types d'event (visuel vs stocké)
+  final List<String> _eventTypeLabels = ['Festival', 'Rave', 'Party', 'Other'];
+  late String _selectedTypeLabel; // ex: "Festival", stocké en minuscule
+
+  // Dates
+  DateTime? _selectedStartDate;
+  DateTime? _selectedEndDate;
+
+  // Image
+  File? _selectedImage;
+  String _originalImageUrl = '';
+  bool _isUpdating = false;
+
+  // Promoter/venue/genres/artists
+  Promoter? _selectedPromoterObj;
+  Venue? _selectedVenueObj;
+  List<int> _selectedGenres = [];
+  List<int> _selectedArtists = [];
+
+  // Services
+  final EventService _eventService = EventService();
+  final StorageService _storageService = StorageService();
+  final UserPermissionService _permissionService = UserPermissionService();
+  final UserService _userService = UserService();
+  final PromoterService _promoterService = PromoterService();
+  final VenueService _venueService = VenueService();
+  final GenreService _genreService = GenreService();
+  final ArtistService _artistService = ArtistService();
+
+  // Services pour join tables
+  final EventPromoterService _eventPromoterService = EventPromoterService();
+  final EventVenueService _eventVenueService = EventVenueService();
+  final EventGenreService _eventGenreService = EventGenreService();
+  final EventArtistService _eventArtistService = EventArtistService();
+
+  // Liste des promoteurs où l'utilisateur est manager/admin
+  List<Promoter> _permittedPromoters = [];
 
   @override
   void initState() {
@@ -31,215 +89,1508 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _titleController = TextEditingController(text: widget.event.title);
     _descriptionController =
         TextEditingController(text: widget.event.description);
-    _priceController = TextEditingController(text: widget.event.price);
-    _selectedGenres = List.from(widget.event.genres!);
-    _selectedArtists = List.from(widget.event.artists!);
-    _selectedPromoters = List.from(widget.event.promoters!);
-    _selectedType = widget.event.type.toLowerCase();
+
+    // Convertir event.type (en minuscule) => label (ex: "festival" => "Festival")
+    // S'il n'est pas dans la liste, on prend "Other" par défaut
+    final capitalizedType =
+        '${widget.event.type[0].toUpperCase()}${widget.event.type.substring(1).toLowerCase()}';
+    _selectedTypeLabel =
+        _eventTypeLabels.contains(capitalizedType) ? capitalizedType : 'Other';
+
+    _selectedStartDate = widget.event.dateTime;
+    _selectedEndDate = widget.event.endDateTime;
+    _originalImageUrl = widget.event.imageUrl;
+
+    _fetchPermittedPromoters();
+    _loadEventAssociations();
+  }
+
+  /// Charger la liste des promoteurs autorisés
+  Future<void> _fetchPermittedPromoters() async {
+    setState(() => _isUpdating = true);
+    try {
+      final currentUser = await _userService.getCurrentUser();
+      if (currentUser == null) {
+        throw Exception('User not logged in');
+      }
+      final perms = await _permissionService.getPermissionsByUserIdAndType(
+        currentUser.id,
+        'promoter',
+      );
+      // Filtrer manager/admin
+      final allowedPromoterIds = perms
+          .where((p) => p.permissionLevel >= 2) // manager = 2 ou admin = 3
+          .map((p) => p.entityId)
+          .toList();
+      if (allowedPromoterIds.isNotEmpty) {
+        final promoters =
+            await _promoterService.getPromotersByIds(allowedPromoterIds);
+        setState(() {
+          _permittedPromoters = promoters;
+        });
+      }
+    } catch (e) {
+      print('Error fetching permitted promoters: $e');
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+
+  /// Charger promoterObj / venueObj / genres / artists depuis la DB
+  Future<void> _loadEventAssociations() async {
+    setState(() => _isUpdating = true);
+    try {
+      // Promoter (event_promoter) : en principe, un seul promoter
+      final promoters = await _eventPromoterService.getPromotersByEventId(
+        widget.event.id!,
+      );
+      if (promoters.isNotEmpty) {
+        // On en prend un
+        _selectedPromoterObj = promoters.first;
+      }
+
+      // Venue (event_venue)
+      final venue =
+          await _eventVenueService.getVenueByEventId(widget.event.id!);
+      _selectedVenueObj = venue;
+
+      // Genres (event_genre)
+      final genreIds =
+          await _eventGenreService.getGenresByEventId(widget.event.id!);
+      _selectedGenres = genreIds;
+
+      // Artists (event_artist)
+      final artistEntries =
+          await _eventArtistService.getArtistsByEventId(widget.event.id!);
+
+      // On accumule tous les artists dedans
+      final Set<int> artistIds = {};
+      for (final entry in artistEntries) {
+        final List<Artist> artists = entry['artists'] as List<Artist>;
+        for (final a in artists) {
+          artistIds.add(a.id);
+        }
+      }
+      _selectedArtists = artistIds.toList();
+    } catch (e) {
+      print('Error loading event associations: $e');
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _priceController.dispose();
     super.dispose();
   }
 
-  Future<void> _updateEvent() async {
-    final updatedEvent = Event(
-      id: widget.event.id!,
-      title: _titleController.text,
-      type: _selectedType,
-      description: _descriptionController.text,
-      price: _priceController.text,
-      dateTime: widget.event.dateTime,
-      endDateTime: widget.event.endDateTime,
-      venue: widget.event.venue,
-      imageUrl: widget.event.imageUrl,
-      promoters: _selectedPromoters,
-      genres: _selectedGenres,
-      artists: _selectedArtists,
-    );
-    await EventService().updateEvent(updatedEvent);
-    Navigator.pop(context, updatedEvent);
+  /// Validate text to avoid suspicious characters
+  String? _validateTextInput(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'This field is required.';
+    }
+    final forbiddenPattern = RegExp("[;'\"]|--");
+    if (forbiddenPattern.hasMatch(value)) {
+      return 'Invalid characters used.';
+    }
+    return null;
   }
 
-  Future<void> _showDeleteConfirmationDialog(
-    BuildContext context,
-    UserPermission permission,
-  ) async {
-    return showDialog<void>(
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _pickStartDateTime() async {
+    final now = DateTime.now();
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedStartDate ?? now,
+      firstDate: now,
+      lastDate: DateTime(now.year + 5),
+    );
+    if (pickedDate != null) {
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+      if (pickedTime != null) {
+        setState(() {
+          _selectedStartDate = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
+      }
+    }
+  }
+
+  Future<void> _pickEndDateTime() async {
+    if (_selectedStartDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a start date first.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate:
+          _selectedEndDate ?? _selectedStartDate!.add(Duration(hours: 1)),
+      firstDate: _selectedStartDate!,
+      lastDate: DateTime(_selectedStartDate!.year + 5),
+    );
+    if (pickedDate != null) {
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+      if (pickedTime != null) {
+        setState(() {
+          _selectedEndDate = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
+      }
+    }
+  }
+
+  Future<String> _uploadImage(int eventId, File imageFile) async {
+    final fileBytes = await imageFile.readAsBytes();
+    final fileExtension = imageFile.path.split('.').last;
+    final fileName = "${DateTime.now().millisecondsSinceEpoch}.$fileExtension";
+    final filePath = "$eventId/$fileName";
+
+    final publicUrl = await _storageService.uploadFile(
+      bucketName: "event-images",
+      fileName: filePath,
+      fileData: fileBytes,
+    );
+    return publicUrl;
+  }
+
+  Future<void> _updateEvent() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    if (_selectedStartDate == null || _selectedEndDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select the start/end date.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // Vérifier qu'on a un promoter et un venue
+    if (_selectedPromoterObj == null || _selectedVenueObj == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a promoter and a venue.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isUpdating = true);
+
+    try {
+      // Check permission manager sur l'event actuel
+      final hasPermission =
+          await _permissionService.hasPermissionForCurrentUser(
+        widget.event.id!,
+        'event',
+        'manager',
+      );
+      if (!hasPermission) {
+        throw Exception('Permission denied on this event.');
+      }
+
+      // Convertir label => minuscule
+      final String typeToStore = _selectedTypeLabel.toLowerCase();
+      // Créer un Event mis à jour (sans imageUrl si pas modifié)
+      Event updatedEvent = widget.event.copyWith(
+        title: _titleController.text.trim(),
+        type: typeToStore,
+        dateTime: _selectedStartDate,
+        endDateTime: _selectedEndDate,
+        description: _descriptionController.text.trim(),
+        // On ne touche pas l'image pour l'instant (si on n'a pas choisi de nouvelle)
+      );
+
+      print("Payload d'update : ${updatedEvent.toJson()}");
+
+      // Si on change l'image
+      String newImageUrl = widget.event.imageUrl;
+      if (_selectedImage != null) {
+        newImageUrl = await _uploadImage(widget.event.id!, _selectedImage!);
+
+        // Suppression optionnelle de l'ancienne image
+        if (_originalImageUrl.isNotEmpty) {
+          final oldFileName =
+              _originalImageUrl.split('/').last.split('?').first;
+          if (oldFileName.isNotEmpty) {
+            final oldFilePath = "${widget.event.id}/$oldFileName";
+            await _storageService.deleteFile(
+              bucketName: "event-images",
+              fileName: oldFilePath,
+            );
+          }
+        }
+
+        updatedEvent = updatedEvent.copyWith(imageUrl: newImageUrl);
+      }
+
+      // Appliquer la mise à jour sur la table "events"
+      final finalEvent = await _eventService.updateEvent(updatedEvent);
+
+      // JOINTURES : promoter, venue, genres, artists
+      // 1) event_promoter : on prend un seul promoter
+      if (_selectedPromoterObj != null) {
+        // On met à jour : supprime l'existant et ajoute le nouveau
+        await _eventPromoterService.updateEventPromoters(
+          finalEvent.id!,
+          [_selectedPromoterObj!.id!],
+        );
+      }
+      // 2) event_venue : un seul venue
+      if (_selectedVenueObj != null) {
+        await _eventVenueService.updateEventVenue(
+          finalEvent.id!,
+          _selectedVenueObj!.id!,
+        );
+      }
+      // 3) event_genre
+      await _eventGenreService.updateEventGenres(
+          finalEvent.id!, _selectedGenres);
+
+      // 4) event_artist => il faut l'implémenter si vous avez la table "event_artist"
+      //    Ici on fait un update complet (on supprime tout puis on insère).
+      //    Comme "getArtistsByEventId" renvoie des "Map", on fait un service custom.
+      //    Ex.:
+      await _updateEventArtists(finalEvent.id!, _selectedArtists);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Event updated successfully!'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.pop(context, finalEvent);
+    } catch (e) {
+      print('Error updating event: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating event: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+
+  /// Mise à jour table event_artist : simple implémentation
+  /// On supprime tout puis on insère une row par artiste
+  Future<void> _updateEventArtists(int eventId, List<int> artistIds) async {
+    // 1) Supprimer tout
+    final response = await Supabase.instance.client
+        .from('event_artist')
+        .delete()
+        .eq('event_id', eventId)
+        .select();
+    // 2) Insérer
+    if (artistIds.isNotEmpty) {
+      final entries = artistIds
+          .map((artistId) => {
+                'event_id': eventId,
+                'artist_id': [artistId],
+                // 'start_time': ... si besoin
+                // 'end_time': ...
+                // 'status': ...
+              })
+          .toList();
+      await Supabase.instance.client.from('event_artist').insert(entries);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Edit: ${widget.event.title}'),
+        actions: [
+          // Bouton delete
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: _isUpdating
+                ? null
+                : () async {
+                    final hasAdmin =
+                        await _permissionService.hasPermissionForCurrentUser(
+                      widget.event.id!,
+                      'event',
+                      'admin',
+                    );
+                    if (hasAdmin) {
+                      _showDeleteConfirmation();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'You do not have permission to delete this event.'),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+          ),
+          IconButton(
+            icon:
+                _isUpdating ? const SizedBox.shrink() : const Icon(Icons.save),
+            onPressed: _isUpdating ? null : _updateEvent,
+          ),
+        ],
+      ),
+      body: _isUpdating
+          ? const Center(child: CircularProgressIndicator.adaptive())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // Image
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        width: double.infinity,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: isDark ? Colors.white : Colors.black),
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.grey[200],
+                        ),
+                        child: _selectedImage != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(
+                                  _selectedImage!,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : widget.event.imageUrl.isNotEmpty
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      widget.event.imageUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(
+                                        Icons.broken_image,
+                                        size: 50,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: Icon(
+                                      Icons.camera_alt,
+                                      size: 50,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Title
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Title',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: _validateTextInput,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Event type (Dropdown)
+                    DropdownButtonFormField<String>(
+                      value: _selectedTypeLabel,
+                      decoration: const InputDecoration(
+                        labelText: 'Event Type',
+                        border: OutlineInputBorder(),
+                      ),
+                      dropdownColor: isDark ? Colors.black : null,
+                      items: _eventTypeLabels.map((e) {
+                        return DropdownMenuItem<String>(
+                          value: e,
+                          child: Text(e),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedTypeLabel = value;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Start date/time
+                    TextFormField(
+                      readOnly: true,
+                      onTap: _pickStartDateTime,
+                      decoration: InputDecoration(
+                        labelText: 'Start Date & Time',
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.calendar_today),
+                          onPressed: _pickStartDateTime,
+                        ),
+                      ),
+                      controller: TextEditingController(
+                        text: _selectedStartDate == null
+                            ? ''
+                            : _selectedStartDate!
+                                .toLocal()
+                                .toString()
+                                .substring(0, 16),
+                      ),
+                      validator: (value) {
+                        if (_selectedStartDate == null) {
+                          return 'Please select the start date/time.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // End date/time
+                    TextFormField(
+                      readOnly: true,
+                      onTap: _pickEndDateTime,
+                      decoration: InputDecoration(
+                        labelText: 'End Date & Time',
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.calendar_today),
+                          onPressed: _pickEndDateTime,
+                        ),
+                      ),
+                      controller: TextEditingController(
+                        text: _selectedEndDate == null
+                            ? ''
+                            : _selectedEndDate!
+                                .toLocal()
+                                .toString()
+                                .substring(0, 16),
+                      ),
+                      validator: (value) {
+                        if (_selectedEndDate == null) {
+                          return 'Please select the end date/time.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Description
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                      validator: _validateTextInput,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Promoter
+                    _buildPromoterSection(isDark),
+                    const SizedBox(height: 20),
+
+                    // Venue
+                    _buildVenueSection(isDark),
+                    const SizedBox(height: 20),
+
+                    // Genres
+                    _buildGenresSection(),
+                    const SizedBox(height: 20),
+
+                    // Button update
+                    ElevatedButton(
+                      onPressed: _isUpdating ? null : _updateEvent,
+                      style: ElevatedButton.styleFrom(
+                        elevation: isDark ? 2 : 0,
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        foregroundColor:
+                            Theme.of(context).colorScheme.onSurface,
+                        side: BorderSide(
+                          color: isDark ? Colors.white : Colors.black,
+                          width: 1,
+                        ),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: _isUpdating
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Save Changes'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildPromoterSection(bool isDark) {
+    return Row(
+      children: [
+        const Icon(Icons.person),
+        const SizedBox(width: 8),
+        if (_selectedPromoterObj == null)
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: isDark ? Colors.white : Colors.black,
+                  ),
+                  onPressed: _permittedPromoters.isEmpty || _isUpdating
+                      ? null
+                      : () async {
+                          final result = await showModalBottomSheet<Promoter>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) => EditEventPromoterBottomSheet(
+                              permittedPromoters: _permittedPromoters,
+                              selectedPromoter: _selectedPromoterObj,
+                            ),
+                          );
+                          if (result != null && mounted) {
+                            setState(() => _selectedPromoterObj = result);
+                          }
+                        },
+                  child: const Text('Select Promoter'),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  color: isDark ? Colors.white : Colors.black,
+                  onPressed: _permittedPromoters.isEmpty || _isUpdating
+                      ? null
+                      : () async {
+                          final result = await showModalBottomSheet<Promoter>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) => EditEventPromoterBottomSheet(
+                              permittedPromoters: _permittedPromoters,
+                              selectedPromoter: _selectedPromoterObj,
+                            ),
+                          );
+                          if (result != null && mounted) {
+                            setState(() => _selectedPromoterObj = result);
+                          }
+                        },
+                ),
+              ],
+            ),
+          )
+        else
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Chip(
+                  label: Text(_selectedPromoterObj!.name),
+                  onDeleted: !_isUpdating
+                      ? () => setState(() => _selectedPromoterObj = null)
+                      : null,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  color: isDark ? Colors.white : Colors.black,
+                  onPressed: _permittedPromoters.isEmpty || _isUpdating
+                      ? null
+                      : () async {
+                          final result = await showModalBottomSheet<Promoter>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) => EditEventPromoterBottomSheet(
+                              permittedPromoters: _permittedPromoters,
+                              selectedPromoter: _selectedPromoterObj,
+                            ),
+                          );
+                          if (result != null && mounted) {
+                            setState(() => _selectedPromoterObj = result);
+                          }
+                        },
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildVenueSection(bool isDark) {
+    return Row(
+      children: [
+        const Icon(Icons.location_on),
+        const SizedBox(width: 8),
+        if (_selectedVenueObj == null)
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: isDark ? Colors.white : Colors.black,
+                  ),
+                  onPressed: _isUpdating
+                      ? null
+                      : () async {
+                          final selectedVenue =
+                              await showModalBottomSheet<Venue>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) => EditEventVenueBottomSheet(
+                              venueService: _venueService,
+                              selectedVenue: null,
+                            ),
+                          );
+                          if (selectedVenue != null && mounted) {
+                            setState(() => _selectedVenueObj = selectedVenue);
+                          }
+                        },
+                  child: const Text('Select Venue'),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  color: isDark ? Colors.white : Colors.black,
+                  onPressed: _isUpdating
+                      ? null
+                      : () async {
+                          final selectedVenue =
+                              await showModalBottomSheet<Venue>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) => EditEventVenueBottomSheet(
+                              venueService: _venueService,
+                              selectedVenue: null,
+                            ),
+                          );
+                          if (selectedVenue != null && mounted) {
+                            setState(() => _selectedVenueObj = selectedVenue);
+                          }
+                        },
+                ),
+              ],
+            ),
+          )
+        else
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Chip(
+                  label: Text(_selectedVenueObj!.name),
+                  onDeleted: !_isUpdating
+                      ? () => setState(() => _selectedVenueObj = null)
+                      : null,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  color: isDark ? Colors.white : Colors.black,
+                  onPressed: _isUpdating
+                      ? null
+                      : () async {
+                          final selectedVenue =
+                              await showModalBottomSheet<Venue>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (context) => EditEventVenueBottomSheet(
+                              venueService: _venueService,
+                              selectedVenue: _selectedVenueObj,
+                            ),
+                          );
+                          if (selectedVenue != null && mounted) {
+                            setState(() => _selectedVenueObj = selectedVenue);
+                          }
+                        },
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildGenresSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.only(left: -32, right: 16),
+          leading: const Icon(Icons.queue_music),
+          title: Text(
+            _selectedGenres.isEmpty
+                ? 'Select Genres'
+                : '${_selectedGenres.length} selected genres',
+          ),
+          trailing: const Icon(Icons.edit),
+          onTap: () async {
+            final selectedGenresSet = Set<int>.from(_selectedGenres);
+            final bool? saved = await showModalBottomSheet<bool>(
+              context: context,
+              isScrollControlled: true,
+              builder: (BuildContext context) => EditEventGenreBottomSheet(
+                selectedGenres: selectedGenresSet,
+                genreService: _genreService,
+              ),
+            );
+            if (saved == true && mounted) {
+              setState(() {
+                _selectedGenres = selectedGenresSet.toList();
+              });
+            }
+          },
+        ),
+        if (_selectedGenres.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Wrap(
+              alignment: WrapAlignment.start,
+              spacing: 8.0,
+              children: _selectedGenres.map((genreId) {
+                return GenreChip(genreId: genreId);
+              }).toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Confirmer la suppression
+  Future<void> _showDeleteConfirmation() async {
+    final bool hasAdmin = await _permissionService.hasPermissionForCurrentUser(
+      widget.event.id!,
+      'event',
+      'admin',
+    );
+    if (!hasAdmin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You do not have permission to delete this event.'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (ctx) {
         return AlertDialog(
           title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to remove this user?'),
-          actions: <Widget>[
+          content: const Text('Are you sure you want to delete this event?'),
+          actions: [
             TextButton(
               child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.pop(ctx, false),
             ),
             TextButton(
-              child: const Text('Delete'),
-              onPressed: () async {
-                await UserPermissionService().deleteUserPermission(
-                  permission.userId,
-                  widget.event.id!,
-                  'event',
-                );
-                Navigator.of(context).pop();
-                if (!mounted) return;
-                setState(() {});
-              },
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () => Navigator.pop(ctx, true),
             ),
           ],
         );
       },
     );
+    if (confirmed == true) {
+      _deleteEvent();
+    }
+  }
+
+  /// Supprime l'événement
+  Future<void> _deleteEvent() async {
+    setState(() => _isUpdating = true);
+    try {
+      await _eventService.deleteEvent(widget.event.id!);
+      // Supprimer l'image si besoin
+      if (_originalImageUrl.isNotEmpty) {
+        final oldFileName = _originalImageUrl.split('/').last.split('?').first;
+        if (oldFileName.isNotEmpty) {
+          final oldFilePath = "${widget.event.id}/$oldFileName";
+          await _storageService.deleteFile(
+            bucketName: "event-images",
+            fileName: oldFilePath,
+          );
+        }
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Event deleted successfully!'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.pop(context, null);
+    } catch (e) {
+      print('Error deleting event: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error deleting event: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+}
+
+// =================== Bottom sheets / classes pour l'édition ===================
+
+/// Bottom sheet pour sélectionner/éditer le promoter
+class EditEventPromoterBottomSheet extends StatefulWidget {
+  final List<Promoter> permittedPromoters;
+  final Promoter? selectedPromoter;
+
+  const EditEventPromoterBottomSheet({
+    Key? key,
+    required this.permittedPromoters,
+    this.selectedPromoter,
+  }) : super(key: key);
+
+  @override
+  State<EditEventPromoterBottomSheet> createState() =>
+      _EditEventPromoterBottomSheetState();
+}
+
+class _EditEventPromoterBottomSheetState
+    extends State<EditEventPromoterBottomSheet> {
+  String _searchQuery = '';
+  Promoter? _tempSelected;
+  bool _showAll = false;
+  static const _maxToShow = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    _tempSelected = widget.selectedPromoter;
+  }
+
+  List<Promoter> get _filteredPromoters {
+    if (_searchQuery.isEmpty) return widget.permittedPromoters;
+    return widget.permittedPromoters
+        .where((p) => p.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+  }
+
+  void _saveSelection() {
+    Navigator.of(context).pop(_tempSelected);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Event'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _updateEvent,
+    final displayList = _filteredPromoters;
+    final limitedList =
+        _showAll ? displayList : displayList.take(_maxToShow).toList();
+
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double sheetHeight =
+        min(screenHeight * 0.5, screenHeight - statusBarHeight - 100);
+
+    return Container(
+      height: sheetHeight,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(null),
+              ),
+              IconButton(
+                icon: const Icon(Icons.save),
+                onPressed: _saveSelection,
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.group),
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => UserAccessManagementScreen(
-                    entityId: widget.event.id!,
-                    entityType: 'event',
-                  ),
-                ),
-              );
-              if (!mounted) return;
-              setState(() {});
+          const SizedBox(height: sectionTitleSpacing),
+          const Text(
+            'Edit Promoter',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: sectionTitleSpacing),
+
+          TextField(
+            decoration: const InputDecoration(
+              labelText: 'Search Promoters',
+              suffixIcon: Icon(Icons.search),
+            ),
+            onChanged: (value) {
+              setState(() => _searchQuery = value);
             },
+          ),
+          const SizedBox(height: sectionTitleSpacing),
+
+          Expanded(
+            child: limitedList.isEmpty
+                ? const Center(child: Text('No promoters found.'))
+                : ListView.builder(
+                    itemCount: limitedList.length +
+                        (displayList.length > _maxToShow && !_showAll ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index < limitedList.length) {
+                        final promoter = limitedList[index];
+                        final bool isSelected =
+                            (_tempSelected?.id == promoter.id);
+
+                        // RadioListTile pour mono-sélection
+                        return RadioListTile<int>(
+                          title: Text(promoter.name),
+                          value: promoter.id!,
+                          groupValue: _tempSelected?.id,
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _tempSelected = promoter);
+                            }
+                          },
+                        );
+                      } else {
+                        // Show More
+                        return TextButton(
+                          onPressed: () => setState(() => _showAll = true),
+                          child: const Text('Show More'),
+                        );
+                      }
+                    },
+                  ),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _priceController,
-              decoration: const InputDecoration(labelText: 'Price'),
-            ),
-            const SizedBox(height: 20),
-            Wrap(
-              spacing: 8.0,
-              children: _selectedGenres
-                  .map(
-                    (genre) => Chip(
-                      label: Text(genre as String),
-                      onDeleted: () {
-                        if (!mounted) return;
-                        setState(() {
-                          _selectedGenres.remove(genre);
-                        });
-                      },
-                    ),
-                  )
-                  .toList(),
-            ),
-            Wrap(
-              spacing: 8.0,
-              children: _selectedArtists
-                  .map(
-                    (artist) => Chip(
-                      label: Text(artist as String),
-                      onDeleted: () {
-                        if (!mounted) return;
-                        setState(() {
-                          _selectedArtists.remove(artist);
-                        });
-                      },
-                    ),
-                  )
-                  .toList(),
-            ),
-            Wrap(
-              spacing: 8.0,
-              children: _selectedPromoters
-                  .map(
-                    (promoter) => Chip(
-                      label: Text(promoter as String),
-                      onDeleted: () {
-                        if (!mounted) return;
-                        setState(() {
-                          _selectedPromoters.remove(promoter);
-                        });
-                      },
-                    ),
-                  )
-                  .toList(),
-            ),
-            FutureBuilder<bool>(
-              future: UserPermissionService().hasPermissionForCurrentUser(
-                widget.event.id!,
-                'event',
-                'admin',
+    );
+  }
+}
+
+/// Bottom sheet pour sélectionner/éditer la venue
+class EditEventVenueBottomSheet extends StatefulWidget {
+  final VenueService venueService;
+  final Venue? selectedVenue;
+
+  const EditEventVenueBottomSheet({
+    Key? key,
+    required this.venueService,
+    this.selectedVenue,
+  }) : super(key: key);
+
+  @override
+  State<EditEventVenueBottomSheet> createState() =>
+      _EditEventVenueBottomSheetState();
+}
+
+class _EditEventVenueBottomSheetState extends State<EditEventVenueBottomSheet> {
+  List<Venue> _venues = [];
+  bool _isLoading = false;
+  String _searchQuery = '';
+
+  bool _showAll = false;
+  static const _maxToShow = 10;
+
+  Venue? _tempSelectedVenue;
+
+  @override
+  void initState() {
+    super.initState();
+    _tempSelectedVenue = widget.selectedVenue;
+    _fetchVenues();
+  }
+
+  Future<void> _fetchVenues() async {
+    setState(() => _isLoading = true);
+    try {
+      _venues = await widget.venueService.getVenues();
+    } catch (e) {
+      print('Error fetching venues: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _searchVenues() async {
+    setState(() => _isLoading = true);
+    try {
+      final results = await widget.venueService.searchVenues(_searchQuery);
+      setState(() {
+        _venues = results;
+      });
+    } catch (e) {
+      print('Error searching venues: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _saveSelection() {
+    Navigator.of(context).pop(_tempSelectedVenue);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final displayedList =
+        _showAll ? _venues : _venues.take(_maxToShow).toList();
+
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double sheetHeight =
+        min(screenHeight * 0.5, screenHeight - statusBarHeight - 100);
+
+    return Container(
+      height: sheetHeight,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(null),
               ),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator.adaptive();
-                } else if (snapshot.hasError ||
-                    !snapshot.hasData ||
-                    !snapshot.data!) {
-                  return const SizedBox.shrink();
-                } else {
-                  return Expanded(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _showDeleteConfirmationDialog(
-                            context,
-                            UserPermission(
-                              userId: 3,
-                              entityId: widget.event.id!,
-                              entityType: 'event',
-                              permission: 'admin',
-                              permissionLevel: 3,
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          minimumSize: const Size.fromHeight(50),
-                        ),
-                        child: const Text('Delete Event'),
-                      ),
-                    ),
-                  );
-                }
-              },
+              IconButton(
+                icon: const Icon(Icons.save),
+                onPressed: _saveSelection,
+              ),
+            ],
+          ),
+          const SizedBox(height: sectionTitleSpacing),
+          const Text(
+            'Edit Venue',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: sectionTitleSpacing),
+
+          TextField(
+            decoration: const InputDecoration(
+              labelText: 'Search Venues',
+              suffixIcon: Icon(Icons.search),
             ),
-          ],
+            onChanged: (value) {
+              _searchQuery = value;
+              _searchVenues();
+            },
+          ),
+          const SizedBox(height: sectionTitleSpacing),
+
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : displayedList.isEmpty
+                    ? const Center(child: Text('No venues found.'))
+                    : ListView.builder(
+                        itemCount: displayedList.length +
+                            (_venues.length > _maxToShow && !_showAll ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index < displayedList.length) {
+                            final venue = displayedList[index];
+                            final bool isSelected =
+                                (_tempSelectedVenue?.id == venue.id);
+
+                            return RadioListTile<int>(
+                              title: Text(venue.name),
+                              value: venue.id!,
+                              groupValue: _tempSelectedVenue?.id,
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() {
+                                    _tempSelectedVenue = venue;
+                                  });
+                                }
+                              },
+                            );
+                          } else {
+                            // Show more
+                            return TextButton(
+                              onPressed: () => setState(() => _showAll = true),
+                              child: const Text('Show More'),
+                            );
+                          }
+                        },
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bottom sheet for editing (selecting/unselecting) the genres of an event
+class EditEventGenreBottomSheet extends StatefulWidget {
+  final Set<int> selectedGenres;
+  final GenreService genreService;
+
+  const EditEventGenreBottomSheet({
+    Key? key,
+    required this.selectedGenres,
+    required this.genreService,
+  }) : super(key: key);
+
+  @override
+  _EditEventGenreBottomSheetState createState() =>
+      _EditEventGenreBottomSheetState();
+}
+
+class _EditEventGenreBottomSheetState extends State<EditEventGenreBottomSheet> {
+  List<Genre> _genres = [];
+  String _searchQuery = '';
+  bool _isLoading = false;
+  bool _showAll = false;
+
+  static const int _maxGenresToShow = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchGenres();
+  }
+
+  Future<void> _searchGenres() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      List<Genre> genres;
+      if (_searchQuery.isEmpty) {
+        genres = await widget.genreService.getGenres();
+      } else {
+        genres = await widget.genreService.searchGenres(_searchQuery);
+      }
+
+      // Show selected items first
+      genres.sort((a, b) {
+        final aSelected = widget.selectedGenres.contains(a.id);
+        final bSelected = widget.selectedGenres.contains(b.id);
+        if (aSelected && !bSelected) return -1;
+        if (!aSelected && bSelected) return 1;
+        return a.name.compareTo(b.name);
+      });
+
+      if (!mounted) return;
+      setState(() {
+        _genres = genres;
+      });
+    } catch (e) {
+      print('Error searching genres: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Error searching genres: $e'),
         ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _saveSelections() {
+    Navigator.of(context).pop(true); // Indicates the user validated changes
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double sheetHeight =
+        min(screenHeight * 0.5, screenHeight - statusBarHeight - 100);
+
+    final displayedList =
+        _showAll ? _genres : _genres.take(_maxGenresToShow).toList();
+
+    return Container(
+      height: sheetHeight,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              IconButton(
+                icon: const Icon(Icons.save),
+                onPressed: _saveSelections,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Edit Event Genres',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            decoration: const InputDecoration(
+              labelText: 'Search Genres',
+              suffixIcon: Icon(Icons.search),
+            ),
+            onChanged: (value) {
+              _searchQuery = value;
+              _searchGenres();
+            },
+          ),
+          const SizedBox(height: 16),
+          _isLoading
+              ? const CircularProgressIndicator.adaptive()
+              : Expanded(
+                  child: displayedList.isEmpty
+                      ? const Center(child: Text('No genres found.'))
+                      : ListView.builder(
+                          itemCount: displayedList.length +
+                              (_genres.length > _maxGenresToShow && !_showAll
+                                  ? 1
+                                  : 0),
+                          itemBuilder: (context, index) {
+                            if (index < displayedList.length) {
+                              final genre = displayedList[index];
+                              final isSelected =
+                                  widget.selectedGenres.contains(genre.id);
+
+                              return CheckboxListTile(
+                                value: isSelected,
+                                title: Text(genre.name),
+                                onChanged: (bool? checked) {
+                                  if (!mounted) return;
+                                  setState(() {
+                                    if (checked == true) {
+                                      widget.selectedGenres.add(genre.id);
+                                    } else {
+                                      widget.selectedGenres.remove(genre.id);
+                                    }
+                                  });
+                                },
+                              );
+                            } else {
+                              // Show More
+                              return TextButton(
+                                onPressed: () =>
+                                    setState(() => _showAll = true),
+                                child: const Text('Show More'),
+                              );
+                            }
+                          },
+                        ),
+                ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bottom sheet for editing (selecting/unselecting) the artists of an event
+class EditEventArtistBottomSheet extends StatefulWidget {
+  final Set<int> selectedArtists;
+  final ArtistService artistService;
+
+  const EditEventArtistBottomSheet({
+    Key? key,
+    required this.selectedArtists,
+    required this.artistService,
+  }) : super(key: key);
+
+  @override
+  _EditEventArtistBottomSheetState createState() =>
+      _EditEventArtistBottomSheetState();
+}
+
+class _EditEventArtistBottomSheetState
+    extends State<EditEventArtistBottomSheet> {
+  List<Artist> _artists = [];
+  String _searchQuery = '';
+  bool _isLoading = false;
+  bool _showAll = false;
+
+  static const int _maxArtistsToShow = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchArtists();
+  }
+
+  Future<void> _searchArtists() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      List<Artist> artists;
+      if (_searchQuery.isEmpty) {
+        artists = await widget.artistService.getArtists();
+      } else {
+        artists = await widget.artistService.searchArtists(_searchQuery);
+      }
+
+      // Sort: selected first
+      artists.sort((a, b) {
+        final aSel = widget.selectedArtists.contains(a.id);
+        final bSel = widget.selectedArtists.contains(b.id);
+        if (aSel && !bSel) return -1;
+        if (!aSel && bSel) return 1;
+        return a.name.compareTo(b.name);
+      });
+
+      if (!mounted) return;
+      setState(() {
+        _artists = artists;
+      });
+    } catch (e) {
+      print('Error searching artists: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Error searching artists: $e'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _saveSelections() {
+    Navigator.of(context).pop(true); // user validated changes
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double sheetHeight =
+        min(screenHeight * 0.5, screenHeight - statusBarHeight - 100);
+
+    final displayedList =
+        _showAll ? _artists : _artists.take(_maxArtistsToShow).toList();
+
+    return Container(
+      height: sheetHeight,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              IconButton(
+                icon: const Icon(Icons.save),
+                onPressed: _saveSelections,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Edit Event Artists',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            decoration: const InputDecoration(
+              labelText: 'Search Artists',
+              suffixIcon: Icon(Icons.search),
+            ),
+            onChanged: (value) {
+              setState(() => _searchQuery = value);
+              _searchArtists();
+            },
+          ),
+          const SizedBox(height: 16),
+          _isLoading
+              ? const CircularProgressIndicator.adaptive()
+              : Expanded(
+                  child: displayedList.isEmpty
+                      ? const Center(child: Text('No artists found.'))
+                      : ListView.builder(
+                          itemCount: displayedList.length +
+                              (_artists.length > _maxArtistsToShow && !_showAll
+                                  ? 1
+                                  : 0),
+                          itemBuilder: (context, index) {
+                            if (index < displayedList.length) {
+                              final artist = displayedList[index];
+                              final isSelected =
+                                  widget.selectedArtists.contains(artist.id);
+
+                              return CheckboxListTile(
+                                value: isSelected,
+                                title: Text(artist.name),
+                                onChanged: (bool? checked) {
+                                  setState(() {
+                                    if (checked == true) {
+                                      widget.selectedArtists.add(artist.id);
+                                    } else {
+                                      widget.selectedArtists.remove(artist.id);
+                                    }
+                                  });
+                                },
+                              );
+                            } else {
+                              // Show more
+                              return TextButton(
+                                onPressed: () =>
+                                    setState(() => _showAll = true),
+                                child: const Text('Show More'),
+                              );
+                            }
+                          },
+                        ),
+                ),
+        ],
       ),
     );
   }
