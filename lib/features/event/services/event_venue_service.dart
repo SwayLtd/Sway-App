@@ -106,5 +106,47 @@ class EventVenueService {
     }
   }
 
-  // Méthodes pour ajouter, supprimer ou modifier des venues à implémenter plus tard.
+  /// Adds a venue to an event.
+  Future<void> addVenueToEvent(int eventId, int venueId) async {
+    print('Adding venue $venueId to event $eventId');
+    final response = await _supabase.from('event_venue').insert({
+      'event_id': eventId,
+      'venue_id': venueId,
+    }).select(); // Using .select() for confirmation.
+    print('addVenueToEvent Response: $response');
+    if ((response.isEmpty)) {
+      throw Exception('Failed to add venue to event.');
+    }
+  }
+
+  /// Removes a venue from an event.
+  Future<void> removeVenueFromEvent(int eventId, int venueId) async {
+    print('Removing venue $venueId from event $eventId');
+    final response = await _supabase
+        .from('event_venue')
+        .delete()
+        .eq('event_id', eventId)
+        .eq('venue_id', venueId)
+        .select(); // Using .select() for confirmation.
+    print('removeVenueFromEvent Response: $response');
+    if ((response.isEmpty)) {
+      throw Exception('Failed to remove venue from event.');
+    }
+  }
+
+  /// Updates the venue associated with an event.
+  Future<void> updateEventVenue(int eventId, int venueId) async {
+    print('Updating event venue for event $eventId to venue $venueId');
+    // Delete any existing venue entry for the event.
+    await _supabase.from('event_venue').delete().eq('event_id', eventId);
+    // Insert the new venue entry.
+    final response = await _supabase.from('event_venue').insert({
+      'event_id': eventId,
+      'venue_id': venueId,
+    }).select();
+    print('updateEventVenue Response: $response');
+    if ((response.isEmpty)) {
+      throw Exception('Failed to update event venue.');
+    }
+  }
 }

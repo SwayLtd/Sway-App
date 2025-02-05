@@ -43,9 +43,16 @@ class Event {
       imageUrl: json['image_url'] as String? ?? '',
       // distance: json['distance'] as String? ?? '',
       // price: json['price'] as String? ?? '',
-      // promoters: (json['promoters'] as List<dynamic>?)?.map((e) => e as int).toList() ??[],
-      // genres: (json['genres'] as List<dynamic>?)?.map((e) => e as int).toList() ?? [],
-      // artists: (json['artists'] as List<dynamic>?)?.map((e) => e as int).toList() ?? [],
+      promoters: (json['promoters'] as List<dynamic>?)
+              ?.map((e) => e as int)
+              .toList() ??
+          [],
+      genres:
+          (json['genres'] as List<dynamic>?)?.map((e) => e as int).toList() ??
+              [],
+      artists:
+          (json['artists'] as List<dynamic>?)?.map((e) => e as int).toList() ??
+              [],
       interestedUsersCount: json['interested_users_count'] as int?,
     );
   }

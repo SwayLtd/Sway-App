@@ -95,14 +95,12 @@ class EventService {
   }
 
   /// Adds a new event to Supabase.
-  /// Adds a new event to Supabase.
-  Future<void> addEvent(Event event) async {
+  Future<Event> addEvent(Event event) async {
     // Ensure that the event has at least one promoter.
-    if (event.promoters!.isEmpty) {
+    if (event.promoters == null || event.promoters!.isEmpty) {
       throw Exception('No promoter provided for the event.');
     }
-    // Instead of checking event.id (which is null during creation),
-    // check permission on the selected promoter (assume first promoter in the list).
+    // Check permission on the selected promoter (assume first promoter in the list).
     final int promoterId = event.promoters!.first;
     final bool hasPermission =
         await _permissionService.hasPermissionForCurrentUser(
@@ -110,21 +108,26 @@ class EventService {
       'promoter',
       'manager', // User must be at least manager (or admin) on the promoter.
     );
-
+    print('Checking permission for promoter $promoterId: $hasPermission');
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
-
+    // Inserting the event.
+    print('Inserting event: ${event.toJson()}');
     final response =
         await _supabase.from('events').insert(event.toJson()).select().single();
-
-    if (response.isEmpty) {
+    print('Insert response: $response');
+    if ((response is List && response.isEmpty)) {
       throw Exception('Failed to add event.');
     }
+
+    return Event.fromJson(response);
   }
 
   /// Updates an existing event in Supabase.
-  Future<void> updateEvent(Event event) async {
+  /// Au lieu de Future<void>, on peut retourner Future<Event> pour
+  /// récupérer l'Event mis à jour comme vous le faites côté Promoter.
+  Future<Event> updateEvent(Event event) async {
     final bool hasPermission =
         await _permissionService.hasPermissionForCurrentUser(
       event.id!,
@@ -136,14 +139,15 @@ class EventService {
       throw Exception('Permission denied');
     }
 
-    final response = await _supabase
+    final updatedRow = await _supabase
         .from('events')
         .update(event.toJson())
-        .eq('id', event.id!);
+        .eq('id', event.id!)
+        .select()
+        .single();
 
-    if (response.isEmpty) {
-      throw Exception('Failed to update event.');
-    }
+    // Convertir la réponse en Event
+    return Event.fromJson(updatedRow);
   }
 
   /// Deletes an event from Supabase.

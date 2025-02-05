@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Implement event creation
 - Advanced artist editing feature
 - Advanced venue editing feature
 - Advanced promoter editing feature

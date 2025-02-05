@@ -54,6 +54,35 @@ class _EventScreenState extends State<EventScreen> {
       appBar: AppBar(
         title: Text(widget.event.title),
         actions: [
+          FutureBuilder<bool>(
+            future: UserPermissionService()
+                .hasPermissionForCurrentUser(widget.event.id!, 'event', 'edit'),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox.shrink();
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  !snapshot.data!) {
+                return const SizedBox.shrink();
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    final updatedEvent = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            EditEventScreen(event: widget.event),
+                      ),
+                    );
+                    if (updatedEvent != null) {
+                      // Handle the updated event if necessary
+                    }
+                  },
+                );
+              }
+            },
+          ),
           Transform.flip(
             flipX: true,
             child: IconButton(
@@ -141,35 +170,6 @@ class _EventScreenState extends State<EventScreen> {
                 return const IconButton(
                   icon: Icon(Icons.favorite_border),
                   onPressed: null,
-                );
-              }
-            },
-          ),
-          FutureBuilder<bool>(
-            future: UserPermissionService()
-                .hasPermissionForCurrentUser(widget.event.id!, 'event', 'edit'),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              } else if (snapshot.hasError ||
-                  !snapshot.hasData ||
-                  !snapshot.data!) {
-                return const SizedBox.shrink();
-              } else {
-                return IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () async {
-                    final updatedEvent = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            EditEventScreen(event: widget.event),
-                      ),
-                    );
-                    if (updatedEvent != null) {
-                      // Handle the updated event if necessary
-                    }
-                  },
                 );
               }
             },
@@ -357,7 +357,11 @@ class _EventScreenState extends State<EventScreen> {
                 }
               },
             ),
-            InfoCard(title: "Price", content: widget.event.price!),
+            InfoCard(
+              title: "Price",
+              content:
+                  widget.event.price ?? 'N/A', // ou 'Free', ou 'Non Renseigné'
+            ),
             const SizedBox(height: 20),
             Text(
               "ABOUT",

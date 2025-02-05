@@ -35,7 +35,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _selectedGenres = List.from(widget.event.genres!);
     _selectedArtists = List.from(widget.event.artists!);
     _selectedPromoters = List.from(widget.event.promoters!);
-    _selectedType = widget.event.type;
+    _selectedType = widget.event.type.toLowerCase();
   }
 
   @override
@@ -147,23 +147,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
             TextField(
               controller: _priceController,
               decoration: const InputDecoration(labelText: 'Price'),
-            ),
-            const SizedBox(height: 20),
-            DropdownButton<String>(
-              value: _selectedType,
-              onChanged: (String? newValue) {
-                if (!mounted) return;
-                setState(() {
-                  _selectedType = newValue!;
-                });
-              },
-              items: <String>['festival', 'party', 'concert']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
             ),
             const SizedBox(height: 20),
             Wrap(

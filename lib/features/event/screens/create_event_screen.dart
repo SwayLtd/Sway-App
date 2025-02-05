@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/dimensions.dart';
-import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/event/services/event_genre_service.dart';
+import 'package:sway/features/event/services/event_promoter_service.dart';
+import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
@@ -17,7 +19,7 @@ import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/security/services/storage_service.dart';
-import 'package:sway/features/user/services/user_service.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({Key? key}) : super(key: key);
@@ -50,12 +52,18 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   int? _selectedVenue; // Single venue.
   List<int> _selectedGenres = []; // Initialized to an empty list.
 
+  // Service instances.
   final EventService _eventService = EventService();
   final StorageService _storageService = StorageService();
   final PromoterService _promoterService = PromoterService();
   final VenueService _venueService = VenueService();
   final GenreService _genreService = GenreService();
-  final UserService _userService = UserService();
+  final UserPermissionService _permissionService = UserPermissionService();
+
+  // New service instances for join table operations.
+  final EventPromoterService _eventPromoterService = EventPromoterService();
+  final EventGenreService _eventGenreService = EventGenreService();
+  final EventVenueService _eventVenueService = EventVenueService();
 
   final SupabaseClient _supabase = Supabase.instance.client;
 
@@ -65,6 +73,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final pickedFile =
         await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (pickedFile != null) {
+      print('Image picked: ${pickedFile.path}');
       setState(() {
         _selectedImage = File(pickedFile.path);
       });
@@ -73,6 +82,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   /// Uploads the selected image to the "event-images" bucket and returns the public URL.
   Future<String> _uploadImage(int eventId, File imageFile) async {
+    print('Uploading image for event ID: $eventId');
     final fileBytes = await imageFile.readAsBytes();
     final fileExtension = imageFile.path.split('.').last;
     final fileName = "${DateTime.now().millisecondsSinceEpoch}.$fileExtension";
@@ -83,6 +93,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       fileName: filePath,
       fileData: fileBytes,
     );
+    print('Image uploaded. Public URL: $publicUrl');
     return publicUrl;
   }
 
@@ -106,6 +117,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           _selectedStartDate = DateTime(picked.year, picked.month, picked.day,
               pickedTime.hour, pickedTime.minute);
         });
+        print('Start date selected: $_selectedStartDate');
       }
     }
   }
@@ -139,12 +151,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           _selectedEndDate = DateTime(picked.year, picked.month, picked.day,
               pickedTime.hour, pickedTime.minute);
         });
+        print('End date selected: $_selectedEndDate');
       }
     }
   }
 
   /// Submits the form to create a new event.
   Future<void> _submitForm() async {
+    // 1) Validation
     if (!_formKey.currentState!.validate() ||
         _selectedStartDate == null ||
         _selectedEndDate == null ||
@@ -159,70 +173,74 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       );
       return;
     }
-    setState(() {
-      _isSubmitting = true;
-    });
+
+    // 2) Vérifier permission sur le promoter choisi
+    final bool hasPermission =
+        await _permissionService.hasPermissionForCurrentUser(
+      _selectedPromoter!,
+      'promoter',
+      'manager',
+    );
+    if (!hasPermission) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You must manage a promoter to create an event.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
 
     try {
-      // Create event object with temporary empty fields for image and associations.
+      // 3) Créer l'objet Event (sans imageUrl pour le moment)
       final newEvent = Event(
         title: _titleController.text.trim(),
         type: _selectedType,
         dateTime: _selectedStartDate!,
         endDateTime: _selectedEndDate!,
-        venue: _selectedVenue,
         description: _descriptionController.text.trim(),
-        imageUrl: '', // Will be updated after image upload.
-        price: '', // Default empty string.
-        promoters: [_selectedPromoter!],
-        genres: _selectedGenres,
-        artists: [], // Not implemented.
-        interestedUsersCount: 0,
+        imageUrl: '',
+        price: '',
+        promoters: [_selectedPromoter!], // s'il y a besoin de le stocker
       );
 
-      // Add the event.
-      await _eventService.addEvent(newEvent);
+      // 4) Ajouter l'Event dans la table "events"
+      final createdEvent = await _eventService.addEvent(newEvent);
+      print('Created Event: ${createdEvent.toJson()}');
 
-      // For simplicity, we query the event by title and start date (assuming uniqueness).
-      final createdEvents = await _eventService.searchEvents(
-        _titleController.text.trim(),
-        {'date': _selectedStartDate!},
-      );
-      if (createdEvents.isEmpty) {
-        throw Exception('Failed to retrieve the newly created event.');
-      }
-      final createdEvent = createdEvents.first;
-
-      // Upload the event image to "event-images" bucket using the new event's ID.
+      // 5) Uploader l'image
       final imageUrl = await _uploadImage(createdEvent.id!, _selectedImage!);
 
-      // Update the event with the image URL.
-      final updatedEvent = createdEvent.copyWith(imageUrl: imageUrl);
-      await _eventService.updateEvent(updatedEvent);
+      // 6) Mettre à jour l'Event pour lui assigner l'URL
+      //    (Ici on récupère l'Event mis à jour grâce au nouveau EventService.updateEvent)
+      final updatedEvent = await _eventService.updateEvent(
+        createdEvent.copyWith(imageUrl: imageUrl),
+      );
+      print('Updated Event with image URL: ${updatedEvent.toJson()}');
 
-      // Insert join table entries.
-      // Insert into event_promoter.
-      await _supabase.from('event_promoter').insert({
-        'event_id': updatedEvent.id,
-        'promoter_id': _selectedPromoter,
-      });
+      // 7) Gérer les JOINTURES : promoter, venue, genres
+      //    Remarque: si vous souhaitez stocker l'Event->Promoter
+      //    dans la table event_promoter (et pas seulement en "promoters" dans la table events)
+      print('Adding promoter to event...');
+      await _eventPromoterService.addPromoterToEvent(
+        updatedEvent.id!,
+        _selectedPromoter!,
+      );
 
-      // Insert into event_genre (for each selected genre).
-      final genreEntries = _selectedGenres
-          .map((genreId) => {
-                'event_id': updatedEvent.id,
-                'genre_id': genreId,
-              })
-          .toList();
-      if (genreEntries.isNotEmpty) {
-        await _supabase.from('event_genre').insert(genreEntries);
+      print('Adding venue to event...');
+      await _eventVenueService.addVenueToEvent(
+        updatedEvent.id!,
+        _selectedVenue!,
+      );
+
+      if (_selectedGenres.isNotEmpty) {
+        print('Adding genres to event...');
+        for (final genreId in _selectedGenres) {
+          await _eventGenreService.addGenreToEvent(updatedEvent.id!, genreId);
+        }
       }
-
-      // Insert into event_venue.
-      await _supabase.from('event_venue').insert({
-        'event_id': updatedEvent.id,
-        'venue_id': _selectedVenue,
-      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -242,9 +260,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
+        setState(() => _isSubmitting = false);
       }
     }
   }
@@ -268,6 +284,37 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           key: _formKey,
           child: Column(
             children: [
+              // Event image selection and preview.
+              GestureDetector(
+                onTap: _isSubmitting ? null : _pickImage,
+                child: Container(
+                  width: double.infinity,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.grey[200],
+                  ),
+                  child: _selectedImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            _selectedImage!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 150,
+                          ),
+                        )
+                      : const Center(
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.grey,
+                            size: 50,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 20),
               // Title field.
               TextFormField(
                 controller: _titleController,
@@ -370,37 +417,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 },
               ),
               const SizedBox(height: 20),
-              // Event image selection and preview.
-              GestureDetector(
-                onTap: _isSubmitting ? null : _pickImage,
-                child: Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.grey[200],
-                  ),
-                  child: _selectedImage != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            _selectedImage!,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: 150,
-                          ),
-                        )
-                      : const Center(
-                          child: Icon(
-                            Icons.camera_alt,
-                            color: Colors.grey,
-                            size: 50,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 20),
               // Promoter selection (using a bottom sheet).
               ListTile(
                 leading: const Icon(Icons.person),
@@ -419,6 +435,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     setState(() {
                       _selectedPromoter = selected;
                     });
+                    print('Selected promoter ID: $_selectedPromoter');
                   }
                 },
               ),
@@ -441,6 +458,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     setState(() {
                       _selectedVenue = selected;
                     });
+                    print('Selected venue ID: $_selectedVenue');
                   }
                 },
               ),
@@ -472,6 +490,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     setState(() {
                       _selectedGenres = selectedGenres.toList();
                     });
+                    print('Selected genres: $_selectedGenres');
                   }
                 },
               ),
@@ -538,8 +557,9 @@ class _SelectPromoterBottomSheetState extends State<SelectPromoterBottomSheet> {
     });
     try {
       _promoters = await widget.promoterService.getPromoters();
+      print('Fetched promoters: ${_promoters.map((p) => p.id).toList()}');
     } catch (e) {
-      // Handle error if needed.
+      print('Error fetching promoters: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -598,8 +618,9 @@ class _SelectVenueBottomSheetState extends State<SelectVenueBottomSheet> {
     });
     try {
       _venues = await widget.venueService.getVenues();
+      print('Fetched venues: ${_venues.map((v) => v.id).toList()}');
     } catch (e) {
-      // Handle error if needed.
+      print('Error fetching venues: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -687,7 +708,9 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
       setState(() {
         _genres = genres;
       });
+      print('Fetched genres: ${_genres.map((g) => g.id).toList()}');
     } catch (e) {
+      print('Error searching genres: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             behavior: SnackBarBehavior.floating,
@@ -711,7 +734,6 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
     final double screenHeight = MediaQuery.of(context).size.height;
     final double sheetHeight =
         min(screenHeight * 0.5, screenHeight - statusBarHeight - 100);
-
     final List<Genre> genresToDisplay =
         _showAll ? _genres : _genres.take(_maxGenresToShow).toList();
 
@@ -766,7 +788,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
                           itemBuilder: (context, index) {
                             if (index < genresToDisplay.length) {
                               final genre = genresToDisplay[index];
-                              final isSelected =
+                              final bool isSelected =
                                   widget.selectedGenres.contains(genre.id);
                               return CheckboxListTile(
                                 value: isSelected,
