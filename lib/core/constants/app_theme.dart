@@ -379,7 +379,7 @@ class AppTheme {
     ),
     datePickerTheme: DatePickerThemeData(
       backgroundColor: const Color.fromRGBO(15, 13, 8, 1),
-    ),  
+    ),
   );
 }
 

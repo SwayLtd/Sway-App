@@ -16,13 +16,10 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
-- Implement event creation
+- Final event creation adjustments & small changes on other entities creation 
 - Advanced artist editing feature
 - Advanced venue editing feature
 - Advanced promoter editing feature
-- Implement artist creation
-- Implement promoter creation
-- Implement venue creation
 - Username and profile picture editing implementation
 - Enable system-level PDF import into tickets
 - Enhance VenueScreen and PromoterScreen UI/UX

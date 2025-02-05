@@ -168,6 +168,8 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
   /// Construit le formulaire de création de promoter.
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Promoter'),
@@ -185,7 +187,9 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
                   width: 150,
                   height: 150,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                     color: Colors.grey[200],
                   ),
@@ -254,6 +258,12 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
                       )
                     : const Text('Create Promoter'),
                 style: ElevatedButton.styleFrom(
+                  // Couleurs selon le thème
+                  side: BorderSide(
+                      color: isDark ? Colors.white : Colors.black, width: 1),
+                  elevation: isDark ? 2 : 0,
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
                   minimumSize: const Size(double.infinity, 50),
                 ),
               ),
