@@ -2,13 +2,11 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Importez vos services et modèles
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/screens/edit_event_artist_screen.dart';
-import 'package:sway/features/event/services/event_artist_service.dart';
 import 'package:sway/features/event/services/event_genre_service.dart';
 import 'package:sway/features/event/services/event_promoter_service.dart';
 import 'package:sway/features/event/services/event_service.dart';
@@ -62,7 +60,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
   Promoter? _selectedPromoterObj;
   Venue? _selectedVenueObj;
   List<int> _selectedGenres = [];
-  List<int> _selectedArtists = [];
 
   // Services
   final EventService _eventService = EventService();
@@ -77,7 +74,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
   final EventPromoterService _eventPromoterService = EventPromoterService();
   final EventVenueService _eventVenueService = EventVenueService();
   final EventGenreService _eventGenreService = EventGenreService();
-  final EventArtistService _eventArtistService = EventArtistService();
 
   // Liste des promoteurs où l'utilisateur est manager/admin
   List<Promoter> _permittedPromoters = [];
@@ -391,29 +387,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
   }
 
-  /// Mise à jour table event_artist : simple implémentation
-  /// On supprime tout puis on insère une row par artiste
-  Future<void> _updateEventArtists(int eventId, List<int> artistIds) async {
-    // 1) Supprimer tout
-    await Supabase.instance.client
-        .from('event_artist')
-        .delete()
-        .eq('event_id', eventId)
-        .select();
-    // 2) Insérer
-    if (artistIds.isNotEmpty) {
-      final entries = artistIds
-          .map((artistId) => {
-                'event_id': eventId,
-                'artist_id': [artistId],
-                // 'start_time': ... si besoin
-                // 'end_time': ...
-                // 'status': ...
-              })
-          .toList();
-      await Supabase.instance.client.from('event_artist').insert(entries);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

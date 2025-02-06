@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:sway/core/utils/date_utils.dart'; // formatEventDate, formatEventTime
@@ -266,7 +265,6 @@ class _ArtistAssignmentBottomSheetState
   List<Artist> _filteredArtists = [];
   String _searchQuery = '';
   int _maxArtistsToShow = 5;
-  bool _showAll = false;
 
   // Dummy event times – remplacer par les vraies valeurs
   final DateTime _dummyEventStart = DateTime.parse("2025-02-14 19:29:00");
@@ -616,7 +614,6 @@ class _ArtistAssignmentBottomSheetState
                               return TextButton(
                                 onPressed: () {
                                   setState(() {
-                                    _showAll = true;
                                     _maxArtistsToShow = _filteredArtists.length;
                                   });
                                 },
