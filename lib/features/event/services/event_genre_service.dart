@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sway/features/event/models/event_model.dart';
 
 class EventGenreService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -17,6 +18,46 @@ class EventGenreService {
       return response.map<int>((entry) => entry['genre_id'] as int).toList();
     } catch (e) {
       print('Error in getGenresByEventId: $e');
+      rethrow;
+    }
+  }
+
+  /// Retrieves a list of upcoming events associated with a given genre.
+  Future<List<Event>> getUpcomingEventsByGenreId(int genreId) async {
+    try {
+      // Retrieve event IDs linked to the specified genre from the event_genre table.
+      final response = await _supabase
+          .from('event_genre')
+          .select('event_id')
+          .eq('genre_id', genreId);
+
+      if ((response as List).isEmpty) {
+        return [];
+      }
+
+      // Extract event IDs from the response.
+      final List<int> eventIds =
+          response.map<int>((json) => json['event_id'] as int).toList();
+
+      // Retrieve the events corresponding to the collected event IDs,
+      // filtering to return only upcoming events (date_time greater than now).
+      final nowIso = DateTime.now().toIso8601String();
+      final eventsResponse = await _supabase
+          .from('events')
+          .select()
+          .filter('id', 'in', eventIds)
+          .gte('date_time', nowIso);
+
+      if ((eventsResponse as List).isEmpty) {
+        return [];
+      }
+
+      // Convert the list of JSON objects into a list of Event objects.
+      return eventsResponse
+          .map<Event>((json) => Event.fromJson(json))
+          .toList();
+    } catch (e) {
+      print('Error in getUpcomingEventsByGenreId: $e');
       rethrow;
     }
   }

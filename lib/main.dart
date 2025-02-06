@@ -13,7 +13,6 @@ import 'package:sway/core/services/pdf_service.dart';
 import 'package:sway/features/notification/services/notification_service.dart';
 import 'package:sway/features/security/utils/security_utils.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-// import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sway/features/user/services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -24,7 +23,6 @@ Future<void> main() async {
   await dotenv.load();
 
   DatabaseService().initialize();
-  // await Hive.initFlutter();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
