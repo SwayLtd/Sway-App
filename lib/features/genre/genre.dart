@@ -25,7 +25,7 @@ class GenreScreen extends StatefulWidget {
 }
 
 class _GenreScreenState extends State<GenreScreen> {
-  // Initially set to a default value; it will be updated once the genre data is fetched.
+  // Initial app bar title; will be updated once data is fetched.
   String genreName = 'Genre';
 
   late Future<Genre?> _genreFuture;
@@ -35,21 +35,35 @@ class _GenreScreenState extends State<GenreScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch genre details
+    _fetchData();
+  }
+
+  // Method to (re)initialize all futures.
+  void _fetchData() {
     _genreFuture = GenreService().getGenreById(widget.genreId);
-    // Fetch upcoming events related to this genre.
     _genreEventsFuture =
         EventGenreService().getUpcomingEventsByGenreId(widget.genreId);
-    // Fetch top artists for this genre.
     _topArtistsFuture = ArtistService().getTopArtistsByGenreId(widget.genreId);
+  }
+
+  // Refresh callback for RefreshIndicator.
+  Future<void> _refreshData() async {
+    setState(() {
+      _fetchData();
+    });
+    // Optionally, wait for all futures to complete.
+    await Future.wait([
+      _genreFuture,
+      _genreEventsFuture,
+      _topArtistsFuture,
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Utilisation de genreName qui sera mis à jour dès que les données seront disponibles.
-        title: Text('$genreName'),
+        title: Text(genreName),
         actions: [
           // Share button
           Transform.flip(
@@ -66,283 +80,287 @@ class _GenreScreenState extends State<GenreScreen> {
         ],
       ),
       body: SafeArea(
-        child: FutureBuilder<Genre?>(
-          future: _genreFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator.adaptive());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Center(child: Text('Genre not found'));
-            } else {
-              final genre = snapshot.data!;
-              // Update the app bar title if needed.
-              if (genreName == 'Genre') {
-                // Schedule the update after the frame is built.
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  setState(() {
-                    genreName = genre.name;
+        child: RefreshIndicator(
+          onRefresh: _refreshData,
+          child: FutureBuilder<Genre?>(
+            future: _genreFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                    child: CircularProgressIndicator.adaptive());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data == null) {
+                return const Center(child: Text('Genre not found'));
+              } else {
+                final genre = snapshot.data!;
+                // Update the app bar title if it hasn't been updated yet.
+                if (genreName == 'Genre') {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    setState(() {
+                      genreName = genre.name;
+                    });
                   });
-                });
-              }
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Genre Title in body (redondant si l'app bar affiche le nom, à ajuster selon vos besoins)
-                    Text(
-                      genre.name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                }
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Genre title in the body.
+                      Text(
+                        genre.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    // Followers count widget
-                    FollowersCountWidget(
-                        entityId: widget.genreId, entityType: 'genre'),
-                    const SizedBox(height: 20),
-                    // About section with genre description
-                    const Text(
-                      "ABOUT",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(genre.description),
-                    const SizedBox(height: 20),
-                    // Upcoming Events section related to the genre
-                    FutureBuilder<List<Event>>(
-                      future: _genreEventsFuture,
-                      builder: (context, eventSnapshot) {
-                        if (eventSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                              child: CircularProgressIndicator.adaptive());
-                        } else if (eventSnapshot.hasError) {
-                          return Center(
-                              child: Text('Error: ${eventSnapshot.error}'));
-                        } else if (!eventSnapshot.hasData ||
-                            eventSnapshot.data!.isEmpty) {
-                          return const Center(
-                              child: Text('No events found for this genre'));
-                        } else {
-                          final events = eventSnapshot.data!;
-                          const int displayCount = 5;
-                          final List<Event> displayEvents =
-                              events.length > displayCount
-                                  ? events.sublist(0, displayCount)
-                                  : events;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Header row with customized title in uppercase and ellipsis.
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "${genreName.toUpperCase()} UPCOMING EVENTS",
-                                    style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  if (events.length > displayCount)
-                                    IconButton(
-                                      icon: const Icon(Icons.arrow_forward),
-                                      onPressed: () {
-                                        final List<Event> modalEvents =
-                                            events.length > 10
-                                                ? events.sublist(0, 10)
-                                                : events;
-                                        showEventModalBottomSheet(
-                                            context, modalEvents);
-                                      },
+                      const SizedBox(height: 10),
+                      // Followers count widget.
+                      FollowersCountWidget(
+                          entityId: widget.genreId, entityType: 'genre'),
+                      const SizedBox(height: 20),
+                      // About section with genre description.
+                      const Text(
+                        "ABOUT",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(genre.description),
+                      const SizedBox(height: 20),
+                      // Upcoming Events section related to the genre.
+                      FutureBuilder<List<Event>>(
+                        future: _genreEventsFuture,
+                        builder: (context, eventSnapshot) {
+                          if (eventSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator.adaptive());
+                          } else if (eventSnapshot.hasError) {
+                            return Center(
+                                child: Text('Error: ${eventSnapshot.error}'));
+                          } else if (!eventSnapshot.hasData ||
+                              eventSnapshot.data!.isEmpty) {
+                            return const Center(
+                                child: Text('No events found for this genre'));
+                          } else {
+                            final events = eventSnapshot.data!;
+                            const int displayCount = 5;
+                            final List<Event> displayEvents =
+                                events.length > displayCount
+                                    ? events.sublist(0, displayCount)
+                                    : events;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Header row with customized title.
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "${genreName.toUpperCase()} UPCOMING EVENTS",
+                                      style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              // Horizontal list of event cards
-                              SizedBox(
-                                height:
-                                    258, // Fixed height for the horizontal list
-                                child: ListView.builder(
+                                    if (events.length > displayCount)
+                                      IconButton(
+                                        icon: const Icon(Icons.arrow_forward),
+                                        onPressed: () {
+                                          final List<Event> modalEvents =
+                                              events.length > 10
+                                                  ? events.sublist(0, 10)
+                                                  : events;
+                                          showEventModalBottomSheet(
+                                              context, modalEvents);
+                                        },
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                // Horizontal list of event cards.
+                                SizedBox(
+                                  height: 258,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: displayEvents.length,
+                                    itemBuilder: (context, index) {
+                                      final event = displayEvents[index];
+                                      return Container(
+                                        width: 320,
+                                        margin:
+                                            const EdgeInsets.only(right: 16.0),
+                                        child: EventCardItemWidget(
+                                          event: event,
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EventScreen(event: event),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      // Top Artists section with modal bottom sheet.
+                      FutureBuilder<List<Artist>>(
+                        future: _topArtistsFuture,
+                        builder: (context, artistSnapshot) {
+                          if (artistSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator.adaptive());
+                          } else if (artistSnapshot.hasError) {
+                            return Center(
+                                child: Text('Error: ${artistSnapshot.error}'));
+                          } else if (!artistSnapshot.hasData ||
+                              artistSnapshot.data!.isEmpty) {
+                            return const Center(
+                                child: Text('No artists found'));
+                          } else {
+                            final artists = artistSnapshot.data!;
+                            const int displayCount = 5;
+                            final List<Artist> displayArtists =
+                                artists.length > displayCount
+                                    ? artists.sublist(0, displayCount)
+                                    : artists;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      "TOP ARTISTS",
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    if (artists.length > displayCount)
+                                      IconButton(
+                                        icon: const Icon(Icons.arrow_forward),
+                                        onPressed: () {
+                                          final List<Artist> modalArtists =
+                                              artists.length > 10
+                                                  ? artists.sublist(0, 10)
+                                                  : artists;
+                                          showArtistModalBottomSheet(
+                                              context, modalArtists);
+                                        },
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: displayEvents.length,
-                                  itemBuilder: (context, index) {
-                                    final event = displayEvents[index];
-                                    return Container(
-                                      width:
-                                          320, // Fixed width to avoid infinite constraints
-                                      margin:
-                                          const EdgeInsets.only(right: 16.0),
-                                      child: EventCardItemWidget(
-                                        event: event,
+                                  child: Row(
+                                    children: displayArtists.map((artist) {
+                                      return GestureDetector(
                                         onTap: () {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) =>
-                                                  EventScreen(event: event),
+                                                  ArtistScreen(
+                                                      artistId: artist.id),
                                             ),
                                           );
                                         },
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    // TOP ARTISTS section with arrow to show more via modal bottom sheet.
-                    FutureBuilder<List<Artist>>(
-                      future: _topArtistsFuture,
-                      builder: (context, artistSnapshot) {
-                        if (artistSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                              child: CircularProgressIndicator.adaptive());
-                        } else if (artistSnapshot.hasError) {
-                          return Center(
-                              child: Text('Error: ${artistSnapshot.error}'));
-                        } else if (!artistSnapshot.hasData ||
-                            artistSnapshot.data!.isEmpty) {
-                          return const Center(child: Text('No artists found'));
-                        } else {
-                          final artists = artistSnapshot.data!;
-                          const int displayCount = 5;
-                          final List<Artist> displayArtists =
-                              artists.length > displayCount
-                                  ? artists.sublist(0, displayCount)
-                                  : artists;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    "TOP ARTISTS",
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  if (artists.length > displayCount)
-                                    IconButton(
-                                      icon: const Icon(Icons.arrow_forward),
-                                      onPressed: () {
-                                        final List<Artist> modalArtists =
-                                            artists.length > 10
-                                                ? artists.sublist(0, 10)
-                                                : artists;
-                                        showArtistModalBottomSheet(
-                                            context, modalArtists);
-                                      },
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: displayArtists.map((artist) {
-                                    return GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ArtistScreen(
-                                                artistId: artist.id),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            children: [
+                                              // Use ImageWithErrorHandler for artist image.
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onPrimary
+                                                        .withOpacity(0.5),
+                                                    width: 2.0,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  child: ImageWithErrorHandler(
+                                                    imageUrl: artist.imageUrl,
+                                                    width: 100,
+                                                    height: 100,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 5),
+                                              Text(artist.name),
+                                            ],
                                           ),
-                                        );
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Column(
-                                          children: [
-                                            // Use ImageWithErrorHandler for artist image
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                border: Border.all(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onPrimary
-                                                      .withOpacity(0.5),
-                                                  width: 2.0,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                                child: ImageWithErrorHandler(
-                                                  imageUrl: artist.imageUrl,
-                                                  width: 100,
-                                                  height: 100,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 5),
-                                            Text(artist.name),
-                                          ],
                                         ),
-                                      ),
-                                    );
-                                  }).toList(),
+                                      );
+                                    }).toList(),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    // Suggested Playlists placeholder
-                    const Text(
-                      "SUGGESTED PLAYLISTS",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.construction,
-                          color: Colors.grey,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Feature coming soon',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                              fontStyle: FontStyle.italic,
-                            ),
-                            textAlign: TextAlign.left,
+                              ],
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      // Suggested Playlists placeholder.
+                      const Text(
+                        "SUGGESTED PLAYLISTS",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.construction,
+                            color: Colors.grey,
+                            size: 24,
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              );
-            }
-          },
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Feature coming soon',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                                fontStyle: FontStyle.italic,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                );
+              }
+            },
+          ),
         ),
       ),
     );
