@@ -16,10 +16,8 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Enhance Artist screen UI/UX
 - Enhance Genre screen UI/UX
-- Integrate artist management system into event editing
-- Advanced event editing feature
-- Final event creation adjustments & small changes on other entities creation
 
 ### Known Issues
 

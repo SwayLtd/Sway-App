@@ -321,6 +321,51 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
   }
 }
 
+/// A square tile displaying an artist's image and name.
+class ArtistTileItemWidget extends StatelessWidget {
+  final Artist artist;
+  final VoidCallback onTap;
+
+  const ArtistTileItemWidget({
+    required this.artist,
+    required this.onTap,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          // Image carrée
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: ImageWithErrorHandler(
+              imageUrl: artist.imageUrl,
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: 4),
+          // Nom de l'artiste centré
+          Container(
+            width: 100,
+            child: Text(
+              artist.name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Widget pour afficher un artiste sous forme de carte avec une image et un titre limité.
 class ArtistCardItemWidget extends StatelessWidget {
   final Artist artist;
