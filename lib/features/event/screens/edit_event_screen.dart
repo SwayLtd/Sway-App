@@ -72,7 +72,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
   final PromoterService _promoterService = PromoterService();
   final VenueService _venueService = VenueService();
   final GenreService _genreService = GenreService();
-  final ArtistService _artistService = ArtistService();
 
   // Services pour join tables
   final EventPromoterService _eventPromoterService = EventPromoterService();
@@ -159,19 +158,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
           await _eventGenreService.getGenresByEventId(widget.event.id!);
       _selectedGenres = genreIds;
 
-      // Artists (event_artist)
-      final artistEntries =
-          await _eventArtistService.getArtistsByEventId(widget.event.id!);
-
-      // On accumule tous les artists dedans
-      final Set<int> artistIds = {};
-      for (final entry in artistEntries) {
-        final List<Artist> artists = entry['artists'] as List<Artist>;
-        for (final a in artists) {
-          artistIds.add(a.id);
-        }
-      }
-      _selectedArtists = artistIds.toList();
+      // Do not load artist assignments here.
     } catch (e) {
       print('Error loading event associations: $e');
     } finally {
@@ -383,12 +370,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
       await _eventGenreService.updateEventGenres(
           finalEvent.id!, _selectedGenres);
 
-      // 4) event_artist => il faut l'implémenter si vous avez la table "event_artist"
-      //    Ici on fait un update complet (on supprime tout puis on insère).
-      //    Comme "getArtistsByEventId" renvoie des "Map", on fait un service custom.
-      //    Ex.:
-      await _updateEventArtists(finalEvent.id!, _selectedArtists);
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Event updated successfully!'),
@@ -414,7 +395,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   /// On supprime tout puis on insère une row par artiste
   Future<void> _updateEventArtists(int eventId, List<int> artistIds) async {
     // 1) Supprimer tout
-    final response = await Supabase.instance.client
+    await Supabase.instance.client
         .from('event_artist')
         .delete()
         .eq('event_id', eventId)
@@ -440,7 +421,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit: ${widget.event.title}'),
+        title: Text('Edit "${widget.event.title}"'),
         actions: [
           // Bouton delete
           IconButton(
@@ -644,6 +625,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
                     // Genres
                     _buildGenresSection(),
+                    const SizedBox(height: 20),
+
+                    // Artists
+                    _buildArtistsSection(),
                     const SizedBox(height: 20),
 
                     // Button update
@@ -906,6 +891,37 @@ class _EditEventScreenState extends State<EditEventScreen> {
     );
   }
 
+  // La fonction _buildArtistsSection() a été remplacée par un bouton :
+  Widget _buildArtistsSection() {
+    return Row(
+      children: [
+        const Icon(Icons.headset_mic),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'Manage Artist Assignments',
+            style: TextStyle(
+              fontSize: 16,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    EditEventArtistsScreen(eventId: widget.event.id!),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   /// Confirmer la suppression
   Future<void> _showDeleteConfirmation() async {
     final bool hasAdmin = await _permissionService.hasPermissionForCurrentUser(
@@ -1086,8 +1102,6 @@ class _EditEventPromoterBottomSheetState
                     itemBuilder: (context, index) {
                       if (index < limitedList.length) {
                         final promoter = limitedList[index];
-                        final bool isSelected =
-                            (_tempSelected?.id == promoter.id);
 
                         // RadioListTile pour mono-sélection
                         return RadioListTile<int>(
@@ -1237,8 +1251,6 @@ class _EditEventVenueBottomSheetState extends State<EditEventVenueBottomSheet> {
                         itemBuilder: (context, index) {
                           if (index < displayedList.length) {
                             final venue = displayedList[index];
-                            final bool isSelected =
-                                (_tempSelectedVenue?.id == venue.id);
 
                             return RadioListTile<int>(
                               title: Text(venue.name),

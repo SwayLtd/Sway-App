@@ -16,12 +16,9 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Integrate artist management system into event editing
 - Advanced event editing feature
-- Final event creation adjustments & small changes on other entities creation 
-- Advanced artist editing feature
-- Advanced venue editing feature
-- Advanced promoter editing feature
-- Username and profile picture editing implementation
+- Final event creation adjustments & small changes on other entities creation
 - Enable system-level PDF import into tickets
 - Enhance VenueScreen and PromoterScreen UI/UX
 

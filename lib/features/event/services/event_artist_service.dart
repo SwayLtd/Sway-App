@@ -15,14 +15,9 @@ class EventArtistService {
   Future<List<Map<String, dynamic>>> getArtistsByEventId(int eventId) async {
     final response =
         await _supabase.from('event_artist').select().eq('event_id', eventId);
-
-    if (response.isEmpty) {
-      return [];
-    }
-
-    // Extract artist IDs
+    if (response.isEmpty) return [];
+    // Extract artist IDs and then map response including unique id.
     final Set<int> artistIds = {};
-
     for (final entry in response) {
       final artistIdField = entry['artist_id'];
       if (artistIdField is int) {
@@ -37,18 +32,13 @@ class EventArtistService {
             .map((id) => int.parse(id.trim()))
             .toList();
         artistIds.addAll(ids);
-      } else {
-        continue;
       }
     }
-
     final List<Artist> artists =
         await _artistService.getArtistsByIds(artistIds.toList());
-
     return response.map<Map<String, dynamic>>((entry) {
       final artistIdField = entry['artist_id'];
       List<Artist> associatedArtists = [];
-
       if (artistIdField is int) {
         associatedArtists =
             artists.where((artist) => artist.id == artistIdField).toList();
@@ -66,8 +56,8 @@ class EventArtistService {
         associatedArtists =
             artists.where((artist) => ids.contains(artist.id)).toList();
       }
-
       return {
+        'id': entry['id'], // Unique assignment id
         'artists': associatedArtists,
         'custom_name': entry['custom_name'] as String?,
         'start_time': entry['start_time'] != null
@@ -82,7 +72,7 @@ class EventArtistService {
     }).toList();
   }
 
-  /// Ajoute une assignation d'artistes à un event.
+  /// Adds a new artist assignment.
   Future<void> addArtistAssignment({
     required int eventId,
     required List<int> artistIds,
@@ -94,8 +84,7 @@ class EventArtistService {
   }) async {
     final entry = {
       'event_id': eventId,
-      'artist_id':
-          artistIds, // La colonne de type int4[] attend un tableau d'entiers
+      'artist_id': artistIds,
       'start_time': startTime.toIso8601String(),
       'end_time': endTime.toIso8601String(),
       'custom_name': customName,
@@ -109,6 +98,7 @@ class EventArtistService {
     }
   }
 
+  /// Updates an existing artist assignment.
   Future<void> updateArtistAssignment({
     required int eventId,
     required int assignmentId,
@@ -120,7 +110,7 @@ class EventArtistService {
     String? stage,
   }) async {
     final entry = {
-      'artist_id': artistIds, // expects an array of integers
+      'artist_id': artistIds,
       'start_time': startTime.toIso8601String(),
       'end_time': endTime.toIso8601String(),
       'custom_name': customName,
@@ -138,6 +128,7 @@ class EventArtistService {
     }
   }
 
+  /// Deletes an artist assignment.
   Future<void> deleteArtistAssignment({
     required int eventId,
     required int assignmentId,
@@ -147,8 +138,10 @@ class EventArtistService {
         .delete()
         .eq('id', assignmentId)
         .eq('event_id', eventId);
-    if (response == null || (response as List).isEmpty) {
-      throw Exception('Failed to delete artist assignment.');
+    // Si response est null ou vide, considérez la suppression comme réussie.
+    if (response == null || (response is List && response.isEmpty)) {
+      print('Assignment deletion: empty response considered as success.');
+      return;
     }
   }
 
