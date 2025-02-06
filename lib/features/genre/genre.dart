@@ -1,6 +1,7 @@
+import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart'; // sectionSpacing & sectionTitleSpacing
 import 'package:sway/core/utils/share_util.dart';
-import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/event/event.dart';
@@ -12,6 +13,7 @@ import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
+import 'package:sway/features/artist/widgets/artist_item_widget.dart'; // Contains ArtistTileItemWidget
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/user/widgets/following_button_widget.dart';
 
@@ -25,7 +27,6 @@ class GenreScreen extends StatefulWidget {
 }
 
 class _GenreScreenState extends State<GenreScreen> {
-  // Initial app bar title; will be updated once data is fetched.
   String genreName = 'Genre';
 
   late Future<Genre?> _genreFuture;
@@ -38,7 +39,7 @@ class _GenreScreenState extends State<GenreScreen> {
     _fetchData();
   }
 
-  // Method to (re)initialize all futures.
+  // Initializes all futures.
   void _fetchData() {
     _genreFuture = GenreService().getGenreById(widget.genreId);
     _genreEventsFuture =
@@ -46,17 +47,37 @@ class _GenreScreenState extends State<GenreScreen> {
     _topArtistsFuture = ArtistService().getTopArtistsByGenreId(widget.genreId);
   }
 
-  // Refresh callback for RefreshIndicator.
   Future<void> _refreshData() async {
     setState(() {
       _fetchData();
     });
-    // Optionally, wait for all futures to complete.
     await Future.wait([
       _genreFuture,
       _genreEventsFuture,
       _topArtistsFuture,
     ]);
+  }
+
+  /// Builds a section title with a right arrow if there are more items.
+  Widget _buildSectionTitle(String title, bool hasMore, VoidCallback onMore) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        mainAxisAlignment:
+            hasMore ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          if (hasMore)
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: onMore,
+            ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -65,7 +86,7 @@ class _GenreScreenState extends State<GenreScreen> {
       appBar: AppBar(
         title: Text(genreName),
         actions: [
-          // Share button
+          // Share button.
           Transform.flip(
             flipX: true,
             child: IconButton(
@@ -75,7 +96,7 @@ class _GenreScreenState extends State<GenreScreen> {
               },
             ),
           ),
-          // Following button
+          // Following button.
           FollowingButtonWidget(entityId: widget.genreId, entityType: 'genre'),
         ],
       ),
@@ -94,7 +115,6 @@ class _GenreScreenState extends State<GenreScreen> {
                 return const Center(child: Text('Genre not found'));
               } else {
                 final genre = snapshot.data!;
-                // Update the app bar title if it hasn't been updated yet.
                 if (genreName == 'Genre') {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     setState(() {
@@ -112,25 +132,34 @@ class _GenreScreenState extends State<GenreScreen> {
                       Text(
                         genre.name,
                         style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            fontSize: 24, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       // Followers count widget.
                       FollowersCountWidget(
                           entityId: widget.genreId, entityType: 'genre'),
-                      const SizedBox(height: 20),
-                      // About section with genre description.
-                      const Text(
-                        "ABOUT",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(genre.description),
-                      const SizedBox(height: 20),
-                      // Upcoming Events section related to the genre.
+                      const SizedBox(height: sectionSpacing),
+                      // ABOUT section with description (if available).
+                      if (genre.description.isNotEmpty) ...[
+                        const Text(
+                          "ABOUT",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: sectionTitleSpacing),
+                        Container(
+                          width: MediaQuery.of(context).size.width - 32,
+                          child: ExpandableText(
+                            genre.description,
+                            expandText: 'show more',
+                            collapseText: 'show less',
+                            maxLines: 3,
+                            linkColor: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: sectionSpacing),
+                      ],
+                      // UPCOMING EVENTS section.
                       FutureBuilder<List<Event>>(
                         future: _genreEventsFuture,
                         builder: (context, eventSnapshot) {
@@ -143,19 +172,23 @@ class _GenreScreenState extends State<GenreScreen> {
                                 child: Text('Error: ${eventSnapshot.error}'));
                           } else if (!eventSnapshot.hasData ||
                               eventSnapshot.data!.isEmpty) {
-                            return const Center(
-                                child: Text('No events found for this genre'));
+                            return const SizedBox.shrink();
                           } else {
                             final events = eventSnapshot.data!;
+                            final now = DateTime.now();
+                            final upcomingEvents = events
+                                .where((e) => e.dateTime.isAfter(now))
+                                .toList();
+                            if (upcomingEvents.isEmpty)
+                              return const SizedBox.shrink();
                             const int displayCount = 5;
                             final List<Event> displayEvents =
-                                events.length > displayCount
-                                    ? events.sublist(0, displayCount)
-                                    : events;
+                                upcomingEvents.length > displayCount
+                                    ? upcomingEvents.sublist(0, displayCount)
+                                    : upcomingEvents;
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Header row with customized title.
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -168,22 +201,17 @@ class _GenreScreenState extends State<GenreScreen> {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    if (events.length > displayCount)
+                                    if (upcomingEvents.length > displayCount)
                                       IconButton(
                                         icon: const Icon(Icons.arrow_forward),
                                         onPressed: () {
-                                          final List<Event> modalEvents =
-                                              events.length > 10
-                                                  ? events.sublist(0, 10)
-                                                  : events;
                                           showEventModalBottomSheet(
-                                              context, modalEvents);
+                                              context, upcomingEvents);
                                         },
                                       ),
                                   ],
                                 ),
-                                const SizedBox(height: 10),
-                                // Horizontal list of event cards.
+                                const SizedBox(height: sectionTitleSpacing),
                                 SizedBox(
                                   height: 258,
                                   child: ListView.builder(
@@ -191,33 +219,35 @@ class _GenreScreenState extends State<GenreScreen> {
                                     itemCount: displayEvents.length,
                                     itemBuilder: (context, index) {
                                       final event = displayEvents[index];
-                                      return Container(
-                                        width: 320,
-                                        margin:
+                                      return Padding(
+                                        padding:
                                             const EdgeInsets.only(right: 16.0),
-                                        child: EventCardItemWidget(
-                                          event: event,
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EventScreen(event: event),
-                                              ),
-                                            );
-                                          },
+                                        child: SizedBox(
+                                          width: 320,
+                                          child: EventCardItemWidget(
+                                            event: event,
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventScreen(event: event),
+                                                ),
+                                              );
+                                            },
+                                          ),
                                         ),
                                       );
                                     },
                                   ),
                                 ),
+                                const SizedBox(height: sectionSpacing),
                               ],
                             );
                           }
                         },
                       ),
-                      const SizedBox(height: 20),
-                      // Top Artists section with modal bottom sheet.
+                      // TOP ARTISTS section: display up to 5 ArtistTileItemWidget; modal if more.
                       FutureBuilder<List<Artist>>(
                         future: _topArtistsFuture,
                         builder: (context, artistSnapshot) {
@@ -230,118 +260,68 @@ class _GenreScreenState extends State<GenreScreen> {
                                 child: Text('Error: ${artistSnapshot.error}'));
                           } else if (!artistSnapshot.hasData ||
                               artistSnapshot.data!.isEmpty) {
-                            return const Center(
-                                child: Text('No artists found'));
+                            return const SizedBox.shrink();
                           } else {
                             final artists = artistSnapshot.data!;
-                            const int displayCount = 5;
-                            final List<Artist> displayArtists =
-                                artists.length > displayCount
-                                    ? artists.sublist(0, displayCount)
-                                    : artists;
+                            final bool hasMore = artists.length > 5;
+                            final displayArtists =
+                                hasMore ? artists.sublist(0, 5) : artists;
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      "TOP ARTISTS",
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    if (artists.length > displayCount)
-                                      IconButton(
-                                        icon: const Icon(Icons.arrow_forward),
-                                        onPressed: () {
-                                          final List<Artist> modalArtists =
-                                              artists.length > 10
-                                                  ? artists.sublist(0, 10)
-                                                  : artists;
-                                          showArtistModalBottomSheet(
-                                              context, modalArtists);
-                                        },
-                                      ),
-                                  ],
+                                _buildSectionTitle(
+                                  "TOP ARTISTS",
+                                  hasMore,
+                                  () => showArtistModalBottomSheet(
+                                      context, artists),
                                 ),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: sectionTitleSpacing),
                                 SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
                                   child: Row(
                                     children: displayArtists.map((artist) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ArtistScreen(
-                                                      artistId: artist.id),
-                                            ),
-                                          );
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            children: [
-                                              // Use ImageWithErrorHandler for artist image.
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onPrimary
-                                                        .withOpacity(0.5),
-                                                    width: 2.0,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  child: ImageWithErrorHandler(
-                                                    imageUrl: artist.imageUrl,
-                                                    width: 100,
-                                                    height: 100,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                ),
+                                      return Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: ArtistTileItemWidget(
+                                          artist: artist,
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ArtistScreen(
+                                                        artistId: artist.id),
                                               ),
-                                              const SizedBox(height: 5),
-                                              Text(artist.name),
-                                            ],
-                                          ),
+                                            );
+                                          },
                                         ),
                                       );
                                     }).toList(),
                                   ),
                                 ),
+                                const SizedBox(height: sectionSpacing),
                               ],
                             );
                           }
                         },
                       ),
-                      const SizedBox(height: 20),
                       // Suggested Playlists placeholder.
                       const Text(
                         "SUGGESTED PLAYLISTS",
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
+                        children: const [
+                          Icon(
                             Icons.construction,
                             color: Colors.grey,
                             size: 24,
                           ),
-                          const SizedBox(width: 8),
-                          const Expanded(
+                          SizedBox(width: 8),
+                          Expanded(
                             child: Text(
                               'Feature coming soon',
                               style: TextStyle(
@@ -354,7 +334,7 @@ class _GenreScreenState extends State<GenreScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: sectionSpacing),
                     ],
                   ),
                 );
