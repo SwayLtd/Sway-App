@@ -7,7 +7,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.4.9+10 # Merge ProfileScreen into UserScreen and update routes
+version: 0.4.9+11 # Reorder Events sections above moods in UserScreen
 
 environment:
   sdk: ">=2.18.5 <4.0.0"

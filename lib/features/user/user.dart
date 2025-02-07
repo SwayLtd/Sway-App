@@ -232,6 +232,136 @@ class _UserScreenState extends State<UserScreen> {
                         entityType: 'user',
                       ),
                       const SizedBox(height: sectionSpacing),
+                      // UPCOMING EVENTS Section (Interested events)
+                      FutureBuilder<List<Event>>(
+                        future: _upcomingEventsFuture,
+                        builder: (context, eventSnapshot) {
+                          if (eventSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator.adaptive());
+                          } else if (eventSnapshot.hasError ||
+                              !eventSnapshot.hasData ||
+                              eventSnapshot.data!.isEmpty) {
+                            return const SizedBox.shrink();
+                          } else {
+                            final events = eventSnapshot.data!;
+                            const int displayCount = 5;
+                            final bool hasMore = events.length > displayCount;
+                            final displayEvents = hasMore
+                                ? events.sublist(0, displayCount)
+                                : events;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle(
+                                  "UPCOMING EVENTS",
+                                  hasMore,
+                                  () => showEventModalBottomSheet(
+                                      context, events),
+                                ),
+                                const SizedBox(height: sectionTitleSpacing),
+                                SizedBox(
+                                  height: 258,
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: displayEvents.length,
+                                    itemBuilder: (context, index) {
+                                      final event = displayEvents[index];
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 16.0),
+                                        child: SizedBox(
+                                          width: 320,
+                                          child: EventCardItemWidget(
+                                            event: event,
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventScreen(event: event),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: sectionSpacing),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+                      // ATTENDED EVENTS Section (Past events)
+                      FutureBuilder<List<Event>>(
+                        future: _attendedEventsFuture,
+                        builder: (context, eventSnapshot) {
+                          if (eventSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator.adaptive());
+                          } else if (eventSnapshot.hasError ||
+                              !eventSnapshot.hasData ||
+                              eventSnapshot.data!.isEmpty) {
+                            return const SizedBox.shrink();
+                          } else {
+                            final events = eventSnapshot.data!;
+                            const int displayCount = 5;
+                            final bool hasMore = events.length > displayCount;
+                            final List<Event> displayEvents = hasMore
+                                ? events.sublist(0, displayCount)
+                                : events;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle(
+                                  "ATTENDED EVENTS",
+                                  hasMore,
+                                  () => showEventModalBottomSheet(
+                                      context, events),
+                                ),
+                                const SizedBox(height: sectionTitleSpacing),
+                                SizedBox(
+                                  height: 258,
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: displayEvents.length,
+                                    itemBuilder: (context, index) {
+                                      final event = displayEvents[index];
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 16.0),
+                                        child: SizedBox(
+                                          width: 320,
+                                          child: EventCardItemWidget(
+                                            event: event,
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventScreen(event: event),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: sectionSpacing),
+                              ],
+                            );
+                          }
+                        },
+                      ),
                       // GENRES Section
                       FutureBuilder<List<Genre>>(
                         future: _followedGenresFuture,
@@ -453,136 +583,6 @@ class _UserScreenState extends State<UserScreen> {
                                         ),
                                       );
                                     }).toList(),
-                                  ),
-                                ),
-                                const SizedBox(height: sectionSpacing),
-                              ],
-                            );
-                          }
-                        },
-                      ),
-                      // UPCOMING EVENTS Section (Interested events)
-                      FutureBuilder<List<Event>>(
-                        future: _upcomingEventsFuture,
-                        builder: (context, eventSnapshot) {
-                          if (eventSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator.adaptive());
-                          } else if (eventSnapshot.hasError ||
-                              !eventSnapshot.hasData ||
-                              eventSnapshot.data!.isEmpty) {
-                            return const SizedBox.shrink();
-                          } else {
-                            final events = eventSnapshot.data!;
-                            const int displayCount = 5;
-                            final bool hasMore = events.length > displayCount;
-                            final displayEvents = hasMore
-                                ? events.sublist(0, displayCount)
-                                : events;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildSectionTitle(
-                                  "UPCOMING EVENTS",
-                                  hasMore,
-                                  () => showEventModalBottomSheet(
-                                      context, events),
-                                ),
-                                const SizedBox(height: sectionTitleSpacing),
-                                SizedBox(
-                                  height: 258,
-                                  child: ListView.builder(
-                                    shrinkWrap: true,
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: displayEvents.length,
-                                    itemBuilder: (context, index) {
-                                      final event = displayEvents[index];
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 16.0),
-                                        child: SizedBox(
-                                          width: 320,
-                                          child: EventCardItemWidget(
-                                            event: event,
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      EventScreen(event: event),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(height: sectionSpacing),
-                              ],
-                            );
-                          }
-                        },
-                      ),
-                      // ATTENDED EVENTS Section (Past events)
-                      FutureBuilder<List<Event>>(
-                        future: _attendedEventsFuture,
-                        builder: (context, eventSnapshot) {
-                          if (eventSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator.adaptive());
-                          } else if (eventSnapshot.hasError ||
-                              !eventSnapshot.hasData ||
-                              eventSnapshot.data!.isEmpty) {
-                            return const SizedBox.shrink();
-                          } else {
-                            final events = eventSnapshot.data!;
-                            const int displayCount = 5;
-                            final bool hasMore = events.length > displayCount;
-                            final List<Event> displayEvents = hasMore
-                                ? events.sublist(0, displayCount)
-                                : events;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildSectionTitle(
-                                  "ATTENDED EVENTS",
-                                  hasMore,
-                                  () => showEventModalBottomSheet(
-                                      context, events),
-                                ),
-                                const SizedBox(height: sectionTitleSpacing),
-                                SizedBox(
-                                  height: 258,
-                                  child: ListView.builder(
-                                    shrinkWrap: true,
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: displayEvents.length,
-                                    itemBuilder: (context, index) {
-                                      final event = displayEvents[index];
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 16.0),
-                                        child: SizedBox(
-                                          width: 320,
-                                          child: EventCardItemWidget(
-                                            event: event,
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      EventScreen(event: event),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      );
-                                    },
                                   ),
                                 ),
                                 const SizedBox(height: sectionSpacing),
