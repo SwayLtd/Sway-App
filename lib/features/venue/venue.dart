@@ -1,5 +1,3 @@
-// lib/features/venue/venue.dart
-
 import 'package:flutter/material.dart';
 import 'package:expandable_text/expandable_text.dart';
 import 'package:sway/core/constants/dimensions.dart';
@@ -8,6 +6,7 @@ import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/widgets/artist_item_widget.dart';
+import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
 import 'package:sway/features/event/widgets/info_card.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
@@ -25,8 +24,8 @@ import 'package:sway/features/venue/services/venue_genre_service.dart';
 import 'package:sway/features/venue/services/venue_promoter_service.dart';
 import 'package:sway/features/venue/services/venue_resident_artists_service.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
-// Correction de l'import
-import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart'; // Import existant
+// Importation du widget map
+import 'package:sway/features/event/widgets/event_location_map_widget.dart';
 
 class VenueScreen extends StatefulWidget {
   final int venueId;
@@ -94,32 +93,29 @@ class _VenueScreenState extends State<VenueScreen> {
             future: UserPermissionService()
                 .hasPermissionForCurrentUser(widget.venueId, 'venue', 'edit'),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              } else if (snapshot.hasError ||
+              if (snapshot.connectionState == ConnectionState.waiting ||
                   !snapshot.hasData ||
-                  !snapshot.data!) {
+                  snapshot.data == false) {
                 return const SizedBox.shrink();
-              } else {
-                return IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () async {
-                    final venue =
-                        await VenueService().getVenueById(widget.venueId);
-                    if (venue != null) {
-                      final updatedVenue = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditVenueScreen(venue: venue),
-                        ),
-                      );
-                      if (updatedVenue != null) {
-                        _refresh();
-                      }
-                    }
-                  },
-                );
               }
+              return IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () async {
+                  final venue =
+                      await VenueService().getVenueById(widget.venueId);
+                  if (venue != null) {
+                    final updatedVenue = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditVenueScreen(venue: venue),
+                      ),
+                    );
+                    if (updatedVenue != null) {
+                      _refresh();
+                    }
+                  }
+                },
+              );
             },
           ),
           FutureBuilder<bool>(
@@ -139,17 +135,14 @@ class _VenueScreenState extends State<VenueScreen> {
               }
             },
           ),
-          // Bouton de Partage
           FutureBuilder<Venue?>(
             future: VenueService().getVenueById(widget.venueId),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                // Afficher rien pendant le chargement
                 return const SizedBox.shrink();
               } else if (snapshot.hasError ||
                   !snapshot.hasData ||
                   snapshot.data == null) {
-                // Afficher rien en cas d'erreur ou si le lieu n'est pas trouvé
                 return const SizedBox.shrink();
               } else {
                 final venue = snapshot.data!;
@@ -158,7 +151,6 @@ class _VenueScreenState extends State<VenueScreen> {
                   child: IconButton(
                     icon: const Icon(Icons.reply),
                     onPressed: () {
-                      // Appeler la fonction de partage avec les paramètres appropriés
                       shareEntity('venue', widget.venueId, venue.name);
                     },
                   ),
@@ -192,7 +184,7 @@ class _VenueScreenState extends State<VenueScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Image
+                      // Image section
                       Center(
                         child: Container(
                           decoration: BoxDecoration(
@@ -200,12 +192,10 @@ class _VenueScreenState extends State<VenueScreen> {
                               color: Theme.of(context)
                                   .colorScheme
                                   .onPrimary
-                                  .withValues(
-                                      alpha: 0.5), // Couleur de la bordure
-                              width: 2.0, // Épaisseur de la bordure
+                                  .withValues(alpha: 0.5),
+                              width: 2.0,
                             ),
-                            borderRadius: BorderRadius.circular(
-                                12), // Coins arrondis de la bordure
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
@@ -263,7 +253,6 @@ class _VenueScreenState extends State<VenueScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Remplacer le Row par un simple Text
                             const Text(
                               "ABOUT",
                               style: TextStyle(
@@ -289,10 +278,8 @@ class _VenueScreenState extends State<VenueScreen> {
                               ConnectionState.waiting) {
                             return const Center(
                                 child: CircularProgressIndicator.adaptive());
-                          } else if (snapshot.hasError) {
-                            return Center(
-                                child: Text('Error: ${snapshot.error}'));
-                          } else if (!snapshot.hasData ||
+                          } else if (snapshot.hasError ||
+                              !snapshot.hasData ||
                               snapshot.data!.isEmpty) {
                             return const SizedBox.shrink();
                           } else {
@@ -328,8 +315,7 @@ class _VenueScreenState extends State<VenueScreen> {
                                 ),
                                 const SizedBox(height: sectionTitleSpacing),
                                 SizedBox(
-                                  height:
-                                      60, // Hauteur fixe adaptée à vos GenreChips
+                                  height: 60,
                                   child: ListView.builder(
                                     scrollDirection: Axis.horizontal,
                                     itemCount: displayCount,
@@ -368,12 +354,10 @@ class _VenueScreenState extends State<VenueScreen> {
                           if (artistSnapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const CircularProgressIndicator.adaptive();
-                          } else if (artistSnapshot.hasError) {
-                            return Text('Error: ${artistSnapshot.error}');
-                          } else if (!artistSnapshot.hasData ||
+                          } else if (artistSnapshot.hasError ||
+                              !artistSnapshot.hasData ||
                               artistSnapshot.data!.isEmpty) {
-                            return const SizedBox
-                                .shrink(); // Ne rien afficher si vide
+                            return const SizedBox.shrink();
                           } else {
                             final artists = artistSnapshot.data!;
                             final bool hasMoreArtists = artists.length > 7;
@@ -409,9 +393,10 @@ class _VenueScreenState extends State<VenueScreen> {
                                 SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
                                   child: Row(
-                                    children: [
-                                      ...displayedArtists.map((artist) {
-                                        return ArtistCardItemWidget(
+                                    children: displayedArtists.map((artist) {
+                                      return Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: ArtistCardItemWidget(
                                           artist: artist,
                                           onTap: () {
                                             Navigator.push(
@@ -423,9 +408,9 @@ class _VenueScreenState extends State<VenueScreen> {
                                               ),
                                             );
                                           },
-                                        );
-                                      }).toList(),
-                                    ],
+                                        ),
+                                      );
+                                    }).toList(),
                                   ),
                                 ),
                                 const SizedBox(height: sectionSpacing),
@@ -442,13 +427,10 @@ class _VenueScreenState extends State<VenueScreen> {
                               ConnectionState.waiting) {
                             return const Center(
                                 child: CircularProgressIndicator.adaptive());
-                          } else if (snapshot.hasError) {
-                            return Center(
-                                child: Text('Error: ${snapshot.error}'));
-                          } else if (!snapshot.hasData ||
+                          } else if (snapshot.hasError ||
+                              !snapshot.hasData ||
                               snapshot.data!.isEmpty) {
-                            return const SizedBox
-                                .shrink(); // Ne rien afficher si vide
+                            return const SizedBox.shrink();
                           } else {
                             final promoters = snapshot.data!;
                             final bool hasMorePromoters = promoters.length > 3;
@@ -493,8 +475,7 @@ class _VenueScreenState extends State<VenueScreen> {
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 PromoterScreen(
-                                              promoterId: promoter.id!,
-                                            ),
+                                                    promoterId: promoter.id!),
                                           ),
                                         );
                                       },
@@ -502,6 +483,32 @@ class _VenueScreenState extends State<VenueScreen> {
                                     );
                                   }).toList(),
                                 ),
+                                const SizedBox(height: sectionSpacing),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+                      // MAP Section
+                      FutureBuilder<Venue?>(
+                        future: _venueFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const SizedBox();
+                          } else if (snapshot.hasError ||
+                              !snapshot.hasData ||
+                              snapshot.data == null) {
+                            return const SizedBox();
+                          } else {
+                            final venue = snapshot.data!;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle("MAP", false, null),
+                                const SizedBox(height: sectionTitleSpacing),
+                                EventLocationMapWidget(
+                                    location: venue.location),
                                 const SizedBox(height: sectionSpacing),
                               ],
                             );
@@ -518,4 +525,27 @@ class _VenueScreenState extends State<VenueScreen> {
       ),
     );
   }
+}
+
+/// Builds a section title with an optional forward arrow.
+/// If [hasMore] is true, an arrow button is displayed on the right that triggers [onMore].
+Widget _buildSectionTitle(String title, bool hasMore, VoidCallback? onMore) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+    child: Row(
+      mainAxisAlignment:
+          hasMore ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+      children: [
+        Text(
+          title.toUpperCase(),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        if (hasMore)
+          IconButton(
+            icon: const Icon(Icons.arrow_forward),
+            onPressed: onMore,
+          ),
+      ],
+    ),
+  );
 }

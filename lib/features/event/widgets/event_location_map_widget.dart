@@ -8,7 +8,7 @@ import 'package:geocoding/geocoding.dart';
 /// A widget that displays a non-interactive OpenStreetMap map with a marker at the event location.
 /// The [location] parameter can be either a coordinate string in the format "latitude,longitude"
 /// or an address that will be converted to coordinates using the geocoding package.
-/// If geocoding fails or no valid coordinates are obtained, an error message is displayed.
+/// If geocoding fails, a styled error message ("Address not compatible") is displayed.
 class EventLocationMapWidget extends StatelessWidget {
   final String location;
   final double zoomLevel;
@@ -21,8 +21,8 @@ class EventLocationMapWidget extends StatelessWidget {
 
   /// Attempts to retrieve a LatLng from the provided [location] string.
   /// If the string contains a comma, it is parsed as "latitude,longitude".
-  /// Otherwise, it calls [locationFromAddress] to geocode the address.
-  /// Throws an exception if no valid coordinates are obtained.
+  /// Otherwise, it uses [locationFromAddress] to geocode the address.
+  /// Throws an exception if no valid coordinates can be obtained.
   Future<LatLng> _getLatLng() async {
     if (location.trim().isEmpty) {
       throw Exception("No location provided.");
@@ -32,7 +32,7 @@ class EventLocationMapWidget extends StatelessWidget {
       try {
         final parts = location.split(',');
         if (parts.length != 2) {
-          throw Exception("Invalid coordinate format.");
+          throw Exception("Invalid location format");
         }
         final lat = double.parse(parts[0].trim());
         final lng = double.parse(parts[1].trim());
@@ -64,16 +64,28 @@ class EventLocationMapWidget extends StatelessWidget {
           );
         }
         if (snapshot.hasError) {
+          // Display a styled error message if geocoding fails.
           return Container(
             height: 200,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.redAccent, width: 2.0),
+              border: Border.all(color: Colors.grey, width: 2.0),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Center(
-              child: Text(
-                "Location not available",
-                style: TextStyle(color: Colors.red, fontSize: 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.grey),
+                  SizedBox(width: 8),
+                  Text(
+                    "Address not compatible",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
               ),
             ),
           );
