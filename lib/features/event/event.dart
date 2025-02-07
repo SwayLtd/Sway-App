@@ -29,6 +29,7 @@ import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/venue.dart';
 import 'package:sway/features/user/widgets/interest_event_button_widget.dart';
+import 'package:sway/features/event/widgets/event_location_map_widget.dart';
 
 class EventScreen extends StatefulWidget {
   final Event event;
@@ -159,7 +160,7 @@ class _EventScreenState extends State<EventScreen> {
                       color: Theme.of(context)
                           .colorScheme
                           .onPrimary
-                          .withOpacity(0.5),
+                          .withValues(alpha: 0.5),
                       width: 2.0,
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -393,6 +394,30 @@ class _EventScreenState extends State<EventScreen> {
                             );
                           }).toList(),
                         ),
+                        const SizedBox(height: sectionSpacing),
+                      ],
+                    );
+                  }
+                },
+              ),
+              // Map section: displays the event location on a map.
+              FutureBuilder<Venue?>(
+                future: _venueFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SizedBox();
+                  } else if (snapshot.hasError ||
+                      !snapshot.hasData ||
+                      snapshot.data == null) {
+                    return const SizedBox();
+                  } else {
+                    final venue = snapshot.data!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle("MAP", false, null),
+                        const SizedBox(height: sectionTitleSpacing),
+                        EventLocationMapWidget(location: venue.location),
                         const SizedBox(height: sectionSpacing),
                       ],
                     );
