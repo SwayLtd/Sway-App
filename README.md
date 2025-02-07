@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Improve UI for PromoterScreen and Artist Tiles
 - Add upcoming events to Venue screen
 - Map section on event and venue detail pages, and other improvements
 - Enhance Event screen UI/UX

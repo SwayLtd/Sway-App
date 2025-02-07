@@ -338,14 +338,20 @@ class ArtistTileItemWidget extends StatelessWidget {
       onTap: onTap,
       child: Column(
         children: [
-          // Image carrée
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: ImageWithErrorHandler(
-              imageUrl: artist.imageUrl,
-              width: 100,
-              height: 100,
-              fit: BoxFit.cover,
+          // Image avec bordure grise uniquement autour de l'image
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: ImageWithErrorHandler(
+                imageUrl: artist.imageUrl,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           const SizedBox(height: 4),

@@ -5,11 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart'; // Import des constantes
 import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
-import 'package:sway/features/artist/widgets/artist_item_widget.dart';
+import 'package:sway/features/artist/widgets/artist_item_widget.dart'; // Contient ArtistTileItemWidget
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
-import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
 import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart';
 import 'package:sway/features/genre/genre.dart';
@@ -39,11 +38,12 @@ class _PromoterScreenState extends State<PromoterScreen> {
   Promoter? _promoter;
   bool _isLoading = true;
   String? _error;
+  // maxEvents peut rester à 2 pour la navigation rapide (dans le header) si nécessaire
   final int maxEvents = 2;
 
   final UserPermissionService _permissionService = UserPermissionService();
 
-  // Méthode pour récupérer les données du promoteur
+  // Récupération des données du promoteur
   Future<void> _fetchPromoterData() async {
     try {
       final promoter =
@@ -79,17 +79,16 @@ class _PromoterScreenState extends State<PromoterScreen> {
       appBar: AppBar(
         title: Text(_promoter != null ? '${_promoter!.name}' : 'Promoter'),
         actions: [
-          // Bouton d'édition conditionnel basé sur les permissions
+          // Bouton d'édition (affiché selon les permissions)
           FutureBuilder<bool>(
             future: _permissionService.hasPermissionForCurrentUser(
               widget.promoterId,
               'promoter',
-              'manager', // 'manager' correspond à 'manager' ou supérieur
+              'manager', // manager ou supérieur
             ),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              } else if (snapshot.hasError ||
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  snapshot.hasError ||
                   !snapshot.hasData ||
                   !snapshot.data!) {
                 return const SizedBox.shrink();
@@ -106,7 +105,6 @@ class _PromoterScreenState extends State<PromoterScreen> {
                         ),
                       );
                       if (updatedPromoter != null) {
-                        // Rafraîchir les données après modification
                         _fetchPromoterData();
                       }
                     }
@@ -115,43 +113,14 @@ class _PromoterScreenState extends State<PromoterScreen> {
               }
             },
           ),
-          // Bouton d'insight (vide pour l'instant)
-          // TODO Implement insights for events
-          /* FutureBuilder<bool>(
-            future: _permissionService.hasPermissionForCurrentUser(
-              widget.promoterId,
-              'promoter',
-              'insight', // À implémenter si nécessaire
-            ),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              } else if (snapshot.hasError ||
-                  !snapshot.hasData ||
-                  !snapshot.data!) {
-                return const SizedBox.shrink();
-              } else {
-                // Implémenter le bouton d'insight si nécessaire
-                return IconButton(
-                  icon: const Icon(Icons.insights),
-                  onPressed: () {
-                    // Action pour le bouton d'insight
-                  },
-                );
-              }
-            },
-          ), */
-          // Bouton de Partage
+          // Bouton de partage
           FutureBuilder<Promoter?>(
             future: PromoterService().getPromoterById(widget.promoterId),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                // Afficher rien pendant le chargement
-                return const SizedBox.shrink();
-              } else if (snapshot.hasError ||
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  snapshot.hasError ||
                   !snapshot.hasData ||
                   snapshot.data == null) {
-                // Afficher rien en cas d'erreur ou si le lieu n'est pas trouvé
                 return const SizedBox.shrink();
               } else {
                 final promoter = snapshot.data!;
@@ -160,7 +129,6 @@ class _PromoterScreenState extends State<PromoterScreen> {
                   child: IconButton(
                     icon: const Icon(Icons.reply),
                     onPressed: () {
-                      // Appeler la fonction de partage avec les paramètres appropriés
                       shareEntity('promoter', widget.promoterId, promoter.name);
                     },
                   ),
@@ -195,12 +163,10 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                 color: Theme.of(context)
                                     .colorScheme
                                     .onPrimary
-                                    .withValues(
-                                        alpha: 0.5), // Couleur de la bordure
-                                width: 2.0, // Épaisseur de la bordure
+                                    .withValues(alpha: 0.5),
+                                width: 2.0,
                               ),
-                              borderRadius:
-                                  BorderRadius.circular(12), // Coins arrondis
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10),
@@ -212,9 +178,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(
-                            height:
-                                sectionTitleSpacing), // Utilisation de la constante
+                        const SizedBox(height: sectionTitleSpacing),
                         // Nom du promoteur
                         Text(
                           _promoter!.name,
@@ -223,18 +187,14 @@ class _PromoterScreenState extends State<PromoterScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(
-                            height:
-                                sectionTitleSpacing), // Utilisation de la constante
+                        const SizedBox(height: sectionTitleSpacing),
                         // Compteur de followers
                         FollowersCountWidget(
                           entityId: widget.promoterId,
                           entityType: 'promoter',
                         ),
-                        const SizedBox(
-                            height:
-                                sectionSpacing), // Utilisation de la constante
-                        // Section "ABOUT" avec condition de visibilité
+                        const SizedBox(height: sectionSpacing),
+                        // Section "ABOUT"
                         if (_promoter!.description.isNotEmpty)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,26 +204,20 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                 style: TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
-                              const SizedBox(
-                                  height:
-                                      sectionTitleSpacing), // Utilisation de la constante
+                              const SizedBox(height: sectionTitleSpacing),
                               ExpandableText(
                                 _promoter!.description,
                                 expandText: 'show more',
                                 collapseText: 'show less',
-                                maxLines:
-                                    3, // Nombre maximal de lignes avant "Show More"
+                                maxLines: 3,
                                 linkColor: Theme.of(context).primaryColor,
                               ),
-                              const SizedBox(
-                                  height:
-                                      sectionSpacing), // Utilisation de la constante
+                              const SizedBox(height: sectionSpacing),
                             ],
-                          ),
-                        // Section "ABOUT" cachée si description est vide ou null
-                        if (_promoter!.description.isEmpty)
+                          )
+                        else
                           const SizedBox.shrink(),
-                        // MOOD Section
+                        // Section "MOOD" (Genres affichés dans un Wrap)
                         FutureBuilder<List<int>>(
                           future: PromoterGenreService()
                               .getGenresByPromoterId(widget.promoterId),
@@ -281,23 +235,20 @@ class _PromoterScreenState extends State<PromoterScreen> {
                             } else {
                               final genres = snapshot.data!;
                               final bool hasMoreGenres = genres.length > 5;
-                              final displayCount =
-                                  hasMoreGenres ? 5 : genres.length;
-
+                              final displayGenres =
+                                  hasMoreGenres ? genres.sublist(0, 5) : genres;
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: hasMoreGenres
-                                        ? MainAxisAlignment.spaceBetween
-                                        : MainAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       const Text(
                                         "MOOD",
                                         style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                       if (hasMoreGenres)
                                         IconButton(
@@ -310,33 +261,25 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: sectionTitleSpacing),
-                                  SizedBox(
-                                    height:
-                                        60, // Hauteur fixe adaptée à vos GenreChips
-                                    child: ListView.builder(
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: displayCount,
-                                      itemBuilder: (context, index) {
-                                        final genreId = genres[index];
-                                        return Padding(
-                                          padding:
-                                              const EdgeInsets.only(right: 8.0),
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      GenreScreen(
-                                                          genreId: genreId),
-                                                ),
-                                              );
-                                            },
-                                            child: GenreChip(genreId: genreId),
-                                          ),
-                                        );
-                                      },
-                                    ),
+                                  Wrap(
+                                    spacing: 8.0,
+                                    runSpacing: 8.0,
+                                    children: displayGenres
+                                        .map((genreId) => GestureDetector(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        GenreScreen(
+                                                            genreId: genreId),
+                                                  ),
+                                                );
+                                              },
+                                              child:
+                                                  GenreChip(genreId: genreId),
+                                            ))
+                                        .toList(),
                                   ),
                                   const SizedBox(height: sectionSpacing),
                                 ],
@@ -344,97 +287,81 @@ class _PromoterScreenState extends State<PromoterScreen> {
                             }
                           },
                         ),
-                        // Section "UPCOMING EVENTS"
-                        Row(
-                          mainAxisAlignment:
-                              _promoter!.upcomingEvents.length > maxEvents
-                                  ? MainAxisAlignment.spaceBetween
-                                  : MainAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "UPCOMING EVENTS",
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            if (_promoter!.upcomingEvents.length > maxEvents)
-                              IconButton(
-                                icon: const Icon(Icons.arrow_forward),
-                                onPressed: () async {
-                                  // Convertir List<int> en List<Event>
-                                  List<Event> events = await PromoterService()
-                                      .getEventsByIds(
-                                          _promoter!.upcomingEvents);
-                                  showEventModalBottomSheet(context, events);
-                                },
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: sectionTitleSpacing),
-                        _promoter!.upcomingEvents.isEmpty
-                            ? Row(
-                                children: const [
-                                  Icon(Icons.event_busy, color: Colors.grey),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'No upcoming events',
+                        // Section "UPCOMING EVENTS" inspirée de VenueScreen
+                        FutureBuilder<List<Event>>(
+                          future: PromoterService()
+                              .getEventsByIds(_promoter!.upcomingEvents),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const SizedBox();
+                            } else if (snapshot.hasError ||
+                                !snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox();
+                            } else {
+                              final events = snapshot.data!;
+                              final bool hasMore = events.length > 5;
+                              final displayEvents =
+                                  hasMore ? events.sublist(0, 5) : events;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "UPCOMING EVENTS",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontStyle: FontStyle.italic,
-                                      color: Colors.grey,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ],
-                              )
-                            : SizedBox(
-                                height:
-                                    246, // Définissez une hauteur appropriée pour le ListView horizontal
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: _promoter!.upcomingEvents.length >
-                                          maxEvents
-                                      ? maxEvents
-                                      : _promoter!.upcomingEvents.length,
-                                  itemBuilder: (context, index) {
-                                    final eventId =
-                                        _promoter!.upcomingEvents[index];
-                                    return FutureBuilder<Event?>(
-                                      future:
-                                          EventService().getEventById(eventId),
-                                      builder: (context, eventSnapshot) {
-                                        if (eventSnapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return const Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 8.0, horizontal: 8.0),
-                                            child: CircularProgressIndicator
-                                                .adaptive(),
-                                          );
-                                        } else if (eventSnapshot.hasError ||
-                                            !eventSnapshot.hasData ||
-                                            eventSnapshot.data == null) {
-                                          return const SizedBox
-                                              .shrink(); // Ne rien afficher si erreur
-                                        } else {
-                                          final event = eventSnapshot.data!;
-                                          return EventCardItemWidget(
-                                            event: event,
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      EventScreen(event: event),
-                                                ),
-                                              );
-                                            },
-                                          );
-                                        }
+                                  const SizedBox(height: sectionTitleSpacing),
+                                  SizedBox(
+                                    height: 258,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: displayEvents.length,
+                                      itemBuilder: (context, index) {
+                                        final event = displayEvents[index];
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                              right: 16.0),
+                                          child: SizedBox(
+                                            width: 320,
+                                            child: EventCardItemWidget(
+                                              event: event,
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        EventScreen(
+                                                            event: event),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
                                       },
-                                    );
-                                  },
-                                ),
-                              ),
-                        const SizedBox(height: sectionSpacing),
-                        // Section "RESIDENT ARTISTS" avec ArtistItemWidget et icône "Show More" alignée à droite
+                                    ),
+                                  ),
+                                  if (hasMore)
+                                    IconButton(
+                                      icon: const Icon(Icons.arrow_forward),
+                                      onPressed: () {
+                                        showEventModalBottomSheet(
+                                            context, events.take(10).toList());
+                                      },
+                                    ),
+                                  const SizedBox(height: sectionSpacing),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                        // RESIDENT ARTISTS Section
                         FutureBuilder<List<Artist>>(
                           future: PromoterResidentArtistsService()
                               .getArtistsByPromoterId(widget.promoterId),
@@ -442,19 +369,16 @@ class _PromoterScreenState extends State<PromoterScreen> {
                             if (artistSnapshot.connectionState ==
                                 ConnectionState.waiting) {
                               return const CircularProgressIndicator.adaptive();
-                            } else if (artistSnapshot.hasError) {
-                              return Text('Error: ${artistSnapshot.error}');
-                            } else if (!artistSnapshot.hasData ||
+                            } else if (artistSnapshot.hasError ||
+                                !artistSnapshot.hasData ||
                                 artistSnapshot.data!.isEmpty) {
-                              return const SizedBox
-                                  .shrink(); // Ne rien afficher si vide
+                              return const SizedBox.shrink();
                             } else {
                               final artists = artistSnapshot.data!;
-                              final bool hasMoreArtists = artists.length > 7;
+                              final bool hasMoreArtists = artists.length > 5;
                               final displayedArtists = hasMoreArtists
-                                  ? artists.take(7).toList()
+                                  ? artists.take(5).toList()
                                   : artists;
-
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -466,15 +390,16 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                       const Text(
                                         "RESIDENT ARTISTS",
                                         style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold),
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                       if (hasMoreArtists)
                                         IconButton(
                                           icon: const Icon(Icons.arrow_forward),
                                           onPressed: () {
-                                            showArtistModalBottomSheet(
-                                                context, artists);
+                                            showArtistModalBottomSheet(context,
+                                                artists.take(10).toList());
                                           },
                                         ),
                                     ],
@@ -483,9 +408,10 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                   SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
                                     child: Row(
-                                      children: [
-                                        ...displayedArtists.map((artist) {
-                                          return ArtistCardItemWidget(
+                                      children: displayedArtists.map((artist) {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: ArtistTileItemWidget(
                                             artist: artist,
                                             onTap: () {
                                               Navigator.push(
@@ -497,9 +423,9 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                                 ),
                                               );
                                             },
-                                          );
-                                        }).toList(),
-                                      ],
+                                          ),
+                                        );
+                                      }).toList(),
                                     ),
                                   ),
                                   const SizedBox(height: sectionSpacing),

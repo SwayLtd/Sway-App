@@ -377,7 +377,7 @@ class _VenueScreenState extends State<VenueScreen> {
                           }
                         },
                       ),
-                      // UPCOMING EVENTS Section (placed under MOOD)
+                      // UPCOMING EVENTS Section
                       FutureBuilder<List<Map<String, dynamic>>>(
                         future: EventVenueService()
                             .getEventsByVenueId(widget.venueId),
