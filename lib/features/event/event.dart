@@ -189,7 +189,7 @@ class _EventScreenState extends State<EventScreen> {
               const SizedBox(height: sectionSpacing),
               // InfoCard: Date (using formatEventDateRange from date_utils.dart)
               InfoCard(
-                title: "DATE",
+                title: "Date",
                 content:
                     "${formatEventDateRange(_event.dateTime, _event.endDateTime)}",
               ),
@@ -200,12 +200,12 @@ class _EventScreenState extends State<EventScreen> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const InfoCard(
-                        title: "LOCATION", content: 'Loading');
+                        title: "Location", content: 'Loading');
                   } else if (snapshot.hasError ||
                       !snapshot.hasData ||
                       snapshot.data == null) {
                     return const InfoCard(
-                        title: "LOCATION", content: 'Location not found');
+                        title: "Location", content: 'Location not found');
                   } else {
                     final venue = snapshot.data!;
                     return GestureDetector(
@@ -218,7 +218,7 @@ class _EventScreenState extends State<EventScreen> {
                           ),
                         );
                       },
-                      child: InfoCard(title: "LOCATION", content: venue.name),
+                      child: InfoCard(title: "Location", content: venue.name),
                     );
                   }
                 },
