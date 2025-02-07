@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 import 'package:sway/features/settings/settings.dart';
-import 'package:sway/features/user/profile.dart';
+import 'package:sway/features/user/user.dart';
+import 'package:sway/features/user/services/user_service.dart';
 
 class ResetPasswordScreen extends StatelessWidget {
   const ResetPasswordScreen({Key? key}) : super(key: key);
@@ -24,19 +25,23 @@ class ResetPasswordScreen extends StatelessWidget {
               onSuccess: (UserResponse response) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).removeCurrentSnackBar();
-
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Password reset successful'),
+                    behavior: SnackBarBehavior.floating,
                   ),
                 );
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfileScreen(),
-                  ),
-                );
+                // After a successful reset, fetch the current user and redirect to UserScreen.
+                UserService().getCurrentUser().then((user) {
+                  if (user != null) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserScreen(userId: user.id),
+                      ),
+                    );
+                  }
+                });
               },
               onError: (error) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -53,10 +58,10 @@ class ResetPasswordScreen extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SettingsScreen(),
+                    builder: (context) => const SettingsScreen(),
                   ),
                 );
               },

@@ -1,4 +1,4 @@
-// lib/features/user/screens/edit_profile_screen.dart
+// lib/features/user/screens/edit_user_screen.dart
 
 import 'dart:io';
 
@@ -11,16 +11,16 @@ import 'package:sway/features/user/services/auth_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/utils/auth_validator.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditUserScreen extends StatefulWidget {
   final User user;
 
-  const EditProfileScreen({required this.user, Key? key}) : super(key: key);
+  const EditUserScreen({required this.user, Key? key}) : super(key: key);
 
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditProfileScreenState extends State<EditUserScreen> {
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
 
@@ -260,7 +260,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         profilePictureUrl: publicUrl,
       );
 
-      print('Profile Picture Updated in Database');
+      print('User Picture Updated in Database');
 
       // Récupérer le user mis à jour
       final updatedUser = await _userService.getCurrentUser();
@@ -292,7 +292,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: const Text('Edit User'),
         actions: [
           IconButton(
             icon: _isUpdating

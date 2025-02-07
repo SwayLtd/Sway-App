@@ -22,7 +22,7 @@ import 'package:sway/features/user/user.dart';
 import 'package:sway/features/search/search.dart';
 import 'package:sway/features/settings/settings.dart';
 import 'package:sway/features/ticketing/ticketing.dart';
-import 'package:sway/features/user/profile.dart';
+import 'package:sway/features/user/user.dart';
 import 'package:sway/features/user/screens/reset_password_screen.dart';
 import 'package:sway/features/venue/venue.dart';
 
@@ -198,7 +198,7 @@ final GoRouter router = GoRouter(
 
     // Define protected paths that require authentication
     final List<String> protectedPaths = [
-      '/settings/profile',
+      '/settings/user',
       // Add more protected paths if needed
     ];
 
@@ -298,12 +298,18 @@ List<RouteBase> getShellRoutes() {
           return fadeTransitionPage(context, state, route['screen'] as Widget);
         },
         routes: [
-          // Define subroutes if needed, e.g., '/settings/profile'
+          // Define subroutes if needed, e.g., '/settings/user'
           if (route['path'] == '/settings')
             GoRoute(
-              path: 'profile',
-              name: 'Profile',
-              builder: (context, state) => const ProfileScreen(),
+              path: 'user',
+              name: 'User',
+              builder: (context, state) {
+                final currentUser = Supabase.instance.client.auth.currentUser;
+                // Assuming the currentUser.id is stored as an integer string,
+                // otherwise adjust the conversion accordingly.
+                final int userId = int.tryParse(currentUser?.id ?? '') ?? 0;
+                return UserScreen(userId: userId);
+              },
             ),
         ],
       ),

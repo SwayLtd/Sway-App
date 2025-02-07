@@ -11,8 +11,8 @@ import 'package:sway/features/settings/screens/about_screen.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/services/auth_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
+import 'package:sway/features/user/user.dart';
 import 'package:sway/features/user/widgets/auth_modal.dart';
-import 'package:sway/features/user/profile.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:sway/features/venue/screens/create_venue_screen.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
@@ -49,12 +49,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  /// Navigates to the Profile screen if authenticated, else opens the AuthModal.
+  /// Navigates to the User screen if authenticated, else opens the AuthModal.
   void _navigateToProfile() {
     if (_isLoggedIn) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const ProfileScreen()),
+        MaterialPageRoute(
+            builder: (context) => UserScreen(userId: _currentUser!.id)),
       );
     } else {
       _showAuthModal();
