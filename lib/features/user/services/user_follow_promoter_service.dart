@@ -20,7 +20,7 @@ class UserFollowPromoterService {
   Future<bool> isFollowingPromoter(int promoterId) async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
+      throw Exception('User not authenticated.');
     }
 
     final response = await _supabase
@@ -36,7 +36,7 @@ class UserFollowPromoterService {
   Future<void> followPromoter(int promoterId) async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
+      throw Exception('User not authenticated.');
     }
 
     await _supabase.from('user_follow_promoter').insert({
@@ -49,7 +49,7 @@ class UserFollowPromoterService {
   Future<void> unfollowPromoter(int promoterId) async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
+      throw Exception('User not authenticated.');
     }
 
     await _supabase

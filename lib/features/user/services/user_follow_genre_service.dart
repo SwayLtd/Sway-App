@@ -20,7 +20,7 @@ class UserFollowGenreService {
   Future<bool> isFollowingGenre(int genreId) async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
+      throw Exception('User not authenticated.');
     }
 
     final response = await _supabase
@@ -36,7 +36,7 @@ class UserFollowGenreService {
   Future<void> followGenre(int genreId) async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
+      throw Exception('User not authenticated.');
     }
 
     await _supabase.from('user_follow_genre').insert({
@@ -49,7 +49,7 @@ class UserFollowGenreService {
   Future<void> unfollowGenre(int genreId) async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
+      throw Exception('User not authenticated.');
     }
 
     await _supabase

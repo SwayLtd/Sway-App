@@ -18,7 +18,7 @@ class UserFollowUserService {
   Future<bool> isFollowingUser(int targetUserId) async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
+      throw Exception('User not authenticated.');
     }
 
     final response = await _supabase
@@ -34,7 +34,7 @@ class UserFollowUserService {
   Future<void> followUser(int targetUserId) async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
+      throw Exception('User not authenticated.');
     }
 
     await _supabase.from('user_follow_user').insert({
@@ -47,7 +47,7 @@ class UserFollowUserService {
   Future<void> unfollowUser(int targetUserId) async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
+      throw Exception('User not authenticated.');
     }
 
     await _supabase
@@ -97,7 +97,7 @@ class UserFollowUserService {
   Future<List<AppUser.User>> getFollowingForCurrentUser() async {
     final userId = await _getCurrentUserId();
     if (userId == null) {
-      throw Exception('Utilisateur non authentifié.');
+      throw Exception('User not authenticated.');
     }
 
     final response = await _supabase
