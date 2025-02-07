@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Add EventScreen ticket count widget and navigation
 - Reorder Events sections above moods in UserScreen
 - Merge ProfileScreen into UserScreen and update routes
 - Add EventCardItemWidget genre overlay

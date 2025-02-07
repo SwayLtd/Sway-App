@@ -24,6 +24,10 @@ import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/widgets/promoter_item_widget.dart';
 import 'package:sway/features/promoter/widgets/promoter_modal_bottom_sheet.dart';
+import 'package:sway/features/ticketing/models/ticket_model.dart';
+import 'package:sway/features/ticketing/screens/ticket_detail_screen.dart';
+import 'package:sway/features/ticketing/services/ticket_service.dart';
+import 'package:sway/features/ticketing/ticketing.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
@@ -142,6 +146,80 @@ class _EventScreenState extends State<EventScreen> {
           ),
           // Interest button (with dropdown menu)
           InterestEventButtonWidget(eventId: _event.id!),
+          // Ticket count widget using TicketService
+          FutureBuilder<List<Ticket>>(
+            future: TicketService().getTicketsByEventId(_event.id!),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                );
+              } else if (snapshot.hasError || !snapshot.hasData) {
+                return const SizedBox();
+              } else {
+                final tickets = snapshot.data!;
+                final int count = tickets.length;
+                final String ticketText =
+                    count <= 1 ? '$count ticket' : '$count tickets';
+
+                return GestureDetector(
+                  onTap: () {
+                    if (count == 0) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => TicketingScreen()),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TicketDetailScreen(
+                            tickets: tickets,
+                            initialTicket: tickets.first,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      border: Border.all(
+                        width: 1,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onPrimary
+                            .withValues(alpha: 0.5),
+                      ),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.local_activity_outlined,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          ticketText,
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+            },
+          )
         ],
       ),
       body: RefreshIndicator(
