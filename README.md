@@ -16,12 +16,15 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Add upcoming events to Venue screen
+- Map section on event and venue detail pages, and other improvements
 - Enhance Event screen UI/UX
 - Enhance Artist screen UI/UX
 - Enhance Genre screen UI/UX
 
 ### Known Issues
 
+- Residents don't need to be limite in modal bottom sheets
 - (Notification) Ticket notification actions are not working
 - (Notification) Ticket notification doesn't show the ticket on click
 - (Notification) Remote notification preferences not linked to notification

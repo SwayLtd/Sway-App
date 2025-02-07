@@ -1,3 +1,5 @@
+// lib/features/venue/venue.dart
+
 import 'package:flutter/material.dart';
 import 'package:expandable_text/expandable_text.dart';
 import 'package:sway/core/constants/dimensions.dart';
@@ -5,8 +7,11 @@ import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
-import 'package:sway/features/artist/widgets/artist_item_widget.dart';
+import 'package:sway/features/artist/widgets/artist_item_widget.dart'; // Contains ArtistTileItemWidget
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
+import 'package:sway/features/event/event.dart';
+import 'package:sway/features/event/widgets/event_item_widget.dart';
+import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart';
 import 'package:sway/features/event/widgets/info_card.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
@@ -24,8 +29,12 @@ import 'package:sway/features/venue/services/venue_genre_service.dart';
 import 'package:sway/features/venue/services/venue_promoter_service.dart';
 import 'package:sway/features/venue/services/venue_resident_artists_service.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
-// Importation du widget map
+// Import the map widget
 import 'package:sway/features/event/widgets/event_location_map_widget.dart';
+// Import EventService to get upcoming events via EventVenueService.
+import 'package:sway/features/event/services/event_venue_service.dart';
+// Import event screen and event card widget for navigation.
+import 'package:sway/features/event/models/event_model.dart';
 
 class VenueScreen extends StatefulWidget {
   final int venueId;
@@ -68,6 +77,28 @@ class _VenueScreenState extends State<VenueScreen> {
       _ownedByFuture,
       _genresFuture,
     ]);
+  }
+
+  /// Builds a section title with an optional forward arrow.
+  Widget _buildSectionTitle(String title, bool hasMore, VoidCallback? onMore) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        mainAxisAlignment:
+            hasMore ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          if (hasMore)
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: onMore,
+            ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -287,7 +318,6 @@ class _VenueScreenState extends State<VenueScreen> {
                             final bool hasMoreGenres = genres.length > 5;
                             final displayCount =
                                 hasMoreGenres ? 5 : genres.length;
-
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -347,6 +377,97 @@ class _VenueScreenState extends State<VenueScreen> {
                           }
                         },
                       ),
+                      // UPCOMING EVENTS Section (placed under MOOD)
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: EventVenueService()
+                            .getEventsByVenueId(widget.venueId),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const SizedBox();
+                          } else if (snapshot.hasError ||
+                              !snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
+                            return const SizedBox();
+                          } else {
+                            final eventsData = snapshot.data!;
+                            final now = DateTime.now();
+                            final upcomingEvents =
+                                eventsData.where((eventData) {
+                              final Event event = eventData['event'] as Event;
+                              return event.dateTime.isAfter(now);
+                            }).toList();
+                            if (upcomingEvents.isEmpty) {
+                              return const SizedBox();
+                            }
+                            final bool hasMore = upcomingEvents.length > 5;
+                            final displayEvents = hasMore
+                                ? upcomingEvents.sublist(0, 5)
+                                : upcomingEvents;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Header text: UPCOMING EVENTS
+                                const Text(
+                                  "UPCOMING EVENTS",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: sectionTitleSpacing),
+                                SizedBox(
+                                  height: 258, // Height for event cards
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: displayEvents.length,
+                                    itemBuilder: (context, index) {
+                                      final eventData = displayEvents[index];
+                                      final Event event =
+                                          eventData['event'] as Event;
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 16.0),
+                                        child: SizedBox(
+                                          width: 320,
+                                          child: EventCardItemWidget(
+                                            event: event,
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventScreen(event: event),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                if (hasMore)
+                                  IconButton(
+                                    icon: const Icon(Icons.arrow_forward),
+                                    onPressed: () {
+                                      // Show up to 10 events in a modal bottom sheet.
+                                      showEventModalBottomSheet(
+                                          context,
+                                          upcomingEvents
+                                              .take(10)
+                                              .cast<Event>()
+                                              .toList());
+                                    },
+                                  ),
+                                const SizedBox(height: sectionSpacing),
+                              ],
+                            );
+                          }
+                        },
+                      ),
                       // RESIDENT ARTISTS Section
                       FutureBuilder<List<Artist>>(
                         future: _residentArtistsFuture,
@@ -360,11 +481,10 @@ class _VenueScreenState extends State<VenueScreen> {
                             return const SizedBox.shrink();
                           } else {
                             final artists = artistSnapshot.data!;
-                            final bool hasMoreArtists = artists.length > 7;
+                            final bool hasMoreArtists = artists.length > 5;
                             final displayedArtists = hasMoreArtists
-                                ? artists.take(7).toList()
+                                ? artists.take(5).toList()
                                 : artists;
-
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -376,15 +496,16 @@ class _VenueScreenState extends State<VenueScreen> {
                                     const Text(
                                       "RESIDENT ARTISTS",
                                       style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     if (hasMoreArtists)
                                       IconButton(
                                         icon: const Icon(Icons.arrow_forward),
                                         onPressed: () {
-                                          showArtistModalBottomSheet(
-                                              context, artists);
+                                          showArtistModalBottomSheet(context,
+                                              artists.take(10).toList());
                                         },
                                       ),
                                   ],
@@ -396,7 +517,7 @@ class _VenueScreenState extends State<VenueScreen> {
                                     children: displayedArtists.map((artist) {
                                       return Padding(
                                         padding: const EdgeInsets.all(12.0),
-                                        child: ArtistCardItemWidget(
+                                        child: ArtistTileItemWidget(
                                           artist: artist,
                                           onTap: () {
                                             Navigator.push(
@@ -436,7 +557,6 @@ class _VenueScreenState extends State<VenueScreen> {
                             final bool hasMorePromoters = promoters.length > 3;
                             final displayCount =
                                 hasMorePromoters ? 3 : promoters.length;
-
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -525,27 +645,4 @@ class _VenueScreenState extends State<VenueScreen> {
       ),
     );
   }
-}
-
-/// Builds a section title with an optional forward arrow.
-/// If [hasMore] is true, an arrow button is displayed on the right that triggers [onMore].
-Widget _buildSectionTitle(String title, bool hasMore, VoidCallback? onMore) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-    child: Row(
-      mainAxisAlignment:
-          hasMore ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
-      children: [
-        Text(
-          title.toUpperCase(),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        if (hasMore)
-          IconButton(
-            icon: const Icon(Icons.arrow_forward),
-            onPressed: onMore,
-          ),
-      ],
-    ),
-  );
 }
