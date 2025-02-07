@@ -16,10 +16,8 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Merge ProfileScreen into UserScreen and update routes
 - Add EventCardItemWidget genre overlay
-- Enhance User & Profile screen UI/UX
-- Improve UI for PromoterScreen and Artist Tiles
-- Add upcoming events to Venue screen
 - Map section on event and venue detail pages, and other improvements
 
 ### Known Issues
