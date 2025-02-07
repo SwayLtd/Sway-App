@@ -16,10 +16,10 @@ import 'package:sway/features/user/profile.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:sway/features/venue/screens/create_venue_screen.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
+import 'package:sway/features/user/screens/user_entities_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
-
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
@@ -49,7 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  /// Navigates to the Profile screen if authenticated, else opens AuthModal.
+  /// Navigates to the Profile screen if authenticated, else opens the AuthModal.
   void _navigateToProfile() {
     if (_isLoggedIn) {
       Navigator.push(
@@ -69,7 +69,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Opens the AuthModal as a bottom sheet.
+  /// Opens the AuthModal.
   void _showAuthModal() {
     AuthModal.showAuthModal(context);
   }
@@ -154,10 +154,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<bool> _canCreateEvent() async {
     final currentUser = await _userService.getCurrentUser();
     if (currentUser == null) return false;
-    // Get permissions for promoter entities.
     final perms = await UserPermissionService()
         .getPermissionsByUserIdAndType(currentUser.id, 'promoter');
-    // Return true if any permission has a permission level >= 2 (manager or admin).
     return perms.any((p) => p.permissionLevel >= 2);
   }
 
@@ -226,7 +224,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: canCreateEvent
                     ? () {
                         Navigator.pop(context);
-                        // Navigate to CreateEventScreen (implementation assumed)
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -251,7 +248,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Builds the UI for the settings screen.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -265,7 +261,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Expanded(
             child: ListView(
               children: [
-                if (_isLoggedIn && _currentUser != null)
+                if (_isLoggedIn && _currentUser != null) ...[
                   ListTile(
                     leading: CircleAvatar(
                       backgroundImage:
@@ -274,8 +270,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: Text(_currentUser!.username),
                     subtitle: Text(_currentUser!.email),
                     onTap: _navigateToProfile,
+                  ),
+                  // Entity management access button.
+                  ListTile(
+                    leading: const Icon(Icons.account_tree),
+                    title: const Text('Manage Entities'),
+                    onTap: () async {
+                      final AppUser.User? user =
+                          await _userService.getCurrentUser();
+                      if (user != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  UserEntitiesScreen(userId: user.id)),
+                        );
+                      }
+                    },
                   )
-                else
+                ] else
                   ListTile(
                     leading: const Icon(Icons.login),
                     title: const Text('Sign Up or Login'),
@@ -315,9 +328,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const Text('Copyright © 2025 - '),
                     Text(
                       'Sway',
-                      style: TextStyle(
-                        color: Theme.of(context).primaryColor,
-                      ),
+                      style: TextStyle(color: Theme.of(context).primaryColor),
                     ),
                   ],
                 ),
@@ -334,9 +345,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: TextButton(
                   child: Text(
                     'Logout',
-                    style: TextStyle(
-                      color: Theme.of(context).disabledColor,
-                    ),
+                    style: TextStyle(color: Theme.of(context).disabledColor),
                   ),
                   onPressed: _handleSignOut,
                 ),

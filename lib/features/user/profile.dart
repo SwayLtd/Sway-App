@@ -3,20 +3,26 @@
 import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/utils/date_utils.dart';
+import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
-import 'package:sway/core/widgets/scrolling_text_screen.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/widgets/artist_item_widget.dart';
+import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/widgets/event_item_widget.dart';
+import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/genre/widgets/genre_modal_bottom_sheet.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
+import 'package:sway/features/promoter/widgets/promoter_item_widget.dart';
+import 'package:sway/features/promoter/widgets/promoter_modal_bottom_sheet.dart';
 import 'package:sway/features/user/models/user_model.dart';
 import 'package:sway/features/user/screens/edit_profile_screen.dart';
-import 'package:sway/features/user/screens/user_entities_screen.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
 import 'package:sway/features/user/services/user_follow_genre_service.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
@@ -24,14 +30,13 @@ import 'package:sway/features/user/services/user_follow_venue_service.dart';
 import 'package:sway/features/user/services/user_interest_event_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
-import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/venue.dart';
+import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/widgets/venue_item_widget.dart';
+import 'package:sway/features/venue/widgets/venue_modal_bottom_sheet.dart';
 
 class ProfileScreen extends StatefulWidget {
-  // Supprimer le paramètre userId
   const ProfileScreen({Key? key}) : super(key: key);
-
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
@@ -39,134 +44,156 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserService _userService = UserService();
 
-  int _clickCounter = 0;
-  DateTime _firstClickTime = DateTime.now();
-  static const int _clickThreshold = 5;
-  static const int _timeThreshold = 2; // en secondes
+  late Future<User?> _userFuture;
+  late Future<List<Genre>> _followedGenresFuture;
+  late Future<List<Artist>> _followedArtistsFuture;
+  late Future<List<Venue>> _followedVenuesFuture;
+  late Future<List<Promoter>> _followedPromotersFuture;
+  late Future<List<Event>> _interestedEventsFuture;
+  late Future<List<Event>> _upcomingEventsFuture;
+  late Future<List<Event>> _attendedEventsFuture;
 
-  void _handleAvatarClick() {
-    final now = DateTime.now();
-    if (now.difference(_firstClickTime).inSeconds > _timeThreshold) {
-      _firstClickTime = now;
-      _clickCounter = 1;
-    } else {
-      _clickCounter++;
-      if (_clickCounter == _clickThreshold) {
-        _clickCounter = 0;
-        _showTextEditor();
-      }
-    }
+  @override
+  void initState() {
+    super.initState();
+    _fetchAllData();
   }
 
-  void _showTextEditor() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        String inputText = '';
-        return AlertDialog(
-          title: const Text('Enter your text'),
-          content: TextField(
-            onChanged: (value) {
-              inputText = value;
-            },
-            decoration: const InputDecoration(hintText: "Enter text here"),
+  /// Loads the current user and related data.
+  void _fetchAllData() {
+    _userFuture = _userService.getCurrentUser();
+    _userFuture.then((user) {
+      if (user != null) {
+        setState(() {
+          _followedGenresFuture =
+              UserFollowGenreService().getFollowedGenresByUserId(user.id);
+          _followedArtistsFuture =
+              UserFollowArtistService().getFollowedArtistsByUserId(user.id);
+          _followedVenuesFuture =
+              UserFollowVenueService().getFollowedVenuesByUserId(user.id);
+          _followedPromotersFuture =
+              UserFollowPromoterService().getFollowedPromotersByUserId(user.id);
+          // Use the same future for interested and upcoming events.
+          _interestedEventsFuture = _upcomingEventsFuture =
+              UserInterestEventService().getInterestedEventsByUserId(user.id);
+          _attendedEventsFuture =
+              UserInterestEventService().getGoingEventsByUserId(user.id);
+        });
+      }
+    });
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _fetchAllData();
+    });
+    await Future.wait([
+      _userFuture,
+      _followedGenresFuture,
+      _followedArtistsFuture,
+      _followedVenuesFuture,
+      _followedPromotersFuture,
+      _interestedEventsFuture,
+      _attendedEventsFuture,
+    ]);
+  }
+
+  /// Builds a section title with an arrow button if more items are available.
+  Widget _buildSectionTitle(String title, bool hasMore, VoidCallback? onMore) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        mainAxisAlignment:
+            hasMore ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                if (inputText.isNotEmpty) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ScrollingTextScreen(text: inputText),
-                    ),
-                  );
-                }
-              },
-              child: const Text('OK'),
+          if (hasMore)
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: onMore,
             ),
-          ],
-        );
-      },
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Profile'),
-        actions: [
-          // Bouton Éditer le Profil
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () async {
-              final User? user = await _userService.getCurrentUser();
-              if (user != null) {
-                final updatedUser = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditProfileScreen(user: user),
+    return FutureBuilder<User?>(
+      future: _userFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('User Profile')),
+            body: const Center(child: CircularProgressIndicator.adaptive()),
+          );
+        } else if (snapshot.hasError ||
+            !snapshot.hasData ||
+            snapshot.data == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('User Profile')),
+            body: const Center(child: Text('User not found')),
+          );
+        } else {
+          final user = snapshot.data!;
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(user.username),
+              actions: [
+                // Edit button
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    final updatedUser = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditProfileScreen(user: user),
+                      ),
+                    );
+                    if (updatedUser != null) {
+                      setState(() {});
+                    }
+                  },
+                ),
+                // Share button
+                Transform.flip(
+                  flipX: true,
+                  child: IconButton(
+                    icon: const Icon(Icons.reply),
+                    onPressed: () {
+                      shareEntity('user', user.id, user.username);
+                    },
                   ),
-                );
-                if (updatedUser != null) {
-                  // Rafraîchir l'état pour afficher les informations mises à jour
-                  if (!mounted) return;
-                  setState(() {});
-                }
-              }
-            },
-          ),
-          // Bouton Gestion des Entités
-          IconButton(
-            icon: const Icon(Icons.account_tree),
-            onPressed: () async {
-              final User? user = await _userService.getCurrentUser();
-              if (user != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UserEntitiesScreen(userId: user.id),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-      body: FutureBuilder<User?>(
-        future: _userService.getCurrentUser(), // Récupérer l'utilisateur actuel
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator.adaptive());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Erreur : ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(child: Text('Utilisateur non trouvé'));
-          } else {
-            final user = snapshot.data!;
-            return SingleChildScrollView(
-              child: Padding(
+                ),
+              ],
+            ),
+            body: RefreshIndicator(
+              onRefresh: _refreshData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: GestureDetector(
-                        onTap: _handleAvatarClick,
+                // Constrain the width to avoid infinite width errors.
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                      minWidth: MediaQuery.of(context).size.width),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Profile Picture
+                      Center(
                         child: Container(
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: Theme.of(context)
                                   .colorScheme
                                   .onPrimary
-                                  .withValues(
-                                      alpha: 0.5), // Couleur de la bordure
-                              width: 2.0, // Épaisseur de la bordure
+                                  .withAlpha(128),
+                              width: 2.0,
                             ),
-                            borderRadius: BorderRadius.circular(
-                                15), // Coins arrondis de la bordure
+                            borderRadius: BorderRadius.circular(15),
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
@@ -178,351 +205,396 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: sectionSpacing),
-                    Text(
-                      user.username,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: sectionTitleSpacing),
+                      // Username
+                      Text(
+                        user.username,
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      '${formatEventDate(user.createdAt.toLocal())}',
-                      style: const TextStyle(
-                        fontSize: 16,
+                      const SizedBox(height: 5),
+                      // Registration Date
+                      Text(
+                        formatEventDate(user.createdAt.toLocal()),
+                        style: const TextStyle(fontSize: 16),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    FollowersCountWidget(
-                      entityId: user.id,
-                      entityType: 'user',
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'GENRES',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    FutureBuilder<List<Genre>>(
-                      future: UserFollowGenreService()
-                          .getFollowedGenresByUserId(user.id),
-                      builder: (context, genreSnapshot) {
-                        if (genreSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator.adaptive();
-                        } else if (genreSnapshot.hasError) {
-                          return Text('Erreur : ${genreSnapshot.error}');
-                        } else if (!genreSnapshot.hasData ||
-                            genreSnapshot.data!.isEmpty) {
-                          return const Text('Aucun genre suivi trouvé');
-                        } else {
-                          final genres = genreSnapshot.data!;
-                          return Wrap(
-                            spacing: 8.0,
-                            children: genres.map((genre) {
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
+                      const SizedBox(height: sectionSpacing),
+                      // FOLLOWERS & FOLLOWING Section
+                      FollowersCountWidget(
+                        entityId: user.id,
+                        entityType: 'user',
+                      ),
+                      const SizedBox(height: sectionSpacing),
+                      // GENRES Section
+                      FutureBuilder<List<Genre>>(
+                        future: _followedGenresFuture,
+                        builder: (context, genreSnapshot) {
+                          if (genreSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator.adaptive());
+                          } else if (genreSnapshot.hasError ||
+                              !genreSnapshot.hasData ||
+                              genreSnapshot.data!.isEmpty) {
+                            return const SizedBox.shrink();
+                          } else {
+                            final genres = genreSnapshot.data!;
+                            final bool hasMore = genres.length > 5;
+                            final displayGenres =
+                                hasMore ? genres.sublist(0, 5) : genres;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle(
+                                  "MOODS",
+                                  hasMore,
+                                  () => showGenreModalBottomSheet(
                                     context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          GenreScreen(genreId: genre.id),
-                                    ),
-                                  );
-                                },
-                                child: GenreChip(genreId: genre.id),
-                              );
-                            }).toList(),
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'ARTISTS',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    FutureBuilder<List<Artist>>(
-                      future: UserFollowArtistService()
-                          .getFollowedArtistsByUserId(user.id),
-                      builder: (context, artistSnapshot) {
-                        if (artistSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator.adaptive();
-                        } else if (artistSnapshot.hasError) {
-                          return Text('Erreur : ${artistSnapshot.error}');
-                        } else if (!artistSnapshot.hasData ||
-                            artistSnapshot.data!.isEmpty) {
-                          return const Text('Aucun artiste suivi trouvé');
-                        } else {
-                          final artists = artistSnapshot.data!;
-                          return SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: artists.map((artist) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            ArtistScreen(artistId: artist.id),
-                                      ),
-                                    );
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onPrimary
-                                                  .withValues(
-                                                      alpha:
-                                                          0.5), // Couleur de la bordure
-                                              width:
-                                                  2.0, // Épaisseur de la bordure
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                                12), // Coins arrondis de la bordure
-                                          ),
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            child: ImageWithErrorHandler(
-                                              imageUrl: artist.imageUrl,
-                                              width: 100,
-                                              height: 100,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(artist.name),
-                                      ],
-                                    ),
+                                    genres.map((g) => g.id).toList(),
                                   ),
-                                );
-                              }).toList(),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'VENUES',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    FutureBuilder<List<Venue>>(
-                      future: UserFollowVenueService()
-                          .getFollowedVenuesByUserId(user.id),
-                      builder: (context, venueSnapshot) {
-                        if (venueSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator.adaptive();
-                        } else if (venueSnapshot.hasError) {
-                          return Text('Erreur : ${venueSnapshot.error}');
-                        } else if (!venueSnapshot.hasData ||
-                            venueSnapshot.data!.isEmpty) {
-                          return const Text('Aucun lieu suivi trouvé');
-                        } else {
-                          final venues = venueSnapshot.data!;
-                          return SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: venues.map((venue) {
-                                  return VenueCardItemWidget(
-                                    venue: venue,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              VenueScreen(venueId: venue.id!),
+                                ),
+                                const SizedBox(height: sectionTitleSpacing),
+                                Wrap(
+                                  spacing: 8.0,
+                                  children: displayGenres.map((genre) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                GenreScreen(genreId: genre.id),
+                                          ),
+                                        );
+                                      },
+                                      child: GenreChip(genreId: genre.id),
+                                    );
+                                  }).toList(),
+                                ),
+                                const SizedBox(height: sectionSpacing),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+
+                      // ARTISTS Section
+                      FutureBuilder<List<Artist>>(
+                        future: _followedArtistsFuture,
+                        builder: (context, artistSnapshot) {
+                          if (artistSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator.adaptive());
+                          } else if (artistSnapshot.hasError ||
+                              !artistSnapshot.hasData ||
+                              artistSnapshot.data!.isEmpty) {
+                            return const SizedBox.shrink();
+                          } else {
+                            final artists = artistSnapshot.data!;
+                            final bool hasMore = artists.length > 5;
+                            final displayArtists =
+                                hasMore ? artists.sublist(0, 5) : artists;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle(
+                                  "ARTISTS",
+                                  hasMore,
+                                  () => showArtistModalBottomSheet(
+                                      context, artists),
+                                ),
+                                const SizedBox(height: sectionTitleSpacing),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: displayArtists.map((artist) {
+                                      return Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: ArtistTileItemWidget(
+                                          artist: artist,
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ArtistScreen(
+                                                        artistId: artist.id),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                                const SizedBox(height: sectionSpacing),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+
+                      // VENUES Section
+                      FutureBuilder<List<Venue>>(
+                        future: _followedVenuesFuture,
+                        builder: (context, venueSnapshot) {
+                          if (venueSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator.adaptive());
+                          } else if (venueSnapshot.hasError ||
+                              !venueSnapshot.hasData ||
+                              venueSnapshot.data!.isEmpty) {
+                            return const SizedBox.shrink();
+                          } else {
+                            final venues = venueSnapshot.data!;
+                            final bool hasMore = venues.length > 3;
+                            final displayVenues =
+                                hasMore ? venues.sublist(0, 3) : venues;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle(
+                                  "VENUES",
+                                  hasMore,
+                                  () => showVenueModalBottomSheet(
+                                      context, venues),
+                                ),
+                                const SizedBox(height: sectionTitleSpacing),
+                                Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: displayVenues.map((venue) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8.0),
+                                        child: VenueListItemWidget(
+                                          venue: venue,
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    VenueScreen(
+                                                        venueId: venue.id!),
+                                              ),
+                                            );
+                                          },
+                                          maxNameLength: 20,
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                                const SizedBox(height: sectionSpacing),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+
+// PROMOTERS Section
+                      FutureBuilder<List<Promoter>>(
+                        future: _followedPromotersFuture,
+                        builder: (context, promoterSnapshot) {
+                          if (promoterSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator.adaptive());
+                          } else if (promoterSnapshot.hasError ||
+                              !promoterSnapshot.hasData ||
+                              promoterSnapshot.data!.isEmpty) {
+                            return const SizedBox.shrink();
+                          } else {
+                            final promoters = promoterSnapshot.data!;
+                            final bool hasMore = promoters.length > 3;
+                            final displayPromoters =
+                                hasMore ? promoters.sublist(0, 3) : promoters;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle(
+                                  "PROMOTERS",
+                                  hasMore,
+                                  () => showPromoterModalBottomSheet(
+                                      context, promoters),
+                                ),
+                                const SizedBox(height: sectionTitleSpacing),
+                                Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: displayPromoters.map((promoter) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8.0),
+                                        child: PromoterListItemWidget(
+                                          promoter: promoter,
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    PromoterScreen(
+                                                        promoterId:
+                                                            promoter.id!),
+                                              ),
+                                            );
+                                          },
+                                          maxNameLength: 20,
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                                const SizedBox(height: sectionSpacing),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+                      // UPCOMING EVENTS Section (Interested events)
+                      FutureBuilder<List<Event>>(
+                        future: _upcomingEventsFuture,
+                        builder: (context, eventSnapshot) {
+                          if (eventSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator.adaptive());
+                          } else if (eventSnapshot.hasError ||
+                              !eventSnapshot.hasData ||
+                              eventSnapshot.data!.isEmpty) {
+                            return const SizedBox.shrink();
+                          } else {
+                            final events = eventSnapshot.data!;
+                            const int displayCount = 5;
+                            final bool hasMore = events.length > displayCount;
+                            final displayEvents = hasMore
+                                ? events.sublist(0, displayCount)
+                                : events;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle(
+                                  "UPCOMING EVENTS",
+                                  hasMore,
+                                  () => showEventModalBottomSheet(
+                                      context, events),
+                                ),
+                                const SizedBox(height: sectionTitleSpacing),
+                                SizedBox(
+                                  height: 258,
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: displayEvents.length,
+                                    itemBuilder: (context, index) {
+                                      final event = displayEvents[index];
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 16.0),
+                                        child: SizedBox(
+                                          width: 320,
+                                          child: EventCardItemWidget(
+                                            event: event,
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventScreen(event: event),
+                                                ),
+                                              );
+                                            },
+                                          ),
                                         ),
                                       );
                                     },
-                                  );
-                                }).toList(),
-                              ));
-                        }
-                      },
-                    ),
-                    const SizedBox(height: sectionSpacing),
-                    const Text(
-                      'PROMOTERS',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    FutureBuilder<List<Promoter>>(
-                      future: UserFollowPromoterService()
-                          .getFollowedPromotersByUserId(user.id),
-                      builder: (context, promoterSnapshot) {
-                        if (promoterSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator.adaptive();
-                        } else if (promoterSnapshot.hasError) {
-                          return Text('Erreur : ${promoterSnapshot.error}');
-                        } else if (!promoterSnapshot.hasData ||
-                            promoterSnapshot.data!.isEmpty) {
-                          return const Text('Aucun promoter suivi trouvé');
-                        } else {
-                          final promoters = promoterSnapshot.data!;
-                          return SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: promoters.map((promoter) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PromoterScreen(
-                                            promoterId: promoter.id!),
-                                      ),
-                                    );
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onPrimary
-                                                  .withValues(
-                                                      alpha:
-                                                          0.5), // Couleur de la bordure
-                                              width:
-                                                  2.0, // Épaisseur de la bordure
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                                12), // Coins arrondis de la bordure
-                                          ),
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            child: ImageWithErrorHandler(
-                                              imageUrl: promoter.imageUrl,
-                                              width: 100,
-                                              height: 100,
-                                            ),
+                                  ),
+                                ),
+                                const SizedBox(height: sectionSpacing),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+                      // ATTENDED EVENTS Section (Past events)
+                      FutureBuilder<List<Event>>(
+                        future: _attendedEventsFuture,
+                        builder: (context, eventSnapshot) {
+                          if (eventSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator.adaptive());
+                          } else if (eventSnapshot.hasError ||
+                              !eventSnapshot.hasData ||
+                              eventSnapshot.data!.isEmpty) {
+                            return const SizedBox.shrink();
+                          } else {
+                            final events = eventSnapshot.data!;
+                            const int displayCount = 5;
+                            final bool hasMore = events.length > displayCount;
+                            final List<Event> displayEvents = hasMore
+                                ? events.sublist(0, displayCount)
+                                : events;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionTitle(
+                                  "ATTENDED EVENTS",
+                                  hasMore,
+                                  () => showEventModalBottomSheet(
+                                      context, events),
+                                ),
+                                const SizedBox(height: sectionTitleSpacing),
+                                SizedBox(
+                                  height: 258,
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: displayEvents.length,
+                                    itemBuilder: (context, index) {
+                                      final event = displayEvents[index];
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 16.0),
+                                        child: SizedBox(
+                                          width: 320,
+                                          child: EventCardItemWidget(
+                                            event: event,
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventScreen(event: event),
+                                                ),
+                                              );
+                                            },
                                           ),
                                         ),
-                                        const SizedBox(height: 5),
-                                        Text(promoter.name),
-                                      ],
-                                    ),
+                                      );
+                                    },
                                   ),
-                                );
-                              }).toList(),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'INTERESTED EVENTS',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    FutureBuilder<List<Event>>(
-                      future: UserInterestEventService()
-                          .getInterestedEventsByUserId(user.id),
-                      builder: (context, eventSnapshot) {
-                        if (eventSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator.adaptive();
-                        } else if (eventSnapshot.hasError) {
-                          return Text('Erreur : ${eventSnapshot.error}');
-                        } else if (!eventSnapshot.hasData ||
-                            eventSnapshot.data!.isEmpty) {
-                          return const Text('No interested events found');
-                        } else {
-                          final events = eventSnapshot.data!;
-                          return Column(
-                            children: events.map((event) {
-                              return ListTile(
-                                title: Text(event.title),
-                                subtitle: Text(formatEventDate(event.dateTime)),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          EventScreen(event: event),
-                                    ),
-                                  );
-                                },
-                              );
-                            }).toList(),
-                          );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'ATTENDED EVENTS',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    FutureBuilder<List<Event>>(
-                      future: UserInterestEventService()
-                          .getGoingEventsByUserId(user.id),
-                      builder: (context, eventSnapshot) {
-                        if (eventSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator.adaptive();
-                        } else if (eventSnapshot.hasError) {
-                          return Text('Erreur : ${eventSnapshot.error}');
-                        } else if (!eventSnapshot.hasData ||
-                            eventSnapshot.data!.isEmpty) {
-                          return const Text('Aucun événement suivi trouvé');
-                        } else {
-                          final events = eventSnapshot.data!;
-                          return Column(
-                            children: events.map((event) {
-                              return ListTile(
-                                title: Text(event.title),
-                                subtitle: Text(formatEventDate(event.dateTime)),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          EventScreen(event: event),
-                                    ),
-                                  );
-                                },
-                              );
-                            }).toList(),
-                          );
-                        }
-                      },
-                    ),
-                  ],
+                                ),
+                                const SizedBox(height: sectionSpacing),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            );
-          }
-        },
-      ),
+            ),
+          );
+        }
+      },
     );
   }
 }
