@@ -5,7 +5,10 @@ import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/services/event_genre_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
+import 'package:sway/features/genre/models/genre_model.dart';
+import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 
 class EventListItemWidget extends StatelessWidget {
@@ -189,19 +192,82 @@ class EventCardItemWidget extends StatelessWidget {
                     color: Theme.of(context)
                         .colorScheme
                         .onPrimary
-                        .withValues(alpha: 0.5), // Couleur de la bordure
-                    width: 2.0, // Épaisseur de la bordure
+                        .withValues(alpha: 0.5),
+                    width: 2.0,
                   ),
-                  borderRadius:
-                      BorderRadius.circular(12), // Coins arrondis de la bordure
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: ImageWithErrorHandler(
-                    imageUrl: event.imageUrl,
-                    width: double.infinity,
-                    height: 150,
-                    fit: BoxFit.cover,
+                  child: Stack(
+                    children: [
+                      ImageWithErrorHandler(
+                        imageUrl: event.imageUrl,
+                        width: double.infinity,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                      // Positioned overlay for genres at the bottom of the image
+                      // Inside the Stack of your EventCardItemWidget (replace the existing overlay Container):
+                      Positioned(
+                        left: 4,
+                        right: 4,
+                        bottom: 4,
+                        child: FutureBuilder<List<int>>(
+                          future:
+                              EventGenreService().getGenresByEventId(event.id!),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                    ConnectionState.waiting ||
+                                !snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            } else {
+                              final genreIds = snapshot.data!;
+                              const int maxDisplay = 3;
+                              final int count = genreIds.length;
+                              final int displayCount =
+                                  count > maxDisplay ? maxDisplay : count;
+                              List<Widget> chips = [];
+                              for (int i = 0; i < displayCount; i++) {
+                                chips.add(EventGenreChip(genreId: genreIds[i]));
+                                chips.add(const SizedBox(width: 4));
+                              }
+                              if (count > maxDisplay) {
+                                chips.add(
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.7),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      '+${count - maxDisplay}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              return Container(
+                                alignment: Alignment.centerRight,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: chips,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -306,6 +372,42 @@ class EventCardItemWidget extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class EventGenreChip extends StatelessWidget {
+  final int genreId;
+  const EventGenreChip({required this.genreId, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Genre?>(
+      future: GenreService().getGenreById(genreId),
+      builder: (context, snapshot) {
+        String genreName;
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          genreName = '...';
+        } else if (snapshot.hasError || snapshot.data == null) {
+          genreName = 'Unknown';
+        } else {
+          genreName = snapshot.data!.name;
+        }
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            genreName,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+          ),
+        );
+      },
     );
   }
 }

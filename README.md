@@ -16,13 +16,11 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Add EventCardItemWidget Genre Overlay
 - Enhance User & Profile screen UI/UX
 - Improve UI for PromoterScreen and Artist Tiles
 - Add upcoming events to Venue screen
 - Map section on event and venue detail pages, and other improvements
-- Enhance Event screen UI/UX
-- Enhance Artist screen UI/UX
-- Enhance Genre screen UI/UX
 
 ### Known Issues
 
