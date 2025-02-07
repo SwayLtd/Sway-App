@@ -1,12 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+// lib/features/event/screens/event_screen.dart
+
 import 'package:expandable_text/expandable_text.dart';
-import 'package:sway/core/constants/dimensions.dart';
-import 'package:sway/core/utils/date_utils.dart';
+import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart'; // sectionSpacing & sectionTitleSpacing
+import 'package:sway/core/utils/date_utils.dart'; // Utilise ici la fonction formatEventDateRange
 import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/artist/widgets/artist_item_widget.dart';
+import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/screens/edit_event_screen.dart';
 import 'package:sway/features/event/services/event_artist_service.dart';
@@ -16,740 +19,390 @@ import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/event/widgets/info_card.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/genre/widgets/genre_modal_bottom_sheet.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/widgets/promoter_item_widget.dart';
-import 'package:sway/features/user/services/user_interest_event_service.dart';
+import 'package:sway/features/promoter/widgets/promoter_modal_bottom_sheet.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/venue.dart';
+import 'package:sway/features/user/widgets/interest_event_button_widget.dart';
 
 class EventScreen extends StatefulWidget {
   final Event event;
 
-  const EventScreen({required this.event});
+  const EventScreen({required this.event, Key? key}) : super(key: key);
 
   @override
   _EventScreenState createState() => _EventScreenState();
 }
 
 class _EventScreenState extends State<EventScreen> {
-  int _selectedTabIndex = 0;
-  bool isGridView = false;
-  DateTime selectedDay = DateTime.now();
-  List<String> selectedStages = [];
-  bool showFollowedArtistsOnly = false;
-  List<Map<String, dynamic>> eventArtists = [];
-  List<String> allStages = [];
+  late Event _event;
+  late Future<List> _genresFuture;
+  late Future<List<Map<String, dynamic>>> _artistsFuture;
+  late Future<List<Promoter>> _promotersFuture;
+  late Future<Venue?> _venueFuture;
 
   @override
   void initState() {
     super.initState();
+    _event = widget.event;
+    _fetchData();
+  }
+
+  // Initializes the futures for each section.
+  void _fetchData() {
+    _genresFuture = EventGenreService().getGenresByEventId(_event.id!);
+    _artistsFuture = EventArtistService().getArtistsByEventId(_event.id!);
+    _promotersFuture = EventPromoterService().getPromotersByEventId(_event.id!);
+    _venueFuture = EventVenueService().getVenueByEventId(_event.id!);
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _fetchData();
+    });
+    await Future.wait([
+      _genresFuture,
+      _artistsFuture,
+      _promotersFuture,
+      _venueFuture,
+    ]);
+  }
+
+  /// Builds a section title with a forward arrow if needed.
+  Widget _buildSectionTitle(String title, bool hasMore, VoidCallback? onMore) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        mainAxisAlignment:
+            hasMore ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          if (hasMore)
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: onMore,
+            ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.event.title),
+        title: Text(_event.title),
         actions: [
+          // Edit button (displayed if the user has permission)
           FutureBuilder<bool>(
             future: UserPermissionService()
-                .hasPermissionForCurrentUser(widget.event.id!, 'event', 'edit'),
+                .hasPermissionForCurrentUser(_event.id!, 'event', 'edit'),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              } else if (snapshot.hasError ||
+              if (snapshot.connectionState == ConnectionState.waiting ||
                   !snapshot.hasData ||
-                  !snapshot.data!) {
+                  snapshot.data == false) {
                 return const SizedBox.shrink();
-              } else {
-                return IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () async {
-                    final updatedEvent = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            EditEventScreen(event: widget.event),
-                      ),
-                    );
-                    if (updatedEvent != null) {
-                      // Handle the updated event if necessary
-                    }
-                  },
-                );
               }
+              return IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () async {
+                  final updatedEvent = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditEventScreen(event: _event),
+                    ),
+                  );
+                  if (updatedEvent != null) {
+                    setState(() {
+                      _event = updatedEvent;
+                    });
+                  }
+                },
+              );
             },
           ),
+          // Share button
           Transform.flip(
             flipX: true,
             child: IconButton(
               icon: const Icon(Icons.reply),
               onPressed: () {
-                shareEntity('event', widget.event.id!, widget.event.title);
+                shareEntity('event', _event.id!, _event.title);
               },
             ),
           ),
-          FutureBuilder<Map<String, bool>>(
-            future: _getEventStatus(widget.event.id!),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const IconButton(
-                  icon: Icon(Icons.favorite_border),
-                  onPressed: null,
-                );
-              } else if (snapshot.hasError) {
-                return const IconButton(
-                  icon: Icon(Icons.error),
-                  onPressed: null,
-                );
-              } else if (snapshot.hasData) {
-                final bool isInterested =
-                    snapshot.data?['isInterested'] ?? false;
-                final bool isGoing = snapshot.data?['isGoing'] ?? false;
-
-                // Déterminer le statut basé sur les booléens
-                String status;
-                if (isGoing) {
-                  status = 'going';
-                } else if (isInterested) {
-                  status = 'interested';
-                } else {
-                  status = 'not_going';
-                }
-
-                // Sélectionner l'icône appropriée
-                IconData icon;
-                switch (status) {
-                  case 'going':
-                    icon = Icons.check_circle;
-                    break;
-                  case 'interested':
-                    icon = Icons.favorite;
-                    break;
-                  case 'not_going':
-                  default:
-                    icon = Icons.favorite_border;
-                    break;
-                }
-
-                return PopupMenuButton<String>(
-                  icon: Icon(icon),
-                  onSelected: (String value) {
-                    _handleMenuSelection(value, widget.event.id!, context);
-                  },
-                  itemBuilder: (BuildContext context) {
-                    String notOptionText;
-                    if (status == 'going') {
-                      notOptionText = 'Not going';
-                    } else if (status == 'interested') {
-                      notOptionText = 'Not interested';
-                    } else {
-                      notOptionText = 'Not interested';
-                    }
-                    return <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(
-                        value: 'interested',
-                        child: Text('Interested'),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'going',
-                        child: Text('Going'),
-                      ),
-                      PopupMenuItem<String>(
-                        value: 'not_going',
-                        child: Text(notOptionText),
-                      ),
-                    ];
-                  },
-                );
-              } else {
-                // Cas où snapshot n'a pas de données mais pas d'erreur non plus
-                return const IconButton(
-                  icon: Icon(Icons.favorite_border),
-                  onPressed: null,
-                );
-              }
-            },
-          ),
-          FutureBuilder<bool>(
-            future: UserPermissionService().hasPermissionForCurrentUser(
-              widget.event.id!,
-              'event',
-              'insight',
-            ),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              } else if (snapshot.hasError ||
-                  !snapshot.hasData ||
-                  !snapshot.data!) {
-                return const SizedBox.shrink();
-              } else {
-                return const SizedBox.shrink();
-                // TODO Implement insights for events
-                /*return IconButton(
-                  icon: const Icon(Icons.insights),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => InsightScreen(
-                          entityId: widget.event.id!,
-                          entityType: 'event',
-                        ),
-                      ),
-                    );
-                  },
-                );*/
-              }
-            },
-          ),
-        ],
-        // TODO Implement tabs feature with timetables for bigger events
-        /*bottom: widget.event.type == 'festival'
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(36),
-                child: SizedBox(
-                  height: 36,
-                  child: Stack(
-                    children: [
-                      ListView(
-                        scrollDirection: Axis.horizontal,
-                        controller: _scrollController,
-                        children: [
-                          EventAppBarItem(
-                            title: 'Overview',
-                            index: 0,
-                            onTap: _onAppBarItemTap,
-                            selectedIndex: _selectedTabIndex,
-                          ),
-                          EventAppBarItem(
-                            title: 'Timetable',
-                            index: 1,
-                            onTap: _onAppBarItemTap,
-                            selectedIndex: _selectedTabIndex,
-                          ),
-                          EventAppBarItem(
-                            title: 'Wallet',
-                            index: 2,
-                            onTap: _onAppBarItemTap,
-                            selectedIndex: _selectedTabIndex,
-                          ),
-                          EventAppBarItem(
-                            title: 'Store',
-                            index: 3,
-                            onTap: _onAppBarItemTap,
-                            selectedIndex: _selectedTabIndex,
-                          ),
-                          EventAppBarItem(
-                            title: 'Map',
-                            index: 4,
-                            onTap: _onAppBarItemTap,
-                            selectedIndex: _selectedTabIndex,
-                          ),
-                          EventAppBarItem(
-                            title: 'Community',
-                            index: 5,
-                            onTap: _onAppBarItemTap,
-                            selectedIndex: _selectedTabIndex,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            : null,*/
-      ),
-      body: IndexedStack(
-        index: _selectedTabIndex,
-        children: [
-          _buildOverview(),
-          /*TimetableWidget(event: widget.event),
-          _buildWallet(),
-          _buildStore(),
-          _buildMap(),
-          _buildCommunity(),*/
+          // Interest button (with dropdown menu)
+          InterestEventButtonWidget(eventId: _event.id!),
         ],
       ),
-    );
-  }
-
-  Widget _buildOverview() {
-    final DateTime eventDateTime = widget.event.dateTime;
-    final DateTime eventEndDateTime = widget.event.endDateTime;
-
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onPrimary
-                        .withValues(alpha: 0.5), // Couleur de la bordure
-                    width: 2.0, // Épaisseur de la bordure
+      body: RefreshIndicator(
+        onRefresh: _refreshData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Event image (kept with the same format)
+              Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onPrimary
+                          .withOpacity(0.5),
+                      width: 2.0,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  borderRadius:
-                      BorderRadius.circular(12), // Coins arrondis de la bordure
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: ImageWithErrorHandler(
-                    imageUrl: widget.event.imageUrl,
-                    width: double.infinity,
-                    height: 200,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: ImageWithErrorHandler(
+                      imageUrl: _event.imageUrl,
+                      width: double.infinity,
+                      height: 200,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              widget.event.title,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 5),
-            FollowersCountWidget(
-              entityId: widget.event.id!,
-              entityType: 'event',
-            ),
-            const SizedBox(height: 10),
-            InfoCard(
-              title: "Date",
-              content: formatEventDateRange(eventDateTime, eventEndDateTime),
-            ),
-            FutureBuilder<Venue?>(
-              future: EventVenueService().getVenueByEventId(widget.event.id!),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const InfoCard(
-                    title: "Location",
-                    content: 'Loading',
-                  );
-                } else if (snapshot.hasError ||
-                    !snapshot.hasData ||
-                    snapshot.data == null) {
-                  return const InfoCard(
-                    title: "Location",
-                    content: 'Location not found',
-                  );
-                } else {
-                  final venue = snapshot.data!;
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => VenueScreen(venueId: venue.id!),
-                        ),
-                      );
-                    },
-                    child: InfoCard(title: "Location", content: venue.name),
-                  );
-                }
-              },
-            ),
-            InfoCard(
-              title: "Price",
-              content:
-                  widget.event.price ?? 'N/A', // ou 'Free', ou 'Non Renseigné'
-            ),
-            const SizedBox(height: 20),
-            Text(
-              "ABOUT",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: sectionTitleSpacing),
-            ExpandableText(
-              widget.event.description,
-              expandText: 'show more',
-              collapseText: 'show less',
-              maxLines: 3,
-              linkColor: Theme.of(context).primaryColor,
-              style: const TextStyle(
-                fontSize: 16,
+              const SizedBox(height: sectionSpacing),
+              // Event title
+              Text(
+                _event.title,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              "LINE UP",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: sectionTitleSpacing),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: // event.dart
-
-                  FutureBuilder<List<Map<String, dynamic>>>(
-                future:
-                    EventArtistService().getArtistsByEventId(widget.event.id!),
-                builder: (context, artistSnapshot) {
-                  if (artistSnapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return const CircularProgressIndicator.adaptive();
-                  } else if (artistSnapshot.hasError) {
-                    return Text('Error: ${artistSnapshot.error}');
-                  } else if (!artistSnapshot.hasData ||
-                      artistSnapshot.data!.isEmpty) {
-                    return const Text('No artists found');
+              const SizedBox(height: sectionTitleSpacing),
+              // Followers count
+              FollowersCountWidget(entityId: _event.id!, entityType: 'event'),
+              const SizedBox(height: sectionSpacing),
+              // InfoCard: Date (using formatEventDateRange from date_utils.dart)
+              InfoCard(
+                title: "DATE",
+                content:
+                    "${formatEventDateRange(_event.dateTime, _event.endDateTime)}",
+              ),
+              const SizedBox(height: sectionTitleSpacing),
+              // InfoCard: Location
+              FutureBuilder<Venue?>(
+                future: _venueFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const InfoCard(
+                        title: "LOCATION", content: 'Loading');
+                  } else if (snapshot.hasError ||
+                      !snapshot.hasData ||
+                      snapshot.data == null) {
+                    return const InfoCard(
+                        title: "LOCATION", content: 'Location not found');
                   } else {
-                    final artistEntries = artistSnapshot.data!;
-                    final List<Widget> artistWidgets = [];
-
-                    for (final entry in artistEntries) {
-                      final List<dynamic> artists =
-                          entry['artists'] as List<dynamic>;
-
-                      final DateTime startTime = entry['start_time'];
-
-                      final DateTime endTime = entry['end_time'];
-
-                      final status = entry['status'] as String?;
-
-                      for (final artist in artists.cast<Artist>()) {
-                        artistWidgets.add(
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      ArtistScreen(artistId: artist.id),
-                                ),
-                              );
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onPrimary
-                                            .withValues(
-                                                alpha:
-                                                    0.5), // Couleur de la bordure
-                                        width: 2.0, // Épaisseur de la bordure
-                                      ),
-                                      borderRadius: BorderRadius.circular(
-                                          12), // Coins arrondis de la bordure
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: status == 'cancelled'
-                                          ? ColorFiltered(
-                                              colorFilter:
-                                                  const ColorFilter.mode(
-                                                Colors.grey,
-                                                BlendMode.saturation,
-                                              ),
-                                              child: ImageWithErrorHandler(
-                                                imageUrl: artist.imageUrl,
-                                                width: 100,
-                                                height: 100,
-                                                fit: BoxFit.cover,
-                                              ))
-                                          : ImageWithErrorHandler(
-                                              imageUrl: artist.imageUrl,
-                                              width: 100,
-                                              height: 100,
-                                              fit: BoxFit.cover,
-                                            ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    artist.name,
-                                    style: TextStyle(
-                                      color: status == 'cancelled'
-                                          ? Colors.grey
-                                          : null,
-                                    ),
-                                  ),
-                                  if (widget.event.type == 'festival')
-                                    Text(
-                                      '${formatTime(startTime)} - ${formatTime(endTime)}',
-                                    ),
-                                ],
-                              ),
-                            ),
+                    final venue = snapshot.data!;
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                VenueScreen(venueId: venue.id!),
                           ),
                         );
-                      }
-                    }
-
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: artistWidgets,
-                      ),
+                      },
+                      child: InfoCard(title: "LOCATION", content: venue.name),
                     );
                   }
                 },
               ),
-            ),
-            const SizedBox(height: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "ORGANIZED BY",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              const SizedBox(height: sectionSpacing),
+              // ABOUT section (description)
+              if (_event.description.isNotEmpty) ...[
+                _buildSectionTitle("ABOUT", false, null),
+                const SizedBox(height: sectionTitleSpacing),
+                ExpandableText(
+                  _event.description,
+                  expandText: 'show more',
+                  collapseText: 'show less',
+                  maxLines: 3,
+                  linkColor: Theme.of(context).primaryColor,
+                  style: const TextStyle(fontSize: 16),
                 ),
-                const SizedBox(
-                    height: 16.0), // Espacement entre le titre et la liste
-                FutureBuilder<List<Promoter>>(
-                  future: EventPromoterService()
-                      .getPromotersByEventId(widget.event.id!),
-                  builder: (context, promoterSnapshot) {
-                    if (promoterSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Center(
-                          child: CircularProgressIndicator.adaptive());
-                    } else if (promoterSnapshot.hasError) {
-                      return Center(
-                          child: Text('Error: ${promoterSnapshot.error}'));
-                    } else if (!promoterSnapshot.hasData ||
-                        promoterSnapshot.data!.isEmpty) {
-                      return const Center(child: Text('No promoters found'));
-                    } else {
-                      final promoters = promoterSnapshot.data!;
-                      return ListView.separated(
-                        physics:
-                            const NeverScrollableScrollPhysics(), // Empêche le défilement imbriqué
-                        shrinkWrap:
-                            true, // Prend uniquement l'espace nécessaire
-                        itemCount: promoters.length,
-                        separatorBuilder: (context, index) => const SizedBox(
-                            height: 8.0), // Espacement entre les items
-                        itemBuilder: (context, index) {
-                          final promoter = promoters[index];
-                          return PromoterListItemWidget(
-                            promoter: promoter,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      PromoterScreen(promoterId: promoter.id!),
+                const SizedBox(height: sectionSpacing),
+              ],
+              // MOOD section (Genres)
+              FutureBuilder<List>(
+                future: _genresFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator.adaptive());
+                  } else if (snapshot.hasError ||
+                      !snapshot.hasData ||
+                      snapshot.data!.isEmpty) {
+                    return const SizedBox.shrink();
+                  } else {
+                    final genres = snapshot.data!;
+                    final bool hasMore = genres.length > 5;
+                    final displayGenres =
+                        hasMore ? genres.sublist(0, 5) : genres;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle("MOOD", hasMore, () {
+                          // Show up to 10 genres in a modal.
+                          showGenreModalBottomSheet(
+                              context, genres.take(10).cast<int>().toList());
+                        }),
+                        const SizedBox(height: sectionTitleSpacing),
+                        Wrap(
+                          spacing: 8.0,
+                          children: displayGenres.map<Widget>((genreId) {
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        GenreScreen(genreId: genreId),
+                                  ),
+                                );
+                              },
+                              child: GenreChip(genreId: genreId),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: sectionSpacing),
+                      ],
+                    );
+                  }
+                },
+              ),
+              // LINE UP section (Artists)
+              FutureBuilder<List<Map<String, dynamic>>>(
+                future: _artistsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator.adaptive());
+                  } else if (snapshot.hasError ||
+                      !snapshot.hasData ||
+                      snapshot.data!.isEmpty) {
+                    return const SizedBox.shrink();
+                  } else {
+                    final artistEntries = snapshot.data!;
+                    // Flatten and deduplicate the list of artists.
+                    final Map<int, Artist> uniqueArtists = {};
+                    for (final entry in artistEntries) {
+                      final List<dynamic> artists =
+                          entry['artists'] as List<dynamic>;
+                      for (final artist in artists.cast<Artist>()) {
+                        uniqueArtists[artist.id] = artist;
+                      }
+                    }
+                    final artistsList = uniqueArtists.values.toList();
+                    final bool hasMore = artistsList.length > 5;
+                    final displayArtists =
+                        hasMore ? artistsList.sublist(0, 5) : artistsList;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle("LINE UP", hasMore, () {
+                          // Show up to 10 artists in a modal.
+                          showArtistModalBottomSheet(
+                              context, artistsList.take(10).toList());
+                        }),
+                        const SizedBox(height: sectionTitleSpacing),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: displayArtists.map((artist) {
+                              return Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: ArtistTileItemWidget(
+                                  artist: artist,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            ArtistScreen(artistId: artist.id),
+                                      ),
+                                    );
+                                  },
                                 ),
                               );
-                            },
-                            maxNameLength:
-                                20, // Définissez la longueur maximale ici
-                          );
-                        },
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Text(
-              "MOOD",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: sectionTitleSpacing),
-            FutureBuilder<List>(
-              future: EventGenreService().getGenresByEventId(widget.event.id!),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator.adaptive();
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Text('No genres found');
-                } else {
-                  final genres = snapshot.data!;
-                  return Wrap(
-                    spacing: 8.0,
-                    children: genres.map((genre) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => GenreScreen(genreId: genre),
-                            ),
-                          );
-                        },
-                        child: GenreChip(genreId: genre),
-                      );
-                    }).toList(),
-                  );
-                }
-              },
-            ),
-            const SizedBox(height: 20),
-          ],
+                            }).toList(),
+                          ),
+                        ),
+                        const SizedBox(height: sectionSpacing),
+                      ],
+                    );
+                  }
+                },
+              ),
+              // ORGANIZED BY section (Promoters)
+              FutureBuilder<List<Promoter>>(
+                future: _promotersFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator.adaptive());
+                  } else if (snapshot.hasError ||
+                      !snapshot.hasData ||
+                      snapshot.data!.isEmpty) {
+                    return const SizedBox.shrink();
+                  } else {
+                    final promoters = snapshot.data!;
+                    final bool hasMore = promoters.length > 3;
+                    final displayPromoters =
+                        hasMore ? promoters.sublist(0, 3) : promoters;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle("ORGANIZED BY", hasMore, () {
+                          // Show up to 10 promoters in a modal.
+                          showPromoterModalBottomSheet(
+                              context, promoters.take(10).toList());
+                        }),
+                        const SizedBox(height: sectionTitleSpacing),
+                        Column(
+                          children: displayPromoters.map((promoter) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: PromoterListItemWidget(
+                                promoter: promoter,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PromoterScreen(
+                                          promoterId: promoter.id!),
+                                    ),
+                                  );
+                                },
+                                maxNameLength: 20,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: sectionSpacing),
+                      ],
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  /*Widget _buildWallet() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Wallet',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          const Text('Current Balance: €50.00'),
-          const SizedBox(height: 20),
-          const Text(
-            'Recent Transactions',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          _buildTransaction('Ticket Purchase', '€20.00', 'Completed'),
-          _buildTransaction('Merchandise Purchase', '€15.00', 'Completed'),
-          _buildTransaction('Food & Drink', '€10.00', 'Completed'),
-        ],
-      ),
-    );
-  }*/
-
-  /*Widget _buildTransaction(String description, String amount, String status) {
-    return ListTile(
-      title: Text(description),
-      subtitle: Text(status),
-      trailing: Text(amount),
-    );
-  }*/
-
-  /*Widget _buildStore() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Store',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          _buildStoreItem(
-            'Festival T-Shirt',
-            'assets/images/icon.png',
-            '€25.00',
-          ),
-          _buildStoreItem('Festival Cap', 'assets/images/icon.png', '€15.00'),
-          _buildStoreItem(
-            'Festival Poster',
-            'assets/images/icon.png',
-            '€10.00',
-          ),
-        ],
-      ),
-    );
-  }*/
-
-  /*Widget _buildStoreItem(String title, String imageUrl, String price) {
-    return Card(
-      child: ListTile(
-        leading: Image.asset(imageUrl),
-        title: Text(title),
-        trailing: Text(price),
-      ),
-    );
-  }*/
-
-  /*Widget _buildMap() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Map',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          Image.asset('assets/images/icon.png'),
-        ],
-      ),
-    );
-  }*/
-
-  /*Widget _buildCommunity() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Community',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          _buildCommunityPost(
-            'User123',
-            'Had an amazing time at the festival!',
-          ),
-          _buildCommunityPost('User456', "Can't wait for the next event!"),
-          _buildCommunityPost('User789', 'Loved the performances!'),
-        ],
-      ),
-    );
-  }*/
-
-  /*Widget _buildCommunityPost(String username, String message) {
-    return ListTile(
-      title: Text(username),
-      subtitle: Text(message),
-    );
-  }*/
-
-  Future<Map<String, bool>> _getEventStatus(int eventId) async {
-    final bool isInterested =
-        await UserInterestEventService().isInterestedInEvent(eventId);
-    final bool isGoing = await UserInterestEventService().isGoingEvent(eventId);
-    return {'isInterested': isInterested, 'isGoing': isGoing};
-  }
-
-  void _handleMenuSelection(
-    String value,
-    int eventId,
-    BuildContext context,
-  ) {
-    switch (value) {
-      case 'interested':
-        UserInterestEventService().addInterest(eventId);
-        break;
-      case 'going':
-        UserInterestEventService().markEventAsGoing(eventId);
-        break;
-      case 'not_going':
-        UserInterestEventService().removeInterest(eventId);
-        break;
-    }
-    (context as Element).markNeedsBuild();
-  }
-
-  String formatEventDateRange(DateTime start, DateTime end) {
-    final DateFormat dateFormat = DateFormat('dd MMM yyyy');
-    final DateFormat timeFormat = DateFormat('HH:mm');
-
-    final String startDate = dateFormat.format(start);
-    final String endDate = dateFormat.format(end);
-    final String startTime = timeFormat.format(start);
-    final String endTime = timeFormat.format(end);
-
-    return '$startDate $startTime - $endDate $endTime';
   }
 }

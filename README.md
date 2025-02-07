@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Enhance Event screen UI/UX
 - Enhance Artist screen UI/UX
 - Enhance Genre screen UI/UX
 

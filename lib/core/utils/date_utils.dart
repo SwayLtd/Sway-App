@@ -24,3 +24,15 @@ String formatTime(DateTime dateTime) {
   return formattedTime;
 }
 
+/// Fonction utilitaire pour formater l'intervalle de dates de l'événement.
+String formatEventDateRange(DateTime start, DateTime end) {
+  final DateFormat dateFormat = DateFormat('dd MMM yyyy');
+  final DateFormat timeFormat = DateFormat('HH:mm');
+
+  final String startDate = dateFormat.format(start);
+  final String endDate = dateFormat.format(end);
+  final String startTime = timeFormat.format(start);
+  final String endTime = timeFormat.format(end);
+
+  return '$startDate $startTime - $endDate $endTime';
+}
