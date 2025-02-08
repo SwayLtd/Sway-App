@@ -387,7 +387,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -437,49 +436,75 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    // Image
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        width: double.infinity,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: isDark ? Colors.white : Colors.black),
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.grey[200],
-                        ),
-                        child: _selectedImage != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  _selectedImage!,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : widget.event.imageUrl.isNotEmpty
+                    // Image with edit icon overlay
+                    Stack(
+                      children: [
+                        // Event image with tap to change image
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            width: double.infinity,
+                            height: 200,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.grey[200],
+                            ),
+                            child: _selectedImage != null
                                 ? ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      widget.event.imageUrl,
+                                    child: Image.file(
+                                      _selectedImage!,
                                       fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              const Icon(
-                                        Icons.broken_image,
-                                        size: 50,
-                                        color: Colors.grey,
-                                      ),
                                     ),
                                   )
-                                : const Center(
-                                    child: Icon(
-                                      Icons.camera_alt,
-                                      size: 50,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                      ),
+                                : widget.event.imageUrl.isNotEmpty
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          widget.event.imageUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Icon(
+                                            Icons.broken_image,
+                                            size: 50,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      )
+                                    : const Center(
+                                        child: Icon(
+                                          Icons.camera_alt,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                          ),
+                        ),
+                        // Edit icon overlay
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: InkWell(
+                            onTap: _pickImage,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.7),
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(8),
+                              child: const Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 20),
 
