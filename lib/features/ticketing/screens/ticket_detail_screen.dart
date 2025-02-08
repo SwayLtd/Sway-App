@@ -418,8 +418,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
                 ),
                 // Bouton d'édition aligné à droite
                 IconButton(
-                  icon: Icon(Icons.edit,
-                      color: Theme.of(context).colorScheme.secondary),
+                  icon: Icon(Icons.edit),
                   onPressed: () async {
                     await Navigator.push(
                       context,

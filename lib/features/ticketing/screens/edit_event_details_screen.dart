@@ -1,4 +1,4 @@
-// lib\features\ticketing\screens\edit_event_details_screen.dart
+// lib/features/ticketing/screens/edit_event_details_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
