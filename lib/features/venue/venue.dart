@@ -29,6 +29,7 @@ import 'package:sway/features/venue/services/venue_genre_service.dart';
 import 'package:sway/features/venue/services/venue_promoter_service.dart';
 import 'package:sway/features/venue/services/venue_resident_artists_service.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
+import 'package:maps_launcher/maps_launcher.dart';
 // Import the map widget
 import 'package:sway/features/event/widgets/event_location_map_widget.dart';
 // Import EventService to get upcoming events via EventVenueService.
@@ -273,8 +274,16 @@ class _VenueScreenState extends State<VenueScreen> {
                             );
                           } else {
                             final venue = snapshot.data!;
-                            return InfoCard(
-                                title: "Location", content: venue.location);
+                            return InkWell(
+                              onTap: () {
+                                // Use maps_launcher to open the external maps app with the venue address.
+                                MapsLauncher.launchQuery(venue.location);
+                              },
+                              child: InfoCard(
+                                title: "Location",
+                                content: venue.location,
+                              ),
+                            );
                           }
                         },
                       ),

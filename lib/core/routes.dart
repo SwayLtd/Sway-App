@@ -22,7 +22,6 @@ import 'package:sway/features/user/user.dart';
 import 'package:sway/features/search/search.dart';
 import 'package:sway/features/settings/settings.dart';
 import 'package:sway/features/ticketing/ticketing.dart';
-import 'package:sway/features/user/user.dart';
 import 'package:sway/features/user/screens/reset_password_screen.dart';
 import 'package:sway/features/venue/venue.dart';
 
