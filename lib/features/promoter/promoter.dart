@@ -7,6 +7,7 @@ import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/widgets/artist_item_widget.dart'; // Contient ArtistTileItemWidget
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
+import 'package:sway/features/claim/widgets/verified_icon_widget.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
@@ -179,12 +180,26 @@ class _PromoterScreenState extends State<PromoterScreen> {
                           ),
                         ),
                         const SizedBox(height: sectionTitleSpacing),
-                        // Nom du promoteur
-                        Text(
-                          _promoter!.name,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                        // Display promoter name with VerifiedIconWidget for verification status
+                        Container(
+                          width: double.infinity,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                _promoter!.name,
+                                textAlign: TextAlign.left,
+                                style: const TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold),
+                              ),
+                              VerifiedIconWidget(
+                                isVerified: _promoter!
+                                    .isVerified, // Make sure your Artist model has an "isVerified" property
+                                entityType: 'promoter',
+                                entityName: _promoter!.name,
+                                entityId: _promoter!.id,
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: sectionTitleSpacing),

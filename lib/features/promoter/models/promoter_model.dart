@@ -8,6 +8,7 @@ class Promoter {
   final String imageUrl;
   final String description;
   final List<int> upcomingEvents; // Rendre non-nullable
+  final bool isVerified; // New property to indicate verification status
 
   Promoter({
     this.id,
@@ -15,6 +16,7 @@ class Promoter {
     required this.imageUrl,
     required this.description,
     this.upcomingEvents = const [], // Valeur par défaut
+    this.isVerified = false,
   });
 
   /// Création à partir de JSON avec événements
@@ -29,6 +31,8 @@ class Promoter {
       imageUrl: json['image_url'] as String? ?? '',
       description: json['description'] as String? ?? '',
       upcomingEvents: eventIds,
+      isVerified: json['is_verified'] as bool? ??
+          false, // Extract the verification status
     );
   }
 
@@ -51,6 +55,7 @@ class Promoter {
       'image_url': imageUrl,
       'description': description,
       // 'upcoming_events' n'est pas inclus car ce n'est pas une colonne directe dans la table 'promoters'
+      'is_verified': isVerified, // Include the verification status
     };
   }
 
@@ -61,6 +66,7 @@ class Promoter {
     String? imageUrl,
     String? description,
     List<int>? upcomingEvents,
+    bool? isVerified,
   }) {
     return Promoter(
       id: id ?? this.id,
@@ -68,6 +74,7 @@ class Promoter {
       imageUrl: imageUrl ?? this.imageUrl,
       description: description ?? this.description,
       upcomingEvents: upcomingEvents ?? this.upcomingEvents,
+      isVerified: isVerified ?? this.isVerified,
     );
   }
 }

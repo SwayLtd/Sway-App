@@ -6,6 +6,7 @@ class Venue {
   final String imageUrl;
   final String description;
   final String location;
+  final bool isVerified; // New property to indicate verification status
 
   Venue({
     this.id,
@@ -13,6 +14,7 @@ class Venue {
     required this.imageUrl,
     required this.description,
     required this.location,
+    this.isVerified = false,
   });
 
   factory Venue.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,8 @@ class Venue {
       imageUrl: json['image_url'] as String? ?? '',
       description: json['description'] as String? ?? '',
       location: json['location'] as String? ?? '',
+      isVerified: json['is_verified'] as bool? ??
+          false, // Extract the verification status
     );
   }
 
@@ -32,6 +36,7 @@ class Venue {
       'image_url': imageUrl,
       'description': description,
       'location': location,
+      'is_verified': isVerified, // Include the verification status
     };
   }
 
@@ -41,6 +46,7 @@ class Venue {
     String? imageUrl,
     String? description,
     String? location,
+    bool? isVerified,
   }) {
     return Venue(
       id: id ?? this.id,
@@ -48,6 +54,7 @@ class Venue {
       imageUrl: imageUrl ?? this.imageUrl,
       description: description ?? this.description,
       location: location ?? this.location,
+      isVerified: isVerified ?? this.isVerified,
     );
   }
 }

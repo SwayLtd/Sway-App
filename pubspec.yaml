@@ -7,7 +7,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.5.0+2 # Update claim history, accepted claim trigger, and is_verified status
+version: 0.5.0+3 # Add VerifiedIconWidget to PromoterScreen and VenueScreen
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
