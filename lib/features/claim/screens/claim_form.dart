@@ -1,18 +1,29 @@
 // lib/features/claim/claim.dart
 
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:sway/features/claim/screens/claim_history.dart';
 import 'package:sway/features/claim/services/claim_service.dart';
+import 'package:sway/features/security/services/storage_service.dart';
+import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
-import 'package:sway/features/user/services/user_service.dart';
+
+/// Extension method to capitalize the first letter of a string.
+extension StringExtension on String {
+  String capitalize() {
+    if (this.isEmpty) return this;
+    return this[0].toUpperCase() + substring(1);
+  }
+}
 
 /// A screen that displays a claim form for any type of entity.
 /// It shows read-only fields for entity type, entity name, and the current user's username.
-/// It also provides a text field for the user to enter additional evidence or proof.
+/// It also provides a text field for the user to enter additional evidence or proof,
+/// and allows uploading up to one file as supporting evidence.
 class ClaimFormScreen extends StatefulWidget {
   final int entityId;
   final String entityType;
@@ -30,12 +41,13 @@ class ClaimFormScreen extends StatefulWidget {
 class _ClaimFormScreenState extends State<ClaimFormScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
 
-  // Controllers for read-only fields.
   final TextEditingController _entityNameController =
       TextEditingController(text: "Loading...");
   final TextEditingController _userNameController =
       TextEditingController(text: "Loading...");
 
+  Uint8List? _selectedFileData;
+  String? _selectedFileName;
   bool _isSubmitting = false;
 
   @override
@@ -85,17 +97,50 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
     });
   }
 
+  /// Allows the user to pick a file.
+  Future<void> _pickFile() async {
+    // Limiter à un seul fichier
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      allowMultiple: false,
+      withData: true, // pour récupérer les données directement
+    );
+
+    if (result != null && result.files.single.bytes != null) {
+      setState(() {
+        _selectedFileData = result.files.single.bytes;
+        _selectedFileName = result.files.single.name;
+      });
+    }
+  }
+
   /// Handles form submission.
   Future<void> _submitForm() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
       setState(() {
         _isSubmitting = true;
       });
-      final formData = _formKey.currentState!.value;
+
+      String? proofFileUrl;
+
+      // If a file has been selected, upload it
+      if (_selectedFileData != null && _selectedFileName != null) {
+        proofFileUrl = await StorageService().uploadFile(
+          bucketName: 'claim-proof',
+          fileName: _selectedFileName!,
+          fileData: _selectedFileData!,
+        );
+      }
+
+      // Optionally, you could update ClaimService.submitClaim to accept proofFileUrl.
+      // For now, we assume that proofFileUrl can be concatenated or saved within proof_data.
+      final combinedProofData = _formKey.currentState!.value['proof_data'] +
+          (proofFileUrl != null ? '\nFile URL: $proofFileUrl' : '');
+
       final success = await ClaimService.submitClaim(
         entityId: widget.entityId,
         entityType: widget.entityType,
-        proofData: formData['proof_data'],
+        proofData: combinedProofData,
       );
       setState(() {
         _isSubmitting = false;
@@ -162,14 +207,21 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
                 ),
                 enabled: false,
               ),
-              const SizedBox(height: 10), // Reduced spacing from 20 to 10
+              const SizedBox(height: 10),
+              // Button to pick a file as proof (optional)
+              ElevatedButton.icon(
+                onPressed: _pickFile,
+                icon: const Icon(Icons.upload_file),
+                label: Text(_selectedFileName ?? 'Upload Proof File'),
+              ),
+              const SizedBox(height: 10),
               // Text field for additional evidence or proof data.
               FormBuilderTextField(
                 name: 'proof_data',
                 decoration: const InputDecoration(
                   labelText: 'Evidence / Proof',
                   hintText:
-                      'e.g., link to official website or social media profile',
+                      'e.g., link to official website, social media profile, or attach a file as proof',
                 ),
                 maxLines: 5,
                 validator: FormBuilderValidators.compose([
@@ -178,7 +230,6 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
                 ]),
               ),
               const SizedBox(height: 20),
-
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
                 style: ElevatedButton.styleFrom(

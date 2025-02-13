@@ -10,7 +10,7 @@ import 'package:sway/core/auth_state_manager.dart';
 import 'package:sway/core/utils/error/error_not_found.dart';
 import 'package:sway/core/widgets/bottom_navigation_bar.dart';
 import 'package:sway/features/artist/artist.dart';
-import 'package:sway/features/claim/claim.dart';
+import 'package:sway/features/claim/screens/claim_form.dart';
 import 'package:sway/features/claim/screens/claim_history.dart';
 import 'package:sway/features/explore/explore.dart';
 import 'package:sway/features/event/event.dart';
