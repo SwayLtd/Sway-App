@@ -47,7 +47,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
   void initState() {
     super.initState();
     _followersCountFuture =
-        _userFollowArtistService.getArtistFollowersCount(widget.artist.id);
+        _userFollowArtistService.getArtistFollowersCount(widget.artist.id!);
     _upcomingEventsFuture =
         _fetchUpcomingEvents(); // Récupérer la liste des événements à venir
   }
@@ -56,10 +56,11 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
   Future<List<Event>> _fetchUpcomingEvents() async {
     try {
       final List<Map<String, dynamic>> eventsData =
-          await _eventArtistService.getEventsByArtistId(widget.artist.id);
+          await _eventArtistService.getEventsByArtistId(widget.artist.id!);
 
       if (eventsData.isEmpty) {
-        print('Aucun événement trouvé pour l\'artiste ID: ${widget.artist.id}');
+        print(
+            'Aucun événement trouvé pour l\'artiste ID: ${widget.artist.id!}');
         return [];
       }
 
@@ -70,7 +71,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                 data['event'] as Event?; // Traiter 'event' comme un objet Event
             if (event == null) {
               print(
-                  'Données de l\'événement manquantes pour un événement associé à l\'artiste ID: ${widget.artist.id}');
+                  'Données de l\'événement manquantes pour un événement associé à l\'artiste ID: ${widget.artist.id!}');
               return null;
             }
             return event;
@@ -311,7 +312,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
               ],
             ),
             trailing: FollowingButtonWidget(
-              entityId: widget.artist.id,
+              entityId: widget.artist.id!,
               entityType: 'artist',
             ),
           ),

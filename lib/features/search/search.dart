@@ -351,7 +351,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ArtistScreen(artistId: result.id),
+              builder: (context) => ArtistScreen(artistId: result.id!),
             ),
           );
         },

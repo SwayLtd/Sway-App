@@ -106,7 +106,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
           .getArtistsByVenueId(_currentVenue.id!);
       if (!mounted) return;
       setState(() {
-        _selectedArtists = artists.map((artist) => artist.id).toList();
+        _selectedArtists = artists.map((artist) => artist.id!).toList();
         _initialArtists = List.from(_selectedArtists);
       });
     } catch (e) {
@@ -1268,7 +1268,7 @@ class _ArtistSelectionBottomSheetState
                             if (index < artistsToDisplay.length) {
                               final artist = artistsToDisplay[index];
                               final isSelected =
-                                  widget.selectedArtists.contains(artist.id);
+                                  widget.selectedArtists.contains(artist.id!);
                               return CheckboxListTile(
                                 value: isSelected,
                                 title: Text(artist.name),
@@ -1276,9 +1276,9 @@ class _ArtistSelectionBottomSheetState
                                   if (!mounted) return;
                                   setState(() {
                                     if (value == true) {
-                                      widget.selectedArtists.add(artist.id);
+                                      widget.selectedArtists.add(artist.id!);
                                     } else {
-                                      widget.selectedArtists.remove(artist.id);
+                                      widget.selectedArtists.remove(artist.id!);
                                     }
                                   });
                                 },

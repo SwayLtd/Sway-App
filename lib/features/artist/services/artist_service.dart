@@ -147,7 +147,7 @@ class ArtistService {
   /// Update an existing artist.
   Future<Artist> updateArtist(Artist artist) async {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
-      artist.id,
+      artist.id!,
       'artist',
       'manager', // 'manager' or higher can update
     );
@@ -160,15 +160,15 @@ class ArtistService {
     final response = await _supabase
         .from('artists')
         .update(artist.toJson())
-        .eq('id', artist.id)
+        .eq('id', artist.id!)
         .select()
         .single();
 
     // Optionally, update followers and isFollowing
     final updatedArtist = Artist.fromJson(response).copyWith(
       followers:
-          await _userFollowArtistService.getArtistFollowersCount(artist.id),
-      isFollowing: await _userFollowArtistService.isFollowingArtist(artist.id),
+          await _userFollowArtistService.getArtistFollowersCount(artist.id!),
+      isFollowing: await _userFollowArtistService.isFollowingArtist(artist.id!),
     );
 
     return updatedArtist;
@@ -247,13 +247,13 @@ class ArtistService {
     final Map<int, int> followerCounts = {};
 
     for (var artist in artists) {
-      followerCounts[artist.id] =
-          await _userFollowArtistService.getArtistFollowersCount(artist.id);
+      followerCounts[artist.id!] =
+          await _userFollowArtistService.getArtistFollowersCount(artist.id!);
     }
 
     // Assign follower counts to artists
     final List<Artist> artistsWithFollowers = artists.map((artist) {
-      return artist.copyWith(followers: followerCounts[artist.id] ?? 0);
+      return artist.copyWith(followers: followerCounts[artist.id!] ?? 0);
     }).toList();
 
     // Sort artists by follower count in descending order

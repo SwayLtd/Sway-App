@@ -82,7 +82,7 @@ class UserFollowArtistService {
     final List<Artist> allArtists = await ArtistService().getArtists();
 
     return allArtists
-        .where((artist) => followedArtistIds.contains(artist.id))
+        .where((artist) => followedArtistIds.contains(artist.id!))
         .toList();
   }
 

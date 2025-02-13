@@ -55,7 +55,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
             .toList();
         for (final artist in artists) {
           final bool isFollowing =
-              await userFollowArtistService.isFollowingArtist(artist.id);
+              await userFollowArtistService.isFollowingArtist(artist.id!);
           if (isFollowing) {
             artistsToShow.add(artistMap);
             break;
@@ -207,7 +207,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
             .toList();
         for (final artist in artists) {
           final bool isFollowing =
-              await userFollowArtistService.isFollowingArtist(artist.id);
+              await userFollowArtistService.isFollowingArtist(artist.id!);
           if (isFollowing) {
             artistsToShow.add(artistMap);
             break;
@@ -433,7 +433,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                                   (artist) =>
                                                       userFollowArtistService
                                                           .isFollowingArtist(
-                                                    artist.id,
+                                                    artist.id!,
                                                   ),
                                                 )
                                                 .toList(),
@@ -460,7 +460,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                                       builder: (context) =>
                                                           ArtistScreen(
                                                         artistId:
-                                                            artists.first.id,
+                                                            artists.first.id!,
                                                       ),
                                                     ),
                                                   );

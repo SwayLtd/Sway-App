@@ -41,11 +41,11 @@ class EventArtistService {
       List<Artist> associatedArtists = [];
       if (artistIdField is int) {
         associatedArtists =
-            artists.where((artist) => artist.id == artistIdField).toList();
+            artists.where((artist) => artist.id! == artistIdField).toList();
       } else if (artistIdField is List) {
         final ids = artistIdField.cast<int>();
         associatedArtists =
-            artists.where((artist) => ids.contains(artist.id)).toList();
+            artists.where((artist) => ids.contains(artist.id!)).toList();
       } else if (artistIdField is String) {
         final ids = artistIdField
             .replaceAll('[', '')
@@ -54,7 +54,7 @@ class EventArtistService {
             .map((id) => int.parse(id.trim()))
             .toList();
         associatedArtists =
-            artists.where((artist) => ids.contains(artist.id)).toList();
+            artists.where((artist) => ids.contains(artist.id!)).toList();
       }
       return {
         'id': entry['id'], // Unique assignment id

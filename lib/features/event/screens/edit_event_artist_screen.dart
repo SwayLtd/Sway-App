@@ -599,13 +599,13 @@ class _ArtistAssignmentBottomSheetState
                               return CheckboxListTile(
                                 title: Text(artist.name,
                                     style: const TextStyle(fontSize: 16)),
-                                value: _selectedArtistIds.contains(artist.id),
+                                value: _selectedArtistIds.contains(artist.id!),
                                 onChanged: (val) {
                                   setState(() {
                                     if (val == true) {
-                                      _selectedArtistIds.add(artist.id);
+                                      _selectedArtistIds.add(artist.id!);
                                     } else {
-                                      _selectedArtistIds.remove(artist.id);
+                                      _selectedArtistIds.remove(artist.id!);
                                     }
                                   });
                                 },

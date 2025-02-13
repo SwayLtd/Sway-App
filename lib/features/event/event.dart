@@ -383,7 +383,7 @@ class _EventScreenState extends State<EventScreen> {
                       final List<dynamic> artists =
                           entry['artists'] as List<dynamic>;
                       for (final artist in artists.cast<Artist>()) {
-                        uniqueArtists[artist.id] = artist;
+                        uniqueArtists[artist.id!] = artist;
                       }
                     }
                     final artistsList = uniqueArtists.values.toList();
@@ -412,7 +412,7 @@ class _EventScreenState extends State<EventScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            ArtistScreen(artistId: artist.id),
+                                            ArtistScreen(artistId: artist.id!),
                                       ),
                                     );
                                   },

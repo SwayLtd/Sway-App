@@ -99,17 +99,13 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
       }
       print('Current User: ${currentUser.toJson()}');
 
-      // Create a new artist without the image to get the ID
       final newArtist = Artist(
-        id: 0, // Temporary ID, will be replaced by the actual ID from the database
         name: _nameController.text.trim(),
         imageUrl: '',
         description: _descriptionController.text.trim(),
-        genres: [], // Populate as needed
-        similarArtists: [], // Populate as needed
-        links: {}, // Populate as needed
-        followers: null, // Remove followers
-        isFollowing: null, // Remove isFollowing
+        genres: [],
+        similarArtists: [],
+        links: {},
         upcomingEvents: [],
       );
 
@@ -118,7 +114,7 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
       print('Created Artist: ${createdArtist.toJson()}');
 
       // Upload the image and get the URL
-      final imageUrl = await _uploadImage(createdArtist.id);
+      final imageUrl = await _uploadImage(createdArtist.id!);
       print('Image Uploaded: $imageUrl');
 
       // Update the artist with the image URL

@@ -140,7 +140,7 @@ void showArtistsBottomSheet(BuildContext context, List<Artist> artists) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ArtistScreen(artistId: artist.id),
+                    builder: (context) => ArtistScreen(artistId: artist.id!),
                   ),
                 );
               },

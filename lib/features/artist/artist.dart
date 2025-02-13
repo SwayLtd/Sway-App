@@ -575,7 +575,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                                     builder: (context) =>
                                                         ArtistScreen(
                                                             artistId:
-                                                                artist.id),
+                                                                artist.id!),
                                                   ),
                                                 );
                                               },

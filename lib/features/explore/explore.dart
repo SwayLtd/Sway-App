@@ -124,11 +124,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
         .getFollowedArtistsByUserId(userId)
         .then((followedArtists) async {
       final followedArtistIds =
-          followedArtists.map((artist) => artist.id).toList();
+          followedArtists.map((artist) => artist.id!).toList();
       final similarArtistIds = <int>{};
       for (final artist in followedArtists) {
         final ids =
-            await _similarArtistService.getSimilarArtistsByArtistId(artist.id);
+            await _similarArtistService.getSimilarArtistsByArtistId(artist.id!);
         similarArtistIds.addAll(ids);
       }
 
@@ -140,7 +140,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           .toList();
 
       final suggestedArtists = allArtists
-          .where((artist) => !followedArtistIds.contains(artist.id))
+          .where((artist) => !followedArtistIds.contains(artist.id!))
           .toList();
 
       return [...similarArtists, ...suggestedArtists];
@@ -366,7 +366,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ArtistScreen(artistId: artist.id),
+              builder: (context) => ArtistScreen(artistId: artist.id!),
             ),
           );
         },

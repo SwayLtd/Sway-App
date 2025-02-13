@@ -63,7 +63,7 @@ Future<void> showArtistModalBottomSheet(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
-                              ArtistScreen(artistId: artist.id),
+                              ArtistScreen(artistId: artist.id!),
                         ),
                       );
                     },

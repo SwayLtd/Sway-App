@@ -290,7 +290,7 @@ class _GenreScreenState extends State<GenreScreen> {
                                               MaterialPageRoute(
                                                 builder: (context) =>
                                                     ArtistScreen(
-                                                        artistId: artist.id),
+                                                        artistId: artist.id!),
                                               ),
                                             );
                                           },

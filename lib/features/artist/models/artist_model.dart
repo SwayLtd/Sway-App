@@ -1,7 +1,7 @@
 // lib/features/artist/models/artist_model.dart
 
 class Artist {
-  final int id;
+  final int? id;
   final String name;
   final String imageUrl;
   final String description;
@@ -13,7 +13,7 @@ class Artist {
   final bool? isFollowing; // Make optional
 
   Artist({
-    required this.id,
+    this.id,
     required this.name,
     required this.imageUrl,
     required this.description,
@@ -27,7 +27,7 @@ class Artist {
 
   factory Artist.fromJson(Map<String, dynamic> json) {
     return Artist(
-      id: json['id'] ?? 0,
+      id: json['id'] as int?,
       name: json['name'] as String,
       imageUrl: json['image_url'] as String,
       description: json['description'] as String? ?? '',
@@ -42,7 +42,7 @@ class Artist {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      if (id != null) 'id': id,
       'name': name,
       'image_url': imageUrl,
       'description': description,

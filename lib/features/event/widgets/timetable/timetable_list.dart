@@ -34,7 +34,7 @@ Future<Widget> buildListView(
             .map((artist) => artist as Artist)
             .toList();
         for (final artist in artists) {
-          if (await userFollowArtistService.isFollowingArtist(artist.id)) {
+          if (await userFollowArtistService.isFollowingArtist(artist.id!)) {
             artistsByStage[stage]!.add(entry);
             break;
           }
@@ -116,7 +116,7 @@ Future<Widget> buildListView(
                   future: Future.wait(
                     artists
                         .map((artist) => userFollowArtistService
-                            .isFollowingArtist(artist.id))
+                            .isFollowingArtist(artist.id!))
                         .toList(),
                   ).then(
                     (results) => results.any((isFollowing) => isFollowing),
@@ -288,7 +288,7 @@ Future<Widget> buildListView(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => ArtistScreen(
-                                        artistId: artists.first.id,
+                                        artistId: artists.first.id!,
                                       ),
                                     ),
                                   );

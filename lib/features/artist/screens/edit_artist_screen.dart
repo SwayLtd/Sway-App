@@ -60,7 +60,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
     try {
       // Chargement des genres associés à l'artiste via le service dédié.
       final genres =
-          await _artistGenreService.getGenresByArtistId(_currentArtist.id);
+          await _artistGenreService.getGenresByArtistId(_currentArtist.id!);
       setState(() {
         _selectedGenres = List<int>.from(genres);
         _initialGenres = List<int>.from(genres);
@@ -143,7 +143,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
       String updatedImageUrl = _currentArtist.imageUrl;
       if (isImageChanged) {
         updatedImageUrl =
-            await _uploadImage(_currentArtist.id, _selectedImage!);
+            await _uploadImage(_currentArtist.id!, _selectedImage!);
         final oldFileName =
             _currentArtist.imageUrl.split('/').last.split('?').first;
         if (oldFileName.isNotEmpty) {
@@ -171,7 +171,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
 
       if (isGenresChanged) {
         await _artistGenreService.updateArtistGenres(
-            _currentArtist.id, _selectedGenres);
+            _currentArtist.id!, _selectedGenres);
         setState(() {
           _initialGenres = List.from(_selectedGenres);
         });
@@ -256,7 +256,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
         );
       }
 
-      await _artistService.deleteArtist(_currentArtist.id);
+      await _artistService.deleteArtist(_currentArtist.id!);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

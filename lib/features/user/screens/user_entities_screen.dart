@@ -94,7 +94,7 @@ class UserEntitiesScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ArtistScreen(artistId: artist.id)),
+                builder: (context) => ArtistScreen(artistId: artist.id!)),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

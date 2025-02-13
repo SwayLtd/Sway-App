@@ -1574,7 +1574,7 @@ class _EditEventArtistBottomSheetState
                             if (index < displayedList.length) {
                               final artist = displayedList[index];
                               final isSelected =
-                                  widget.selectedArtists.contains(artist.id);
+                                  widget.selectedArtists.contains(artist.id!);
 
                               return CheckboxListTile(
                                 value: isSelected,
@@ -1582,9 +1582,9 @@ class _EditEventArtistBottomSheetState
                                 onChanged: (bool? checked) {
                                   setState(() {
                                     if (checked == true) {
-                                      widget.selectedArtists.add(artist.id);
+                                      widget.selectedArtists.add(artist.id!);
                                     } else {
-                                      widget.selectedArtists.remove(artist.id);
+                                      widget.selectedArtists.remove(artist.id!);
                                     }
                                   });
                                 },
