@@ -9,6 +9,8 @@ import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 
+import 'package:sway/features/venue/widgets/address_field.dart';
+
 class CreateVenueScreen extends StatefulWidget {
   const CreateVenueScreen({Key? key}) : super(key: key);
 
@@ -225,6 +227,12 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
                 },
               ),
               const SizedBox(height: 20),
+              // Champ Adresse
+              AddressField(
+                controller: _locationController,
+                hintText: 'Address',
+              ),
+              const SizedBox(height: 20),
               // Champ Description
               TextFormField(
                 controller: _descriptionController,
@@ -236,21 +244,6 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a description.';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              // Champ Adresse
-              TextFormField(
-                controller: _locationController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter the address.';
                   }
                   return null;
                 },
