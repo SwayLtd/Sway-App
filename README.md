@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Update claim history, accepted claim trigger, and is_verified status
 - Add file upload for claim proof
 - Improve claim system and notifications
 
