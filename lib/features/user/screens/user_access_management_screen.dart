@@ -206,12 +206,16 @@ class _UserAccessManagementScreenState
                             borderRadius: BorderRadius.circular(8.0),
                             child: ImageWithErrorHandler(
                               imageUrl: user.profilePictureUrl,
-                              width: 50,
-                              height: 50,
+                              width: 40,
+                              height: 40,
                               fit: BoxFit.cover,
                             ),
                           ),
-                          title: Text(user.username),
+                          title: Text(
+                            user.username,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [

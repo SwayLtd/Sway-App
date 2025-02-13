@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/user/models/user_model.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
@@ -54,6 +55,7 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
       }
     }
 
+    // Using the getRoleLabel function from UserPermissionService
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -155,11 +157,19 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
               itemBuilder: (context, index) {
                 final user = _searchResults[index];
                 return ListTile(
-                  title: GestureDetector(
-                    onTap: () {
-                      _showRoleSelectionDialog(user);
-                    },
-                    child: Text(user.username),
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: ImageWithErrorHandler(
+                      imageUrl: user.profilePictureUrl,
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  title: Text(
+                    user.username,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.add_box),
@@ -167,6 +177,9 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
                       _showRoleSelectionDialog(user);
                     },
                   ),
+                  onTap: () {
+                    _showRoleSelectionDialog(user);
+                  },
                 );
               },
             ),
