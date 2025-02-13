@@ -85,7 +85,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
             future: _permissionService.hasPermissionForCurrentUser(
               widget.promoterId,
               'promoter',
-              'manager', // manager ou supérieur
+              2, // manager ou supérieur
             ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||

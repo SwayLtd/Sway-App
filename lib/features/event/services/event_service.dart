@@ -106,7 +106,7 @@ class EventService {
         await _permissionService.hasPermissionForCurrentUser(
       promoterId,
       'promoter',
-      'manager', // User must be at least manager (or admin) on the promoter.
+      2, // User must be at least manager (or admin) on the promoter.
     );
     print('Checking permission for promoter $promoterId: $hasPermission');
     if (!hasPermission) {
@@ -132,7 +132,7 @@ class EventService {
         await _permissionService.hasPermissionForCurrentUser(
       event.id!,
       'event',
-      'manager',
+      2,
     );
 
     if (!hasPermission) {
@@ -156,7 +156,7 @@ class EventService {
         await _permissionService.hasPermissionForCurrentUser(
       eventId,
       'event',
-      'admin',
+      3,
     );
 
     if (!hasPermission) {

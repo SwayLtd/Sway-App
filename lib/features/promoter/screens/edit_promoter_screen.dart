@@ -393,8 +393,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                 ? null
                 : () async {
                     final permission = await _getCurrentUserPermission();
-                    if (permission != null &&
-                        permission.permission == 'admin') {
+                    if (permission != null && permission.permissionLevel == 3) {
                       await _showDeleteConfirmationDialog();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(

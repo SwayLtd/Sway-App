@@ -134,7 +134,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
             future: UserPermissionService().hasPermissionForCurrentUser(
               widget.artistId,
               'artist',
-              'manager',
+              2,
             ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||

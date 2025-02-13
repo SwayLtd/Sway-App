@@ -253,7 +253,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final canManage = await _permissionService.hasPermissionForCurrentUser(
       promoterId,
       'promoter',
-      'manager',
+      2,
     );
     if (!canManage) {
       ScaffoldMessenger.of(context).showSnackBar(

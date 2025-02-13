@@ -140,8 +140,9 @@ class PromoterService {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
       promoter.id!,
       'promoter',
-      'manager', // 'manager' or higher can update
+      2, // manager level (2) ou supérieur peut mettre à jour
     );
+
     if (!hasPermission) {
       throw Exception(
           'Permission denied: You do not have the necessary rights to update this promoter.');
@@ -163,7 +164,7 @@ class PromoterService {
         await _permissionService.hasPermissionForCurrentUser(
       promoterId,
       'promoter',
-      'admin',
+      3, // admin level (3) requis pour la suppression
     );
 
     if (!hasAdminPermission) {

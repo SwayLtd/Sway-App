@@ -149,7 +149,7 @@ class ArtistService {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
       artist.id!,
       'artist',
-      'manager', // 'manager' or higher can update
+      2, // 'manager' or higher can update
     );
 
     if (!hasPermission) {
@@ -180,7 +180,7 @@ class ArtistService {
         await _permissionService.hasPermissionForCurrentUser(
       artistId,
       'artist',
-      'admin',
+      3,
     );
 
     if (!hasAdminPermission) {

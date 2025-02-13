@@ -243,7 +243,8 @@ class UserEntitiesScreen extends StatelessWidget {
                             final event = eventSnapshot.data!;
                             return ListTile(
                               title: Text(event.title),
-                              subtitle: Text('Role: ${permission.permission}'),
+                              subtitle: Text(
+                                  'Role: ${getRoleLabel(permission.permissionLevel)}'),
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(
@@ -296,7 +297,8 @@ class UserEntitiesScreen extends StatelessWidget {
                             final venue = venueSnapshot.data!;
                             return ListTile(
                               title: Text(venue.name),
-                              subtitle: Text('Role: ${permission.permission}'),
+                              subtitle: Text(
+                                  'Role: ${getRoleLabel(permission.permissionLevel)}'),
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(
@@ -349,7 +351,8 @@ class UserEntitiesScreen extends StatelessWidget {
                             final promoter = promoterSnapshot.data!;
                             return ListTile(
                               title: Text(promoter.name),
-                              subtitle: Text('Role: ${permission.permission}'),
+                              subtitle: Text(
+                                  'Role: ${getRoleLabel(permission.permissionLevel)}'),
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(
@@ -402,7 +405,8 @@ class UserEntitiesScreen extends StatelessWidget {
                             final artist = artistSnapshot.data!;
                             return ListTile(
                               title: Text(artist.name),
-                              subtitle: Text('Role: ${permission.permission}'),
+                              subtitle: Text(
+                                  'Role: ${getRoleLabel(permission.permissionLevel)}'),
                               trailing: IconButton(
                                 icon: const Icon(Icons.edit),
                                 onPressed: () => _editEntity(

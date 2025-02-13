@@ -124,7 +124,7 @@ class _VenueScreenState extends State<VenueScreen> {
         actions: [
           FutureBuilder<bool>(
             future: UserPermissionService()
-                .hasPermissionForCurrentUser(widget.venueId, 'venue', 'edit'),
+                .hasPermissionForCurrentUser(widget.venueId, 'venue', 2),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
                   !snapshot.hasData ||
@@ -149,23 +149,6 @@ class _VenueScreenState extends State<VenueScreen> {
                   }
                 },
               );
-            },
-          ),
-          FutureBuilder<bool>(
-            future: UserPermissionService().hasPermissionForCurrentUser(
-              widget.venueId,
-              'venue',
-              'insight',
-            ),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting ||
-                  !snapshot.hasData ||
-                  !snapshot.data!) {
-                return const SizedBox.shrink();
-              } else {
-                return const SizedBox.shrink();
-                // TODO: Implement insights for venues
-              }
             },
           ),
           FutureBuilder<Venue?>(

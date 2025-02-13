@@ -1,5 +1,3 @@
-// user_access_search_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:sway/features/user/models/user_model.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
@@ -23,7 +21,7 @@ class UserAccessSearchScreen extends StatefulWidget {
 class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<User> _searchResults = [];
-  String selectedRole = 'user'; // Default role
+  int selectedRole = 1; // Default role is User (level 1)
 
   Future<void> _searchUsers() async {
     final users = await UserService().searchUsers(_searchController.text);
@@ -40,8 +38,22 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
   }
 
   void _showRoleSelectionDialog(User user) {
-    final availableRoles =
-        widget.isCurrentUserAdmin ? ['admin', 'manager', 'user'] : ['user'];
+    // If current user is admin, allow [3, 2, 1]; otherwise, only 1.
+    final availableRoles = widget.isCurrentUserAdmin ? [3, 2, 1] : [1];
+
+    // Function to get descriptive text based on role.
+    String getRoleDescription(int role) {
+      switch (role) {
+        case 3:
+          return "Allows modifying, deleting the entity and managing full access.";
+        case 2:
+          return "Allows modifying the entity and managing part of the access.";
+        case 1:
+        default:
+          return "Allows viewing information related to the entity.";
+      }
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -49,32 +61,41 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
           title: const Text('Select Role'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-              return DropdownButton<String>(
-                value: selectedRole,
-                items: availableRoles
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value[0].toUpperCase() + value.substring(1)),
-                  );
-                }).toList(),
-                onChanged: (String? newRole) {
-                  if (newRole != null) {
-                    if (!mounted) return;
-                    setState(() {
-                      selectedRole = newRole;
-                    });
-                  }
-                },
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButton<int>(
+                    value: selectedRole,
+                    items:
+                        availableRoles.map<DropdownMenuItem<int>>((int value) {
+                      return DropdownMenuItem<int>(
+                        value: value,
+                        child: Text(getRoleLabel(value)),
+                      );
+                    }).toList(),
+                    onChanged: (int? newRole) {
+                      if (newRole != null) {
+                        if (!mounted) return;
+                        setState(() {
+                          selectedRole = newRole;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    getRoleDescription(selectedRole),
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
               );
             },
           ),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
               child: const Text('Add'),
@@ -83,7 +104,7 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
                   user.id,
                   widget.entityId,
                   widget.entityType,
-                  selectedRole,
+                  selectedRole, // directly pass the numeric role
                 );
                 Navigator.of(context).pop();
                 if (!mounted) return;

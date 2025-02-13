@@ -109,7 +109,7 @@ class _EventScreenState extends State<EventScreen> {
           // Edit button (displayed if the user has permission)
           FutureBuilder<bool>(
             future: UserPermissionService()
-                .hasPermissionForCurrentUser(_event.id!, 'event', 'edit'),
+                .hasPermissionForCurrentUser(_event.id!, 'event', 2),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
                   !snapshot.hasData ||

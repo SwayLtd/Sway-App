@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 // Importez vos services et modèles
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/screens/edit_event_artist_screen.dart';
 import 'package:sway/features/event/services/event_genre_service.dart';
@@ -302,7 +303,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
           await _permissionService.hasPermissionForCurrentUser(
         widget.event.id!,
         'event',
-        'manager',
+        2,
       );
       if (!hasPermission) {
         throw Exception('Permission denied on this event.');
@@ -405,7 +406,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                         await _permissionService.hasPermissionForCurrentUser(
                       widget.event.id!,
                       'event',
-                      'admin',
+                      3,
                     );
                     if (hasAdmin) {
                       _showDeleteConfirmation();
@@ -919,7 +920,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
     final bool hasAdmin = await _permissionService.hasPermissionForCurrentUser(
       widget.event.id!,
       'event',
-      'admin',
+      3,
     );
     if (!hasAdmin) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -118,8 +118,9 @@ class VenueService {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
       venue.id!,
       'venue',
-      'manager',
+      2, // manager level (2) requis pour la mise à jour
     );
+
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
@@ -138,8 +139,9 @@ class VenueService {
     final hasPermission = await _permissionService.hasPermissionForCurrentUser(
       venueId,
       'venue',
-      'admin',
+      3, // admin level (3) requis pour la suppression
     );
+
     if (!hasPermission) {
       throw Exception('Permission denied');
     }
