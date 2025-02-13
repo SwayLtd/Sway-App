@@ -16,14 +16,11 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
-- Enhance Map Interactivity in VenueScreen and EventLocationMapWidget
-- Add EventScreen ticket count widget and navigation
-- Reorder Events sections above moods in UserScreen
-- Merge ProfileScreen into UserScreen and update routes
+- Improve claim system and notifications
 
 ### Known Issues
 
-- Residents don't need to be limite in modal bottom sheets
+- Residents don't need to be limited in modal bottom sheets
 - (Notification) Ticket notification actions are not working
 - (Notification) Ticket notification doesn't show the ticket on click
 - (Notification) Remote notification preferences not linked to notification

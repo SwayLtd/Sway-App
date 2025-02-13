@@ -1,6 +1,7 @@
 // lib/core/widgets/verified_icon_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// A widget that displays a verification icon based on the verification status of an entity.
@@ -33,7 +34,7 @@ class VerifiedIconWidget extends StatelessWidget {
 
     // If the entity is not verified and the user is not logged in, do not display the icon
     if (!isVerified && currentUser == null) {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
 
     return IconButton(
@@ -51,12 +52,8 @@ class VerifiedIconWidget extends StatelessWidget {
               action: SnackBarAction(
                 label: 'History',
                 onPressed: () {
-                  // Navigate to claim history screen
-                  Navigator.pushNamed(context, '/claimHistory', arguments: {
-                    'entityType': entityType,
-                    'entityName': entityName,
-                    'entityId': entityId,
-                  });
+                  // Navigate to claim history screen using go_router
+                  context.push('/claimHistory/${entityType}/${entityId}');
                 },
               ),
               behavior: SnackBarBehavior.floating,
@@ -72,11 +69,8 @@ class VerifiedIconWidget extends StatelessWidget {
               action: SnackBarAction(
                 label: 'Claim',
                 onPressed: () {
-                  // Navigate to claim form screen
-                  Navigator.pushNamed(context, '/claimForm', arguments: {
-                    'entityType': entityType,
-                    'entityId': entityId,
-                  });
+                  // Navigate to claim form screen using go_router
+                  context.push('/claimForm/${entityType}/${entityId}');
                 },
               ),
               behavior: SnackBarBehavior.floating,

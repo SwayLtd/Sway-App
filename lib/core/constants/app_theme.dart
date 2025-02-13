@@ -29,6 +29,11 @@ class AppTheme {
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
     ),
+    // In the light theme
+    snackBarTheme: SnackBarThemeData(
+      actionTextColor: Colors.white, // Use your primary color for actions
+      contentTextStyle: TextStyle(color: Colors.white),
+    ),
     chipTheme: ChipThemeData(
       backgroundColor: Colors.grey[200],
       shape: RoundedRectangleBorder(
@@ -215,6 +220,11 @@ class AppTheme {
       color: Color.fromRGBO(15, 13, 8, 1),
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
+    ),
+    // In the dark theme
+    snackBarTheme: SnackBarThemeData(
+      actionTextColor: Colors.black, // Dark text for actions
+      contentTextStyle: TextStyle(color: Colors.black),
     ),
     chipTheme: ChipThemeData(
       backgroundColor: Color.fromRGBO(15, 13, 8, 1),

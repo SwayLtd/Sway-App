@@ -31,6 +31,7 @@ import 'package:sway/features/venue/services/venue_resident_artists_service.dart
 import 'package:sway/features/venue/venue.dart';
 import 'package:sway/features/venue/widgets/venue_item_widget.dart';
 import 'package:sway/features/venue/widgets/venue_modal_bottom_sheet.dart';
+import 'package:sway/core/widgets/verified_icon_widget.dart';
 
 class ArtistScreen extends StatefulWidget {
   final int artistId;
@@ -230,16 +231,29 @@ class _ArtistScreenState extends State<ArtistScreen> {
                       ),
                     ),
                     SizedBox(height: sectionTitleSpacing),
-                    // Nom de l'artiste aligné à gauche
+                    // Display artist name with VerifiedIconWidget for verification status
                     Container(
                       width: double.infinity,
-                      child: Text(
-                        artist.name,
-                        textAlign: TextAlign.left,
-                        style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            artist.name,
+                            textAlign: TextAlign.left,
+                            style: const TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
+                          ),
+                          VerifiedIconWidget(
+                            isVerified: artist
+                                .isVerified, // Make sure your Artist model has an "isVerified" property
+                            entityType: 'artist',
+                            entityName: artist.name,
+                            entityId: artist.id,
+                          ),
+                        ],
                       ),
                     ),
+
                     SizedBox(height: 5),
                     // Compteur de followers
                     FollowersCountWidget(

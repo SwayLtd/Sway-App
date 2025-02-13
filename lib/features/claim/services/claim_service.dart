@@ -21,19 +21,27 @@ class ClaimService {
     }
 
     // Insert a new claim into the "claims" table with the current user's internal ID.
-    final response = await supabase.from('claims').insert({
+    // IMPORTANT: Use .select() after .insert() to retrieve a response object.
+    await supabase.from('claims').insert({
       'entity_id': entityId,
       'entity_type': entityType,
       'user_id': currentUser.id,
       'proof_data': proofData,
       // 'status' and 'date_submission' are automatically set by the database defaults.
-    });
-
-    if (response.error != null) {
-      // Log error details for debugging.
-      print('Error submitting claim: ${response.error!.message}');
-      return false;
-    }
+    }).select();
     return true;
+  }
+
+  /// Retrieves all claims for a given entity.
+  static Future<List<Map<String, dynamic>>> getClaimsForEntity({
+    required int entityId,
+    required String entityType,
+  }) async {
+    final response = await supabase
+        .from('claims')
+        .select()
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType);
+    return (response as List).cast<Map<String, dynamic>>();
   }
 }

@@ -10,6 +10,8 @@ import 'package:sway/core/auth_state_manager.dart';
 import 'package:sway/core/utils/error/error_not_found.dart';
 import 'package:sway/core/widgets/bottom_navigation_bar.dart';
 import 'package:sway/features/artist/artist.dart';
+import 'package:sway/features/claim/claim.dart';
+import 'package:sway/features/claim/screens/claim_history.dart';
 import 'package:sway/features/explore/explore.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
@@ -164,6 +166,24 @@ List<Map<String, dynamic>> standaloneRoutes = [
           }
         },
       );
+    },
+  },
+  {
+    'name': 'ClaimForm',
+    'path': '/claimForm/:entityType/:entityId',
+    'screenBuilder': (BuildContext context, GoRouterState state) {
+      final String entityType = state.pathParameters['entityType']!;
+      final int entityId = int.parse(state.pathParameters['entityId']!);
+      return ClaimFormScreen(entityId: entityId, entityType: entityType);
+    },
+  },
+  {
+    'name': 'ClaimHistory',
+    'path': '/claimHistory/:entityType/:entityId',
+    'screenBuilder': (BuildContext context, GoRouterState state) {
+      final String entityType = state.pathParameters['entityType']!;
+      final int entityId = int.parse(state.pathParameters['entityId']!);
+      return ClaimHistoryScreen(entityId: entityId, entityType: entityType);
     },
   },
 ];
