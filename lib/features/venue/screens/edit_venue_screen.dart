@@ -494,7 +494,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
         actions: [
           IconButton(
             icon: const Icon(
-                Icons.verified_user), // Conserver l'icône "verified_user"
+                Icons.add_moderator), // Conserver l'icône "add_moderator"
             onPressed: _isUpdating || _isDeleting
                 ? null
                 : () async {

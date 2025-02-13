@@ -364,7 +364,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
         actions: [
           IconButton(
             icon: const Icon(
-                Icons.verified_user), // Conserver l'icône "verified_user"
+                Icons.add_moderator), // Conserver l'icône "add_moderator"
             onPressed: _isLoading || _isDeleting
                 ? null
                 : () async {
