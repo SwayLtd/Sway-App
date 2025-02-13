@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Add file upload for claim proof
 - Improve claim system and notifications
 
 ### Known Issues
