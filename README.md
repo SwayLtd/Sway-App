@@ -16,11 +16,8 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Update permissions and access management UI
 - Refactor Permission System and UI Enhancements
-- Add VerifiedIconWidget to PromoterScreen and VenueScreen
-- Update claim history, accepted claim trigger, and is_verified status
-- Add file upload for claim proof
-- Improve claim system and notifications
 
 ### Known Issues
 

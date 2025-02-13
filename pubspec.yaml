@@ -7,7 +7,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.5.1 # Refactor Permission System and UI Enhancements
+version: 0.5.1+1 # Update permissions and access management UI
 
 environment:
   sdk: ">=2.18.5 <4.0.0"

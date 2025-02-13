@@ -12,6 +12,7 @@ import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
+import 'package:sway/features/user/screens/user_access_management_screen.dart';
 
 class EditArtistScreen extends StatefulWidget {
   final Artist artist;
@@ -205,29 +206,30 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
     }
   }
 
-  /// Affichage d'un dialogue de confirmation pour la suppression de l'artiste.
+  /// Method to display the deletion confirmation dialog
   Future<void> _showDeleteConfirmationDialog() async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // L'utilisateur doit confirmer
+      barrierDismissible:
+          false, // The user must tap a button to dismiss the dialog
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirmer la suppression'),
-          content: const Text('Voulez-vous vraiment supprimer cet artiste ?'),
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this promoter?'),
           actions: <Widget>[
             TextButton(
-              child: const Text('Annuler'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: const Text(
-                'Supprimer',
+                'Delete',
                 style: TextStyle(color: Colors.red),
               ),
               onPressed: () async {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog first
                 await _deleteArtist();
               },
             ),
@@ -299,6 +301,25 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
       appBar: AppBar(
         title: Text('Edit "${_currentArtist.name}"'),
         actions: [
+          IconButton(
+            icon: const Icon(
+                Icons.add_moderator), // Conserver l'icône "add_moderator"
+            onPressed: _isLoading || _isDeleting
+                ? null
+                : () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserAccessManagementScreen(
+                          entityId: _currentArtist.id!,
+                          entityType: 'artist',
+                        ),
+                      ),
+                    );
+                    if (!mounted) return;
+                    setState(() {});
+                  },
+          ),
           IconButton(
             icon: _isLoading ? const SizedBox.shrink() : const Icon(Icons.save),
             onPressed: _isLoading || _isDeleting ? null : _updateArtist,

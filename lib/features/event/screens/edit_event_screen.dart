@@ -18,6 +18,7 @@ import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/security/services/storage_service.dart';
+import 'package:sway/features/user/screens/user_access_management_screen.dart';
 import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
@@ -396,6 +397,23 @@ class _EditEventScreenState extends State<EditEventScreen> {
       appBar: AppBar(
         title: Text('Edit "${widget.event.title}"'),
         actions: [
+          IconButton(
+            icon: const Icon(
+                Icons.add_moderator), // Conserver l'icône "add_moderator"
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserAccessManagementScreen(
+                    entityId: widget.event.id!,
+                    entityType: 'event',
+                  ),
+                ),
+              );
+              if (!mounted) return;
+              setState(() {});
+            },
+          ),
           // Bouton delete
           IconButton(
             icon: const Icon(Icons.delete),
