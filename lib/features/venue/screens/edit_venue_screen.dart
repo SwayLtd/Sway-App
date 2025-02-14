@@ -1,15 +1,15 @@
-// lib/features/venue/screens/edit_venue_screen.dart
-
 import 'dart:io';
+import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; // Import pour listEquals
 import 'package:image_picker/image_picker.dart';
+
+// Importations des services, modèles et widgets
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
-import 'package:sway/features/security/services/storage_service.dart';
-import 'package:sway/features/user/screens/user_access_management_screen.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/venue/services/venue_genre_service.dart';
@@ -21,7 +21,10 @@ import 'package:sway/features/artist/widgets/artist_chip.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
-import 'dart:math';
+import 'package:sway/features/security/services/storage_service.dart';
+import 'package:sway/features/user/screens/user_access_management_screen.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
+import 'package:sway/features/user/services/user_service.dart';
 
 class EditVenueScreen extends StatefulWidget {
   final Venue venue;
@@ -33,6 +36,8 @@ class EditVenueScreen extends StatefulWidget {
 }
 
 class _EditVenueScreenState extends State<EditVenueScreen> {
+  final _formKey = GlobalKey<FormState>();
+
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
@@ -46,7 +51,10 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
   final GenreService _genreService = GenreService();
   final PromoterService _promoterService = PromoterService();
   final ArtistService _artistService = ArtistService();
+  final UserPermissionService _permissionService = UserPermissionService();
+  final UserService _userService = UserService();
 
+  // Variables pour stocker les associations
   List<int> _selectedGenres = [];
   List<int> _selectedPromoters = [];
   List<int> _selectedArtists = [];
@@ -56,71 +64,82 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
   List<int> _initialArtists = [];
 
   bool _isUpdating = false;
-  bool _isDeleting = false; // To manage deletion state
+  bool _isDeleting = false;
   String? _errorMessage;
 
-  final _formKey = GlobalKey<FormState>();
+  late Venue _currentVenue;
+  File? _selectedImage;
 
-  late Venue _currentVenue; // Variable d'état pour la venue
-
-  File? _selectedImage; // Image sélectionnée pour mise à jour
+  // Variables de permission
+  bool isAdmin = false;
+  bool isManager = false;
+  bool isReadOnly = false;
+  bool _permissionsLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _currentVenue = widget.venue; // Initialize the state variable
+    _currentVenue = widget.venue;
     _nameController = TextEditingController(text: _currentVenue.name);
     _descriptionController =
         TextEditingController(text: _currentVenue.description);
     _locationController = TextEditingController(text: _currentVenue.location);
-    _loadAssociatedData(); // Charger les données associées
+    _loadUserPermissions();
+    _loadAssociatedData();
+  }
+
+  Future<void> _loadUserPermissions() async {
+    final currentUser = await _userService.getCurrentUser();
+    if (currentUser == null) {
+      setState(() {
+        isReadOnly = true;
+        isManager = false;
+        isAdmin = false;
+        _permissionsLoaded = true;
+      });
+      return;
+    }
+    // Vérifier les permissions pour une venue
+    final admin = await _permissionService.hasPermissionForCurrentUser(
+        _currentVenue.id!, 'venue', 3);
+    final manager = await _permissionService.hasPermissionForCurrentUser(
+        _currentVenue.id!, 'venue', 2);
+    setState(() {
+      isAdmin = admin;
+      isManager = (!admin && manager);
+      isReadOnly = (!admin && !manager);
+      _permissionsLoaded = true;
+    });
   }
 
   Future<void> _loadAssociatedData() async {
-    if (!mounted) return;
-    setState(() {
-      _isUpdating = true;
-    });
-
+    setState(() => _isUpdating = true);
     try {
-      // Charger les genres associés
+      // Charger les genres associés à la venue
       final genres =
           await _venueGenreService.getGenresByVenueId(_currentVenue.id!);
-      if (!mounted) return;
       setState(() {
         _selectedGenres = genres;
         _initialGenres = List.from(genres);
       });
-
-      // Charger les promoteurs associés
+      // Charger les promoteurs associés à la venue
       final promoters =
           await _venuePromoterService.getPromotersByVenueId(_currentVenue.id!);
-      if (!mounted) return;
       setState(() {
         _selectedPromoters = promoters.map((promoter) => promoter.id!).toList();
         _initialPromoters = List.from(_selectedPromoters);
       });
-
-      // Charger les artistes résidents associés
+      // Charger les artistes résidents associés à la venue
       final artists = await _venueResidentArtistsService
           .getArtistsByVenueId(_currentVenue.id!);
-      if (!mounted) return;
       setState(() {
         _selectedArtists = artists.map((artist) => artist.id!).toList();
         _initialArtists = List.from(_selectedArtists);
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text(
-                'Erreur lors du chargement des données : ${e.toString()}')),
-      );
+      print('Erreur lors du chargement des données associées: $e');
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isUpdating = false;
-      });
+      if (mounted) setState(() => _isUpdating = false);
     }
   }
 
@@ -132,48 +151,34 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
     super.dispose();
   }
 
-  /// Méthode pour sélectionner une nouvelle image de venue
   Future<void> _pickImage() async {
+    if (isReadOnly) return;
     final picker = ImagePicker();
     final pickedFile =
         await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (pickedFile != null) {
       setState(() {
-        _selectedImage = File(pickedFile.path); // Update selected image
+        _selectedImage = File(pickedFile.path);
       });
     }
   }
 
-  /// Méthode pour télécharger l'image sélectionnée et obtenir l'URL publique
   Future<String> _uploadImage(int venueId, File imageFile) async {
-    // Lire les octets du fichier
     final fileBytes = await imageFile.readAsBytes();
-
-    // Générer un nom de fichier unique
     final fileExtension = imageFile.path.split('.').last;
-    final fileName =
-        "${DateTime.now().millisecondsSinceEpoch}.$fileExtension"; // Ex: "1627891234567.jpg"
+    final fileName = "${DateTime.now().millisecondsSinceEpoch}.$fileExtension";
+    final filePath = "$venueId/$fileName";
 
-    // Construire le chemin complet du fichier
-    final filePath = "$venueId/$fileName"; // Ex: "venue-id/1627891234567.jpg"
-
-    // Uploader dans le bucket "venue-images"
     final publicUrl = await _storageService.uploadFile(
       bucketName: "venue-images",
-      fileName: filePath, // Utilisez le chemin complet ici
+      fileName: filePath,
       fileData: fileBytes,
     );
-
-    print('Image Uploaded: $publicUrl');
     return publicUrl;
   }
 
-  /// Méthode pour mettre à jour les détails de la venue, y compris l'image
   Future<void> _updateVenue() async {
-    if (!_formKey.currentState!.validate()) {
-      // Si la validation échoue, ne pas procéder
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     final newName = _nameController.text.trim();
     final newDescription = _descriptionController.text.trim();
@@ -198,7 +203,6 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
         !isGenresChanged &&
         !isPromotersChanged &&
         !isArtistsChanged) {
-      // Rien à mettre à jour
       Navigator.pop(context, _currentVenue);
       return;
     }
@@ -210,13 +214,130 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
 
     try {
       String updatedImageUrl = _currentVenue.imageUrl;
-
       if (isImageChanged) {
-        // Télécharger la nouvelle image et obtenir l'URL
         updatedImageUrl =
             await _uploadImage(_currentVenue.id!, _selectedImage!);
+        if (_currentVenue.imageUrl.isNotEmpty) {
+          final oldFileName =
+              _currentVenue.imageUrl.split('/').last.split('?').first;
+          if (oldFileName.isNotEmpty) {
+            final oldFilePath = "${_currentVenue.id}/$oldFileName";
+            await _storageService.deleteFile(
+              bucketName: "venue-images",
+              fileName: oldFilePath,
+            );
+          }
+        }
+      }
+      Venue updatedVenue = _currentVenue.copyWith(
+        name: isNameChanged ? newName : null,
+        description: isDescriptionChanged ? newDescription : null,
+        location: isLocationChanged ? newLocation : null,
+        imageUrl: isImageChanged ? updatedImageUrl : null,
+      );
 
-        // (Optionnel) Supprimer l'ancienne image si nécessaire
+      if (isNameChanged ||
+          isDescriptionChanged ||
+          isLocationChanged ||
+          isImageChanged) {
+        updatedVenue = await _venueService.updateVenue(updatedVenue);
+        setState(() {
+          _currentVenue = updatedVenue;
+          _selectedImage = null;
+        });
+      }
+      if (isGenresChanged) {
+        await _venueGenreService.updateVenueGenres(
+            _currentVenue.id!, _selectedGenres);
+        setState(() {
+          _initialGenres = List.from(_selectedGenres);
+        });
+      }
+      if (isPromotersChanged) {
+        await _venuePromoterService.updateVenuePromoters(
+            _currentVenue.id!, _selectedPromoters);
+        setState(() {
+          _initialPromoters = List.from(_selectedPromoters);
+        });
+      }
+      if (isArtistsChanged) {
+        await _venueResidentArtistsService.updateVenueArtists(
+            _currentVenue.id!, _selectedArtists);
+        setState(() {
+          _initialArtists = List.from(_selectedArtists);
+        });
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Venue updated successfully!'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.pop(context, _currentVenue);
+    } catch (e) {
+      print('Update Venue Error: $e');
+      setState(() {
+        _errorMessage = 'An unexpected error occurred.';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating venue: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+
+  Future<void> _showDeleteConfirmationDialog() async {
+    final isAllowedToDelete =
+        await _permissionService.hasPermissionForCurrentUser(
+      _currentVenue.id!,
+      'venue',
+      3,
+    );
+    if (!isAllowedToDelete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You do not have permission to delete this venue.'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this venue?'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(ctx, false),
+            ),
+            TextButton(
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () => Navigator.pop(ctx, true),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed == true) {
+      _deleteVenue();
+    }
+  }
+
+  Future<void> _deleteVenue() async {
+    setState(() => _isDeleting = true);
+    try {
+      await _venueService.deleteVenue(_currentVenue.id!);
+      if (_currentVenue.imageUrl.isNotEmpty) {
         final oldFileName =
             _currentVenue.imageUrl.split('/').last.split('?').first;
         if (oldFileName.isNotEmpty) {
@@ -225,147 +346,15 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
             bucketName: "venue-images",
             fileName: oldFilePath,
           );
-          print('Old Image Deleted: $oldFilePath');
         }
       }
-
-      // Créer l'objet Venue mis à jour
-      Venue updatedVenue = _currentVenue.copyWith(
-        name: isNameChanged ? newName : null,
-        description: isDescriptionChanged ? newDescription : null,
-        location: isLocationChanged ? newLocation : null,
-        imageUrl: isImageChanged ? updatedImageUrl : null,
-      );
-
-      // Mettre à jour la venue via VenueService si nécessaire
-      if (isNameChanged ||
-          isDescriptionChanged ||
-          isLocationChanged ||
-          isImageChanged) {
-        updatedVenue = await _venueService.updateVenue(updatedVenue);
-        setState(() {
-          _currentVenue = updatedVenue; // Mettre à jour l'état local
-          _selectedImage = null; // Réinitialiser l'image sélectionnée
-        });
-      }
-
-      // Mettre à jour les genres associés si nécessaire
-      if (isGenresChanged) {
-        await _venueGenreService.updateVenueGenres(
-            _currentVenue.id!, _selectedGenres);
-        setState(() {
-          _initialGenres = List.from(_selectedGenres);
-        });
-      }
-
-      // Mettre à jour les promoteurs associés si nécessaire
-      if (isPromotersChanged) {
-        await _venuePromoterService.updateVenuePromoters(
-            _currentVenue.id!, _selectedPromoters);
-        setState(() {
-          _initialPromoters = List.from(_selectedPromoters);
-        });
-      }
-
-      // Mettre à jour les artistes résidents associés si nécessaire
-      if (isArtistsChanged) {
-        await _venueResidentArtistsService.updateVenueArtists(
-            _currentVenue.id!, _selectedArtists);
-        setState(() {
-          _initialArtists = List.from(_selectedArtists);
-        });
-      }
-
-      // Afficher un message de succès
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Venue updated successfully!'),
-        behavior: SnackBarBehavior.floating,
-      ));
-
-      Navigator.pop(context, updatedVenue);
-    } catch (e) {
-      print('Update Venue Error: $e');
-      setState(() {
-        _errorMessage = 'An unexpected error occurred.';
-      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
+        const SnackBar(
+          content: Text('Venue deleted successfully!'),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
         ),
       );
-    } finally {
-      if (!mounted) return;
-      setState(() {
-        _isUpdating = false;
-      });
-    }
-  }
-
-  /// Method to display the deletion confirmation dialog
-  Future<void> _showDeleteConfirmationDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible:
-          false, // L'utilisateur doit appuyer sur un bouton pour fermer
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete this venue?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text(
-                'Delete',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () async {
-                Navigator.of(context).pop(); // Fermer le dialog d'abord
-                await _deleteVenue();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  /// Méthode pour supprimer la venue
-  Future<void> _deleteVenue() async {
-    setState(() {
-      _isDeleting = true;
-      _errorMessage = null;
-    });
-
-    try {
-      await _venueService.deleteVenue(_currentVenue.id!);
-
-      // (Optionnel) Supprimer l'image associée
-      final oldFileName =
-          _currentVenue.imageUrl.split('/').last.split('?').first;
-      if (oldFileName.isNotEmpty) {
-        final oldFilePath = "${_currentVenue.id}/$oldFileName";
-        await _storageService.deleteFile(
-          bucketName: "venue-images",
-          fileName: oldFilePath,
-        );
-        print('Venue ${_currentVenue.id} Image Deleted: $oldFilePath');
-      }
-
-      // Afficher un message de succès
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Venue deleted successfully!'),
-        behavior: SnackBarBehavior.floating,
-      ));
-
-      Navigator.pop(
-          context, null); // Retourner null pour indiquer la suppression
+      Navigator.pop(context, null);
     } catch (e) {
       print('Delete Venue Error: $e');
       setState(() {
@@ -373,128 +362,25 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString()}'),
+          content: Text('Error deleting venue: $e'),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,
         ),
       );
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isDeleting = false;
-      });
+      if (mounted) setState(() => _isDeleting = false);
     }
   }
 
-  /// Méthode pour afficher le bottom sheet de sélection des genres
-  Future<void> _showSelectGenresBottomSheet() async {
-    try {
-      final selectedGenres = Set<int>.from(_selectedGenres);
-      final bool? saved = await showModalBottomSheet<bool>(
-        context: context,
-        isScrollControlled: true,
-        builder: (BuildContext context) {
-          return GenreSelectionBottomSheet(
-            selectedGenres: selectedGenres,
-            genreService: _genreService,
-          );
-        },
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-        ),
-      );
-
-      if (saved == true) {
-        if (!mounted) return;
-        setState(() {
-          _selectedGenres = selectedGenres.toList();
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text('Error loading genres: ${e.toString()}')),
-      );
-    }
-  }
-
-  /// Méthode pour afficher le bottom sheet de sélection des promoteurs
-  Future<void> _showSelectPromotersBottomSheet() async {
-    try {
-      final selectedPromoters = Set<int>.from(_selectedPromoters);
-      final bool? saved = await showModalBottomSheet<bool>(
-        context: context,
-        isScrollControlled: true,
-        builder: (BuildContext context) {
-          return PromoterSelectionBottomSheet(
-            selectedPromoters: selectedPromoters,
-            promoterService: _promoterService,
-          );
-        },
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-        ),
-      );
-
-      if (saved == true) {
-        if (!mounted) return;
-        setState(() {
-          _selectedPromoters = selectedPromoters.toList();
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text('Error loading promoters: ${e.toString()}')),
-      );
-    }
-  }
-
-  /// Méthode pour afficher le bottom sheet de sélection des artistes
-  Future<void> _showSelectArtistsBottomSheet() async {
-    try {
-      final selectedArtists = Set<int>.from(_selectedArtists);
-      final bool? saved = await showModalBottomSheet<bool>(
-        context: context,
-        isScrollControlled: true,
-        builder: (BuildContext context) {
-          return ArtistSelectionBottomSheet(
-            selectedArtists: selectedArtists,
-            artistService: _artistService,
-          );
-        },
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-        ),
-      );
-
-      if (saved == true) {
-        if (!mounted) return;
-        setState(() {
-          _selectedArtists = selectedArtists.toList();
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            behavior: SnackBarBehavior.floating,
-            content: Text('Error loading artists: ${e.toString()}')),
-      );
-    }
-  }
-
-  /// Build the venue editing form.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Edit "${_currentVenue.name}"'),
         actions: [
+          // Bouton d'accès aux permissions
           IconButton(
-            icon: const Icon(
-                Icons.add_moderator), // Conserver l'icône "add_moderator"
+            icon: const Icon(Icons.add_moderator),
             onPressed: _isUpdating || _isDeleting
                 ? null
                 : () async {
@@ -511,55 +397,58 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                     setState(() {});
                   },
           ),
+          // Bouton delete (visible pour admin et manager, actif uniquement pour admin)
+          if (isAdmin || isManager)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: _isDeleting || _isUpdating
+                  ? null
+                  : isAdmin
+                      ? () async {
+                          await _showDeleteConfirmationDialog();
+                        }
+                      : null,
+            ),
+          // Bouton save (désactivé en read-only ou pendant le chargement/maj)
           IconButton(
-            icon:
-                _isUpdating ? const SizedBox.shrink() : const Icon(Icons.save),
-            onPressed: _isUpdating || _isDeleting ? null : _updateVenue,
-          ),
-          IconButton(
-            icon: _isDeleting
-                ? const SizedBox.shrink()
-                : const Icon(Icons.delete),
-            onPressed: _isDeleting ? null : _showDeleteConfirmationDialog,
+            icon: const Icon(Icons.save),
+            onPressed: (_isUpdating || isReadOnly || !_permissionsLoaded)
+                ? null
+                : _updateVenue,
+            color: (_isUpdating || isReadOnly || !_permissionsLoaded)
+                ? Colors.grey
+                : null,
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Contenu défilable
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  // Enveloppement du contenu dans un Form
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Image et bouton d'édition
-                      Center(
-                        child: Stack(
-                          children: [
-                            GestureDetector(
-                              onTap: _isUpdating || _isDeleting
-                                  ? null
-                                  : _pickImage,
+      body: _isUpdating
+          ? const Center(child: CircularProgressIndicator.adaptive())
+          : Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Section Image : si l'utilisateur est read-only, l'image n'est pas cliquable et aucun icône d'édition n'est affiché
+                          Center(
+                            child: GestureDetector(
+                              onTap: isReadOnly ? null : _pickImage,
                               child: Container(
-                                width: 150, // Taille de l'image
+                                width: 150,
                                 height: 150,
                                 decoration: BoxDecoration(
                                   border: Border.all(
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onPrimary
-                                        .withValues(
-                                            alpha:
-                                                0.5), // Couleur de la bordure
-                                    width: 2.0, // Épaisseur de la bordure
+                                        .withValues(alpha: 0.5),
+                                    width: 2.0,
                                   ),
-                                  borderRadius: BorderRadius.circular(
-                                      15), // Coins arrondis
+                                  borderRadius: BorderRadius.circular(15),
                                   boxShadow: [
                                     BoxShadow(
                                       color:
@@ -570,8 +459,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                                   ],
                                 ),
                                 child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                      12), // Assurer les coins arrondis
+                                  borderRadius: BorderRadius.circular(12),
                                   child: _selectedImage != null
                                       ? Image.file(
                                           _selectedImage!,
@@ -579,191 +467,231 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                                           width: double.infinity,
                                           height: 150,
                                         )
-                                      : ImageWithErrorHandler(
-                                          imageUrl: _currentVenue.imageUrl,
-                                          width: 150,
-                                          height: 150,
-                                          fit: BoxFit.cover,
-                                        ),
+                                      : _currentVenue.imageUrl.isNotEmpty
+                                          ? ImageWithErrorHandler(
+                                              imageUrl: _currentVenue.imageUrl,
+                                              width: 150,
+                                              height: 150,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : const Center(
+                                              child: Icon(
+                                                Icons.camera_alt,
+                                                size: 50,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
                                 ),
                               ),
                             ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: _isUpdating || _isDeleting
+                          ),
+                          const SizedBox(height: 20),
+                          // Champ Nom
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Venue Name',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter the venue name.';
+                              }
+                              return null;
+                            },
+                            readOnly: isReadOnly,
+                          ),
+                          const SizedBox(height: 10),
+                          // Champ Description
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: const InputDecoration(
+                              labelText: 'Description',
+                              border: OutlineInputBorder(),
+                            ),
+                            maxLines: 4,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a description.';
+                              }
+                              return null;
+                            },
+                            readOnly: isReadOnly,
+                          ),
+                          const SizedBox(height: 10),
+                          // Champ Localisation
+                          TextFormField(
+                            controller: _locationController,
+                            decoration: const InputDecoration(
+                              labelText: 'Location',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter the location.';
+                              }
+                              return null;
+                            },
+                            readOnly: isReadOnly,
+                          ),
+                          const SizedBox(height: 20),
+                          // Section Genres (IconButton)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Genres',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: (!_permissionsLoaded || isReadOnly)
                                     ? null
-                                    : _pickImage,
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  child: const Icon(
-                                    Icons.edit,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
+                                    : () async {
+                                        final selectedGenres =
+                                            Set<int>.from(_selectedGenres);
+                                        final bool? saved =
+                                            await showModalBottomSheet<bool>(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          builder: (BuildContext context) =>
+                                              GenreSelectionBottomSheet(
+                                            selectedGenres: selectedGenres,
+                                            genreService: _genreService,
+                                          ),
+                                        );
+                                        if (saved == true && mounted) {
+                                          setState(() {
+                                            _selectedGenres =
+                                                selectedGenres.toList();
+                                          });
+                                        }
+                                      },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          if (_selectedGenres.isNotEmpty)
+                            Wrap(
+                              spacing: 8.0,
+                              children: _selectedGenres.map((genreId) {
+                                return GenreChip(genreId: genreId);
+                              }).toList(),
+                            ),
+                          const SizedBox(height: 20),
+                          // Section Promoteurs (IconButton)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Promoters',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Champ Nom de la Venue avec validation
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Venue Name',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter the venue name.';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      // Champ Description de la Venue avec validation
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: const InputDecoration(
-                          labelText: 'Description',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 4,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter a description.';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      // Champ Localisation de la Venue avec validation
-                      TextFormField(
-                        controller: _locationController,
-                        decoration: const InputDecoration(
-                          labelText: 'Location',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter the location.';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Genres Section
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Genres',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: isReadOnly
+                                    ? null
+                                    : () async {
+                                        final selectedPromoters =
+                                            Set<int>.from(_selectedPromoters);
+                                        final bool? saved =
+                                            await showModalBottomSheet<bool>(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          builder: (BuildContext context) =>
+                                              PromoterSelectionBottomSheet(
+                                            selectedPromoters:
+                                                selectedPromoters,
+                                            promoterService: _promoterService,
+                                          ),
+                                        );
+                                        if (saved == true && mounted) {
+                                          setState(() {
+                                            _selectedPromoters =
+                                                selectedPromoters.toList();
+                                          });
+                                        }
+                                      },
+                              ),
+                            ],
                           ),
-                          ElevatedButton(
-                            onPressed: _showSelectGenresBottomSheet,
-                            child: const Icon(Icons.edit),
+                          const SizedBox(height: 10),
+                          if (_selectedPromoters.isNotEmpty)
+                            Wrap(
+                              spacing: 8.0,
+                              children: _selectedPromoters.map((promoterId) {
+                                return PromoterChip(promoterId: promoterId);
+                              }).toList(),
+                            ),
+                          const SizedBox(height: 20),
+                          // Section Artistes Résidents (IconButton)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Resident Artists',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: isReadOnly
+                                    ? null
+                                    : () async {
+                                        final selectedArtists =
+                                            Set<int>.from(_selectedArtists);
+                                        final bool? saved =
+                                            await showModalBottomSheet<bool>(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          builder: (BuildContext context) =>
+                                              ArtistSelectionBottomSheet(
+                                            selectedArtists: selectedArtists,
+                                            artistService: _artistService,
+                                          ),
+                                        );
+                                        if (saved == true && mounted) {
+                                          setState(() {
+                                            _selectedArtists =
+                                                selectedArtists.toList();
+                                          });
+                                        }
+                                      },
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 10),
+                          if (_selectedArtists.isNotEmpty)
+                            Wrap(
+                              spacing: 8.0,
+                              children: _selectedArtists.map((artistId) {
+                                return ArtistChip(artistId: artistId);
+                              }).toList(),
+                            ),
+                          const SizedBox(height: 20),
+                          if (_errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Text(
+                                _errorMessage!,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      if (_selectedGenres.isNotEmpty)
-                        Wrap(
-                          spacing: 8.0,
-                          children: _selectedGenres.map((genreId) {
-                            return GenreChip(
-                              genreId: genreId,
-                              // Vous pouvez ajouter des fonctionnalités supplémentaires si nécessaire
-                            );
-                          }).toList(),
-                        ),
-                      const SizedBox(height: 20),
-
-                      // Promoteurs Section
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Promoters',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: _showSelectPromotersBottomSheet,
-                            child: const Icon(Icons.edit),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      if (_selectedPromoters.isNotEmpty)
-                        Wrap(
-                          spacing: 8.0,
-                          children: _selectedPromoters.map((promoterId) {
-                            return PromoterChip(
-                              promoterId: promoterId,
-                              // Vous pouvez ajouter des fonctionnalités supplémentaires si nécessaire
-                            );
-                          }).toList(),
-                        ),
-                      const SizedBox(height: 20),
-
-                      // Artistes Résidents Section
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Resident Artists',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: _showSelectArtistsBottomSheet,
-                            child: const Icon(Icons.edit),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      if (_selectedArtists.isNotEmpty)
-                        Wrap(
-                          spacing: 8.0,
-                          children: _selectedArtists.map((artistId) {
-                            return ArtistChip(
-                              artistId: artistId,
-                              // Vous pouvez ajouter des fonctionnalités supplémentaires si nécessaire
-                            );
-                          }).toList(),
-                        ),
-                      const SizedBox(height: 20),
-
-                      // Afficher un message d'erreur si nécessaire
-                      if (_errorMessage != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Text(
-                            _errorMessage!,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -878,12 +806,12 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: sectionSpacing),
           const Text(
             'Select Genres',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: sectionSpacing),
           TextField(
             decoration: const InputDecoration(
               labelText: 'Search Genres',
@@ -894,7 +822,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
               _searchGenres();
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: sectionSpacing),
           _isLoading
               ? const CircularProgressIndicator.adaptive()
               : Expanded(
@@ -1056,12 +984,12 @@ class _PromoterSelectionBottomSheetState
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: sectionSpacing),
           const Text(
             'Select Promoters',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: sectionSpacing),
           TextField(
             decoration: const InputDecoration(
               labelText: 'Search Promoters',
@@ -1072,7 +1000,7 @@ class _PromoterSelectionBottomSheetState
               _searchPromoters();
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: sectionSpacing),
           _isLoading
               ? const CircularProgressIndicator.adaptive()
               : Expanded(
@@ -1237,12 +1165,12 @@ class _ArtistSelectionBottomSheetState
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: sectionSpacing),
           const Text(
             'Select Resident Artists',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: sectionSpacing),
           TextField(
             decoration: const InputDecoration(
               labelText: 'Search Artists',
@@ -1253,7 +1181,7 @@ class _ArtistSelectionBottomSheetState
               _searchArtists();
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: sectionSpacing),
           _isLoading
               ? const CircularProgressIndicator.adaptive()
               : Expanded(

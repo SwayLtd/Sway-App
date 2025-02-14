@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
@@ -211,7 +212,7 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
                         ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
               // Champ Nom
               TextFormField(
                 controller: _nameController,
@@ -226,13 +227,13 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
               // Champ Adresse
               AddressField(
                 controller: _locationController,
                 hintText: 'Address',
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
               // Champ Description
               TextFormField(
                 controller: _descriptionController,

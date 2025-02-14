@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/user/models/user_model.dart';
@@ -410,7 +411,7 @@ class _EditProfileScreenState extends State<EditUserScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: sectionSpacing),
                       // Champ Username avec validation
                       TextFormField(
                         controller: _usernameController,
@@ -422,7 +423,7 @@ class _EditProfileScreenState extends State<EditUserScreen> {
                             usernameValidator, // Intégration du validateur
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       // Champ Email avec validation basique
                       TextFormField(
                         controller: _emailController,
@@ -434,7 +435,7 @@ class _EditProfileScreenState extends State<EditUserScreen> {
                         validator: emailValidator,
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       // Afficher un message d'erreur si nécessaire
                       if (_errorMessage != null)
                         Padding(

@@ -1,12 +1,17 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/utils/date_utils.dart'; // formatEventDate, formatEventTime
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
+import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_artist_service.dart';
+import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
+import 'package:sway/features/user/services/user_service.dart';
 
 /// Screen dedicated to managing artist assignments for an event.
-/// In EditEventScreen, only a button is shown to navigate here.
+/// L'événement est récupéré automatiquement via son ID.
 class EditEventArtistsScreen extends StatefulWidget {
   final int eventId;
   const EditEventArtistsScreen({Key? key, required this.eventId})
@@ -18,24 +23,45 @@ class EditEventArtistsScreen extends StatefulWidget {
 
 class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
   final EventArtistService _eventArtistService = EventArtistService();
+  final EventService _eventService = EventService();
+  final UserPermissionService _permissionService = UserPermissionService();
+  final UserService _userService = UserService();
+
   List<Map<String, dynamic>> _assignments = [];
   bool _isLoading = true;
+  bool _canEdit = false; // true if user is manager or admin
+  Event? _currentEvent; // récupère les dates réelles de l'event
 
   @override
   void initState() {
     super.initState();
+    _fetchEvent();
+    _checkPermissions();
     _fetchAssignments();
   }
 
-  void _showAddAssignmentSheet() async {
-    final result = await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) =>
-          ArtistAssignmentBottomSheet(eventId: widget.eventId),
-    );
-    if (result == true) {
-      await _fetchAssignments();
+  Future<void> _fetchEvent() async {
+    try {
+      final event = await _eventService.getEventById(widget.eventId);
+      if (mounted) {
+        setState(() {
+          _currentEvent = event;
+        });
+      }
+    } catch (e) {
+      print('Error fetching event: $e');
+    }
+  }
+
+  Future<void> _checkPermissions() async {
+    final currentUser = await _userService.getCurrentUser();
+    if (currentUser != null) {
+      // Pour éditer, il faut au moins le niveau manager (2)
+      final canEdit = await _permissionService.hasPermissionForCurrentUser(
+          widget.eventId, 'event', 2);
+      setState(() {
+        _canEdit = canEdit;
+      });
     }
   }
 
@@ -52,12 +78,35 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
   }
 
   void _editAssignment(Map<String, dynamic> assignment) async {
+    if (!_canEdit) return;
+    if (_currentEvent == null) return;
     final result = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) => ArtistAssignmentBottomSheet(
         eventId: widget.eventId,
+        eventStart: _currentEvent!.dateTime,
+        eventEnd: _currentEvent!.endDateTime,
         assignment: assignment,
+        canEdit: _canEdit,
+      ),
+    );
+    if (result == true) {
+      await _fetchAssignments();
+    }
+  }
+
+  void _showAddAssignmentSheet() async {
+    if (!_canEdit) return;
+    if (_currentEvent == null) return;
+    final result = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => ArtistAssignmentBottomSheet(
+        eventId: widget.eventId,
+        eventStart: _currentEvent!.dateTime,
+        eventEnd: _currentEvent!.endDateTime,
+        canEdit: _canEdit,
       ),
     );
     if (result == true) {
@@ -67,7 +116,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Group assignments by day (classic format: YYYY-MM-DD)
+    // Group assignments by day (format: YYYY-MM-DD)
     Map<String, List<Map<String, dynamic>>> groupByDay = {};
     _assignments.sort((a, b) {
       DateTime aTime = a['start_time'] is String
@@ -90,10 +139,12 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
       appBar: AppBar(
         title: const Text('Artist Assignments'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _showAddAssignmentSheet,
-          ),
+          // Afficher le bouton "+" seulement si l'utilisateur peut éditer
+          if (_canEdit)
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _showAddAssignmentSheet,
+            ),
         ],
       ),
       body: _isLoading
@@ -117,13 +168,11 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
                           ),
                         ),
                         ...assignments.map((assignment) {
-                          // Bold artist names.
+                          // Construction de l'affichage d'une assignation
                           final List<dynamic> artists =
                               assignment['artists'] ?? [];
                           final String artistNames =
                               artists.map((a) => a.name).join(', ');
-
-                          // Classic date format "YYYY-MM-DD HH:mm" for start and end.
                           final DateTime parsedStart =
                               assignment['start_time'] is String
                                   ? DateTime.parse(assignment['start_time'])
@@ -143,7 +192,6 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
                           final String endHour =
                               parsedEnd.toLocal().toString().substring(11, 16);
 
-                          // Info rows with icons.
                           List<Widget> infoRows = [];
                           infoRows.add(Row(
                             children: [
@@ -215,7 +263,9 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
                                         CrossAxisAlignment.start,
                                     children: infoRows,
                                   ),
-                                  onTap: () => _editAssignment(assignment),
+                                  onTap: _canEdit
+                                      ? () => _editAssignment(assignment)
+                                      : null,
                                 ),
                               ),
                               const Divider(thickness: 1),
@@ -230,17 +280,23 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
   }
 }
 
-/// Modal bottom sheet for adding or editing an artist assignment.
-/// Ce fichier contient à la fois EditEventArtistScreen et ArtistAssignmentBottomSheet.
+/// Bottom sheet for adding or editing an artist assignment.
+/// The eventStart and eventEnd represent the overall event's boundaries.
 class ArtistAssignmentBottomSheet extends StatefulWidget {
   final int eventId;
-
-  /// If provided, the assignment will be edited; otherwise, a new assignment is added.
+  final DateTime eventStart;
+  final DateTime eventEnd;
   final Map<String, dynamic>? assignment;
+  // canEdit indicates if the user is allowed to add or edit.
+  final bool canEdit;
+
   const ArtistAssignmentBottomSheet({
     Key? key,
     required this.eventId,
+    required this.eventStart,
+    required this.eventEnd,
     this.assignment,
+    required this.canEdit,
   }) : super(key: key);
 
   @override
@@ -266,10 +322,6 @@ class _ArtistAssignmentBottomSheetState
   String _searchQuery = '';
   int _maxArtistsToShow = 5;
 
-  // Dummy event times – remplacer par les vraies valeurs
-  final DateTime _dummyEventStart = DateTime.parse("2025-02-14 19:29:00");
-  final DateTime _dummyEventEnd = DateTime.parse("2025-02-15 19:29:00");
-
   @override
   void initState() {
     super.initState();
@@ -280,17 +332,25 @@ class _ArtistAssignmentBottomSheetState
         _startTime = startTimeVal is String
             ? DateTime.parse(startTimeVal)
             : startTimeVal as DateTime;
+      } else {
+        _startTime = null;
       }
       final endTimeVal = widget.assignment!['end_time'];
       if (endTimeVal != null) {
         _endTime = endTimeVal is String
             ? DateTime.parse(endTimeVal)
             : endTimeVal as DateTime;
+      } else {
+        _endTime = null;
       }
       _customName = widget.assignment!['custom_name'];
       _stage = widget.assignment!['stage'];
       final List<dynamic> artists = widget.assignment!['artists'] ?? [];
       _selectedArtistIds = artists.map((a) => a.id as int).toSet();
+    } else {
+      // For a new assignment, start with no selection.
+      _startTime = null;
+      _endTime = null;
     }
   }
 
@@ -320,45 +380,54 @@ class _ArtistAssignmentBottomSheetState
   }
 
   Future<void> _pickStartTime() async {
+    if (!widget.canEdit) return;
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: _startTime ?? _dummyEventStart,
-      firstDate: _dummyEventStart,
-      lastDate: DateTime(2030),
+      initialDate: _startTime ?? widget.eventStart,
+      firstDate: widget.eventStart,
+      lastDate: widget.eventEnd,
     );
     if (pickedDate != null) {
+      // Utilise l'heure de début de l'événement comme valeur initiale si aucune heure n'est sélectionnée
+      final initialTime = _startTime != null
+          ? TimeOfDay.fromDateTime(_startTime!)
+          : TimeOfDay.fromDateTime(widget.eventStart);
       final pickedTime = await showTimePicker(
         context: context,
-        initialTime: _startTime != null
-            ? TimeOfDay.fromDateTime(_startTime!)
-            : TimeOfDay.fromDateTime(_dummyEventStart),
+        initialTime: initialTime,
       );
       if (pickedTime != null) {
+        final newStart = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
         setState(() {
-          _startTime = DateTime(pickedDate.year, pickedDate.month,
-              pickedDate.day, pickedTime.hour, pickedTime.minute);
+          _startTime = newStart;
+          // Retirez la mise à jour automatique de _endTime.
         });
       }
     }
   }
 
   Future<void> _pickEndTime() async {
+    if (!widget.canEdit) return;
     if (_startTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select a start date first.'),
+          content: Text('Please select a start time first.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
       return;
     }
-    // Utiliser _startTime comme initialDate si _endTime est null
-    final DateTime initialDate = _endTime ?? _startTime!;
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: initialDate,
-      firstDate: _startTime!, // L'heure de début devient la date minimum
-      lastDate: DateTime(2030),
+      initialDate: _endTime ?? _startTime!,
+      firstDate: _startTime!,
+      lastDate: widget.eventEnd,
     );
     if (pickedDate != null) {
       final pickedTime = await showTimePicker(
@@ -381,16 +450,12 @@ class _ArtistAssignmentBottomSheetState
     }
   }
 
-  /// Validate that assignment times are within event times.
-  bool _validateAssignmentTimes(DateTime eventStart, DateTime eventEnd) {
-    final assignmentStartUtc = _startTime!.toUtc();
-    final assignmentEndUtc = _endTime!.toUtc();
-    final eventStartUtc = eventStart.toUtc();
-    final eventEndUtc = eventEnd.toUtc();
-    return (assignmentStartUtc.isAtSameMomentAs(eventStartUtc) ||
-            assignmentStartUtc.isAfter(eventStartUtc)) &&
-        (assignmentEndUtc.isAtSameMomentAs(eventEndUtc) ||
-            assignmentEndUtc.isBefore(eventEndUtc));
+  bool _validateAssignmentTimes() {
+    if (_startTime == null || _endTime == null) return false;
+    // Ensure start is not before event start, end is not after event end, and start is before end.
+    return !_startTime!.isBefore(widget.eventStart) &&
+        !_endTime!.isAfter(widget.eventEnd) &&
+        !_startTime!.isAfter(_endTime!);
   }
 
   Future<void> _submit() async {
@@ -403,23 +468,21 @@ class _ArtistAssignmentBottomSheetState
       );
       return;
     }
+    if (!_validateAssignmentTimes()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Assignment times must be within event times:\nStart: ${widget.eventStart.toLocal().toString().substring(0, 16)}\nEnd: ${widget.eventEnd.toLocal().toString().substring(0, 16)}'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     if (_selectedArtistIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Please select at least one artist'),
             behavior: SnackBarBehavior.floating),
-      );
-      return;
-    }
-    final DateTime eventStart = _dummyEventStart;
-    final DateTime eventEnd = _dummyEventEnd;
-    if (!_validateAssignmentTimes(eventStart, eventEnd)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Assignment times must be within the event times: Start: ${eventStart.toLocal().toString().substring(0, 16)} → End: ${eventEnd.toLocal().toString().substring(0, 16)}'),
-          behavior: SnackBarBehavior.floating,
-        ),
       );
       return;
     }
@@ -529,7 +592,7 @@ class _ArtistAssignmentBottomSheetState
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Top bar: horizontal grey line above icons.
+                      // Barre supérieure
                       Container(
                         height: 5,
                         width: 50,
@@ -551,19 +614,21 @@ class _ArtistAssignmentBottomSheetState
                               if (widget.assignment != null)
                                 IconButton(
                                   icon: const Icon(Icons.delete),
-                                  onPressed: _confirmDelete,
+                                  onPressed:
+                                      widget.canEdit ? _confirmDelete : null,
                                 ),
-                              IconButton(
-                                icon: widget.assignment == null
-                                    ? const Icon(Icons.add)
-                                    : const Icon(Icons.save),
-                                onPressed: _submit,
-                              ),
+                              if (widget.canEdit)
+                                IconButton(
+                                  icon: widget.assignment == null
+                                      ? const Icon(Icons.add)
+                                      : const Icon(Icons.save),
+                                  onPressed: _submit,
+                                ),
                             ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       Text(
                         widget.assignment == null
                             ? 'Add Artist Assignment'
@@ -571,8 +636,8 @@ class _ArtistAssignmentBottomSheetState
                         style: const TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 10),
-                      // Search bar for artists
+                      const SizedBox(height: sectionTitleSpacing),
+                      // Search bar
                       TextField(
                         decoration: const InputDecoration(
                           labelText: 'Search Artists',
@@ -583,8 +648,8 @@ class _ArtistAssignmentBottomSheetState
                           _applyFilter();
                         },
                       ),
-                      const SizedBox(height: 10),
-                      // Multi-selection list for artists with "Show More"
+                      const SizedBox(height: sectionTitleSpacing),
+                      // Liste multi-sélection d'artistes
                       Container(
                         height: 150,
                         child: ListView.builder(
@@ -600,15 +665,18 @@ class _ArtistAssignmentBottomSheetState
                                 title: Text(artist.name,
                                     style: const TextStyle(fontSize: 16)),
                                 value: _selectedArtistIds.contains(artist.id!),
-                                onChanged: (val) {
-                                  setState(() {
-                                    if (val == true) {
-                                      _selectedArtistIds.add(artist.id!);
-                                    } else {
-                                      _selectedArtistIds.remove(artist.id!);
-                                    }
-                                  });
-                                },
+                                onChanged: widget.canEdit
+                                    ? (val) {
+                                        setState(() {
+                                          if (val == true) {
+                                            _selectedArtistIds.add(artist.id!);
+                                          } else {
+                                            _selectedArtistIds
+                                                .remove(artist.id!);
+                                          }
+                                        });
+                                      }
+                                    : null,
                               );
                             } else {
                               return TextButton(
@@ -623,15 +691,14 @@ class _ArtistAssignmentBottomSheetState
                           },
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      // White horizontal space between artist list and time pickers.
+                      const SizedBox(height: sectionTitleSpacing),
                       const Divider(color: Colors.white, thickness: 1),
                       // Start time picker
                       Row(
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: _pickStartTime,
+                              onTap: widget.canEdit ? _pickStartTime : null,
                               child: Text(
                                 _startTime == null
                                     ? 'Select start time'
@@ -642,17 +709,17 @@ class _ArtistAssignmentBottomSheetState
                           ),
                           IconButton(
                             icon: const Icon(Icons.calendar_today),
-                            onPressed: _pickStartTime,
+                            onPressed: widget.canEdit ? _pickStartTime : null,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       // End time picker
                       Row(
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: _pickEndTime,
+                              onTap: widget.canEdit ? _pickEndTime : null,
                               child: Text(
                                 _endTime == null
                                     ? 'Select end time'
@@ -663,11 +730,11 @@ class _ArtistAssignmentBottomSheetState
                           ),
                           IconButton(
                             icon: const Icon(Icons.calendar_today),
-                            onPressed: _pickEndTime,
+                            onPressed: widget.canEdit ? _pickEndTime : null,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       // Custom Slot Name field
                       TextFormField(
                         decoration: const InputDecoration(
@@ -677,9 +744,10 @@ class _ArtistAssignmentBottomSheetState
                               TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                         initialValue: _customName,
-                        onChanged: (val) => _customName = val,
+                        onChanged:
+                            widget.canEdit ? (val) => _customName = val : null,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       // Stage field
                       TextFormField(
                         decoration: const InputDecoration(
@@ -689,9 +757,10 @@ class _ArtistAssignmentBottomSheetState
                               TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                         initialValue: _stage,
-                        onChanged: (val) => _stage = val,
+                        onChanged:
+                            widget.canEdit ? (val) => _stage = val : null,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                     ],
                   ),
                 ),

@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/security/services/storage_service.dart';
@@ -212,7 +213,7 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
                         ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
               // Champ Nom
               TextFormField(
                 controller: _nameController,
@@ -227,7 +228,7 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
               // Champ Description
               TextFormField(
                 controller: _descriptionController,

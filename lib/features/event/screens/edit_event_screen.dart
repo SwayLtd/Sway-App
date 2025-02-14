@@ -80,6 +80,12 @@ class _EditEventScreenState extends State<EditEventScreen> {
   // Liste des promoteurs où l'utilisateur est manager/admin
   List<Promoter> _permittedPromoters = [];
 
+  // Variables de permissions
+  bool isAdmin = false;
+  bool isManager = false;
+  bool isReadOnly = false;
+  bool _permissionsLoaded = false;
+
   @override
   void initState() {
     super.initState();
@@ -88,7 +94,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
         TextEditingController(text: widget.event.description);
 
     // Convertir event.type (en minuscule) => label (ex: "festival" => "Festival")
-    // S'il n'est pas dans la liste, on prend "Other" par défaut
     final capitalizedType =
         '${widget.event.type[0].toUpperCase()}${widget.event.type.substring(1).toLowerCase()}';
     _selectedTypeLabel =
@@ -98,8 +103,33 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _selectedEndDate = widget.event.endDateTime;
     _originalImageUrl = widget.event.imageUrl;
 
+    _loadUserPermissions();
     _fetchPermittedPromoters();
     _loadEventAssociations();
+  }
+
+  // Dans _loadUserPermissions, à la fin de la méthode, indiquez que le chargement est terminé
+  Future<void> _loadUserPermissions() async {
+    final currentUser = await _userService.getCurrentUser();
+    if (currentUser == null) {
+      setState(() {
+        isReadOnly = true;
+        isManager = false;
+        isAdmin = false;
+        _permissionsLoaded = true;
+      });
+      return;
+    }
+    final admin = await _permissionService.hasPermissionForCurrentUser(
+        widget.event.id!, 'event', 3);
+    final manager = await _permissionService.hasPermissionForCurrentUser(
+        widget.event.id!, 'event', 2);
+    setState(() {
+      isAdmin = admin;
+      isManager = (!admin && manager);
+      isReadOnly = (!admin && !manager);
+      _permissionsLoaded = true;
+    });
   }
 
   /// Charger la liste des promoteurs autorisés
@@ -133,7 +163,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
   }
 
-  /// Charger promoterObj / venueObj / genres / artists depuis la DB
+  /// Charger promoterObj / venueObj / genres depuis la DB
   Future<void> _loadEventAssociations() async {
     setState(() => _isUpdating = true);
     try {
@@ -142,7 +172,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
         widget.event.id!,
       );
       if (promoters.isNotEmpty) {
-        // On en prend un
         _selectedPromoterObj = promoters.first;
       }
 
@@ -155,8 +184,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
       final genreIds =
           await _eventGenreService.getGenresByEventId(widget.event.id!);
       _selectedGenres = genreIds;
-
-      // Do not load artist assignments here.
     } catch (e) {
       print('Error loading event associations: $e');
     } finally {
@@ -176,7 +203,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
     if (value == null || value.trim().isEmpty) {
       return 'This field is required.';
     }
-    final forbiddenPattern = RegExp("[;'\"]|--");
+    final forbiddenPattern = RegExp(r'[;"]|--');
     if (forbiddenPattern.hasMatch(value)) {
       return 'Invalid characters used.';
     }
@@ -184,6 +211,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   }
 
   Future<void> _pickImage() async {
+    if (isReadOnly) return;
     final picker = ImagePicker();
     final pickedFile =
         await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
@@ -195,6 +223,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   }
 
   Future<void> _pickStartDateTime() async {
+    if (isReadOnly) return;
     final now = DateTime.now();
     final pickedDate = await showDatePicker(
       context: context,
@@ -222,6 +251,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   }
 
   Future<void> _pickEndDateTime() async {
+    if (isReadOnly) return;
     if (_selectedStartDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -284,8 +314,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
       );
       return;
     }
-
-    // Vérifier qu'on a un promoter et un venue
     if (_selectedPromoterObj == null || _selectedVenueObj == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -295,11 +323,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
       );
       return;
     }
-
     setState(() => _isUpdating = true);
-
     try {
-      // Check permission manager sur l'event actuel
+      // Vérifier que l'utilisateur a au moins le niveau manager pour éditer
       final hasPermission =
           await _permissionService.hasPermissionForCurrentUser(
         widget.event.id!,
@@ -309,27 +335,17 @@ class _EditEventScreenState extends State<EditEventScreen> {
       if (!hasPermission) {
         throw Exception('Permission denied on this event.');
       }
-
-      // Convertir label => minuscule
       final String typeToStore = _selectedTypeLabel.toLowerCase();
-      // Créer un Event mis à jour (sans imageUrl si pas modifié)
       Event updatedEvent = widget.event.copyWith(
         title: _titleController.text.trim(),
         type: typeToStore,
         dateTime: _selectedStartDate,
         endDateTime: _selectedEndDate,
         description: _descriptionController.text.trim(),
-        // On ne touche pas l'image pour l'instant (si on n'a pas choisi de nouvelle)
       );
-
-      print("Payload d'update : ${updatedEvent.toJson()}");
-
-      // Si on change l'image
       String newImageUrl = widget.event.imageUrl;
       if (_selectedImage != null) {
         newImageUrl = await _uploadImage(widget.event.id!, _selectedImage!);
-
-        // Suppression optionnelle de l'ancienne image
         if (_originalImageUrl.isNotEmpty) {
           final oldFileName =
               _originalImageUrl.split('/').last.split('?').first;
@@ -341,33 +357,23 @@ class _EditEventScreenState extends State<EditEventScreen> {
             );
           }
         }
-
         updatedEvent = updatedEvent.copyWith(imageUrl: newImageUrl);
       }
-
-      // Appliquer la mise à jour sur la table "events"
       final finalEvent = await _eventService.updateEvent(updatedEvent);
-
-      // JOINTURES : promoter, venue, genres, artists
-      // 1) event_promoter : on prend un seul promoter
       if (_selectedPromoterObj != null) {
-        // On met à jour : supprime l'existant et ajoute le nouveau
         await _eventPromoterService.updateEventPromoters(
           finalEvent.id!,
           [_selectedPromoterObj!.id!],
         );
       }
-      // 2) event_venue : un seul venue
       if (_selectedVenueObj != null) {
         await _eventVenueService.updateEventVenue(
           finalEvent.id!,
           _selectedVenueObj!.id!,
         );
       }
-      // 3) event_genre
       await _eventGenreService.updateEventGenres(
           finalEvent.id!, _selectedGenres);
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Event updated successfully!'),
@@ -389,6 +395,83 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
   }
 
+  Future<void> _showDeleteConfirmation() async {
+    final isAllowedToDelete =
+        await _permissionService.hasPermissionForCurrentUser(
+      widget.event.id!,
+      'event',
+      3,
+    );
+    if (!isAllowedToDelete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You do not have permission to delete this event.'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this event?'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(ctx, false),
+            ),
+            TextButton(
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () => Navigator.pop(ctx, true),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed == true) {
+      _deleteEvent();
+    }
+  }
+
+  Future<void> _deleteEvent() async {
+    setState(() => _isUpdating = true);
+    try {
+      await _eventService.deleteEvent(widget.event.id!);
+      if (_originalImageUrl.isNotEmpty) {
+        final oldFileName = _originalImageUrl.split('/').last.split('?').first;
+        if (oldFileName.isNotEmpty) {
+          final oldFilePath = "${widget.event.id}/$oldFileName";
+          await _storageService.deleteFile(
+            bucketName: "event-images",
+            fileName: oldFilePath,
+          );
+        }
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Event deleted successfully!'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.pop(context, null);
+    } catch (e) {
+      print('Error deleting event: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error deleting event: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -397,53 +480,46 @@ class _EditEventScreenState extends State<EditEventScreen> {
       appBar: AppBar(
         title: Text('Edit "${widget.event.title}"'),
         actions: [
+          // Bouton d'accès aux permissions (toujours actif si non en chargement)
           IconButton(
-            icon: const Icon(
-                Icons.add_moderator), // Conserver l'icône "add_moderator"
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => UserAccessManagementScreen(
-                    entityId: widget.event.id!,
-                    entityType: 'event',
-                  ),
-                ),
-              );
-              if (!mounted) return;
-              setState(() {});
-            },
-          ),
-          // Bouton delete
-          IconButton(
-            icon: const Icon(Icons.delete),
+            icon: const Icon(Icons.add_moderator),
             onPressed: _isUpdating
                 ? null
                 : () async {
-                    final hasAdmin =
-                        await _permissionService.hasPermissionForCurrentUser(
-                      widget.event.id!,
-                      'event',
-                      3,
-                    );
-                    if (hasAdmin) {
-                      _showDeleteConfirmation();
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'You do not have permission to delete this event.'),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: Colors.red,
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserAccessManagementScreen(
+                          entityId: widget.event.id!,
+                          entityType: 'event',
                         ),
-                      );
-                    }
+                      ),
+                    );
+                    if (!mounted) return;
+                    setState(() {});
                   },
           ),
+          // Bouton delete
+          if (isAdmin || isManager)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: _isUpdating
+                  ? null
+                  : isAdmin
+                      ? () async {
+                          await _showDeleteConfirmation();
+                        }
+                      : null, // Pour manager, le bouton est visible mais désactivé
+            ),
+          // Bouton save
           IconButton(
-            icon:
-                _isUpdating ? const SizedBox.shrink() : const Icon(Icons.save),
-            onPressed: _isUpdating ? null : _updateEvent,
+            icon: const Icon(Icons.save),
+            onPressed: (_isUpdating || isReadOnly || !_permissionsLoaded)
+                ? null
+                : _updateEvent,
+            color: (_isUpdating || isReadOnly || !_permissionsLoaded)
+                ? Colors.grey
+                : null,
           ),
         ],
       ),
@@ -455,12 +531,11 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    // Image with edit icon overlay
+                    // Section image avec overlay d'édition (affiché uniquement si l'utilisateur n'est pas read-only)
                     Stack(
                       children: [
-                        // Event image with tap to change image
                         GestureDetector(
-                          onTap: _pickImage,
+                          onTap: isReadOnly ? null : _pickImage,
                           child: Container(
                             width: double.infinity,
                             height: 200,
@@ -497,31 +572,32 @@ class _EditEventScreenState extends State<EditEventScreen> {
                                       ),
                           ),
                         ),
-                        // Edit icon overlay
-                        Positioned(
-                          bottom: 8,
-                          right: 8,
-                          child: InkWell(
-                            onTap: _pickImage,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.7),
-                                shape: BoxShape.circle,
+                        // L'icône d'édition n'est affichée que si l'utilisateur n'est pas en mode read-only
+                        if (!isReadOnly)
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: IconButton(
+                              icon: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.7),
+                                  shape: BoxShape.circle,
+                                ),
+                                padding: const EdgeInsets.all(8),
+                                child: const Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                               ),
-                              padding: const EdgeInsets.all(8),
-                              child: const Icon(
-                                Icons.edit,
-                                color: Colors.white,
-                                size: 20,
-                              ),
+                              onPressed: isReadOnly ? null : _pickImage,
                             ),
                           ),
-                        ),
                       ],
                     ),
-                    const SizedBox(height: 20),
 
-                    // Title
+                    const SizedBox(height: sectionSpacing),
+                    // Titre
                     TextFormField(
                       controller: _titleController,
                       decoration: const InputDecoration(
@@ -529,9 +605,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
                         border: OutlineInputBorder(),
                       ),
                       validator: _validateTextInput,
+                      readOnly: isReadOnly,
                     ),
-                    const SizedBox(height: 20),
-
+                    const SizedBox(height: sectionSpacing),
                     // Event type (Dropdown)
                     DropdownButtonFormField<String>(
                       value: _selectedTypeLabel,
@@ -546,26 +622,27 @@ class _EditEventScreenState extends State<EditEventScreen> {
                           child: Text(e),
                         );
                       }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _selectedTypeLabel = value;
-                          });
-                        }
-                      },
+                      onChanged: isReadOnly
+                          ? null
+                          : (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _selectedTypeLabel = value;
+                                });
+                              }
+                            },
                     ),
-                    const SizedBox(height: 20),
-
+                    const SizedBox(height: sectionSpacing),
                     // Start date/time
                     TextFormField(
                       readOnly: true,
-                      onTap: _pickStartDateTime,
+                      onTap: isReadOnly ? null : _pickStartDateTime,
                       decoration: InputDecoration(
                         labelText: 'Start Date & Time',
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.calendar_today),
-                          onPressed: _pickStartDateTime,
+                          onPressed: isReadOnly ? null : _pickStartDateTime,
                         ),
                       ),
                       controller: TextEditingController(
@@ -583,18 +660,17 @@ class _EditEventScreenState extends State<EditEventScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 20),
-
+                    const SizedBox(height: sectionSpacing),
                     // End date/time
                     TextFormField(
                       readOnly: true,
-                      onTap: _pickEndDateTime,
+                      onTap: isReadOnly ? null : _pickEndDateTime,
                       decoration: InputDecoration(
                         labelText: 'End Date & Time',
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.calendar_today),
-                          onPressed: _pickEndDateTime,
+                          onPressed: isReadOnly ? null : _pickEndDateTime,
                         ),
                       ),
                       controller: TextEditingController(
@@ -612,8 +688,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 20),
-
+                    const SizedBox(height: sectionSpacing),
                     // Description
                     TextFormField(
                       controller: _descriptionController,
@@ -623,50 +698,21 @@ class _EditEventScreenState extends State<EditEventScreen> {
                       ),
                       maxLines: 3,
                       validator: _validateTextInput,
+                      readOnly: isReadOnly,
                     ),
-                    const SizedBox(height: 20),
-
-                    // Promoter
+                    const SizedBox(height: sectionSpacing),
+                    // Promoter section
                     _buildPromoterSection(isDark),
-                    const SizedBox(height: 20),
-
-                    // Venue
+                    const SizedBox(height: sectionSpacing),
+                    // Venue section
                     _buildVenueSection(isDark),
-                    const SizedBox(height: 20),
-
-                    // Genres
+                    const SizedBox(height: sectionSpacing),
+                    // Genres section
                     _buildGenresSection(),
-                    const SizedBox(height: 20),
-
-                    // Artists
+                    const SizedBox(height: sectionSpacing),
+                    // Artists section
                     _buildArtistsSection(),
-                    const SizedBox(height: 20),
-
-                    // Button update
-                    ElevatedButton(
-                      onPressed: _isUpdating ? null : _updateEvent,
-                      style: ElevatedButton.styleFrom(
-                        elevation: isDark ? 2 : 0,
-                        backgroundColor: Theme.of(context).colorScheme.surface,
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onSurface,
-                        side: BorderSide(
-                          color: isDark ? Colors.white : Colors.black,
-                          width: 1,
-                        ),
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
-                      child: _isUpdating
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Save Changes'),
-                    ),
+                    const SizedBox(height: sectionSpacing),
                   ],
                 ),
               ),
@@ -688,7 +734,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
                   style: TextButton.styleFrom(
                     foregroundColor: isDark ? Colors.white : Colors.black,
                   ),
-                  onPressed: _permittedPromoters.isEmpty || _isUpdating
+                  onPressed: (_permittedPromoters.isEmpty ||
+                          _isUpdating ||
+                          isReadOnly)
                       ? null
                       : () async {
                           final result = await showModalBottomSheet<Promoter>(
@@ -708,7 +756,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 IconButton(
                   icon: const Icon(Icons.edit),
                   color: isDark ? Colors.white : Colors.black,
-                  onPressed: _permittedPromoters.isEmpty || _isUpdating
+                  onPressed: (_permittedPromoters.isEmpty ||
+                          _isUpdating ||
+                          isReadOnly)
                       ? null
                       : () async {
                           final result = await showModalBottomSheet<Promoter>(
@@ -734,14 +784,16 @@ class _EditEventScreenState extends State<EditEventScreen> {
               children: [
                 Chip(
                   label: Text(_selectedPromoterObj!.name),
-                  onDeleted: !_isUpdating
-                      ? () => setState(() => _selectedPromoterObj = null)
-                      : null,
+                  onDeleted: (_isUpdating || isReadOnly)
+                      ? null
+                      : () => setState(() => _selectedPromoterObj = null),
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit),
                   color: isDark ? Colors.white : Colors.black,
-                  onPressed: _permittedPromoters.isEmpty || _isUpdating
+                  onPressed: (_permittedPromoters.isEmpty ||
+                          _isUpdating ||
+                          isReadOnly)
                       ? null
                       : () async {
                           final result = await showModalBottomSheet<Promoter>(
@@ -778,7 +830,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                   style: TextButton.styleFrom(
                     foregroundColor: isDark ? Colors.white : Colors.black,
                   ),
-                  onPressed: _isUpdating
+                  onPressed: (_isUpdating || isReadOnly)
                       ? null
                       : () async {
                           final selectedVenue =
@@ -799,7 +851,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 IconButton(
                   icon: const Icon(Icons.edit),
                   color: isDark ? Colors.white : Colors.black,
-                  onPressed: _isUpdating
+                  onPressed: (_isUpdating || isReadOnly)
                       ? null
                       : () async {
                           final selectedVenue =
@@ -826,14 +878,14 @@ class _EditEventScreenState extends State<EditEventScreen> {
               children: [
                 Chip(
                   label: Text(_selectedVenueObj!.name),
-                  onDeleted: !_isUpdating
-                      ? () => setState(() => _selectedVenueObj = null)
-                      : null,
+                  onDeleted: (_isUpdating || isReadOnly)
+                      ? null
+                      : () => setState(() => _selectedVenueObj = null),
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit),
                   color: isDark ? Colors.white : Colors.black,
-                  onPressed: _isUpdating
+                  onPressed: (_isUpdating || isReadOnly)
                       ? null
                       : () async {
                           final selectedVenue =
@@ -869,23 +921,31 @@ class _EditEventScreenState extends State<EditEventScreen> {
                 ? 'Select Genres'
                 : '${_selectedGenres.length} selected genres',
           ),
-          trailing: const Icon(Icons.edit),
-          onTap: () async {
-            final selectedGenresSet = Set<int>.from(_selectedGenres);
-            final bool? saved = await showModalBottomSheet<bool>(
-              context: context,
-              isScrollControlled: true,
-              builder: (BuildContext context) => EditEventGenreBottomSheet(
-                selectedGenres: selectedGenresSet,
-                genreService: _genreService,
-              ),
-            );
-            if (saved == true && mounted) {
-              setState(() {
-                _selectedGenres = selectedGenresSet.toList();
-              });
-            }
-          },
+          trailing: Icon(
+            Icons.edit,
+            color: isReadOnly
+                ? Colors.grey[700]
+                : Theme.of(context).iconTheme.color,
+          ),
+          onTap: isReadOnly
+              ? null
+              : () async {
+                  final selectedGenresSet = Set<int>.from(_selectedGenres);
+                  final bool? saved = await showModalBottomSheet<bool>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (BuildContext context) =>
+                        EditEventGenreBottomSheet(
+                      selectedGenres: selectedGenresSet,
+                      genreService: _genreService,
+                    ),
+                  );
+                  if (saved == true && mounted) {
+                    setState(() {
+                      _selectedGenres = selectedGenresSet.toList();
+                    });
+                  }
+                },
         ),
         if (_selectedGenres.isNotEmpty)
           Padding(
@@ -902,7 +962,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     );
   }
 
-  // La fonction _buildArtistsSection() a été remplacée par un bouton :
   Widget _buildArtistsSection() {
     return Row(
       children: [
@@ -918,7 +977,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.edit),
+          icon: isReadOnly
+              ? const Icon(Icons.arrow_forward)
+              : const Icon(Icons.edit),
           onPressed: () async {
             await Navigator.push(
               context,
@@ -931,86 +992,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
         ),
       ],
     );
-  }
-
-  /// Confirmer la suppression
-  Future<void> _showDeleteConfirmation() async {
-    final bool hasAdmin = await _permissionService.hasPermissionForCurrentUser(
-      widget.event.id!,
-      'event',
-      3,
-    );
-    if (!hasAdmin) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You do not have permission to delete this event.'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete this event?'),
-          actions: [
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.pop(ctx, false),
-            ),
-            TextButton(
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
-              onPressed: () => Navigator.pop(ctx, true),
-            ),
-          ],
-        );
-      },
-    );
-    if (confirmed == true) {
-      _deleteEvent();
-    }
-  }
-
-  /// Supprime l'événement
-  Future<void> _deleteEvent() async {
-    setState(() => _isUpdating = true);
-    try {
-      await _eventService.deleteEvent(widget.event.id!);
-      // Supprimer l'image si besoin
-      if (_originalImageUrl.isNotEmpty) {
-        final oldFileName = _originalImageUrl.split('/').last.split('?').first;
-        if (oldFileName.isNotEmpty) {
-          final oldFilePath = "${widget.event.id}/$oldFileName";
-          await _storageService.deleteFile(
-            bucketName: "event-images",
-            fileName: oldFilePath,
-          );
-        }
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Event deleted successfully!'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      Navigator.pop(context, null);
-    } catch (e) {
-      print('Error deleting event: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error deleting event: $e'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _isUpdating = false);
-    }
   }
 }
 

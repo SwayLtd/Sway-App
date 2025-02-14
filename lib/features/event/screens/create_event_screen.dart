@@ -88,7 +88,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     if (value == null || value.trim().isEmpty) {
       return 'This field is required.';
     }
-    final forbiddenPattern = RegExp("[;'\"]|--");
+    final forbiddenPattern = RegExp(r'[;"]|--');
     if (forbiddenPattern.hasMatch(value)) {
       return 'Invalid characters used.';
     }
@@ -366,7 +366,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                         ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
 
               // Title
               TextFormField(
@@ -377,7 +377,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 ),
                 validator: _validateTextInput,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
 
               // Event type
               DropdownButtonFormField<String>(
@@ -402,7 +402,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   }
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
 
               // Start date/time
               TextFormField(
@@ -432,7 +432,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 },
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
 
               // End date/time
               TextFormField(
@@ -459,7 +459,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 },
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
 
               // Description
               TextFormField(
@@ -471,7 +471,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 maxLines: 3,
                 validator: _validateTextInput,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
 
               // Promoter
               Row(
@@ -589,7 +589,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
 
               // Venue (inchangé, juste un exemple)
               Row(
@@ -689,7 +689,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
 
               // Genres
               ListTile(
@@ -730,7 +730,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     }).toList(),
                   ),
                 ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
 
               // Create button
               ElevatedButton(

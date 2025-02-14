@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
 import 'package:sway/features/security/services/storage_service.dart';
@@ -207,7 +208,7 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
                         ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
               // Name field
               TextFormField(
                 controller: _nameController,
@@ -222,7 +223,7 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
               // Description field
               TextFormField(
                 controller: _descriptionController,
@@ -240,7 +241,7 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
               ),
               // Remove links field for now
               /*
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
               // Links field (simple example)
               TextFormField(
                 controller: _linksController,

@@ -24,6 +24,19 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
   List<User> _searchResults = [];
   int selectedRole = 1; // Default role is User (level 1)
 
+  // Fonction locale pour obtenir le libellé du rôle
+  String getRoleLabel(int level) {
+    switch (level) {
+      case 3:
+        return "Admin";
+      case 2:
+        return "Manager";
+      case 1:
+      default:
+        return "User";
+    }
+  }
+
   Future<void> _searchUsers() async {
     final users = await UserService().searchUsers(_searchController.text);
     final existingPermissions = await UserPermissionService()
@@ -39,10 +52,10 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
   }
 
   void _showRoleSelectionDialog(User user) {
-    // If current user is admin, allow [3, 2, 1]; otherwise, only 1.
+    // If current user is admin, allow roles 3, 2, 1; otherwise, only 1.
     final availableRoles = widget.isCurrentUserAdmin ? [3, 2, 1] : [1];
 
-    // Function to get descriptive text based on role.
+    // Descriptions pour chaque rôle
     String getRoleDescription(int role) {
       switch (role) {
         case 3:
@@ -55,7 +68,6 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
       }
     }
 
-    // Using the getRoleLabel function from UserPermissionService
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -106,13 +118,22 @@ class _UserAccessSearchScreenState extends State<UserAccessSearchScreen> {
                   user.id,
                   widget.entityId,
                   widget.entityType,
-                  selectedRole, // directly pass the numeric role
+                  selectedRole,
                 );
                 Navigator.of(context).pop();
                 if (!mounted) return;
                 setState(() {
                   _searchResults.remove(user);
                 });
+                // Afficher la snackbar flottante
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    content: Text(
+                      "Permission '${getRoleLabel(selectedRole)}' added to ${user.username}",
+                    ),
+                  ),
+                );
               },
             ),
           ],
