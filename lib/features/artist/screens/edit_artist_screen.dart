@@ -95,9 +95,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
   }
 
   Future<void> _loadAssociatedData() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
     try {
       // Load associated genres using the dedicated service.
       final genres =
@@ -247,7 +245,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
   }
 
   Future<void> _showDeleteConfirmationDialog() async {
-    // Only admin can delete the artist
+    // Only admin can delete the artist. Hide delete button for read-only.
     final isAllowedToDelete =
         await _permissionService.hasPermissionForCurrentUser(
       _currentArtist.id!,
@@ -300,7 +298,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
       _errorMessage = null;
     });
     try {
-      // Optionally delete the associated image
+      // Optionally delete the associated image.
       final oldFileName =
           _currentArtist.imageUrl.split('/').last.split('?').first;
       if (oldFileName.isNotEmpty) {
@@ -339,6 +337,13 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -362,18 +367,24 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
                     setState(() {});
                   },
           ),
+          // Hide delete button while permissions are loading or if user is read-only.
+          if (_permissionsLoaded && !isReadOnly)
+            IconButton(
+              icon: _isLoading
+                  ? const SizedBox.shrink()
+                  : const Icon(Icons.delete),
+              onPressed: _isLoading || _isDeleting
+                  ? null
+                  : _showDeleteConfirmationDialog,
+            ),
           IconButton(
-            icon: _isLoading ? const SizedBox.shrink() : const Icon(Icons.save),
-            onPressed: _isLoading || _isDeleting ? null : _updateArtist,
-            color: _isLoading || _isDeleting ? Colors.grey : null,
-          ),
-          IconButton(
-            icon: _isDeleting
-                ? const SizedBox.shrink()
-                : const Icon(Icons.delete),
-            onPressed: _isDeleting || _isLoading
+            icon: const Icon(Icons.save),
+            onPressed: (_isLoading || !_permissionsLoaded || isReadOnly)
                 ? null
-                : _showDeleteConfirmationDialog,
+                : _updateArtist,
+            color: (_isLoading || !_permissionsLoaded || isReadOnly)
+                ? Colors.grey
+                : null,
           ),
         ],
       ),
@@ -402,7 +413,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onPrimary
-                                        .withValues(alpha: 0.5),
+                                        .withOpacity(0.5),
                                     width: 2.0,
                                   ),
                                   borderRadius: BorderRadius.circular(12),
@@ -484,7 +495,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
                         readOnly: isReadOnly,
                       ),
                       const SizedBox(height: sectionSpacing),
-                      // Genres section with an IconButton for editing
+                      // Genres section with IconButton for editing
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
