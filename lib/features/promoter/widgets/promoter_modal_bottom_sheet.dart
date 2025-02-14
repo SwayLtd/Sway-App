@@ -1,6 +1,7 @@
 // lib/features/promoter/widgets/promoter_modal_bottom_sheet.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
@@ -50,7 +51,7 @@ Future<void> showPromoterModalBottomSheet(
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: sectionTitleSpacing),
             // Liste des promoteurs avec PromoterListItemWidget
             Expanded(
               child: ListView.builder(

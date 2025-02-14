@@ -1,6 +1,7 @@
 // lib/features/genre/widgets/genre_modal_bottom_sheet.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
 
@@ -48,7 +49,7 @@ Future<void> showGenreModalBottomSheet(BuildContext context, List<int> genres) {
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: sectionTitleSpacing),
             // Affichage des genres en colonne avec ListView
             Expanded(
               child: ListView.builder(

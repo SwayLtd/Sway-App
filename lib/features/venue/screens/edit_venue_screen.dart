@@ -501,7 +501,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                             },
                             readOnly: isReadOnly,
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: sectionTitleSpacing),
                           // Champ Description
                           TextFormField(
                             controller: _descriptionController,
@@ -518,7 +518,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                             },
                             readOnly: isReadOnly,
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: sectionTitleSpacing),
                           // Champ Localisation
                           TextFormField(
                             controller: _locationController,
@@ -573,7 +573,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: sectionTitleSpacing),
                           if (_selectedGenres.isNotEmpty)
                             Wrap(
                               spacing: 8.0,
@@ -621,7 +621,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: sectionTitleSpacing),
                           if (_selectedPromoters.isNotEmpty)
                             Wrap(
                               spacing: 8.0,
@@ -668,7 +668,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: sectionTitleSpacing),
                           if (_selectedArtists.isNotEmpty)
                             Wrap(
                               spacing: 8.0,

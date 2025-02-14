@@ -482,7 +482,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                         },
                         readOnly: isReadOnly,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       // Champ Description
                       TextFormField(
                         controller: _descriptionController,
@@ -538,7 +538,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       if (_selectedGenres.isNotEmpty)
                         Wrap(
                           spacing: 8.0,
@@ -585,7 +585,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: sectionTitleSpacing),
                       if (_selectedArtists.isNotEmpty)
                         Wrap(
                           spacing: 8.0,

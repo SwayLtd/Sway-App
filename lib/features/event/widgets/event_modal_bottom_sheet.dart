@@ -1,6 +1,7 @@
 // lib/features/event/widgets/event_modal_bottom_sheet.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
@@ -49,7 +50,7 @@ Future<void> showEventModalBottomSheet(
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: sectionTitleSpacing),
             // Liste des événements avec EventItemWidget
             Expanded(
               child: ListView.builder(

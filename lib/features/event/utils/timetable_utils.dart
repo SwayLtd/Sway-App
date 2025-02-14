@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -110,7 +111,7 @@ void showArtistsBottomSheet(BuildContext context, List<Artist> artists) {
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: sectionTitleSpacing),
           ...artists.map((artist) {
             return ListTile(
               leading: Container(

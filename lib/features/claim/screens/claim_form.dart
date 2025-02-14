@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/claim/services/claim_service.dart';
 import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
@@ -187,7 +188,7 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
                 ),
                 enabled: false,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: sectionTitleSpacing),
               // Read-only field for entity name using controller
               FormBuilderTextField(
                 name: 'entity_name',
@@ -197,7 +198,7 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
                 ),
                 enabled: false,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: sectionTitleSpacing),
               // Read-only field for current user's username using controller
               FormBuilderTextField(
                 name: 'user_name',
@@ -207,14 +208,14 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
                 ),
                 enabled: false,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: sectionTitleSpacing),
               // Button to pick a file as proof (optional)
               ElevatedButton.icon(
                 onPressed: _pickFile,
                 icon: const Icon(Icons.upload_file),
                 label: Text(_selectedFileName ?? 'Upload Proof File'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: sectionTitleSpacing),
               // Text field for additional evidence or proof data.
               FormBuilderTextField(
                 name: 'proof_data',

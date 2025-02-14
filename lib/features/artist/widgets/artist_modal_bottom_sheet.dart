@@ -1,6 +1,7 @@
 // lib/features/artist/widgets/artist_modal_bottom_sheet.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/widgets/artist_item_widget.dart';
@@ -49,7 +50,7 @@ Future<void> showArtistModalBottomSheet(
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: sectionTitleSpacing),
             // Liste des artistes avec ArtistListItemWidget
             Expanded(
               child: ListView.builder(

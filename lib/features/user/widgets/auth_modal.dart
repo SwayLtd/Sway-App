@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
+import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/user/screens/terms_and_conditions_screen.dart';
 import 'package:sway/features/user/utils/auth_validator.dart';
 
@@ -86,7 +87,7 @@ class AuthModal extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: sectionTitleSpacing),
             // Contenu défilable
             Expanded(
               child: SingleChildScrollView(

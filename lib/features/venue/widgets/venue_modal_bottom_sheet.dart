@@ -1,6 +1,7 @@
 // lib/features/venue/widgets/venue_modal_bottom_sheet.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/constants/dimensions.dart';
 
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/venue.dart';
@@ -50,7 +51,7 @@ Future<void> showVenueModalBottomSheet(
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: sectionTitleSpacing),
             // Liste des lieus avec VenueListItemWidget
             Expanded(
               child: ListView.builder(
