@@ -230,7 +230,7 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
                   FormBuilderValidators.maxLength(500),
                 ]),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: sectionSpacing),
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
                 style: ElevatedButton.styleFrom(
