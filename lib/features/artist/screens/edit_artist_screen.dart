@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; // pour listEquals
+import 'package:flutter/foundation.dart'; // for listEquals
 import 'package:image_picker/image_picker.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
 import 'package:sway/features/artist/services/artist_genre_service.dart';
-import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
+import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/user/screens/user_access_management_screen.dart';
@@ -35,7 +35,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
   final UserPermissionService _permissionService = UserPermissionService();
   final UserService _userService = UserService();
 
-  // Stockage des genres associés (IDs)
+  // List of associated genre IDs
   List<int> _selectedGenres = [];
   List<int> _initialGenres = [];
 
@@ -47,7 +47,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
   late Artist _currentArtist;
   final _formKey = GlobalKey<FormState>();
 
-  // Variables de permission
+  // Permission flags
   bool isAdmin = false;
   bool isManager = false;
   bool isReadOnly = false;
@@ -75,7 +75,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
       });
       return;
     }
-    // Vérifier les permissions pour un artist
+    // Check permissions for an artist
     final admin = await _permissionService.hasPermissionForCurrentUser(
       widget.artist.id!,
       'artist',
@@ -95,9 +95,11 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
   }
 
   Future<void> _loadAssociatedData() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+    });
     try {
-      // Charger les genres associés à l'artiste
+      // Load associated genres using the dedicated service.
       final genres =
           await _artistGenreService.getGenresByArtistId(_currentArtist.id!);
       setState(() {
@@ -107,15 +109,20 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur lors du chargement des genres: $e'),
+          content: Text('Erreur lors du chargement des genres : $e'),
           behavior: SnackBarBehavior.floating,
         ),
       );
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
+  /// Allows selection of a new image from the gallery.
   Future<void> _pickImage() async {
     if (isReadOnly) return;
     final picker = ImagePicker();
@@ -130,6 +137,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
     }
   }
 
+  /// Uploads the selected image to the "artist-images" bucket and returns its public URL.
   Future<String> _uploadImage(int artistId, File imageFile) async {
     final fileBytes = await imageFile.readAsBytes();
     final fileExtension = imageFile.path.split('.').last;
@@ -141,7 +149,6 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
       fileName: filePath,
       fileData: fileBytes,
     );
-
     return publicUrl;
   }
 
@@ -157,7 +164,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
     final bool isImageChanged = _selectedImage != null;
     final bool isGenresChanged = !listEquals(_selectedGenres, _initialGenres);
 
-    // S'il n'y a aucune modification, on retourne l'artiste existant
+    // If no changes, return current artist
     if (!isNameChanged &&
         !isDescriptionChanged &&
         !isImageChanged &&
@@ -176,7 +183,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
       if (isImageChanged) {
         updatedImageUrl =
             await _uploadImage(_currentArtist.id!, _selectedImage!);
-        // Suppression optionnelle de l'ancienne image
+        // Optionally delete old image if exists
         final oldFileName =
             _currentArtist.imageUrl.split('/').last.split('?').first;
         if (oldFileName.isNotEmpty) {
@@ -231,12 +238,16 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
         ),
       );
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _showDeleteConfirmationDialog() async {
-    // Seul l'admin peut supprimer l'artiste
+    // Only admin can delete the artist
     final isAllowedToDelete =
         await _permissionService.hasPermissionForCurrentUser(
       _currentArtist.id!,
@@ -289,7 +300,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
       _errorMessage = null;
     });
     try {
-      // Optionnel : suppression de l'image associée
+      // Optionally delete the associated image
       final oldFileName =
           _currentArtist.imageUrl.split('/').last.split('?').first;
       if (oldFileName.isNotEmpty) {
@@ -319,7 +330,11 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
         ),
       );
     } finally {
-      if (mounted) setState(() => _isDeleting = false);
+      if (mounted) {
+        setState(() {
+          _isDeleting = false;
+        });
+      }
     }
   }
 
@@ -329,7 +344,6 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
       appBar: AppBar(
         title: Text('Edit "${_currentArtist.name}"'),
         actions: [
-          // Bouton pour accéder à la gestion des permissions
           IconButton(
             icon: const Icon(Icons.add_moderator),
             onPressed: _isLoading || _isDeleting
@@ -348,27 +362,18 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
                     setState(() {});
                   },
           ),
-          // Bouton delete (visible pour admin et manager, actif uniquement pour admin)
-          if (isAdmin || isManager)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: _isDeleting || _isLoading
-                  ? null
-                  : isAdmin
-                      ? () async {
-                          await _showDeleteConfirmationDialog();
-                        }
-                      : null,
-            ),
-          // Bouton save (désactivé en read-only ou pendant le chargement/maj)
           IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: (_isLoading || isReadOnly || !_permissionsLoaded)
+            icon: _isLoading ? const SizedBox.shrink() : const Icon(Icons.save),
+            onPressed: _isLoading || _isDeleting ? null : _updateArtist,
+            color: _isLoading || _isDeleting ? Colors.grey : null,
+          ),
+          IconButton(
+            icon: _isDeleting
+                ? const SizedBox.shrink()
+                : const Icon(Icons.delete),
+            onPressed: _isDeleting || _isLoading
                 ? null
-                : _updateArtist,
-            color: (_isLoading || isReadOnly || !_permissionsLoaded)
-                ? Colors.grey
-                : null,
+                : _showDeleteConfirmationDialog,
           ),
         ],
       ),
@@ -382,49 +387,71 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Affichage de l'image (sans icône d'édition superposée)
+                      // Display image with edit overlay if not read-only
                       Center(
-                        child: Container(
-                          width: 150,
-                          height: 150,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimary
-                                  .withValues(alpha: 0.5),
-                              width: 2.0,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: _selectedImage != null
-                                ? Image.file(
-                                    _selectedImage!,
-                                    fit: BoxFit.cover,
-                                    width: 150,
-                                    height: 150,
-                                  )
-                                : _currentArtist.imageUrl.isNotEmpty
-                                    ? ImageWithErrorHandler(
-                                        imageUrl: _currentArtist.imageUrl,
-                                        width: 150,
-                                        height: 150,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : const Center(
-                                        child: Icon(
-                                          Icons.camera_alt,
-                                          size: 50,
-                                          color: Colors.grey,
+                        child: Stack(
+                          children: [
+                            GestureDetector(
+                              onTap:
+                                  _isLoading || _isDeleting ? null : _pickImage,
+                              child: Container(
+                                width: 150,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary
+                                        .withValues(alpha: 0.5),
+                                    width: 2.0,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: _selectedImage != null
+                                      ? Image.file(
+                                          _selectedImage!,
+                                          fit: BoxFit.cover,
+                                          width: 150,
+                                          height: 150,
+                                        )
+                                      : ImageWithErrorHandler(
+                                          imageUrl: _currentArtist.imageUrl,
+                                          width: 150,
+                                          height: 150,
                                         ),
-                                      ),
-                          ),
+                                ),
+                              ),
+                            ),
+                            if (!isReadOnly)
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: _isLoading || _isDeleting
+                                      ? null
+                                      : _pickImage,
+                                  child: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Icon(
+                                      Icons.edit,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: sectionSpacing),
-                      // Champ Nom
+                      // Name field
                       TextFormField(
                         controller: _nameController,
                         decoration: const InputDecoration(
@@ -440,7 +467,7 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
                         readOnly: isReadOnly,
                       ),
                       const SizedBox(height: sectionSpacing),
-                      // Champ Description
+                      // Description field
                       TextFormField(
                         controller: _descriptionController,
                         decoration: const InputDecoration(
@@ -457,16 +484,14 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
                         readOnly: isReadOnly,
                       ),
                       const SizedBox(height: sectionSpacing),
-                      // Section Genres : utilisation d'un IconButton uniformisé
+                      // Genres section with an IconButton for editing
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
                             'Genres',
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                                fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           IconButton(
                             icon: const Icon(Icons.edit),
@@ -624,12 +649,12 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
               ),
             ],
           ),
-          const SizedBox(height: sectionSpacing),
+          const SizedBox(height: 20),
           const Text(
             'Select Genres',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: sectionSpacing),
+          const SizedBox(height: 20),
           TextField(
             decoration: const InputDecoration(
               labelText: 'Search Genres',
@@ -640,7 +665,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
               _searchGenres();
             },
           ),
-          const SizedBox(height: sectionSpacing),
+          const SizedBox(height: 20),
           _isLoading
               ? const CircularProgressIndicator.adaptive()
               : Expanded(
