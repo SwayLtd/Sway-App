@@ -103,11 +103,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   /// Charge les recommandations spécifiques à l'utilisateur
   Future<void> _fetchUserRecommendations(int userId) async {
-    // Charger les événements suggérés
+    // Charger les événements suggérés (inchangé)
     _suggestedEventsFuture =
         _eventService.getTopEvents(limit: 10); // Fetch more for modal
 
-    // Charger les promoteurs suggérés
+    // Charger les promoteurs suggérés (inchangé)
     _suggestedPromotersFuture = _userFollowPromoterService
         .getFollowedPromotersByUserId(userId)
         .then((followedPromoters) async {
@@ -119,34 +119,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
           .toList();
     });
 
-    // Charger les artistes suggérés
-    _suggestedArtistsFuture = _userFollowArtistService
-        .getFollowedArtistsByUserId(userId)
-        .then((followedArtists) async {
-      final followedArtistIds =
-          followedArtists.map((artist) => artist.id!).toList();
-      final similarArtistIds = <int>{};
-      for (final artist in followedArtists) {
-        final ids =
-            await _similarArtistService.getSimilarArtistsByArtistId(artist.id!);
-        similarArtistIds.addAll(ids);
-      }
+    // Charger les artistes suggérés (MAINTENANT: via la fonction getRecommendedArtists)
+    // Nous remplaçons la logique d'avant par un appel RPC qui gère la recommandation.
+    _suggestedArtistsFuture = _artistService.getRecommendedArtists(
+      userId: userId, // l'utilisateur connecté
+      limit: 10,
+    );
 
-      final allArtists = await _artistService.getArtists();
-      final similarArtists = allArtists
-          .where((a) =>
-              similarArtistIds.contains(a.id) &&
-              !followedArtistIds.contains(a.id))
-          .toList();
-
-      final suggestedArtists = allArtists
-          .where((artist) => !followedArtistIds.contains(artist.id!))
-          .toList();
-
-      return [...similarArtists, ...suggestedArtists];
-    });
-
-    // Charger les venues suggérées
+    // Charger les venues suggérées (inchangé)
     _suggestedVenuesFuture = _userFollowVenueService
         .getFollowedVenuesByUserId(userId)
         .then((followedVenues) async {
@@ -158,7 +138,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           .toList();
     });
 
-    // Charger les genres suggérés
+    // Charger les genres suggérés (inchangé)
     _suggestedGenresFuture = _userFollowGenreService
         .getFollowedGenresByUserId(userId)
         .then((followedGenres) async {
@@ -172,22 +152,24 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   /// Charge des recommandations génériques pour les utilisateurs anonymes
   Future<void> _fetchGenericRecommendations() async {
-    // Charger les événements suggérés
+    // Charger les événements suggérés (inchangé)
     _suggestedEventsFuture =
         _eventService.getTopEvents(limit: 10); // Fetch more for modal
 
-    // Charger les promoteurs suggérés
+    // Charger les promoteurs suggérés (inchangé)
     _suggestedPromotersFuture =
         _promoterService.getPromoters().then((promoters) => promoters);
 
-    // Charger les artistes suggérés
-    _suggestedArtistsFuture =
-        _artistService.getArtists().then((artists) => artists);
+    // Charger les artistes suggérés (MAINTENANT: via la fonction getRecommendedArtists anonyme)
+    _suggestedArtistsFuture = _artistService.getRecommendedArtists(
+      userId: null, // signifie anonyme
+      limit: 10,
+    );
 
-    // Charger les venues suggérées
+    // Charger les venues suggérées (inchangé)
     _suggestedVenuesFuture = _venueService.getVenues().then((venues) => venues);
 
-    // Charger les genres suggérés
+    // Charger les genres suggérés (inchangé)
     _suggestedGenresFuture = _genreService.getGenres().then((genres) => genres);
   }
 
