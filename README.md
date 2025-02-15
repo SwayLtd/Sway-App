@@ -16,9 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
-- Improve permission handling, UI consistency and input validation
-- Update permissions and access management UI
-- Refactor Permission System and UI Enhancements
+- Add recommended artists logic in Explore Screen
 
 ### Known Issues
 

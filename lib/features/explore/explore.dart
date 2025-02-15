@@ -556,19 +556,26 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 future: _suggestedArtistsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
+                    // Affiche le Shimmer de chargement
                     return _buildLoadingSection('Suggested Artists');
                   } else if (snapshot.hasError) {
+                    // En cas d'erreur, on peut afficher un fallback ou un Shimmer
                     return _buildLoadingSection('Suggested Artists');
                     // return _buildErrorSection('Suggested Artists', snapshot.error);
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    // Aucune donnée
                     return _buildEmptySection('Suggested Artists');
                   } else {
+                    // On a des artistes recommandés
                     final suggestedArtists = snapshot.data!;
-                    _allSuggestedArtists =
-                        suggestedArtists; // Stockage pour modal
-                    final displayCount =
-                        3; // Nombre d'artistes à afficher initialement
+                    // Stockage pour le modal, au cas où on affiche "Voir plus"
+                    _allSuggestedArtists = suggestedArtists;
+
+                    // Combien on en affiche avant le "voir plus" ?
+                    final displayCount = 3;
+                    // Vérifie s'il y a plus d'artistes que "displayCount"
                     final hasMore = suggestedArtists.length > displayCount;
+                    // Détermine la portion initiale à afficher
                     final displayArtists = hasMore
                         ? suggestedArtists.sublist(0, displayCount)
                         : suggestedArtists;
@@ -576,9 +583,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Titre de la section avec flèche "Voir plus" si hasMore == true
                         _buildSectionTitle('Suggested Artists', hasMore),
                         const SizedBox(height: 16.0),
+
+                        // Affiche quelques artistes dans la page
                         ..._buildArtistCards(context, displayArtists),
+
                         const SizedBox(height: 24.0),
                       ],
                     );

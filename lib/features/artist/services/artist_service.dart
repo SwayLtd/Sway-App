@@ -262,4 +262,34 @@ class ArtistService {
 
     return artistsWithFollowers;
   }
+
+  /// Calls the `get_recommended_artists` RPC function to retrieve recommended artists.
+  /// If userId is null, it returns recommendations for anonymous users.
+  Future<List<Artist>> getRecommendedArtists(
+      {int? userId, int limit = 5}) async {
+    try {
+      // Prepare parameters (keys must match your RPC function signature)
+      final params = <String, dynamic>{
+        'p_user_id': userId, // can be null
+        'p_limit': limit,
+      };
+
+      // Call the RPC
+      final response =
+          await _supabase.rpc('get_recommended_artists', params: params);
+
+      // If the response is null or empty, return an empty list
+      if (response == null || (response as List).isEmpty) {
+        return [];
+      }
+
+      // Convert each JSON item to an Artist model
+      return (response)
+          .map((item) => Artist.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Error fetching recommended artists: $e');
+      throw e;
+    }
+  }
 }

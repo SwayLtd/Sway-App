@@ -1,3 +1,5 @@
+// lib/features/user/models/user_follow_artist_model.dart
+
 class UserFollowArtist {
   final int userId;
   final int artistId;
