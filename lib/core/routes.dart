@@ -20,6 +20,8 @@ import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/ticketing/screens/ticket_detail_screen.dart';
 import 'package:sway/features/ticketing/services/ticket_service.dart';
+import 'package:sway/features/settings/screens/terms_and_conditions_screen.dart';
+import 'package:sway/features/settings/screens/privacy_policy_screen.dart';
 import 'package:sway/features/user/user.dart';
 import 'package:sway/features/search/search.dart';
 import 'package:sway/features/settings/settings.dart';
@@ -186,6 +188,16 @@ List<Map<String, dynamic>> standaloneRoutes = [
       return ClaimHistoryScreen(entityId: entityId, entityType: entityType);
     },
   },
+  {
+    'name': 'TermsAndConditions',
+    'path': '/termsAndConditions',
+    'screen': const TermsAndConditionsScreen(),
+  },
+  {
+    'name': 'PrivacyPolicy',
+    'path': '/privacyPolicy',
+    'screen': const PrivacyPolicyScreen(),
+  }
 ];
 
 final authStateManager = AuthStateManager();
