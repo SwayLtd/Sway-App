@@ -7,10 +7,8 @@ class GenreService {
   final _supabase = Supabase.instance.client;
 
   Future<List<Genre>> searchGenres(String query) async {
-    final response = await _supabase
-        .from('genres')
-        .select()
-        .ilike('name', '%$query%');
+    final response =
+        await _supabase.from('genres').select().ilike('name', '%$query%');
 
     if (response.isEmpty) {
       print('No genres found.');
@@ -31,16 +29,36 @@ class GenreService {
   }
 
   Future<Genre?> getGenreById(int genreId) async {
-    final response = await _supabase
-        .from('genres')
-        .select()
-        .eq('id', genreId)
-        .maybeSingle();
+    final response =
+        await _supabase.from('genres').select().eq('id', genreId).maybeSingle();
 
     if (response == null) {
       return null;
     }
 
     return Genre.fromJson(response);
+  }
+
+  Future<List<Genre>> getRecommendedGenres({int? userId, int limit = 5}) async {
+    try {
+      final params = <String, dynamic>{
+        'p_user_id': userId,
+        'p_limit': limit,
+      };
+
+      final response =
+          await _supabase.rpc('get_recommended_genres', params: params);
+
+      if (response == null || (response as List).isEmpty) {
+        return [];
+      }
+
+      return (response)
+          .map<Genre>((json) => Genre.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Error fetching recommended genres: $e');
+      throw e;
+    }
   }
 }

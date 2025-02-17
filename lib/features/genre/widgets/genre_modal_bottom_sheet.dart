@@ -39,7 +39,7 @@ Future<void> showGenreModalBottomSheet(BuildContext context, List<int> genres) {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'MOOD', // Changement de "MOODS" à "MOOD"
+                    'MOODS', // Changement de "MOODS" à "MOOD"
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   IconButton(

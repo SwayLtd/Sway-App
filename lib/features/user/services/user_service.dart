@@ -184,4 +184,27 @@ class UserService {
       return [];
     }
   }
+
+  Future<List<User>> getRecommendedUsers({int? userId, int limit = 5}) async {
+    try {
+      final params = <String, dynamic>{
+        'p_user_id': userId,
+        'p_limit': limit,
+      };
+
+      final response =
+          await _supabase.rpc('get_recommended_users', params: params);
+
+      if (response == null || (response as List).isEmpty) {
+        return [];
+      }
+
+      return (response)
+          .map<User>((json) => User.fromJson(json as Map<String, dynamic>)!)
+          .toList();
+    } catch (e) {
+      print('Error fetching recommended users: $e');
+      throw e;
+    }
+  }
 }

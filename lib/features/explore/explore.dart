@@ -1,10 +1,7 @@
-// lib/features/explore/explore.dart
-
 import 'package:flutter/material.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
-import 'package:sway/features/artist/services/similar_artist_service.dart';
 import 'package:sway/features/artist/widgets/artist_item_shimmer.dart';
 import 'package:sway/features/artist/widgets/artist_item_widget.dart';
 import 'package:sway/features/event/event.dart';
@@ -22,9 +19,6 @@ import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/promoter/widgets/promoter_item_shimmer.dart';
-import 'package:sway/features/user/services/user_follow_artist_service.dart';
-import 'package:sway/features/user/services/user_follow_genre_service.dart';
-import 'package:sway/features/user/services/user_follow_promoter_service.dart';
 import 'package:sway/features/user/services/user_follow_venue_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/snackbar_login.dart';
@@ -40,7 +34,7 @@ import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
 import 'package:sway/features/promoter/widgets/promoter_modal_bottom_sheet.dart';
 import 'package:sway/features/venue/widgets/venue_modal_bottom_sheet.dart';
 import 'package:sway/features/genre/widgets/genre_modal_bottom_sheet.dart';
-import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart'; // Import de EventModalBottomSheet
+import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart';
 
 class ExploreScreen extends StatefulWidget {
   @override
@@ -51,33 +45,29 @@ class _ExploreScreenState extends State<ExploreScreen> {
   // Services
   final UserService _userService = UserService();
   final EventService _eventService = EventService();
-  final UserFollowArtistService _userFollowArtistService =
-      UserFollowArtistService();
-  final UserFollowGenreService _userFollowGenreService =
-      UserFollowGenreService();
-  final UserFollowPromoterService _userFollowPromoterService =
-      UserFollowPromoterService();
-  final UserFollowVenueService _userFollowVenueService =
-      UserFollowVenueService();
-  final SimilarArtistService _similarArtistService = SimilarArtistService();
   final PromoterService _promoterService = PromoterService();
   final ArtistService _artistService = ArtistService();
   final GenreService _genreService = GenreService();
   final VenueService _venueService = VenueService();
 
-  // Futures séparés pour chaque section
+  // Futures pour chaque section
+  Future<List<Event>>? _topEventsFuture;
   Future<List<Event>>? _suggestedEventsFuture;
-  Future<List<Promoter>>? _suggestedPromotersFuture;
   Future<List<Artist>>? _suggestedArtistsFuture;
+  Future<List<Promoter>>? _suggestedPromotersFuture;
   Future<List<Venue>>? _suggestedVenuesFuture;
   Future<List<Genre>>? _suggestedGenresFuture;
 
-  // Variables pour stocker toutes les suggestions afin de les passer aux modals
+  // Stockage pour les données affichées dans les modals
+  List<Event> _allTopEvents = [];
   List<Event> _allSuggestedEvents = [];
-  List<Promoter> _allSuggestedPromoters = [];
   List<Artist> _allSuggestedArtists = [];
+  List<Promoter> _allSuggestedPromoters = [];
   List<Venue> _allSuggestedVenues = [];
   List<Genre> _allSuggestedGenres = [];
+
+  // Key pour le rafraîchissement de la section EventInfoTile
+  Key _eventInfoRefreshKey = UniqueKey();
 
   bool _isLoggedIn = false;
 
@@ -87,116 +77,84 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _loadRecommendations();
   }
 
-  /// Charge les recommandations en fonction de l'utilisateur connecté
+  /// Charge les recommandations en fonction de l'utilisateur connecté ou anonyme.
   Future<void> _loadRecommendations() async {
     final user = await _userService.getCurrentUser();
     if (user != null) {
-      _isLoggedIn = true; // L'utilisateur est connecté
+      _isLoggedIn = true;
       await _fetchUserRecommendations(user.id);
     } else {
-      _isLoggedIn = false; // L'utilisateur n'est pas connecté
+      _isLoggedIn = false;
       await _fetchGenericRecommendations();
     }
     if (!mounted) return;
-    setState(() {}); // Mettre à jour l'UI
+    setState(() {});
   }
 
-  /// Charge les recommandations spécifiques à l'utilisateur
+  /// Pour utilisateur connecté.
   Future<void> _fetchUserRecommendations(int userId) async {
-    // Charger les événements suggérés (inchangé)
+    _topEventsFuture = _eventService.getTopEvents(limit: 10);
     _suggestedEventsFuture =
-        _eventService.getTopEvents(limit: 10); // Fetch more for modal
-
-    // Charger les promoteurs suggérés (inchangé)
-    _suggestedPromotersFuture = _userFollowPromoterService
-        .getFollowedPromotersByUserId(userId)
-        .then((followedPromoters) async {
-      final followedPromoterIds =
-          followedPromoters.map((promoter) => promoter.id!).toList();
-      final allPromoters = await _promoterService.getPromoters();
-      return allPromoters
-          .where((promoter) => !followedPromoterIds.contains(promoter.id!))
-          .toList();
-    });
-
-    // Charger les artistes suggérés (MAINTENANT: via la fonction getRecommendedArtists)
-    // Nous remplaçons la logique d'avant par un appel RPC qui gère la recommandation.
-    _suggestedArtistsFuture = _artistService.getRecommendedArtists(
-      userId: userId, // l'utilisateur connecté
-      limit: 10,
-    );
-
-    // Charger les venues suggérées (inchangé)
-    _suggestedVenuesFuture = _userFollowVenueService
-        .getFollowedVenuesByUserId(userId)
-        .then((followedVenues) async {
-      final followedVenueIds =
-          followedVenues.map((venue) => venue.id!).toList();
-      final allVenues = await _venueService.getVenues();
-      return allVenues
-          .where((venue) => !followedVenueIds.contains(venue.id!))
-          .toList();
-    });
-
-    // Charger les genres suggérés (inchangé)
-    _suggestedGenresFuture = _userFollowGenreService
-        .getFollowedGenresByUserId(userId)
-        .then((followedGenres) async {
-      final followedGenreIds = followedGenres.map((genre) => genre.id).toList();
-      final allGenres = await _genreService.getGenres();
-      return allGenres
-          .where((genre) => !followedGenreIds.contains(genre.id))
-          .toList();
-    });
-  }
-
-  /// Charge des recommandations génériques pour les utilisateurs anonymes
-  Future<void> _fetchGenericRecommendations() async {
-    // Charger les événements suggérés (inchangé)
-    _suggestedEventsFuture =
-        _eventService.getTopEvents(limit: 10); // Fetch more for modal
-
-    // Charger les promoteurs suggérés (inchangé)
+        _eventService.getRecommendedEvents(userId: userId, limit: 10);
+    _suggestedArtistsFuture =
+        _artistService.getRecommendedArtists(userId: userId, limit: 10);
     _suggestedPromotersFuture =
-        _promoterService.getPromoters().then((promoters) => promoters);
-
-    // Charger les artistes suggérés (MAINTENANT: via la fonction getRecommendedArtists anonyme)
-    _suggestedArtistsFuture = _artistService.getRecommendedArtists(
-      userId: null, // signifie anonyme
-      limit: 10,
-    );
-
-    // Charger les venues suggérées (inchangé)
-    _suggestedVenuesFuture = _venueService.getVenues().then((venues) => venues);
-
-    // Charger les genres suggérés (inchangé)
-    _suggestedGenresFuture = _genreService.getGenres().then((genres) => genres);
+        _promoterService.getRecommendedPromoters(userId: userId, limit: 10);
+    _suggestedVenuesFuture =
+        _venueService.getRecommendedVenues(userId: userId, limit: 10);
+    _suggestedGenresFuture =
+        _genreService.getRecommendedGenres(userId: userId, limit: 10);
   }
 
-  /// Rafraîchit les recommandations
+  /// Pour utilisateur anonyme.
+  Future<void> _fetchGenericRecommendations() async {
+    _topEventsFuture = _eventService.getTopEvents(limit: 10);
+    _suggestedEventsFuture =
+        _eventService.getRecommendedEvents(userId: null, limit: 10);
+    _suggestedArtistsFuture =
+        _artistService.getRecommendedArtists(userId: null, limit: 10);
+    _suggestedPromotersFuture =
+        _promoterService.getRecommendedPromoters(userId: null, limit: 10);
+    _suggestedVenuesFuture =
+        _venueService.getRecommendedVenues(userId: null, limit: 10);
+    _suggestedGenresFuture =
+        _genreService.getRecommendedGenres(userId: null, limit: 10);
+  }
+
   Future<void> _refreshRecommendations() async {
+    // Update the key so that EventInfoTile is rebuilt
+    setState(() {
+      _eventInfoRefreshKey = UniqueKey();
+    });
     await _loadRecommendations();
   }
 
-  /// Méthode pour construire les sections de chargement avec Shimmer
+  /// Construction du shimmer selon la section.
   Widget _buildLoadingSection(String title) {
     switch (title) {
+      case 'Top Events':
       case 'Suggested Events':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16.0),
             _buildSectionTitle(title, false),
-            const SizedBox(height: 28.0),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6.0),
-              child: EventCardShimmer(
-                itemCount: 2, // Nombre de shimmer items
-                itemWidth: 310.0,
-                itemHeight: 242.0,
+            const SizedBox(height: 16.0),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: List.generate(
+                  2,
+                  (_) => Container(
+                    width: 310.0,
+                    height: 242.0,
+                    margin: const EdgeInsets.only(right: 22, left: 4),
+                    child: const EventCardShimmer(
+                        itemCount: 1, itemWidth: 310.0, itemHeight: 242.0),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 41.0),
+            const SizedBox(height: 24.0),
           ],
         );
       case 'Suggested Artists':
@@ -205,7 +163,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           children: [
             _buildSectionTitle(title, false),
             const SizedBox(height: 16.0),
-            ...List.generate(3, (index) => const ArtistShimmer()),
+            ...List.generate(3, (_) => const ArtistShimmer()),
             const SizedBox(height: 24.0),
           ],
         );
@@ -218,9 +176,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6.0),
               child: Column(
-                children: [
-                  ...List.generate(3, (index) => const PromoterShimmer())
-                ],
+                children: List.generate(3, (_) => const PromoterShimmer()),
               ),
             ),
             const SizedBox(height: 24.0),
@@ -232,7 +188,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           children: [
             _buildSectionTitle(title, false),
             const SizedBox(height: 16.0),
-            ...List.generate(3, (index) => const VenueShimmer()),
+            ...List.generate(3, (_) => const VenueShimmer()),
             const SizedBox(height: 24.0),
           ],
         );
@@ -251,33 +207,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
   }
 
-  /// Méthode pour construire les sections en cas d'erreur
-  /* Widget _buildErrorSection(String title, Object? error) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle(title, false),
-        const SizedBox(height: 16.0),
-        Center(child: Text('Error: $error')),
-        const SizedBox(height: 16.0),
-      ],
-    );
-  } */
-
-  /// Méthode pour construire les sections vides
-  Widget _buildEmptySection(String title) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        /* _buildSectionTitle(title, false),
-          const SizedBox(height: 16.0),
-          const Center(child: Text('Aucune donnée disponible.')),
-          const SizedBox(height: 16.0), */
-      ],
-    );
-  }
-
-  /// Méthode pour construire les titres des sections avec icône "Voir plus" si nécessaire
+  /// Construit le titre de la section avec éventuellement l'icône "Voir plus".
   Widget _buildSectionTitle(String title, bool hasMore) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -293,23 +223,24 @@ class _ExploreScreenState extends State<ExploreScreen> {
             IconButton(
               icon: const Icon(Icons.arrow_forward),
               onPressed: () {
-                switch (title) {
-                  case 'Suggested Artists':
-                    _showMoreArtists(_allSuggestedArtists);
+                switch (title.toUpperCase()) {
+                  case 'TOP EVENTS':
+                    _showMoreEvents(_allTopEvents);
                     break;
-                  case 'Suggested Promoters':
-                    _showMorePromoters(_allSuggestedPromoters);
-                    break;
-                  case 'Suggested Venues':
-                    _showMoreVenues(_allSuggestedVenues);
-                    break;
-                  case 'Suggested Genres':
-                    _showMoreGenres(_allSuggestedGenres);
-                    break;
-                  case 'Suggested Events':
+                  case 'SUGGESTED EVENTS':
                     _showMoreEvents(_allSuggestedEvents);
                     break;
-                  default:
+                  case 'SUGGESTED ARTISTS':
+                    _showMoreArtists(_allSuggestedArtists);
+                    break;
+                  case 'SUGGESTED PROMOTERS':
+                    _showMorePromoters(_allSuggestedPromoters);
+                    break;
+                  case 'SUGGESTED VENUES':
+                    _showMoreVenues(_allSuggestedVenues);
+                    break;
+                  case 'SUGGESTED GENRES':
+                    _showMoreGenres(_allSuggestedGenres);
                     break;
                 }
               },
@@ -319,11 +250,37 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  /// Méthodes pour construire les widgets des sections
+  /// Fonctions d'affichage des modals "Voir plus".
+  void _showMoreEvents(List<Event> events) {
+    final limited = events.take(12).toList();
+    showEventModalBottomSheet(context, limited);
+  }
+
+  void _showMoreArtists(List<Artist> artists) {
+    final limited = artists.take(12).toList();
+    showArtistModalBottomSheet(context, limited);
+  }
+
+  void _showMorePromoters(List<Promoter> promoters) {
+    final limited = promoters.take(12).toList();
+    showPromoterModalBottomSheet(context, limited);
+  }
+
+  void _showMoreVenues(List<Venue> venues) {
+    final limited = venues.take(12).toList();
+    showVenueModalBottomSheet(context, limited);
+  }
+
+  void _showMoreGenres(List<Genre> genres) {
+    final limited = genres.map((genre) => genre.id).take(12).toList();
+    showGenreModalBottomSheet(context, limited);
+  }
+
+  /// Construction des widgets pour chaque section.
   List<Widget> _buildEventCards(BuildContext context, List<Event> events) {
     return events.map<Widget>((event) {
       return Container(
-        width: 320, // Ajustez la largeur selon vos besoins
+        width: 320,
         margin: const EdgeInsets.only(right: 22, left: 4),
         child: EventCardItemWidget(
           event: event,
@@ -331,8 +288,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => EventScreen(event: event),
-              ),
+                  builder: (context) => EventScreen(event: event)),
             );
           },
         ),
@@ -348,8 +304,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ArtistScreen(artistId: artist.id!),
-            ),
+                builder: (context) => ArtistScreen(artistId: artist.id!)),
           );
         },
       );
@@ -365,11 +320,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => PromoterScreen(promoterId: promoter.id!),
-            ),
+                builder: (context) => PromoterScreen(promoterId: promoter.id!)),
           );
         },
-        maxNameLength: 20, // Définissez la longueur maximale ici
+        maxNameLength: 20,
       );
     }).toList();
   }
@@ -382,11 +336,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => VenueScreen(venueId: venue.id!),
-            ),
+                builder: (context) => VenueScreen(venueId: venue.id!)),
           );
         },
-        maxNameLength: 20, // Définissez la longueur maximale ici
+        maxNameLength: 20,
       );
     }).toList();
   }
@@ -402,8 +355,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => GenreScreen(genreId: genre.id),
-                ),
+                    builder: (context) => GenreScreen(genreId: genre.id)),
               );
             },
             child: GenreChip(genreId: genre.id),
@@ -413,39 +365,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  // Fonctions pour ouvrir les modal bottom sheets avec limitation
-  void _showMoreArtists(List<Artist> artists) {
-    final limitedArtists = artists.take(12).toList();
-    showArtistModalBottomSheet(context, limitedArtists);
-  }
-
-  void _showMorePromoters(List<Promoter> promoters) {
-    final limitedPromoters = promoters.take(12).toList();
-    showPromoterModalBottomSheet(context, limitedPromoters);
-  }
-
-  void _showMoreVenues(List<Venue> venues) {
-    final limitedVenues = venues.take(12).toList();
-    showVenueModalBottomSheet(context, limitedVenues);
-  }
-
-  void _showMoreGenres(List<Genre> genres) {
-    final limitedGenres = genres.map((genre) => genre.id).take(12).toList();
-    showGenreModalBottomSheet(context, limitedGenres);
-  }
-
-  void _showMoreEvents(List<Event> events) {
-    final limitedEvents = events.take(12).toList();
-    showEventModalBottomSheet(context, limitedEvents);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Image.asset(
               'assets/images/logotype_transparent.png',
@@ -465,20 +390,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   Icons.notifications,
                   color: _isLoggedIn
                       ? Theme.of(context).iconTheme.color
-                      : Colors.grey, // Couleur conditionnelle
+                      : Colors.grey,
                 ),
                 Positioned(
                   right: 0,
-                  child: Badge(), // Badge vide comme requis
+                  child: Badge(),
                 ),
               ],
             ),
             onPressed: () {
               if (_isLoggedIn) {
                 Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => NotificationScreen()),
-                );
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => NotificationScreen()));
               } else {
                 SnackbarLogin.showLoginSnackBar(context);
               }
@@ -486,45 +411,41 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: RefreshIndicator(
-          onRefresh: _refreshRecommendations,
+      body: RefreshIndicator(
+        onRefresh: _refreshRecommendations,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: ListView(
             children: [
-              // Section "Suggested Events"
+              // Section Top Events
               FutureBuilder<List<Event>>(
-                future: _suggestedEventsFuture,
+                future: _topEventsFuture,
                 builder: (context, snapshot) {
+                  // Tant que la donnée n'est pas encore chargée, on affiche le titre et le shimmer.
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Events');
+                    return _buildLoadingSection('Top Events');
                   } else if (snapshot.hasError) {
-                    return _buildLoadingSection('Suggested Events');
-                    // return _buildErrorSection('Suggested Events', snapshot.error);
+                    return _buildLoadingSection('Top Events');
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Suggested Events');
+                    // Une fois chargé, si aucune donnée, on masque la section.
+                    return const SizedBox.shrink();
                   } else {
-                    final suggestedEvents = snapshot.data!;
-                    _allSuggestedEvents =
-                        suggestedEvents; // Stockage pour modal (si nécessaire)
-                    final displayCount =
-                        5; // Nombre d'événements à afficher initialement
-                    final hasMore = suggestedEvents.length > displayCount;
+                    _allTopEvents = snapshot.data!;
+                    final displayCount = 5;
+                    final hasMore = _allTopEvents.length > displayCount;
                     final displayEvents = hasMore
-                        ? suggestedEvents.sublist(0, displayCount)
-                        : suggestedEvents;
-
+                        ? _allTopEvents.sublist(0, displayCount)
+                        : _allTopEvents;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 8.0),
-                        _buildSectionTitle('Suggested Events', hasMore),
+                        _buildSectionTitle('Top Events', hasMore),
                         const SizedBox(height: 16.0),
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
-                            children: _buildEventCards(context, displayEvents),
-                          ),
+                              children:
+                                  _buildEventCards(context, displayEvents)),
                         ),
                         const SizedBox(height: 24.0),
                       ],
@@ -532,54 +453,70 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   }
                 },
               ),
-
-              // Section "Suggested Artists"
-              FutureBuilder<List<Artist>>(
-                future: _suggestedArtistsFuture,
+              // Section Suggested Events
+              FutureBuilder<List<Event>>(
+                future: _suggestedEventsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    // Affiche le Shimmer de chargement
-                    return _buildLoadingSection('Suggested Artists');
+                    return _buildLoadingSection('Suggested Events');
                   } else if (snapshot.hasError) {
-                    // En cas d'erreur, on peut afficher un fallback ou un Shimmer
-                    return _buildLoadingSection('Suggested Artists');
-                    // return _buildErrorSection('Suggested Artists', snapshot.error);
+                    return _buildLoadingSection('Suggested Events');
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    // Aucune donnée
-                    return _buildEmptySection('Suggested Artists');
+                    return const SizedBox.shrink();
                   } else {
-                    // On a des artistes recommandés
-                    final suggestedArtists = snapshot.data!;
-                    // Stockage pour le modal, au cas où on affiche "Voir plus"
-                    _allSuggestedArtists = suggestedArtists;
-
-                    // Combien on en affiche avant le "voir plus" ?
-                    final displayCount = 3;
-                    // Vérifie s'il y a plus d'artistes que "displayCount"
-                    final hasMore = suggestedArtists.length > displayCount;
-                    // Détermine la portion initiale à afficher
-                    final displayArtists = hasMore
-                        ? suggestedArtists.sublist(0, displayCount)
-                        : suggestedArtists;
-
+                    _allSuggestedEvents = snapshot.data!;
+                    final displayCount = 5;
+                    final hasMore = _allSuggestedEvents.length > displayCount;
+                    final displayEvents = hasMore
+                        ? _allSuggestedEvents.sublist(0, displayCount)
+                        : _allSuggestedEvents;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Titre de la section avec flèche "Voir plus" si hasMore == true
-                        _buildSectionTitle('Suggested Artists', hasMore),
+                        _buildSectionTitle('Suggested Events', hasMore),
                         const SizedBox(height: 16.0),
-
-                        // Affiche quelques artistes dans la page
-                        ..._buildArtistCards(context, displayArtists),
-
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                              children:
+                                  _buildEventCards(context, displayEvents)),
+                        ),
                         const SizedBox(height: 24.0),
                       ],
                     );
                   }
                 },
               ),
-
-              // Section "Suggested Promoters"
+              // Section Suggested Artists
+              FutureBuilder<List<Artist>>(
+                future: _suggestedArtistsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingSection('Suggested Artists');
+                  } else if (snapshot.hasError) {
+                    return _buildLoadingSection('Suggested Artists');
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const SizedBox.shrink();
+                  } else {
+                    _allSuggestedArtists = snapshot.data!;
+                    final displayCount = 3;
+                    final hasMore = _allSuggestedArtists.length > displayCount;
+                    final displayArtists = hasMore
+                        ? _allSuggestedArtists.sublist(0, displayCount)
+                        : _allSuggestedArtists;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle('Suggested Artists', hasMore),
+                        const SizedBox(height: 16.0),
+                        ..._buildArtistCards(context, displayArtists),
+                        const SizedBox(height: 24.0),
+                      ],
+                    );
+                  }
+                },
+              ),
+              // Section Suggested Promoters
               FutureBuilder<List<Promoter>>(
                 future: _suggestedPromotersFuture,
                 builder: (context, snapshot) {
@@ -587,20 +524,16 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return _buildLoadingSection('Suggested Promoters');
                   } else if (snapshot.hasError) {
                     return _buildLoadingSection('Suggested Promoters');
-                    // return _buildErrorSection('Suggested Promoters', snapshot.error);
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Suggested Promoters');
+                    return const SizedBox.shrink();
                   } else {
-                    final suggestedPromoters = snapshot.data!;
-                    _allSuggestedPromoters =
-                        suggestedPromoters; // Stockage pour modal
-                    final displayCount =
-                        3; // Nombre de promoteurs à afficher initialement
-                    final hasMore = suggestedPromoters.length > displayCount;
+                    _allSuggestedPromoters = snapshot.data!;
+                    final displayCount = 3;
+                    final hasMore =
+                        _allSuggestedPromoters.length > displayCount;
                     final displayPromoters = hasMore
-                        ? suggestedPromoters.sublist(0, displayCount)
-                        : suggestedPromoters;
-
+                        ? _allSuggestedPromoters.sublist(0, displayCount)
+                        : _allSuggestedPromoters;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -613,8 +546,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   }
                 },
               ),
-
-              // Section "Suggested Venues"
+              // Section Suggested Venues
               FutureBuilder<List<Venue>>(
                 future: _suggestedVenuesFuture,
                 builder: (context, snapshot) {
@@ -622,20 +554,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return _buildLoadingSection('Suggested Venues');
                   } else if (snapshot.hasError) {
                     return _buildLoadingSection('Suggested Venues');
-                    // return _buildErrorSection('Suggested Venues', snapshot.error);
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Suggested Venues');
+                    return const SizedBox.shrink();
                   } else {
-                    final suggestedVenues = snapshot.data!;
-                    _allSuggestedVenues =
-                        suggestedVenues; // Stockage pour modal
-                    final displayCount =
-                        3; // Nombre de lieux à afficher initialement
-                    final hasMore = suggestedVenues.length > displayCount;
+                    _allSuggestedVenues = snapshot.data!;
+                    final displayCount = 3;
+                    final hasMore = _allSuggestedVenues.length > displayCount;
                     final displayVenues = hasMore
-                        ? suggestedVenues.sublist(0, displayCount)
-                        : suggestedVenues;
-
+                        ? _allSuggestedVenues.sublist(0, displayCount)
+                        : _allSuggestedVenues;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -648,8 +575,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   }
                 },
               ),
-
-              // Section "Suggested Genres"
+              // Section Suggested Genres
               FutureBuilder<List<Genre>>(
                 future: _suggestedGenresFuture,
                 builder: (context, snapshot) {
@@ -657,20 +583,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     return _buildLoadingSection('Suggested Genres');
                   } else if (snapshot.hasError) {
                     return _buildLoadingSection('Suggested Genres');
-                    // return _buildErrorSection('Suggested Genres', snapshot.error);
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return _buildEmptySection('Suggested Genres');
+                    return const SizedBox.shrink();
                   } else {
-                    final suggestedGenres = snapshot.data!;
-                    _allSuggestedGenres =
-                        suggestedGenres; // Stockage pour modal
-                    final displayCount =
-                        6; // Nombre de genres à afficher initialement
-                    final hasMore = suggestedGenres.length > displayCount;
+                    _allSuggestedGenres = snapshot.data!;
+                    final displayCount = 6;
+                    final hasMore = _allSuggestedGenres.length > displayCount;
                     final displayGenres = hasMore
-                        ? suggestedGenres.sublist(0, displayCount)
-                        : suggestedGenres;
-
+                        ? _allSuggestedGenres.sublist(0, displayCount)
+                        : _allSuggestedGenres;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -691,7 +612,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 }
 
-/// Widget Badge
+/// Widget Badge pour notifications.
 class Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -705,15 +626,6 @@ class Badge extends StatelessWidget {
         minWidth: 12,
         minHeight: 12,
       ),
-      /* child: Text(
-        '5',
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.surface,
-          fontSize: 9,
-          fontWeight: FontWeight.bold,
-        ),
-        textAlign: TextAlign.center,
-      ), */
     );
   }
 }

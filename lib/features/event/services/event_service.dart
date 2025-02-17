@@ -226,4 +226,28 @@ class EventService {
       throw e;
     }
   }
+
+  /// Récupère les événements recommandés pour un utilisateur.
+  Future<List<Event>> getRecommendedEvents({int? userId, int limit = 5}) async {
+    try {
+      final params = <String, dynamic>{
+        'p_user_id': userId, // Peut être null pour un utilisateur anonyme
+        'p_limit': limit,
+      };
+
+      final response =
+          await _supabase.rpc('get_recommended_events', params: params);
+
+      if (response == null || (response as List).isEmpty) {
+        return [];
+      }
+
+      return response
+          .map<Event>((json) => Event.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Error fetching recommended events: $e');
+      throw e;
+    }
+  }
 }

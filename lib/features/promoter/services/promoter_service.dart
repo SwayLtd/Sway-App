@@ -210,4 +210,29 @@ class PromoterService {
         .map<Promoter>((json) => Promoter.fromJsonWithoutEvents(json))
         .toList();
   }
+
+  Future<List<Promoter>> getRecommendedPromoters(
+      {int? userId, int limit = 5}) async {
+    try {
+      final params = <String, dynamic>{
+        'p_user_id': userId,
+        'p_limit': limit,
+      };
+
+      final response =
+          await _supabase.rpc('get_recommended_promoters', params: params);
+
+      if (response == null || (response as List).isEmpty) {
+        return [];
+      }
+
+      return (response)
+          .map<Promoter>(
+              (json) => Promoter.fromJsonWithoutEvents(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Error fetching recommended promoters: $e');
+      throw e;
+    }
+  }
 }

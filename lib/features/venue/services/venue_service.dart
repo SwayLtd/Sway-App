@@ -177,4 +177,27 @@ class VenueService {
 
     return await getVenuesByIds(venueIds);
   }
+
+  Future<List<Venue>> getRecommendedVenues({int? userId, int limit = 5}) async {
+    try {
+      final params = <String, dynamic>{
+        'p_user_id': userId,
+        'p_limit': limit,
+      };
+
+      final response =
+          await _supabase.rpc('get_recommended_venues', params: params);
+
+      if (response == null || (response as List).isEmpty) {
+        return [];
+      }
+
+      return (response)
+          .map<Venue>((json) => Venue.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('Error fetching recommended venues: $e');
+      throw e;
+    }
+  }
 }

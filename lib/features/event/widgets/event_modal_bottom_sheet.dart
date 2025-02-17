@@ -40,7 +40,7 @@ Future<void> showEventModalBottomSheet(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'UPCOMING EVENTS',
+                    'EVENTS',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
