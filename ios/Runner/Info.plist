@@ -114,6 +114,13 @@
 				</dict>
 			</dict>
 		</array>
-
+		<key>NSCalendarsUsageDescription</key>
+		<string>Sway requires access to your calendar to add and manage event reminders for upcoming
+			events.</string>
+		<key>NSContactsUsageDescription</key>
+		<string>Sway uses your contacts to enable location autocomplete when creating calendar
+			events.</string>
+		<key>NSCalendarsFullAccessUsageDescription</key>
+		<string>Sway requires access most functions for calendar viewing and editing.</string>
 	</dict>
 </plist>

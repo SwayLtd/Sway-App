@@ -76,6 +76,7 @@ dependencies:
   package_info_plus: ^8.2.1
   in_app_review: ^2.0.10
   flutter_markdown: ^0.7.6+2
+  add_2_calendar: ^3.0.1
   # isar_flutter_libs: ^3.1.0+1 # For Isar
 
 dev_dependencies:

@@ -15,6 +15,9 @@
     <!-- NOTE: Special use was selected as it's the closest match for this example app.
         apps should specify the appropriate permission for their use cases. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Calendar Permissions required for add_2_calendar -->
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
 
     <application
         android:label="Sway"
@@ -199,9 +202,15 @@
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
+        <!-- Query for processing text (used by Flutter engine) -->
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
+        </intent>
+        <!-- Query for inserting calendar events (required for add_2_calendar) -->
+        <intent>
+            <action android:name="android.intent.action.INSERT" />
+            <data android:mimeType="vnd.android.cursor.item/event" />
         </intent>
     </queries>
 </manifest>

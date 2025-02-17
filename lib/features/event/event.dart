@@ -34,6 +34,7 @@ import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/venue.dart';
 import 'package:sway/features/user/widgets/interest_event_button_widget.dart';
 import 'package:sway/features/event/widgets/event_location_map_widget.dart';
+import 'package:add_2_calendar/add_2_calendar.dart' as calendar;
 
 class EventScreen extends StatefulWidget {
   final Event event;
@@ -266,10 +267,40 @@ class _EventScreenState extends State<EventScreen> {
               FollowersCountWidget(entityId: _event.id!, entityType: 'event'),
               const SizedBox(height: sectionSpacing),
               // InfoCard: Date (using formatEventDateRange from date_utils.dart)
-              InfoCard(
-                title: "Date",
-                content:
-                    "${formatEventDateRange(_event.dateTime, _event.endDateTime)}",
+              GestureDetector(
+                onTap: () async {
+                  // Retrieve the venue dynamically
+                  final venue = await _venueFuture;
+                  // Use an empty string if venue location is null
+                  final location = venue?.location ?? '';
+                  // Create a calendar event using the calendar package with iOS and Android parameters
+                  final calendarEvent = calendar.Event(
+                    title: _event.title,
+                    description: _event.description,
+                    location: location,
+                    startDate: _event.dateTime,
+                    endDate: _event.endDateTime,
+                    iosParams: const calendar.IOSParams(
+                      reminder: Duration(minutes: 60),
+                      url: 'https://sway.events',
+                    ),
+                    androidParams: const calendar.AndroidParams(
+                      emailInvites: [],
+                    ),
+                  );
+                  debugPrint("InfoCard tapped");
+                  // Add the event to the calendar
+                  try {
+                    await calendar.Add2Calendar.addEvent2Cal(calendarEvent);
+                  } catch (e) {
+                    debugPrint("Error adding event to calendar: $e");
+                  }
+                },
+                child: InfoCard(
+                  title: "Date",
+                  content:
+                      "${formatEventDateRange(_event.dateTime, _event.endDateTime)}",
+                ),
               ),
               const SizedBox(height: sectionTitleSpacing),
               // InfoCard: Location
