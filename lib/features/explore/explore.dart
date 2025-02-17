@@ -19,7 +19,6 @@ import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/promoter/widgets/promoter_item_shimmer.dart';
-import 'package:sway/features/user/services/user_follow_venue_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/snackbar_login.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
@@ -28,6 +27,7 @@ import 'package:sway/features/venue/venue.dart';
 import 'package:sway/features/promoter/widgets/promoter_item_widget.dart';
 import 'package:sway/features/venue/widgets/venue_item_shimmer.dart';
 import 'package:sway/features/venue/widgets/venue_item_widget.dart';
+import 'package:sway/features/event/widgets/event_info_tile.dart';
 
 // Import des modal bottom sheets existants
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
@@ -417,6 +417,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: ListView(
             children: [
+              if (_isLoggedIn)
+                EventInfoTile(refreshKey: _eventInfoRefreshKey),
               // Section Top Events
               FutureBuilder<List<Event>>(
                 future: _topEventsFuture,
