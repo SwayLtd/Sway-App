@@ -9,6 +9,7 @@ import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/widgets/event_item_shimmer.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
+import 'package:sway/features/explore/widgets/random_greeting_tile.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
@@ -70,6 +71,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Key _eventInfoRefreshKey = UniqueKey();
 
   bool _isLoggedIn = false;
+  // Current user stored to pass username to RandomGreetingTile.
+  // Note: The User model is imported from user_service.
+  var _currentUser; // type User? (from AppUser.User)
 
   @override
   void initState() {
@@ -77,12 +81,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _loadRecommendations();
   }
 
-  /// Charge les recommandations en fonction de l'utilisateur connecté ou anonyme.
+  /// Load recommendations and current user.
   Future<void> _loadRecommendations() async {
-    final user = await _userService.getCurrentUser();
-    if (user != null) {
+    _currentUser = await _userService.getCurrentUser();
+    if (_currentUser != null) {
       _isLoggedIn = true;
-      await _fetchUserRecommendations(user.id);
+      await _fetchUserRecommendations(_currentUser.id);
     } else {
       _isLoggedIn = false;
       await _fetchGenericRecommendations();
@@ -417,8 +421,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: ListView(
             children: [
-              if (_isLoggedIn)
-                EventInfoTile(refreshKey: _eventInfoRefreshKey),
+              // Random greeting tile
+              RandomGreetingTile(username: _currentUser?.username),
+              // Event info tile
+              if (_isLoggedIn) EventInfoTile(refreshKey: _eventInfoRefreshKey),
+              EventInfoTile(refreshKey: _eventInfoRefreshKey),
               // Section Top Events
               FutureBuilder<List<Event>>(
                 future: _topEventsFuture,
