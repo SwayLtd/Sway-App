@@ -6,20 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/utils/validators.dart';
+import 'package:sway/features/claim/screens/claim_history.dart';
 import 'package:sway/features/claim/services/claim_service.dart';
 import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
-
-/// Extension method to capitalize the first letter of a string.
-extension StringExtension on String {
-  String capitalize() {
-    if (this.isEmpty) return this;
-    return this[0].toUpperCase() + substring(1);
-  }
-}
 
 /// A screen that displays a claim form for any type of entity.
 /// It shows read-only fields for entity type, entity name, and the current user's username.
@@ -285,6 +278,28 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
                         ),
                       )
                     : const Text('Submit Claim'),
+              ),
+              const SizedBox(height: sectionSpacing),
+// TextButton to navigate to Claim History Screen
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ClaimHistoryScreen(
+                        entityId: widget.entityId,
+                        entityType: widget.entityType,
+                      ),
+                    ),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black,
+                ),
+                child: const Text('View Claim History'),
               ),
             ],
           ),
