@@ -110,6 +110,26 @@ class UserService {
     }
   }
 
+  /// Update the user's bio in the 'users' table.
+  Future<void> updateUserBio({
+    required String supabaseId,
+    required String newBio,
+  }) async {
+    try {
+      final data = await _supabase
+          .from('users')
+          .update({'bio': newBio})
+          .eq('supabase_id', supabaseId)
+          .select();
+
+      if ((data.isEmpty)) {
+        throw Exception('Error updating the bio');
+      }
+    } catch (e) {
+      throw Exception('Error updating the bio: $e');
+    }
+  }
+
   /// Retrieves a user by their internal ID.
   Future<AppUser.User?> getUserById(int userId) async {
     try {

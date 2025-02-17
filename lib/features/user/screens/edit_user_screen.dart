@@ -24,6 +24,7 @@ class EditUserScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditUserScreen> {
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
+  late TextEditingController _bioController;
 
   final UserService _userService = UserService();
   final AuthService _authService = AuthService();
@@ -37,6 +38,10 @@ class _EditProfileScreenState extends State<EditUserScreen> {
 
   late User _currentUser; // Variable d'état pour l'utilisateur
 
+  // Instance of the global validator used for text fields.
+  // It will be updated with the combined forbiddenWords (French + English).
+  late FieldValidator defaultValidator;
+
   @override
   void initState() {
     super.initState();
@@ -44,13 +49,45 @@ class _EditProfileScreenState extends State<EditUserScreen> {
         widget.user; // Initialiser avec l'utilisateur passé en paramètre
     _usernameController = TextEditingController(text: _currentUser.username);
     _emailController = TextEditingController(text: _currentUser.email);
+    _bioController = TextEditingController(text: _currentUser.bio);
+
+    // Initialize defaultValidator with base parameters and an empty forbiddenWords.
+    defaultValidator = FieldValidator(
+      isRequired: true,
+      maxLength: 500,
+      forbiddenWords: [],
+    );
+
+    // Load forbidden words for French and English, then update the validator.
+    _loadDefaultForbiddenWords();
   }
 
   @override
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
+    _bioController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadDefaultForbiddenWords() async {
+    try {
+      final frWords = await loadForbiddenWords('fr');
+      final enWords = await loadForbiddenWords('en');
+      // Combine the two lists and remove duplicates.
+      final combined = {...frWords, ...enWords}.toList();
+      setState(() {
+        defaultValidator = FieldValidator(
+          isRequired: true,
+          maxLength: 2000,
+          forbiddenWords: combined,
+        );
+      });
+      // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
+      _formKey.currentState?.validate();
+    } catch (e) {
+      print('Error loading forbidden words: $e');
+    }
   }
 
   /// Méthode pour mettre à jour le profil utilisateur
@@ -62,11 +99,13 @@ class _EditProfileScreenState extends State<EditUserScreen> {
 
     final newUsername = _usernameController.text.trim();
     final newEmail = _emailController.text.trim();
+    final newBio = _bioController.text.trim();
 
     final bool isUsernameChanged = newUsername != _currentUser.username;
     final bool isEmailChanged = newEmail != _currentUser.email;
+    final bool isBioChanged = newBio != _currentUser.bio;
 
-    if (!isUsernameChanged && !isEmailChanged) {
+    if (!isUsernameChanged && !isEmailChanged && !isBioChanged) {
       // Rien à mettre à jour
       Navigator.pop(context);
       return;
@@ -96,6 +135,13 @@ class _EditProfileScreenState extends State<EditUserScreen> {
       if (isEmailChanged) {
         await _authService.updateEmail(newEmail);
         // Supabase envoie automatiquement un email de confirmation à la nouvelle adresse
+      }
+
+      if (isBioChanged) {
+        await _userService.updateUserBio(
+          supabaseId: _currentUser.supabaseId,
+          newBio: newBio,
+        );
       }
 
       // Récupérer l'utilisateur mis à jour
@@ -436,6 +482,16 @@ class _EditProfileScreenState extends State<EditUserScreen> {
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                       ),
                       const SizedBox(height: sectionTitleSpacing),
+                      // Champ pour la bio
+                      TextFormField(
+                        controller: _bioController,
+                        decoration: const InputDecoration(
+                          labelText: 'About you',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 5,
+                        validator: (value) => defaultValidator.validate(value),
+                      ),
                       // Afficher un message d'erreur si nécessaire
                       if (_errorMessage != null)
                         Padding(

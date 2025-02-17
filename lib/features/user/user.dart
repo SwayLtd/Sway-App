@@ -1,5 +1,6 @@
 // lib/features/user/user_screen.dart
 
+import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart'; // sectionSpacing & sectionTitleSpacing
 import 'package:sway/core/utils/date_utils.dart';
@@ -232,6 +233,31 @@ class _UserScreenState extends State<UserScreen> {
                         entityType: 'user',
                       ),
                       const SizedBox(height: sectionSpacing),
+                      // ABOUT section displayed only if there is content
+                      if (_user!.bio.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "ABOUT '${_user!.username.toUpperCase()}'",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 8),
+                              ExpandableText(
+                                _user!.bio,
+                                expandText: 'show more',
+                                collapseText: 'show less',
+                                maxLines: 3,
+                                linkColor: Theme.of(context).primaryColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: sectionSpacing),
+
                       // UPCOMING EVENTS Section (Interested events)
                       FutureBuilder<List<Event>>(
                         future: _upcomingEventsFuture,
