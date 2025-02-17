@@ -233,18 +233,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     super.dispose();
   }
 
-  /// Validate text to avoid suspicious characters
-  String? _validateTextInput(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'This field is required.';
-    }
-    final forbiddenPattern = RegExp(r'[;"]|--');
-    if (forbiddenPattern.hasMatch(value)) {
-      return 'Invalid characters used.';
-    }
-    return null;
-  }
-
   Future<void> _pickImage() async {
     if (isReadOnly) return;
     final picker = ImagePicker();
