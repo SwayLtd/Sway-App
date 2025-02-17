@@ -397,6 +397,18 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       appBar: AppBar(
         title: Text('Edit "${_currentPromoter.name}"'),
         actions: [
+          // Bouton delete (visible pour admin et manager, actif uniquement pour admin)
+          if (isAdmin || isManager)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: _isDeleting || _isLoading
+                  ? null
+                  : isAdmin
+                      ? () async {
+                          await _showDeleteConfirmationDialog();
+                        }
+                      : null,
+            ),
           // Bouton d'accès à la gestion des permissions
           IconButton(
             icon: const Icon(Icons.add_moderator),
@@ -416,18 +428,6 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
                     setState(() {});
                   },
           ),
-          // Bouton delete (visible pour admin et manager, actif uniquement pour admin)
-          if (isAdmin || isManager)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: _isDeleting || _isLoading
-                  ? null
-                  : isAdmin
-                      ? () async {
-                          await _showDeleteConfirmationDialog();
-                        }
-                      : null,
-            ),
           // Bouton save
           IconButton(
             icon: const Icon(Icons.save),
