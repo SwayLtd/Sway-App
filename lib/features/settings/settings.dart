@@ -11,6 +11,7 @@ import 'package:sway/features/event/screens/create_event_screen.dart';
 import 'package:sway/features/notification/screens/notification_preferences_screen.dart';
 import 'package:sway/features/promoter/screens/create_promoter_screen.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
+import 'package:sway/features/settings/screens/help_screen.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/screens/user_entities_screen.dart';
 import 'package:sway/features/user/services/auth_service.dart';
@@ -261,6 +262,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Settings'),
+        actions: [
+          // Help bubble on the rightIconButton(
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HelpScreen()),
+              );
+            },
+            icon: const Icon(Icons.help_outline),
+          ),
+        ],
       ),
       body: Column(
         children: [
