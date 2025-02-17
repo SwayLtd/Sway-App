@@ -331,7 +331,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                         }
                       },
                     ),
-                    // Section UPCOMING EVENTS : uniquement les événements postérieurs à aujourd'hui
+                    // UPCOMING EVENTS section: only show events after today.
                     FutureBuilder<List<Event>>(
                       future: _eventsFuture,
                       builder: (context, eventSnapshot) {
@@ -348,9 +348,14 @@ class _ArtistScreenState extends State<ArtistScreen> {
                         } else {
                           final allEvents = eventSnapshot.data!;
                           final now = DateTime.now();
+                          // Filter events to only those after the current date.
                           final events = allEvents
                               .where((e) => e.dateTime.isAfter(now))
                               .toList();
+                          // If there are no upcoming events after filtering, don't show the section.
+                          if (events.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
                           const int displayCount = 5;
                           final List<Event> displayEvents =
                               events.length > displayCount
