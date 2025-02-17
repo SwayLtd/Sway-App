@@ -1,22 +1,25 @@
 // lib/features/settings/settings.dart
 
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/screens/create_artist_screen.dart';
+import 'package:sway/features/artist/widgets/artist_item_shimmer.dart';
 import 'package:sway/features/event/screens/create_event_screen.dart';
 import 'package:sway/features/notification/screens/notification_preferences_screen.dart';
 import 'package:sway/features/promoter/screens/create_promoter_screen.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
+import 'package:sway/features/user/screens/user_entities_screen.dart';
 import 'package:sway/features/user/services/auth_service.dart';
+import 'package:sway/features/user/services/user_permission_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/user.dart';
 import 'package:sway/features/user/widgets/auth_modal.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:sway/features/venue/screens/create_venue_screen.dart';
-import 'package:sway/features/user/services/user_permission_service.dart';
-import 'package:sway/features/user/screens/user_entities_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -27,31 +30,34 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final UserService _userService = UserService();
   final AuthService _authService = AuthService();
+
   bool _isLoggedIn = false;
   AppUser.User? _currentUser;
+  // Indicates whether the user profile has been loaded
+  bool _isUserLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _checkAuthStatus();
-    // Listen to authentication state changes
+    _loadUser();
+    // Listen for authentication state changes
     Supabase.instance.client.auth.onAuthStateChange.listen((event) {
-      _checkAuthStatus();
+      _loadUser();
     });
   }
 
-  /// Checks if the user is authenticated.
-  Future<void> _checkAuthStatus() async {
-    final fetchedUser = await _userService.getCurrentUser();
+  Future<void> _loadUser() async {
+    final user = await _userService.getCurrentUser();
     setState(() {
-      _isLoggedIn = fetchedUser != null;
-      _currentUser = fetchedUser;
+      _currentUser = user;
+      _isLoggedIn = user != null;
+      _isUserLoaded = true;
     });
   }
 
-  /// Navigates to the User screen if authenticated, else opens the AuthModal.
+  /// Navigates to the profile screen if logged in; otherwise, shows the authentication modal.
   void _navigateToProfile() {
-    if (_isLoggedIn) {
+    if (_isLoggedIn && _currentUser != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -70,12 +76,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Opens the AuthModal.
+  /// Displays the authentication modal.
   void _showAuthModal() {
     AuthModal.showAuthModal(context);
   }
 
-  /// Handles the sign-out process.
+  /// Handles signing out.
   Future<void> _handleSignOut() async {
     try {
       await _authService.signOut();
@@ -100,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     AdaptiveTheme.of(context).setThemeMode(mode);
   }
 
-  /// Shows a dialog for theme selection.
+  /// Displays a dialog for theme selection.
   void _showThemeSelectionDialog() {
     AdaptiveThemeMode currentMode = AdaptiveTheme.of(context).mode;
     showDialog(
@@ -151,7 +157,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Checks if the current user has at least 'manager' permission on any promoter.
+  /// Checks if the user has at least 'manager' permission to create an event.
   Future<bool> _canCreateEvent() async {
     final currentUser = await _userService.getCurrentUser();
     if (currentUser == null) return false;
@@ -160,7 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return perms.any((p) => p.permissionLevel >= 2);
   }
 
-  /// Shows the entity creation menu.
+  /// Displays the entity creation menu.
   void _showCreateEntityMenu() async {
     final bool canCreateEvent = await _canCreateEvent();
     showModalBottomSheet(
@@ -169,7 +175,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return SafeArea(
           child: Wrap(
             children: [
-              // Grey horizontal bar.
+              // Grey horizontal bar in the center.
               Center(
                 child: Container(
                   height: 5,
@@ -262,39 +268,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Expanded(
             child: ListView(
               children: [
-                if (_isLoggedIn && _currentUser != null) ...[
-                  ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage:
-                          NetworkImage(_currentUser!.profilePictureUrl),
-                    ),
-                    title: Text(_currentUser!.username),
-                    subtitle: Text(_currentUser!.email),
-                    onTap: _navigateToProfile,
+                // Profile ListTile is always displayed.
+                // Profile ListTile
+                _isUserLoaded
+                    ? (_isLoggedIn && _currentUser != null
+                        ? ListTile(
+                            leading: ClipOval(
+                              child: ImageWithErrorHandler(
+                                imageUrl: _currentUser!.profilePictureUrl,
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            title: Text(_currentUser!.username),
+                            subtitle: Text(_currentUser!.email),
+                            onTap: _navigateToProfile,
+                          )
+                        : ListTile(
+                            leading: const Icon(Icons.login),
+                            title: const Text('Sign Up or Login'),
+                            onTap: _showAuthModal,
+                          ))
+                    : const ProfileShimmer(),
+
+// "Manage Entities" ListTile
+                ListTile(
+                  leading: Icon(
+                    Icons.account_tree,
+                    color:
+                        (!_isUserLoaded || !_isLoggedIn) ? Colors.grey : null,
                   ),
-                  // Entity management access button.
-                  ListTile(
-                    leading: const Icon(Icons.account_tree),
-                    title: const Text('Manage Entities'),
-                    onTap: () async {
-                      final AppUser.User? user =
-                          await _userService.getCurrentUser();
-                      if (user != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
+                  title: Text(
+                    'Manage Entities',
+                    style: (!_isUserLoaded || !_isLoggedIn)
+                        ? const TextStyle(color: Colors.grey)
+                        : null,
+                  ),
+                  onTap: _isUserLoaded && _isLoggedIn && _currentUser != null
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
                               builder: (context) =>
-                                  UserEntitiesScreen(userId: user.id)),
-                        );
-                      }
-                    },
-                  )
-                ] else
-                  ListTile(
-                    leading: const Icon(Icons.login),
-                    title: const Text('Sign Up or Login'),
-                    onTap: _showAuthModal,
-                  ),
+                                  UserEntitiesScreen(userId: _currentUser!.id),
+                            ),
+                          );
+                        }
+                      : null,
+                ),
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.notifications),
@@ -362,6 +384,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
               tooltip: 'Create Entity',
             )
           : null,
+    );
+  }
+}
+
+class ProfileShimmer extends StatelessWidget {
+  const ProfileShimmer({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Determine if the current theme is dark or light.
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDarkMode
+        ? Colors.grey.shade700.withValues(alpha: 0.1)
+        : Colors.grey.shade300;
+    final highlightColor = isDarkMode
+        ? Colors.grey.shade500.withValues(alpha: 0.1)
+        : Colors.grey.shade100;
+    final containerColor =
+        isDarkMode ? Theme.of(context).scaffoldBackgroundColor : Colors.white;
+
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      child: ListTile(
+        leading: ClipOval(
+          child: Container(
+            width: 50,
+            height: 50,
+            color: containerColor,
+          ),
+        ),
+        title: Container(
+          width: double.infinity,
+          height: 16.0,
+          color: containerColor,
+        ),
+        subtitle: Container(
+          margin: const EdgeInsets.only(top: 4.0),
+          width: double.infinity,
+          height: 14.0,
+          color: containerColor,
+        ),
+      ),
     );
   }
 }
