@@ -417,204 +417,232 @@ class _ExploreScreenState extends State<ExploreScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _refreshRecommendations,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: ListView(
-            children: [
-              // Random greeting tile
-              RandomGreetingTile(username: _currentUser?.username),
-              // Event info tile
-              if (_isLoggedIn) EventInfoTile(refreshKey: _eventInfoRefreshKey),
-              EventInfoTile(refreshKey: _eventInfoRefreshKey),
-              // Section Top Events
-              FutureBuilder<List<Event>>(
-                future: _topEventsFuture,
-                builder: (context, snapshot) {
-                  // Tant que la donnée n'est pas encore chargée, on affiche le titre et le shimmer.
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Top Events');
-                  } else if (snapshot.hasError) {
-                    return _buildLoadingSection('Top Events');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    // Une fois chargé, si aucune donnée, on masque la section.
-                    return const SizedBox.shrink();
-                  } else {
-                    _allTopEvents = snapshot.data!;
-                    final displayCount = 5;
-                    final hasMore = _allTopEvents.length > displayCount;
-                    final displayEvents = hasMore
-                        ? _allTopEvents.sublist(0, displayCount)
-                        : _allTopEvents;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Top Events', hasMore),
-                        const SizedBox(height: 16.0),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                              children:
-                                  _buildEventCards(context, displayEvents)),
-                        ),
-                        const SizedBox(height: 24.0),
-                      ],
-                    );
-                  }
-                },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Column(
+                  children: [
+                    // Random greeting tile
+                    RandomGreetingTile(username: _currentUser?.username),
+                    // Event info tile
+                    if (_isLoggedIn)
+                      EventInfoTile(refreshKey: _eventInfoRefreshKey),
+                    // Section Top Events
+                    FutureBuilder<List<Event>>(
+                      future: _topEventsFuture,
+                      builder: (context, snapshot) {
+                        // Tant que la donnée n'est pas encore chargée, on affiche le titre et le shimmer.
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return _buildLoadingSection('Top Events');
+                        } else if (snapshot.hasError) {
+                          return _buildLoadingSection('Top Events');
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          // Une fois chargé, si aucune donnée, on masque la section.
+                          return const SizedBox.shrink();
+                        } else {
+                          _allTopEvents = snapshot.data!;
+                          final displayCount = 5;
+                          final hasMore = _allTopEvents.length > displayCount;
+                          final displayEvents = hasMore
+                              ? _allTopEvents.sublist(0, displayCount)
+                              : _allTopEvents;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle('Top Events', hasMore),
+                              const SizedBox(height: 16.0),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                    children: _buildEventCards(
+                                        context, displayEvents)),
+                              ),
+                              const SizedBox(height: 24.0),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                    // Section Suggested Events
+                    FutureBuilder<List<Event>>(
+                      future: _suggestedEventsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return _buildLoadingSection('Suggested Events');
+                        } else if (snapshot.hasError) {
+                          return _buildLoadingSection('Suggested Events');
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const SizedBox.shrink();
+                        } else {
+                          _allSuggestedEvents = snapshot.data!;
+                          final displayCount = 5;
+                          final hasMore =
+                              _allSuggestedEvents.length > displayCount;
+                          final displayEvents = hasMore
+                              ? _allSuggestedEvents.sublist(0, displayCount)
+                              : _allSuggestedEvents;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle('Suggested Events', hasMore),
+                              const SizedBox(height: 16.0),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                    children: _buildEventCards(
+                                        context, displayEvents)),
+                              ),
+                              const SizedBox(height: 24.0),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                    // Section Suggested Artists
+                    FutureBuilder<List<Artist>>(
+                      future: _suggestedArtistsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return _buildLoadingSection('Suggested Artists');
+                        } else if (snapshot.hasError) {
+                          return _buildLoadingSection('Suggested Artists');
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const SizedBox.shrink();
+                        } else {
+                          _allSuggestedArtists = snapshot.data!;
+                          final displayCount = 3;
+                          final hasMore =
+                              _allSuggestedArtists.length > displayCount;
+                          final displayArtists = hasMore
+                              ? _allSuggestedArtists.sublist(0, displayCount)
+                              : _allSuggestedArtists;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle('Suggested Artists', hasMore),
+                              const SizedBox(height: 16.0),
+                              ..._buildArtistCards(context, displayArtists),
+                              const SizedBox(height: 24.0),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                    // Section Suggested Promoters
+                    FutureBuilder<List<Promoter>>(
+                      future: _suggestedPromotersFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return _buildLoadingSection('Suggested Promoters');
+                        } else if (snapshot.hasError) {
+                          return _buildLoadingSection('Suggested Promoters');
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const SizedBox.shrink();
+                        } else {
+                          _allSuggestedPromoters = snapshot.data!;
+                          final displayCount = 3;
+                          final hasMore =
+                              _allSuggestedPromoters.length > displayCount;
+                          final displayPromoters = hasMore
+                              ? _allSuggestedPromoters.sublist(0, displayCount)
+                              : _allSuggestedPromoters;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle(
+                                  'Suggested Promoters', hasMore),
+                              const SizedBox(height: 16.0),
+                              ..._buildPromoterCards(context, displayPromoters),
+                              const SizedBox(height: 24.0),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                    // Section Suggested Venues
+                    FutureBuilder<List<Venue>>(
+                      future: _suggestedVenuesFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return _buildLoadingSection('Suggested Venues');
+                        } else if (snapshot.hasError) {
+                          return _buildLoadingSection('Suggested Venues');
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const SizedBox.shrink();
+                        } else {
+                          _allSuggestedVenues = snapshot.data!;
+                          final displayCount = 3;
+                          final hasMore =
+                              _allSuggestedVenues.length > displayCount;
+                          final displayVenues = hasMore
+                              ? _allSuggestedVenues.sublist(0, displayCount)
+                              : _allSuggestedVenues;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle('Suggested Venues', hasMore),
+                              const SizedBox(height: 16.0),
+                              ..._buildVenueCards(context, displayVenues),
+                              const SizedBox(height: 24.0),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                    // Section Suggested Genres
+                    FutureBuilder<List<Genre>>(
+                      future: _suggestedGenresFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return _buildLoadingSection('Suggested Genres');
+                        } else if (snapshot.hasError) {
+                          return _buildLoadingSection('Suggested Genres');
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const SizedBox.shrink();
+                        } else {
+                          _allSuggestedGenres = snapshot.data!;
+                          final displayCount = 6;
+                          final hasMore =
+                              _allSuggestedGenres.length > displayCount;
+                          final displayGenres = hasMore
+                              ? _allSuggestedGenres.sublist(0, displayCount)
+                              : _allSuggestedGenres;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle('Suggested Genres', hasMore),
+                              const SizedBox(height: 16.0),
+                              _buildGenreChips(context, displayGenres),
+                              const SizedBox(height: 24.0),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
-              // Section Suggested Events
-              FutureBuilder<List<Event>>(
-                future: _suggestedEventsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Events');
-                  } else if (snapshot.hasError) {
-                    return _buildLoadingSection('Suggested Events');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  } else {
-                    _allSuggestedEvents = snapshot.data!;
-                    final displayCount = 5;
-                    final hasMore = _allSuggestedEvents.length > displayCount;
-                    final displayEvents = hasMore
-                        ? _allSuggestedEvents.sublist(0, displayCount)
-                        : _allSuggestedEvents;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Events', hasMore),
-                        const SizedBox(height: 16.0),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                              children:
-                                  _buildEventCards(context, displayEvents)),
-                        ),
-                        const SizedBox(height: 24.0),
-                      ],
-                    );
-                  }
-                },
-              ),
-              // Section Suggested Artists
-              FutureBuilder<List<Artist>>(
-                future: _suggestedArtistsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Artists');
-                  } else if (snapshot.hasError) {
-                    return _buildLoadingSection('Suggested Artists');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  } else {
-                    _allSuggestedArtists = snapshot.data!;
-                    final displayCount = 3;
-                    final hasMore = _allSuggestedArtists.length > displayCount;
-                    final displayArtists = hasMore
-                        ? _allSuggestedArtists.sublist(0, displayCount)
-                        : _allSuggestedArtists;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Artists', hasMore),
-                        const SizedBox(height: 16.0),
-                        ..._buildArtistCards(context, displayArtists),
-                        const SizedBox(height: 24.0),
-                      ],
-                    );
-                  }
-                },
-              ),
-              // Section Suggested Promoters
-              FutureBuilder<List<Promoter>>(
-                future: _suggestedPromotersFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Promoters');
-                  } else if (snapshot.hasError) {
-                    return _buildLoadingSection('Suggested Promoters');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  } else {
-                    _allSuggestedPromoters = snapshot.data!;
-                    final displayCount = 3;
-                    final hasMore =
-                        _allSuggestedPromoters.length > displayCount;
-                    final displayPromoters = hasMore
-                        ? _allSuggestedPromoters.sublist(0, displayCount)
-                        : _allSuggestedPromoters;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Promoters', hasMore),
-                        const SizedBox(height: 16.0),
-                        ..._buildPromoterCards(context, displayPromoters),
-                        const SizedBox(height: 24.0),
-                      ],
-                    );
-                  }
-                },
-              ),
-              // Section Suggested Venues
-              FutureBuilder<List<Venue>>(
-                future: _suggestedVenuesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Venues');
-                  } else if (snapshot.hasError) {
-                    return _buildLoadingSection('Suggested Venues');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  } else {
-                    _allSuggestedVenues = snapshot.data!;
-                    final displayCount = 3;
-                    final hasMore = _allSuggestedVenues.length > displayCount;
-                    final displayVenues = hasMore
-                        ? _allSuggestedVenues.sublist(0, displayCount)
-                        : _allSuggestedVenues;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Venues', hasMore),
-                        const SizedBox(height: 16.0),
-                        ..._buildVenueCards(context, displayVenues),
-                        const SizedBox(height: 24.0),
-                      ],
-                    );
-                  }
-                },
-              ),
-              // Section Suggested Genres
-              FutureBuilder<List<Genre>>(
-                future: _suggestedGenresFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return _buildLoadingSection('Suggested Genres');
-                  } else if (snapshot.hasError) {
-                    return _buildLoadingSection('Suggested Genres');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  } else {
-                    _allSuggestedGenres = snapshot.data!;
-                    final displayCount = 6;
-                    final hasMore = _allSuggestedGenres.length > displayCount;
-                    final displayGenres = hasMore
-                        ? _allSuggestedGenres.sublist(0, displayCount)
-                        : _allSuggestedGenres;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle('Suggested Genres', hasMore),
-                        const SizedBox(height: 16.0),
-                        _buildGenreChips(context, displayGenres),
-                        const SizedBox(height: 24.0),
-                      ],
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
+            ),
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Container(),
+            ),
+          ],
         ),
       ),
     );
