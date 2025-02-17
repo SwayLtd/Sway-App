@@ -7,7 +7,7 @@ import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/widgets/artist_item_widget.dart'; // Contient ArtistTileItemWidget
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
-import 'package:sway/features/claim/widgets/verified_icon_widget.dart';
+import 'package:sway/features/claim/widgets/claim_widgets.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
@@ -448,6 +448,14 @@ class _PromoterScreenState extends State<PromoterScreen> {
                               );
                             }
                           },
+                        ),
+                        ClaimPageTile(
+                          isVerified: _promoter!.isVerified,
+                          entityName: _promoter!
+                              .name, // ou "Artist", "Venue" selon le contexte
+                          entityType:
+                              "promoter", // correspond à l'URL de navigation (ex: '/claimForm/promoter')
+                          entityId: _promoter!.id,
                         ),
                       ],
                     ),

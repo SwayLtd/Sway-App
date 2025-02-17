@@ -31,7 +31,7 @@ import 'package:sway/features/venue/services/venue_resident_artists_service.dart
 import 'package:sway/features/venue/venue.dart';
 import 'package:sway/features/venue/widgets/venue_item_widget.dart';
 import 'package:sway/features/venue/widgets/venue_modal_bottom_sheet.dart';
-import 'package:sway/features/claim/widgets/verified_icon_widget.dart';
+import 'package:sway/features/claim/widgets/claim_widgets.dart';
 
 class ArtistScreen extends StatefulWidget {
   final int artistId;
@@ -607,7 +607,13 @@ class _ArtistScreenState extends State<ArtistScreen> {
                         }
                       },
                     ),
-                    SizedBox(height: sectionSpacing),
+                    ClaimPageTile(
+                      isVerified: artist
+                          .isVerified, // Make sure your Artist model has an "isVerified" property
+                      entityType: 'artist',
+                      entityName: artist.name,
+                      entityId: artist.id,
+                    ),
                   ],
                 ),
               );

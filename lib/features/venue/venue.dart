@@ -9,7 +9,7 @@ import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/widgets/artist_item_widget.dart'; // Contains ArtistTileItemWidget
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
-import 'package:sway/features/claim/widgets/verified_icon_widget.dart';
+import 'package:sway/features/claim/widgets/claim_widgets.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
 import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart';
@@ -641,6 +641,13 @@ class _VenueScreenState extends State<VenueScreen> {
                             );
                           }
                         },
+                      ),
+                      ClaimPageTile(
+                        isVerified: venue
+                            .isVerified, // Make sure your Artist model has an "isVerified" property
+                        entityType: 'venue',
+                        entityName: venue.name,
+                        entityId: venue.id,
                       ),
                     ],
                   ),
