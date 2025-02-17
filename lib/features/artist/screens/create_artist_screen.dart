@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/utils/validators.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
 import 'package:sway/features/security/services/storage_service.dart';
@@ -30,6 +31,44 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
 
   File? _selectedImage;
   bool _isSubmitting = false;
+
+  // Instance of the global validator used for text fields.
+  // It will be updated with the combined forbiddenWords (French + English).
+  late FieldValidator defaultValidator;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize defaultValidator with base parameters and an empty forbiddenWords.
+    defaultValidator = FieldValidator(
+      isRequired: true,
+      maxLength: 500,
+      forbiddenWords: [],
+    );
+
+    // Load forbidden words for French and English, then update the validator.
+    _loadDefaultForbiddenWords();
+  }
+
+  Future<void> _loadDefaultForbiddenWords() async {
+    try {
+      final frWords = await loadForbiddenWords('fr');
+      final enWords = await loadForbiddenWords('en');
+      // Combine the two lists and remove duplicates.
+      final combined = {...frWords, ...enWords}.toList();
+      setState(() {
+        defaultValidator = FieldValidator(
+          isRequired: true,
+          maxLength: 2000,
+          forbiddenWords: combined,
+        );
+      });
+      // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
+      _formKey.currentState?.validate();
+    } catch (e) {
+      print('Error loading forbidden words: $e');
+    }
+  }
 
   /// Select an image from the gallery.
   Future<void> _pickImage() async {
@@ -216,12 +255,7 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
                   labelText: 'Artist Name',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter the artist name.';
-                  }
-                  return null;
-                },
+                validator: (value) => defaultValidator.validate(value),
               ),
               const SizedBox(height: sectionSpacing),
               // Description field
@@ -232,12 +266,7 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 4,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a description.';
-                  }
-                  return null;
-                },
+                validator: (value) => defaultValidator.validate(value),
               ),
               // Remove links field for now
               /*

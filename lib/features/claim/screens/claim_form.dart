@@ -4,8 +4,8 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/utils/validators.dart';
 import 'package:sway/features/claim/services/claim_service.dart';
 import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
@@ -51,11 +51,45 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
   String? _selectedFileName;
   bool _isSubmitting = false;
 
+  // Instance of the global validator used for text fields.
+  // It will be updated with the combined forbiddenWords (French + English).
+  late FieldValidator defaultValidator;
+
   @override
   void initState() {
     super.initState();
     _fetchEntityName();
     _fetchUserName();
+
+    // Initialize defaultValidator with base parameters and an empty forbiddenWords.
+    defaultValidator = FieldValidator(
+      isRequired: true,
+      maxLength: 500,
+      forbiddenWords: [],
+    );
+
+    // Load forbidden words for French and English, then update the validator.
+    _loadDefaultForbiddenWords();
+  }
+
+  Future<void> _loadDefaultForbiddenWords() async {
+    try {
+      final frWords = await loadForbiddenWords('fr');
+      final enWords = await loadForbiddenWords('en');
+      // Combine the two lists and remove duplicates.
+      final combined = {...frWords, ...enWords}.toList();
+      setState(() {
+        defaultValidator = FieldValidator(
+          isRequired: true,
+          maxLength: 2000,
+          forbiddenWords: combined,
+        );
+      });
+      // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
+      _formKey.currentState?.validate();
+    } catch (e) {
+      print('Error loading forbidden words: $e');
+    }
   }
 
   @override
@@ -225,11 +259,9 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
                       'e.g., link to official website, social media profile, or attach a file as proof',
                 ),
                 maxLines: 5,
-                validator: FormBuilderValidators.compose([
-                  FormBuilderValidators.required(),
-                  FormBuilderValidators.maxLength(500),
-                ]),
+                validator: (value) => defaultValidator.validate(value),
               ),
+
               const SizedBox(height: sectionSpacing),
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,

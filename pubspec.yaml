@@ -7,7 +7,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.5.2 # Add recommended artists logic in Explore Screen
+version: 0.5.2+1 # Add global validator and multilingual banned words system
 
 environment:
   sdk: ">=2.18.5 <4.0.0"
@@ -140,5 +140,7 @@ flutter:
     - assets/images/icon.png
     - assets/images/logotype_transparent.png
     - assets/images/404.png
+    - assets/data/forbidden_words_en.json
+    - assets/data/forbidden_words_fr.json
 
   generate: true

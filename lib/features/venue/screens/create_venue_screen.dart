@@ -5,12 +5,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/utils/validators.dart';
 import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
-
-import 'package:sway/features/venue/widgets/address_field.dart';
 
 class CreateVenueScreen extends StatefulWidget {
   const CreateVenueScreen({Key? key}) : super(key: key);
@@ -31,6 +30,44 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
 
   File? _selectedImage;
   bool _isSubmitting = false;
+
+  // Instance of the global validator used for text fields.
+  // It will be updated with the combined forbiddenWords (French + English).
+  late FieldValidator defaultValidator;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize defaultValidator with base parameters and an empty forbiddenWords.
+    defaultValidator = FieldValidator(
+      isRequired: true,
+      maxLength: 500,
+      forbiddenWords: [],
+    );
+
+    // Load forbidden words for French and English, then update the validator.
+    _loadDefaultForbiddenWords();
+  }
+
+  Future<void> _loadDefaultForbiddenWords() async {
+    try {
+      final frWords = await loadForbiddenWords('fr');
+      final enWords = await loadForbiddenWords('en');
+      // Combine the two lists and remove duplicates.
+      final combined = {...frWords, ...enWords}.toList();
+      setState(() {
+        defaultValidator = FieldValidator(
+          isRequired: true,
+          maxLength: 2000,
+          forbiddenWords: combined,
+        );
+      });
+      // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
+      _formKey.currentState?.validate();
+    } catch (e) {
+      print('Error loading forbidden words: $e');
+    }
+  }
 
   /// Sélectionne une image depuis la galerie.
   Future<void> _pickImage() async {
@@ -215,39 +252,37 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
               const SizedBox(height: sectionSpacing),
               // Champ Nom
               TextFormField(
+                validator: (value) => defaultValidator.validate(value),
                 controller: _nameController,
                 decoration: const InputDecoration(
                   labelText: 'Venue Name',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter the venue name.';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: sectionSpacing),
               // Champ Adresse
-              AddressField(
+              /*AddressField(
                 controller: _locationController,
                 hintText: 'Address',
+              ),*/
+              TextFormField(
+                validator: (value) => defaultValidator.validate(value),
+                controller: _locationController,
+                decoration: const InputDecoration(
+                  labelText: 'Address',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: sectionSpacing),
               // Champ Description
               TextFormField(
+                validator: (value) => defaultValidator.validate(value),
                 controller: _descriptionController,
                 decoration: const InputDecoration(
                   labelText: 'Description',
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 4,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a description.';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 30),
               // Bouton de soumission

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // for listEquals
 import 'package:image_picker/image_picker.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/utils/validators.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
@@ -53,6 +54,10 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
   bool isReadOnly = false;
   bool _permissionsLoaded = false;
 
+  // Instance of the global validator used for text fields.
+  // It will be updated with the combined forbiddenWords (French + English).
+  late FieldValidator defaultValidator;
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +67,36 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
         TextEditingController(text: _currentArtist.description);
     _loadUserPermissions();
     _loadAssociatedData();
+
+    // Initialize defaultValidator with base parameters and an empty forbiddenWords.
+    defaultValidator = FieldValidator(
+      isRequired: true,
+      maxLength: 500,
+      forbiddenWords: [],
+    );
+
+    // Load forbidden words for French and English, then update the validator.
+    _loadDefaultForbiddenWords();
+  }
+
+  Future<void> _loadDefaultForbiddenWords() async {
+    try {
+      final frWords = await loadForbiddenWords('fr');
+      final enWords = await loadForbiddenWords('en');
+      // Combine the two lists and remove duplicates.
+      final combined = {...frWords, ...enWords}.toList();
+      setState(() {
+        defaultValidator = FieldValidator(
+          isRequired: true,
+          maxLength: 2000,
+          forbiddenWords: combined,
+        );
+      });
+      // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
+      _formKey.currentState?.validate();
+    } catch (e) {
+      print('Error loading forbidden words: $e');
+    }
   }
 
   Future<void> _loadUserPermissions() async {
@@ -464,34 +499,24 @@ class _EditArtistScreenState extends State<EditArtistScreen> {
                       const SizedBox(height: sectionSpacing),
                       // Name field
                       TextFormField(
+                        validator: (value) => defaultValidator.validate(value),
                         controller: _nameController,
                         decoration: const InputDecoration(
                           labelText: 'Artist Name',
                           border: OutlineInputBorder(),
                         ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Veuillez saisir le nom de l\'artist.';
-                          }
-                          return null;
-                        },
                         readOnly: isReadOnly,
                       ),
                       const SizedBox(height: sectionSpacing),
                       // Description field
                       TextFormField(
+                        validator: (value) => defaultValidator.validate(value),
                         controller: _descriptionController,
                         decoration: const InputDecoration(
                           labelText: 'Description',
                           border: OutlineInputBorder(),
                         ),
                         maxLines: 4,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Veuillez saisir une description.';
-                          }
-                          return null;
-                        },
                         readOnly: isReadOnly,
                       ),
                       const SizedBox(height: sectionSpacing),

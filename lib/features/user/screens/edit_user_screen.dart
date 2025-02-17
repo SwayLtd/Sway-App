@@ -10,7 +10,7 @@ import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/user/models/user_model.dart';
 import 'package:sway/features/user/services/auth_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
-import 'package:sway/features/user/utils/auth_validator.dart';
+import 'package:sway/core/utils/validators.dart';
 
 class EditUserScreen extends StatefulWidget {
   final User user;

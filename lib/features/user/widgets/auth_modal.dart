@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/features/settings/screens/terms_and_conditions_screen.dart';
-import 'package:sway/features/user/utils/auth_validator.dart';
+import 'package:sway/core/utils/validators.dart';
 
 class AuthModal extends StatelessWidget {
   const AuthModal({Key? key}) : super(key: key);

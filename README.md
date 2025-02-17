@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Add global validator and multilingual banned words system
 - Add recommended artists logic in Explore Screen
 
 ### Known Issues

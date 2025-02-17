@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 // Importez vos services et modèles
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/utils/validators.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/services/event_genre_service.dart';
@@ -69,11 +70,45 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   final EventGenreService _eventGenreService = EventGenreService();
   final EventVenueService _eventVenueService = EventVenueService();
 
+  // Instance of the global validator used for text fields.
+  // It will be updated with the combined forbiddenWords (French + English).
+  late FieldValidator defaultValidator;
+
   @override
   void initState() {
     super.initState();
     _selectedTypeLabel = _eventTypeLabels.first; // ex: "Festival"
     _fetchPermittedPromoters(); // Charger la liste des promoteurs autorisés
+
+    // Initialize defaultValidator with base parameters and an empty forbiddenWords.
+    defaultValidator = FieldValidator(
+      isRequired: true,
+      maxLength: 500,
+      forbiddenWords: [],
+    );
+
+    // Load forbidden words for French and English, then update the validator.
+    _loadDefaultForbiddenWords();
+  }
+
+  Future<void> _loadDefaultForbiddenWords() async {
+    try {
+      final frWords = await loadForbiddenWords('fr');
+      final enWords = await loadForbiddenWords('en');
+      // Combine the two lists and remove duplicates.
+      final combined = {...frWords, ...enWords}.toList();
+      setState(() {
+        defaultValidator = FieldValidator(
+          isRequired: true,
+          maxLength: 2000,
+          forbiddenWords: combined,
+        );
+      });
+      // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
+      _formKey.currentState?.validate();
+    } catch (e) {
+      print('Error loading forbidden words: $e');
+    }
   }
 
   @override
@@ -81,18 +116,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
-  }
-
-  /// Simple validator pour bloquer certains caractères
-  String? _validateTextInput(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'This field is required.';
-    }
-    final forbiddenPattern = RegExp(r'[;"]|--');
-    if (forbiddenPattern.hasMatch(value)) {
-      return 'Invalid characters used.';
-    }
-    return null;
   }
 
   /// Charger tous les promoteurs pour lesquels user est manager ou admin
@@ -368,14 +391,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               ),
               const SizedBox(height: sectionSpacing),
 
-              // Title
+              // Title using the global validator.
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
                   labelText: 'Title',
                   border: OutlineInputBorder(),
                 ),
-                validator: _validateTextInput,
+                validator: (value) => defaultValidator.validate(value),
               ),
               const SizedBox(height: sectionSpacing),
 
@@ -461,7 +484,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
               const SizedBox(height: sectionSpacing),
 
-              // Description
+              // Description using the global validator.
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(
@@ -469,7 +492,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
-                validator: _validateTextInput,
+                validator: (value) => defaultValidator.validate(value),
               ),
               const SizedBox(height: sectionSpacing),
 

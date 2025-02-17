@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 // Importez vos services et modèles
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/utils/validators.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/screens/edit_event_artist_screen.dart';
@@ -86,6 +87,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
   bool isReadOnly = false;
   bool _permissionsLoaded = false;
 
+  // Instance of the global validator used for text fields.
+  // It will be updated with the combined forbiddenWords (French + English).
+  late FieldValidator defaultValidator;
+
   @override
   void initState() {
     super.initState();
@@ -106,6 +111,36 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _loadUserPermissions();
     _fetchPermittedPromoters();
     _loadEventAssociations();
+
+    // Initialize defaultValidator with base parameters and an empty forbiddenWords.
+    defaultValidator = FieldValidator(
+      isRequired: true,
+      maxLength: 500,
+      forbiddenWords: [],
+    );
+
+    // Load forbidden words for French and English, then update the validator.
+    _loadDefaultForbiddenWords();
+  }
+
+  Future<void> _loadDefaultForbiddenWords() async {
+    try {
+      final frWords = await loadForbiddenWords('fr');
+      final enWords = await loadForbiddenWords('en');
+      // Combine the two lists and remove duplicates.
+      final combined = {...frWords, ...enWords}.toList();
+      setState(() {
+        defaultValidator = FieldValidator(
+          isRequired: true,
+          maxLength: 2000,
+          forbiddenWords: combined,
+        );
+      });
+      // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
+      _formKey.currentState?.validate();
+    } catch (e) {
+      print('Error loading forbidden words: $e');
+    }
   }
 
   // Dans _loadUserPermissions, à la fin de la méthode, indiquez que le chargement est terminé
@@ -604,7 +639,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                         labelText: 'Title',
                         border: OutlineInputBorder(),
                       ),
-                      validator: _validateTextInput,
+                      validator: (value) => defaultValidator.validate(value),
                       readOnly: isReadOnly,
                     ),
                     const SizedBox(height: sectionSpacing),
@@ -697,7 +732,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                         border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
-                      validator: _validateTextInput,
+                      validator: (value) => defaultValidator.validate(value),
                       readOnly: isReadOnly,
                     ),
                     const SizedBox(height: sectionSpacing),
