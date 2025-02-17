@@ -351,10 +351,25 @@ class _TicketingScreenState extends State<TicketingScreen>
           children: [
             // Onglet Upcoming
             _upcomingTickets.isEmpty
-                ? Center(
-                    child: Text(
-                      'No tickets here',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                ? SizedBox(
+                    height: MediaQuery.of(context).size.height -
+                        kToolbarHeight -
+                        48.0,
+                    child: Stack(
+                      children: const [
+                        Center(
+                          child: Text(
+                            'No tickets here',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: TicketInfoBubble(),
+                        ),
+                      ],
                     ),
                   )
                 : SingleChildScrollView(
@@ -362,16 +377,75 @@ class _TicketingScreenState extends State<TicketingScreen>
                   ),
             // Onglet Past
             _pastTickets.isEmpty
-                ? Center(
-                    child: Text(
-                      'No tickets here',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                ? SizedBox(
+                    height: MediaQuery.of(context).size.height -
+                        kToolbarHeight -
+                        48.0,
+                    child: Stack(
+                      children: const [
+                        Center(
+                          child: Text(
+                            'No tickets here',
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: TicketInfoBubble(),
+                        ),
+                      ],
                     ),
                   )
                 : SingleChildScrollView(
                     child: _buildTicketList(_pastTickets, isUpcoming: false),
                   ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class TicketInfoBubble extends StatelessWidget {
+  const TicketInfoBubble({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black,
+            width: 1,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              const Text(
+                "📱",
+                style: TextStyle(fontSize: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  "Tickets are only stored locally on your phone.",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
