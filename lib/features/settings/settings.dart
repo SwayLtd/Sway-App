@@ -6,7 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/screens/create_artist_screen.dart';
-import 'package:sway/features/artist/widgets/artist_item_shimmer.dart';
 import 'package:sway/features/event/screens/create_event_screen.dart';
 import 'package:sway/features/notification/screens/notification_preferences_screen.dart';
 import 'package:sway/features/promoter/screens/create_promoter_screen.dart';
