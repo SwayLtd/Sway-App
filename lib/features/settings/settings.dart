@@ -224,9 +224,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.event,
-                    color: canCreateEvent ? null : Colors.grey),
-                title: const Text('Create Event'),
+                leading: Icon(
+                  Icons.event,
+                  color: canCreateEvent ? null : Colors.grey,
+                ),
+                title: Text(
+                  'Create Event',
+                  style: TextStyle(
+                    color: canCreateEvent ? null : Colors.grey,
+                  ),
+                ),
                 enabled: canCreateEvent,
                 onTap: canCreateEvent
                     ? () {
@@ -304,7 +311,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ))
                     : const ProfileShimmer(),
 
-// "Manage Entities" ListTile
+                // "Manage Entities" ListTile
                 ListTile(
                   leading: Icon(
                     Icons.account_tree,
@@ -319,13 +326,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   onTap: _isUserLoaded && _isLoggedIn && _currentUser != null
                       ? () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  UserEntitiesScreen(userId: _currentUser!.id),
-                            ),
-                          );
+                          if (_currentUser != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UserEntitiesScreen(
+                                    userId: _currentUser!.id),
+                              ),
+                            );
+                          } else {
+                            _showAuthModal();
+                          }
                         }
                       : null,
                 ),
