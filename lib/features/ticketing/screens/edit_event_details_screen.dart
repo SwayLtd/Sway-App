@@ -192,7 +192,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
     setState(() {
       _selectedEvent = event;
       _eventNameController.text = event.title;
-      _eventDate = event.dateTime;
+      _eventDate = event.eventDateTime;
       _eventLocationController.text = venue?.name ?? 'Venue not found';
     });
   }
@@ -246,7 +246,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           subtitle: Text(
-                              '${event.dateTime.toLocal().toString().split(' ')[0]}'),
+                              '${event.eventDateTime.toLocal().toString().split(' ')[0]}'),
                           onTap: () => _selectEvent(event),
                         );
                       },

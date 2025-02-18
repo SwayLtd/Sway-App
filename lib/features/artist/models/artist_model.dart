@@ -5,7 +5,7 @@ class Artist {
   final String name;
   final String imageUrl;
   final String description;
-  final List<int> genres;
+  final List<int>? genres;
   final List<int>? upcomingEvents;
   final List<int>? similarArtists;
   final Map<String, String>? links;
@@ -18,7 +18,7 @@ class Artist {
     required this.name,
     required this.imageUrl,
     required this.description,
-    required this.genres,
+    this.genres,
     this.upcomingEvents = const [],
     this.similarArtists,
     this.links,
@@ -34,7 +34,9 @@ class Artist {
       name: json['name'] as String,
       imageUrl: json['image_url'] as String,
       description: json['description'] as String? ?? '',
-      genres: List<int>.from(json['genres'] ?? []),
+      genres: json['genres'] != null
+          ? List<int>.from(json['genres'])
+          : null, // genres: List<int>.from(json['genres'] ?? []),
       upcomingEvents:
           (json['upcoming_events'] as List<dynamic>?)?.cast<int>() ?? [],
       similarArtists: (json['similar_artists'] as List<dynamic>?)?.cast<int>(),

@@ -278,8 +278,8 @@ class _EventScreenState extends State<EventScreen> {
                     title: _event.title,
                     description: _event.description,
                     location: location,
-                    startDate: _event.dateTime,
-                    endDate: _event.endDateTime,
+                    startDate: _event.eventDateTime,
+                    endDate: _event.eventEndDateTime,
                     iosParams: const calendar.IOSParams(
                       reminder: Duration(minutes: 60),
                       url: 'https://sway.events',
@@ -299,7 +299,7 @@ class _EventScreenState extends State<EventScreen> {
                 child: InfoCard(
                   title: "Date",
                   content:
-                      "${formatEventDateRange(_event.dateTime, _event.endDateTime)}",
+                      "${formatEventDateRange(_event.eventDateTime, _event.eventEndDateTime)}",
                 ),
               ),
               const SizedBox(height: sectionTitleSpacing),

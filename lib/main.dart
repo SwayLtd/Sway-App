@@ -19,12 +19,12 @@ import 'firebase_options.dart';
 
 Future<void> main() async {
   usePathUrlStrategy(); // Remove # from URL
-  WidgetsFlutterBinding.ensureInitialized();
+  await WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
 
-  DatabaseService().initialize();
+  await DatabaseService().initialize();
 
-  await Firebase.initializeApp( 
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   NotificationService().initialize();

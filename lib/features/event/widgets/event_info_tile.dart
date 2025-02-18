@@ -35,12 +35,14 @@ class _EventInfoTileState extends State<EventInfoTile> {
 
       // Find an event that is in progress: start time passed and end time in the future.
       final inProgress = events.where((event) =>
-          event.dateTime.isBefore(now) && event.endDateTime.isAfter(now));
+          event.eventDateTime.isBefore(now) &&
+          event.eventEndDateTime.isAfter(now));
       _currentEvent = inProgress.isNotEmpty ? inProgress.first : null;
 
       // If no event is in progress, find an event scheduled for today (same day and start time after now)
       final todayEvents = events.where((event) =>
-          event.dateTime.day == now.day && event.dateTime.isAfter(now));
+          event.eventDateTime.day == now.day &&
+          event.eventDateTime.isAfter(now));
       _todayEvent = todayEvents.isNotEmpty ? todayEvents.first : null;
     } catch (e) {
       print("Error fetching event info: $e");
@@ -121,14 +123,14 @@ class _EventInfoTileState extends State<EventInfoTile> {
         event: _currentEvent!,
         titlePrefix: "In Progress",
         timeText:
-            "Ends at ${_currentEvent!.endDateTime.toLocal().toString().substring(11, 16)}",
+            "Ends at ${_currentEvent!.eventEndDateTime.toLocal().toString().substring(11, 16)}",
       );
     } else if (_todayEvent != null) {
       return buildEventCard(
         event: _todayEvent!,
         titlePrefix: "Today",
         timeText:
-            "Starts at ${_todayEvent!.dateTime.toLocal().toString().substring(11, 16)}",
+            "Starts at ${_todayEvent!.eventDateTime.toLocal().toString().substring(11, 16)}",
       );
     } else {
       // No relevant event to display.

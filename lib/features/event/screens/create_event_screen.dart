@@ -295,8 +295,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       final newEvent = Event(
         title: _titleController.text.trim(),
         type: typeToStore,
-        dateTime: _selectedStartDate!,
-        endDateTime: _selectedEndDate!,
+        eventDateTime: _selectedStartDate!,
+        eventEndDateTime: _selectedEndDate!,
         description: _descriptionController.text.trim(),
         imageUrl: '',
         price: '',

@@ -177,7 +177,7 @@ class _GenreScreenState extends State<GenreScreen> {
                             final events = eventSnapshot.data!;
                             final now = DateTime.now();
                             final upcomingEvents = events
-                                .where((e) => e.dateTime.isAfter(now))
+                                .where((e) => e.eventDateTime.isAfter(now))
                                 .toList();
                             if (upcomingEvents.isEmpty)
                               return const SizedBox.shrink();

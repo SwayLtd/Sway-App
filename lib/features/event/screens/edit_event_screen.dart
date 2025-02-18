@@ -104,8 +104,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _selectedTypeLabel =
         _eventTypeLabels.contains(capitalizedType) ? capitalizedType : 'Other';
 
-    _selectedStartDate = widget.event.dateTime;
-    _selectedEndDate = widget.event.endDateTime;
+    _selectedStartDate = widget.event.eventDateTime;
+    _selectedEndDate = widget.event.eventEndDateTime;
     _originalImageUrl = widget.event.imageUrl;
 
     _loadUserPermissions();
@@ -362,8 +362,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
       Event updatedEvent = widget.event.copyWith(
         title: _titleController.text.trim(),
         type: typeToStore,
-        dateTime: _selectedStartDate,
-        endDateTime: _selectedEndDate,
+        eventDateTime: _selectedStartDate,
+        eventEndDateTime: _selectedEndDate,
         description: _descriptionController.text.trim(),
       );
       String newImageUrl = widget.event.imageUrl;

@@ -101,7 +101,7 @@ class EventListItemWidget extends StatelessWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        '${formatEventDate(event.dateTime)}, ${formatEventTime(event.dateTime)}',
+                        '${formatEventDate(event.eventDateTime)}, ${formatEventTime(event.eventDateTime)}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -298,7 +298,7 @@ class EventCardItemWidget extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${formatEventDate(event.dateTime)}, ${formatEventTime(event.dateTime)}',
+                          '${formatEventDate(event.eventDateTime)}, ${formatEventTime(event.eventDateTime)}',
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.grey,

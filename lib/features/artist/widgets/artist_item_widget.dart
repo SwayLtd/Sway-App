@@ -83,17 +83,17 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
       // Filtrer les événements à venir
       DateTime now = DateTime.now();
       List<Event> upcomingEvents =
-          events.where((event) => event.dateTime.isAfter(now)).toList();
+          events.where((event) => event.eventDateTime.isAfter(now)).toList();
 
       if (upcomingEvents.isEmpty) {
         return [];
       }
 
       // Trier les événements par date ascendante
-      upcomingEvents.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+      upcomingEvents.sort((a, b) => a.eventDateTime.compareTo(b.eventDateTime));
 
       print(
-          'Prochain événement: ${upcomingEvents.first.title} le ${upcomingEvents.first.dateTime}');
+          'Upcoming event:${upcomingEvents.first.title} le ${upcomingEvents.first.eventDateTime}');
 
       // Configurer le timer pour l'alternance si non déjà configuré
       if (!_hasTimer) {
@@ -290,7 +290,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                                       ),
                                       Expanded(
                                         child: Text(
-                                          '${upcomingEvents.first.title} on ${formatEventDate(upcomingEvents.first.dateTime)}',
+                                          '${upcomingEvents.first.title} on ${formatEventDate(upcomingEvents.first.eventDateTime)}',
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: Colors.grey, // Texte neutre

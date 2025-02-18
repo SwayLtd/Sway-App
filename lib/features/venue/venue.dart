@@ -402,7 +402,7 @@ class _VenueScreenState extends State<VenueScreen> {
                             final upcomingEvents =
                                 eventsData.where((eventData) {
                               final Event event = eventData['event'] as Event;
-                              return event.dateTime.isAfter(now);
+                              return event.eventDateTime.isAfter(now);
                             }).toList();
                             if (upcomingEvents.isEmpty) {
                               return const SizedBox();

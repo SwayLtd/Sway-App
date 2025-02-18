@@ -350,7 +350,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                           final now = DateTime.now();
                           // Filter events to only those after the current date.
                           final events = allEvents
-                              .where((e) => e.dateTime.isAfter(now))
+                              .where((e) => e.eventDateTime.isAfter(now))
                               .toList();
                           // If there are no upcoming events after filtering, don't show the section.
                           if (events.isEmpty) {

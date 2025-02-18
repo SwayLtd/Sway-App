@@ -4,8 +4,8 @@ class Event {
   final int? id;
   final String title;
   final String type;
-  final DateTime dateTime;
-  final DateTime endDateTime;
+  final DateTime eventDateTime;
+  final DateTime eventEndDateTime;
   final int? venue;
   final String description;
   final String imageUrl;
@@ -19,8 +19,8 @@ class Event {
     this.id,
     required this.title,
     required this.type,
-    required this.dateTime,
-    required this.endDateTime,
+    required this.eventDateTime,
+    required this.eventEndDateTime,
     this.venue,
     required this.description,
     required this.imageUrl,
@@ -36,8 +36,8 @@ class Event {
       id: json['id'] as int?,
       title: json['title'] as String? ?? '',
       type: json['type'] as String? ?? '',
-      dateTime: DateTime.parse(json['date_time'] as String),
-      endDateTime: DateTime.parse(json['end_date_time'] as String),
+      eventDateTime: DateTime.parse(json['date_time'] as String),
+      eventEndDateTime: DateTime.parse(json['end_date_time'] as String),
       // venue: json['venue'] as int? ?? 0,
       description: json['description'] as String? ?? '',
       imageUrl: json['image_url'] as String? ?? '',
@@ -62,8 +62,8 @@ class Event {
       if (id != null) 'id': id,
       'title': title,
       'type': type,
-      'date_time': dateTime.toIso8601String(),
-      'end_date_time': endDateTime.toIso8601String(),
+      'date_time': eventDateTime.toIso8601String(),
+      'end_date_time': eventEndDateTime.toIso8601String(),
       // 'venue': venue,
       'description': description,
       'image_url': imageUrl,
@@ -80,8 +80,8 @@ class Event {
     int? id,
     String? title,
     String? type,
-    DateTime? dateTime,
-    DateTime? endDateTime,
+    DateTime? eventDateTime,
+    DateTime? eventEndDateTime,
     int? venue,
     String? description,
     String? imageUrl,
@@ -96,8 +96,8 @@ class Event {
       id: id ?? this.id,
       title: title ?? this.title,
       type: type ?? this.type,
-      dateTime: dateTime ?? this.dateTime,
-      endDateTime: endDateTime ?? this.endDateTime,
+      eventDateTime: eventDateTime ?? this.eventDateTime,
+      eventEndDateTime: eventEndDateTime ?? this.eventEndDateTime,
       venue: venue ?? this.venue,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,

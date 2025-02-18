@@ -127,7 +127,7 @@ class UserInterestEventService {
 
     return allEvents
         .where((event) =>
-            eventIds.contains(event.id!) && event.dateTime.isAfter(now))
+            eventIds.contains(event.id!) && event.eventDateTime.isAfter(now))
         .toList();
   }
 
@@ -147,7 +147,7 @@ class UserInterestEventService {
 
     return allEvents
         .where((event) =>
-            eventIds.contains(event.id!) && event.dateTime.isBefore(now))
+            eventIds.contains(event.id!) && event.eventDateTime.isBefore(now))
         .toList();
   }
 

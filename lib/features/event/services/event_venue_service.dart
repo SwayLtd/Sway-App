@@ -86,14 +86,14 @@ class EventVenueService {
       // Filtrer les événements à venir
       final now = DateTime.now();
       final upcomingEvents =
-          events.where((event) => event.dateTime.isAfter(now)).toList();
+          events.where((event) => event.eventDateTime.isAfter(now)).toList();
 
       // Construire la liste des événements avec les détails supplémentaires
       for (final event in upcomingEvents) {
         eventsData.add({
           'event': event,
-          'start_time': event.dateTime.toIso8601String(),
-          'end_time': event.endDateTime.toIso8601String(),
+          'start_time': event.eventDateTime.toIso8601String(),
+          'end_time': event.eventDateTime.toIso8601String(),
           'status': '', // Ajoutez les champs pertinents si disponibles
           'stage': '', // Ajoutez les champs pertinents si disponibles
         });
