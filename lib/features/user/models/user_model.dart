@@ -7,7 +7,7 @@ class User {
   final String bio;
   final String profilePictureUrl;
   final String supabaseId; // References Supabase Auth
-  final DateTime createdAt;
+  final DateTime? createdAt;
 
   User({
     required this.id,
@@ -16,7 +16,7 @@ class User {
     required this.bio,
     required this.profilePictureUrl,
     required this.supabaseId,
-    required this.createdAt,
+    this.createdAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -29,7 +29,7 @@ class User {
       supabaseId: json['supabase_id'] as String? ?? '',
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
-          : DateTime.now(),
+          : null,
     );
   }
 
@@ -41,7 +41,7 @@ class User {
       'bio': bio,
       'profile_picture_url': profilePictureUrl,
       'supabase_id': supabaseId,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAt != null ? createdAt!.toIso8601String() : null,
     };
   }
 

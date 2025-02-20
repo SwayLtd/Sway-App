@@ -22,6 +22,10 @@ Future<void> main() async {
   await WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
 
+  // Initialize Isar first
+  await DatabaseService().isar;
+
+  // Initialize Supabase
   await DatabaseService().initialize();
 
   await Firebase.initializeApp(
@@ -33,8 +37,8 @@ Future<void> main() async {
   // Make sure a user is logged in (authenticated or anonymous)
   await authService.ensureUser();
 
+  // Initialize the ability to open PDFs with the application to import tickets
   final PdfService pdfService = PdfService(rootNavigatorKey);
-
   await pdfService.initialize();
 
   runApp(

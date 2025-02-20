@@ -3,9 +3,13 @@ import 'package:intl/intl.dart';
 
 String formatEventDate(DateTime dateTime) {
   final now = DateTime.now();
-  if (dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day) {
+  if (dateTime.year == now.year &&
+      dateTime.month == now.month &&
+      dateTime.day == now.day) {
     return 'Today';
-  } else if (dateTime.year == now.year && dateTime.month == now.month && dateTime.day == now.day + 1) {
+  } else if (dateTime.year == now.year &&
+      dateTime.month == now.month &&
+      dateTime.day == now.day + 1) {
     return 'Tomorrow';
   } else {
     return DateFormat.yMMMMEEEEd().format(dateTime);

@@ -1,0 +1,11 @@
+targets:
+  $default:
+    sources:
+      include:
+        - lib/features/event/models/isar_event.dart
+        - lib/features/artist/models/isar_artist.dart
+        - lib/features/event/models/isar_event_artist.dart
+        - lib/features/genre/models/isar_genre.dart
+        - lib/features/promoter/models/isar_promoter.dart
+        - lib/features/user/models/isar_user.dart
+        - lib/features/venue/models/isar_venue.dart

@@ -305,7 +305,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       final createdEvent = await _eventService.addEvent(newEvent);
 
       // Upload image
-      final imageUrl = await _uploadImage(createdEvent.id!, _selectedImage!);
+      final imageUrl = await _uploadImage(createdEvent!.id!, _selectedImage!);
       final updatedEvent = await _eventService.updateEvent(
         createdEvent.copyWith(imageUrl: imageUrl),
       );

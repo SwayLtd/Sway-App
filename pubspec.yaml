@@ -1,5 +1,5 @@
 # https://stackoverflow.com/questions/51809421/flutter-is-not-able-to-install-the-apk-into-the-real-device-suddenly
-# dart run build_runner build --delete-conflicting-outputs
+# dart run build_runner clean && dart run build_runner build --delete-conflicting-outputs
 # flutter build apk --obfuscate --split-debug-info=Sway/debug_info
 # flutter pub deps > deps.txt
 
@@ -8,7 +8,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.5.2+1 # Add global validator and multilingual banned words system
+version: 0.6.0+3 # Full integration of Isar caching system and compatibility fixes
 
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
@@ -77,18 +77,26 @@ dependencies:
   in_app_review: ^2.0.10
   flutter_markdown: ^0.7.6+2
   add_2_calendar: ^3.0.1
-  dio: ^5.8.0+1
-  dio_cache_interceptor: ^3.5.1
-  drift: ^2.25.1
-  drift_flutter: ^0.2.4
   sqflite: ^2.4.1
   path: ^1.9.0
   path_provider: ^2.1.5
-  # isar_flutter_libs: ^3.1.0+1 # For Isar
+  analyzer: any # ^5.13.0
+  isar: ^3.1.0+1
+  #isar:
+  #  hosted: https://pub.isar-community.dev
+  #  version: 4.0.3
+  isar_flutter_libs: ^3.1.0+1
+  #isar_flutter_libs:
+  #  hosted: https://pub.isar-community.dev
+  #  version: 4.0.3
 
 dev_dependencies:
-  build_runner: ^2.4.15
-  drift_dev: ^2.25.2
+  build_runner: any # ^2.4.13 no ^ to test?
+  isar_generator: ^3.1.0+1 # any
+  #git:
+  #  url: https://github.com/isar-community/isar.git
+  #  ref: 3.1.0+1
+  #  path: packages/isar_generator
   firebase_crashlytics: ^4.0.3
   flutter_driver:
     sdk: flutter
@@ -96,7 +104,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   lint: ^2.3.0
-  # isar_generator: ^3.1.0+1 # For Isar
   # plausible_analytics: ^0.3.0
 
 # flutter_icons:

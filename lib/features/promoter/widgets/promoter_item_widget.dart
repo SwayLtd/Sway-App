@@ -38,7 +38,7 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
     _followersCountFuture = _userFollowPromoterService
         .getPromoterFollowersCount(widget.promoter.id!);
     _upcomingEventsCountFuture = _promoterService
-        .getPromoterByIdWithEvents(widget.promoter.id!)
+        .getPromoterById(widget.promoter.id!)
         .then((promoter) => promoter?.upcomingEvents.length ?? 0);
   }
 
@@ -202,7 +202,7 @@ class _PromoterCardItemWidgetState extends State<PromoterCardItemWidget> {
     _isFollowingFuture =
         UserFollowPromoterService().isFollowingPromoter(widget.promoter.id!);
     _upcomingEventsCountFuture = PromoterService()
-        .getPromoterByIdWithEvents(widget.promoter.id!)
+        .getPromoterById(widget.promoter.id!)
         .then((promoter) => promoter?.upcomingEvents.length ?? 0);
   }
 

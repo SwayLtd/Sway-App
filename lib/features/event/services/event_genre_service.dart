@@ -1,102 +1,140 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:isar/isar.dart';
+import 'package:sway/core/utils/connectivity_helper.dart';
+import 'package:sway/core/services/database_service.dart';
 import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/models/isar_event.dart';
+import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/genre/models/isar_genre.dart';
 
 class EventGenreService {
   final SupabaseClient _supabase = Supabase.instance.client;
+  final EventService _eventService = EventService();
+  late final Future<Isar> _isarFuture = DatabaseService().isar;
 
-  /// Retrieves the genres associated with a specific event.
+  /// Retrieves the genre IDs associated with a specific event.
+  /// In online mode, it fetches from Supabase and updates the local IsarEvent record.
+  /// In offline mode, it loads the genre IDs from the cached IsarEvent links.
   Future<List<int>> getGenresByEventId(int eventId) async {
-    try {
+    final online = await isConnected();
+    final isar = await _isarFuture;
+
+    if (online) {
       final response = await _supabase
           .from('event_genre')
           .select('genre_id')
           .eq('event_id', eventId);
-      print('getGenresByEventId Response: $response');
-      if ((response.isEmpty)) {
-        return [];
+      if ((response as List).isEmpty) return [];
+      final genreIds =
+          response.map<int>((entry) => entry['genre_id'] as int).toList();
+
+      // Update the local cache for the event.
+      final isarEvent =
+          await isar.isarEvents.filter().remoteIdEqualTo(eventId).findFirst();
+      if (isarEvent != null) {
+        await _updateEventGenresCache(isarEvent, genreIds, isar);
       }
-      return response.map<int>((entry) => entry['genre_id'] as int).toList();
-    } catch (e) {
-      print('Error in getGenresByEventId: $e');
-      rethrow;
+      return genreIds;
+    } else {
+      final isarEvent =
+          await isar.isarEvents.filter().remoteIdEqualTo(eventId).findFirst();
+      if (isarEvent != null) {
+        await isarEvent.genres.load();
+        return isarEvent.genres.map((g) => g.remoteId).toList();
+      }
+      return [];
     }
   }
 
-  /// Retrieves a list of upcoming events associated with a given genre.
+  /// Returns upcoming events associated with a given genre.
+  /// In online mode, it fetches event IDs from Supabase and retrieves the events via EventService.
+  /// In offline mode (or on error), it loads events from the local cache by filtering the IsarEvent links.
   Future<List<Event>> getUpcomingEventsByGenreId(int genreId) async {
-    try {
-      // Retrieve event IDs linked to the specified genre from the event_genre table.
-      final response = await _supabase
-          .from('event_genre')
-          .select('event_id')
-          .eq('genre_id', genreId);
+    final online = await isConnected();
+    final isar = await _isarFuture;
 
-      if ((response as List).isEmpty) {
-        return [];
+    if (online) {
+      try {
+        final response = await _supabase
+            .from('event_genre')
+            .select('event_id')
+            .eq('genre_id', genreId);
+        if ((response as List).isEmpty) return [];
+        final List<int> eventIds =
+            response.map<int>((json) => json['event_id'] as int).toList();
+        final events = await _eventService.getEventsByIds(eventIds);
+        final now = DateTime.now();
+        return events
+            .where((event) => event.eventDateTime.isAfter(now))
+            .toList();
+      } catch (e) {
+        print('Error in getUpcomingEventsByGenreId (online): $e');
+        return await _loadUpcomingEventsByGenreFromCache(genreId, isar: isar);
       }
-
-      // Extract event IDs from the response.
-      final List<int> eventIds =
-          response.map<int>((json) => json['event_id'] as int).toList();
-
-      // Retrieve the events corresponding to the collected event IDs,
-      // filtering to return only upcoming events (date_time greater than now).
-      final nowIso = DateTime.now().toIso8601String();
-      final eventsResponse = await _supabase
-          .from('events')
-          .select()
-          .filter('id', 'in', eventIds)
-          .gte('date_time', nowIso);
-
-      if ((eventsResponse as List).isEmpty) {
-        return [];
-      }
-
-      // Convert the list of JSON objects into a list of Event objects.
-      return eventsResponse
-          .map<Event>((json) => Event.fromJson(json))
-          .toList();
-    } catch (e) {
-      print('Error in getUpcomingEventsByGenreId: $e');
-      rethrow;
+    } else {
+      return await _loadUpcomingEventsByGenreFromCache(genreId, isar: isar);
     }
   }
 
-  /// Adds a genre to an event.
+  /// Adds a genre to an event on Supabase and updates the local cache.
   Future<void> addGenreToEvent(int eventId, int genreId) async {
-    print('Adding genre $genreId to event $eventId');
+    final online = await isConnected();
+    if (!online)
+      throw Exception('No internet connection to add genre to event.');
+
     final response = await _supabase.from('event_genre').insert({
       'event_id': eventId,
       'genre_id': genreId,
-    }).select(); // Adding .select() for confirmation.
-    print('addGenreToEvent Response: $response');
-    if ((response.isEmpty)) {
+    }).select();
+    if ((response as List).isEmpty) {
       throw Exception('Failed to add genre to event.');
+    }
+
+    // Update local cache: add the genre to the event's IsarLinks.
+    final isar = await _isarFuture;
+    final isarEvent =
+        await isar.isarEvents.filter().remoteIdEqualTo(eventId).findFirst();
+    if (isarEvent != null) {
+      await _storeGenreInEventCache(isarEvent, genreId, isar);
     }
   }
 
-  /// Removes a genre from an event.
+  /// Removes a genre from an event on Supabase and updates the local cache.
   Future<void> removeGenreFromEvent(int eventId, int genreId) async {
-    print('Removing genre $genreId from event $eventId');
+    final online = await isConnected();
+    if (!online) throw Exception('No internet connection to remove genre.');
+
     final response = await _supabase
         .from('event_genre')
         .delete()
         .eq('event_id', eventId)
         .eq('genre_id', genreId)
-        .select(); // Adding .select() for confirmation.
-    print('removeGenreFromEvent Response: $response');
-    if ((response.isEmpty)) {
+        .select();
+    if ((response as List).isEmpty) {
       throw Exception('Failed to remove genre from event.');
+    }
+
+    // Update local cache: remove the genre link from the event.
+    final isar = await _isarFuture;
+    final isarEvent =
+        await isar.isarEvents.filter().remoteIdEqualTo(eventId).findFirst();
+    if (isarEvent != null) {
+      await isarEvent.genres.load();
+      isarEvent.genres.removeWhere((g) => g.remoteId == genreId);
+      await isarEvent.genres.save();
     }
   }
 
-  /// Updates the genres associated with an event.
-  Future<void> updateEventGenres(int eventId, List<int> genres) async {
-    print('Updating event genres for event $eventId with genres: $genres');
-    // Delete existing genres for the event.
+  /// Updates the genres associated with an event on Supabase and updates the local cache.
+  Future<void> updateEventGenres(int eventId, List<int> genreIds) async {
+    final online = await isConnected();
+    if (!online)
+      throw Exception('No internet connection to update event genres.');
+
+    // Delete existing records on Supabase.
     await _supabase.from('event_genre').delete().eq('event_id', eventId);
-    // Prepare new entries.
-    final entries = genres
+    // Insert new records.
+    final entries = genreIds
         .map((genreId) => {
               'event_id': eventId,
               'genre_id': genreId,
@@ -105,10 +143,89 @@ class EventGenreService {
     if (entries.isNotEmpty) {
       final response =
           await _supabase.from('event_genre').insert(entries).select();
-      print('updateEventGenres Response: $response');
-      if ((response.isEmpty)) {
+      if ((response as List).isEmpty) {
         throw Exception('Failed to update event genres.');
       }
+      // Update local cache.
+      final isar = await _isarFuture;
+      final isarEvent =
+          await isar.isarEvents.filter().remoteIdEqualTo(eventId).findFirst();
+      if (isarEvent != null) {
+        await _updateEventGenresCache(isarEvent, genreIds, isar);
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // HELPER METHODS FOR CACHE
+  // --------------------------------------------------------------------------
+
+  /// Factorized function to update the genre links in a cached event.
+  Future<void> _updateEventGenresCache(
+      IsarEvent isarEvent, List<int> genreIds, Isar isar) async {
+    await isar.writeTxn(() async {
+      isarEvent.genres.clear();
+      for (final id in genreIds) {
+        final isarGenre =
+            await isar.isarGenres.filter().remoteIdEqualTo(id).findFirst();
+        if (isarGenre != null) {
+          isarEvent.genres.add(isarGenre);
+        }
+      }
+      await isarEvent.genres.save();
+    });
+  }
+
+  /// Factorized helper to update the genre link in a cached event.
+  Future<void> _storeGenreInEventCache(
+      IsarEvent isarEvent, int genreId, Isar isar) async {
+    await isar.writeTxn(() async {
+      await isarEvent.genres.load();
+      if (!isarEvent.genres.any((g) => g.remoteId == genreId)) {
+        final isarGenre =
+            await isar.isarGenres.filter().remoteIdEqualTo(genreId).findFirst();
+        if (isarGenre != null) {
+          isarEvent.genres.add(isarGenre);
+          await isarEvent.genres.save();
+        }
+      }
+    });
+  }
+
+  Future<List<Event>> _loadUpcomingEventsByGenreFromCache(int genreId,
+      {required Isar isar}) async {
+    try {
+      final isarEvents = await isar.isarEvents
+          .filter()
+          .genres((q) => q.remoteIdEqualTo(genreId))
+          .findAll();
+      final now = DateTime.now();
+      final upcomingIsarEvents = isarEvents
+          .where((event) => event.eventDateTime.isAfter(now))
+          .toList();
+
+      // Convertir chaque IsarEvent en Event
+      final upcomingEvents = upcomingIsarEvents.map((isarEvent) {
+        return Event(
+          id: isarEvent.remoteId,
+          title: isarEvent.title,
+          type: isarEvent.type,
+          eventDateTime: isarEvent.eventDateTime,
+          eventEndDateTime: isarEvent.eventEndDateTime,
+          description: isarEvent.description,
+          imageUrl: isarEvent.imageUrl,
+          price: isarEvent.price,
+          promoters: [], // à remplir si nécessaire
+          genres: [], // à remplir si nécessaire
+          artists: [], // à remplir si nécessaire
+          interestedUsersCount: isarEvent.interestedUsersCount,
+        );
+      }).toList();
+
+      return upcomingEvents;
+    } catch (e) {
+      print('Error in _loadUpcomingEventsByGenreFromCache: $e');
+      return [];
     }
   }
 }

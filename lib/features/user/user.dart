@@ -1,4 +1,4 @@
-// lib/features/user/user_screen.dart
+/// lib/features/user/user.dart
 
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +23,7 @@ import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/widgets/promoter_item_widget.dart';
 import 'package:sway/features/promoter/widgets/promoter_modal_bottom_sheet.dart';
 import 'package:sway/features/user/models/user_model.dart';
-import 'package:sway/features/user/screens/edit_user_screen.dart'; // Renamed from edit_user_screen.dart
+import 'package:sway/features/user/screens/edit_user_screen.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
 import 'package:sway/features/user/services/user_follow_genre_service.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
@@ -32,8 +32,8 @@ import 'package:sway/features/user/services/user_interest_event_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/follow_count_widget.dart';
 import 'package:sway/features/user/widgets/following_button_widget.dart';
-import 'package:sway/features/venue/venue.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:sway/features/venue/venue.dart';
 import 'package:sway/features/venue/widgets/venue_item_widget.dart';
 import 'package:sway/features/venue/widgets/venue_modal_bottom_sheet.dart';
 
@@ -103,6 +103,17 @@ class _UserScreenState extends State<UserScreen> {
     ]);
   }
 
+  /// Helper widget to afficher le message "You're offline."
+  Widget _offlineMessage() {
+    /*return const Center(
+      child: Text(
+        "You're offline",
+        style: TextStyle(fontSize: 16, color: Colors.grey),
+      ),
+    );*/
+    return SizedBox.shrink();
+  }
+
   /// Builds a section title with an arrow button if more items are available.
   Widget _buildSectionTitle(String title, bool hasMore, VoidCallback? onMore) {
     return Padding(
@@ -130,6 +141,8 @@ class _UserScreenState extends State<UserScreen> {
     return FutureBuilder<User?>(
       future: _userFuture,
       builder: (context, snapshot) {
+        // Si l'utilisateur n'est pas connecté à Internet ou si le cache est vide,
+        // affiche "You're offline."
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
             appBar: AppBar(title: const Text('User Profile')),
@@ -140,7 +153,7 @@ class _UserScreenState extends State<UserScreen> {
             snapshot.data == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('User Profile')),
-            body: const Center(child: Text('User not found')),
+            body: _offlineMessage(),
           );
         } else {
           _user = snapshot.data!;
@@ -148,7 +161,7 @@ class _UserScreenState extends State<UserScreen> {
             appBar: AppBar(
               title: Text(_user!.username),
               actions: [
-                // If the current user is viewing their own user, show an edit button; otherwise, show the follow button.
+                // If the current user is viewing their own profile, show the edit button; otherwise, show the follow button.
                 if (_currentUser != null && _currentUser!.id == widget.userId)
                   IconButton(
                     icon: const Icon(Icons.edit),
@@ -190,7 +203,7 @@ class _UserScreenState extends State<UserScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // User Picture
+                      // User picture.
                       Center(
                         child: Container(
                           decoration: BoxDecoration(
@@ -214,26 +227,23 @@ class _UserScreenState extends State<UserScreen> {
                         ),
                       ),
                       const SizedBox(height: sectionTitleSpacing),
-                      // Username
+                      // Username.
                       Text(
                         _user!.username,
                         style: const TextStyle(
                             fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 5),
-                      // Registration Date
-                      Text(
-                        formatEventDate(_user!.createdAt.toLocal()),
-                        style: const TextStyle(fontSize: 16),
-                      ),
+                      // Registration date.
+                      if (_user!.createdAt != null)
+                        Text(formatEventDate(_user!.createdAt!.toLocal()),
+                            style: const TextStyle(fontSize: 16)),
                       const SizedBox(height: sectionSpacing),
-                      // FOLLOWERS & FOLLOWING Buttons
+                      // FOLLOWERS & FOLLOWING buttons.
                       FollowersCountWidget(
-                        entityId: widget.userId,
-                        entityType: 'user',
-                      ),
+                          entityId: widget.userId, entityType: 'user'),
                       const SizedBox(height: sectionSpacing),
-                      // ABOUT section displayed only if there is content
+                      // ABOUT section.
                       if (_user!.bio.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -242,7 +252,7 @@ class _UserScreenState extends State<UserScreen> {
                             children: [
                               Text(
                                 "ABOUT '${_user!.username.toUpperCase()}'",
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 8),

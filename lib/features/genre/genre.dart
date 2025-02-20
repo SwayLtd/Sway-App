@@ -109,233 +109,233 @@ class _GenreScreenState extends State<GenreScreen> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
                     child: CircularProgressIndicator.adaptive());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data == null) {
-                return const Center(child: Text('Genre not found'));
+              } else if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  snapshot.data == null) {
+                // Si une erreur survient (par exemple SocketException) ou que rien n'est chargé,
+                // on affiche "You are offline."
+                // return const Center(child: Text("You're offline."));
+                return const SizedBox.shrink();
               } else {
                 final genre = snapshot.data!;
-                if (genreName == 'Genre') {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    setState(() {
-                      genreName = genre.name;
-                    });
-                  });
-                }
                 return SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Genre title in the body.
-                      Text(
-                        genre.name,
-                        style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: sectionTitleSpacing),
-                      // Followers count widget.
-                      FollowersCountWidget(
-                          entityId: widget.genreId, entityType: 'genre'),
-                      const SizedBox(height: sectionSpacing),
-                      // ABOUT section with description (if available).
-                      if (genre.description.isNotEmpty) ...[
-                        const Text(
-                          "ABOUT",
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Genre title in the body.
+                        Text(
+                          genre.name,
+                          style: const TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: sectionTitleSpacing),
-                        Container(
-                          width: MediaQuery.of(context).size.width - 32,
-                          child: ExpandableText(
-                            genre.description,
-                            expandText: 'show more',
-                            collapseText: 'show less',
-                            maxLines: 3,
-                            linkColor: Theme.of(context).primaryColor,
-                          ),
-                        ),
+                        // Followers count widget.
+                        FollowersCountWidget(
+                            entityId: widget.genreId, entityType: 'genre'),
                         const SizedBox(height: sectionSpacing),
-                      ],
-                      // UPCOMING EVENTS section.
-                      FutureBuilder<List<Event>>(
-                        future: _genreEventsFuture,
-                        builder: (context, eventSnapshot) {
-                          if (eventSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator.adaptive());
-                          } else if (eventSnapshot.hasError) {
-                            return Center(
-                                child: Text('Error: ${eventSnapshot.error}'));
-                          } else if (!eventSnapshot.hasData ||
-                              eventSnapshot.data!.isEmpty) {
-                            return const SizedBox.shrink();
-                          } else {
-                            final events = eventSnapshot.data!;
-                            final now = DateTime.now();
-                            final upcomingEvents = events
-                                .where((e) => e.eventDateTime.isAfter(now))
-                                .toList();
-                            if (upcomingEvents.isEmpty)
+                        // ABOUT section with description (if available).
+                        if (genre.description.isNotEmpty) ...[
+                          const Text(
+                            "ABOUT",
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: sectionTitleSpacing),
+                          Container(
+                            width: MediaQuery.of(context).size.width - 32,
+                            child: ExpandableText(
+                              genre.description,
+                              expandText: 'show more',
+                              collapseText: 'show less',
+                              maxLines: 3,
+                              linkColor: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: sectionSpacing),
+                        ],
+                        // UPCOMING EVENTS section.
+                        FutureBuilder<List<Event>>(
+                          future: _genreEventsFuture,
+                          builder: (context, eventSnapshot) {
+                            if (eventSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator.adaptive());
+                            } else if (eventSnapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${eventSnapshot.error}'));
+                            } else if (!eventSnapshot.hasData ||
+                                eventSnapshot.data!.isEmpty) {
                               return const SizedBox.shrink();
-                            const int displayCount = 5;
-                            final List<Event> displayEvents =
-                                upcomingEvents.length > displayCount
-                                    ? upcomingEvents.sublist(0, displayCount)
-                                    : upcomingEvents;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "${genreName.toUpperCase()} UPCOMING EVENTS",
-                                      style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    if (upcomingEvents.length > displayCount)
-                                      IconButton(
-                                        icon: const Icon(Icons.arrow_forward),
-                                        onPressed: () {
-                                          showEventModalBottomSheet(
-                                              context, upcomingEvents);
-                                        },
+                            } else {
+                              final events = eventSnapshot.data!;
+                              final now = DateTime.now();
+                              final upcomingEvents = events
+                                  .where((e) => e.eventDateTime.isAfter(now))
+                                  .toList();
+                              if (upcomingEvents.isEmpty)
+                                return const SizedBox.shrink();
+                              const int displayCount = 5;
+                              final List<Event> displayEvents =
+                                  upcomingEvents.length > displayCount
+                                      ? upcomingEvents.sublist(0, displayCount)
+                                      : upcomingEvents;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "${genreName.toUpperCase()} UPCOMING EVENTS",
+                                        style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                  ],
-                                ),
-                                const SizedBox(height: sectionTitleSpacing),
-                                SizedBox(
-                                  height: 258,
-                                  child: ListView.builder(
+                                      if (upcomingEvents.length > displayCount)
+                                        IconButton(
+                                          icon: const Icon(Icons.arrow_forward),
+                                          onPressed: () {
+                                            showEventModalBottomSheet(
+                                                context, upcomingEvents);
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: sectionTitleSpacing),
+                                  SizedBox(
+                                    height: 258,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: displayEvents.length,
+                                      itemBuilder: (context, index) {
+                                        final event = displayEvents[index];
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                              right: 16.0),
+                                          child: SizedBox(
+                                            width: 320,
+                                            child: EventCardItemWidget(
+                                              event: event,
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        EventScreen(
+                                                            event: event),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: sectionSpacing),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                        // TOP ARTISTS section: display up to 5 ArtistTileItemWidget; modal if more.
+                        FutureBuilder<List<Artist>>(
+                          future: _topArtistsFuture,
+                          builder: (context, artistSnapshot) {
+                            if (artistSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator.adaptive());
+                            } else if (artistSnapshot.hasError) {
+                              return Center(
+                                  child:
+                                      Text('Error: ${artistSnapshot.error}'));
+                            } else if (!artistSnapshot.hasData ||
+                                artistSnapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            } else {
+                              final artists = artistSnapshot.data!;
+                              final bool hasMore = artists.length > 5;
+                              final displayArtists =
+                                  hasMore ? artists.sublist(0, 5) : artists;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildSectionTitle(
+                                    "TOP ARTISTS",
+                                    hasMore,
+                                    () => showArtistModalBottomSheet(
+                                        context, artists),
+                                  ),
+                                  const SizedBox(height: sectionTitleSpacing),
+                                  SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
-                                    itemCount: displayEvents.length,
-                                    itemBuilder: (context, index) {
-                                      final event = displayEvents[index];
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 16.0),
-                                        child: SizedBox(
-                                          width: 320,
-                                          child: EventCardItemWidget(
-                                            event: event,
+                                    child: Row(
+                                      children: displayArtists.map((artist) {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: ArtistTileItemWidget(
+                                            artist: artist,
                                             onTap: () {
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
                                                   builder: (context) =>
-                                                      EventScreen(event: event),
+                                                      ArtistScreen(
+                                                          artistId: artist.id!),
                                                 ),
                                               );
                                             },
                                           ),
-                                        ),
-                                      );
-                                    },
+                                        );
+                                      }).toList(),
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: sectionSpacing),
-                              ],
-                            );
-                          }
-                        },
-                      ),
-                      // TOP ARTISTS section: display up to 5 ArtistTileItemWidget; modal if more.
-                      FutureBuilder<List<Artist>>(
-                        future: _topArtistsFuture,
-                        builder: (context, artistSnapshot) {
-                          if (artistSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator.adaptive());
-                          } else if (artistSnapshot.hasError) {
-                            return Center(
-                                child: Text('Error: ${artistSnapshot.error}'));
-                          } else if (!artistSnapshot.hasData ||
-                              artistSnapshot.data!.isEmpty) {
-                            return const SizedBox.shrink();
-                          } else {
-                            final artists = artistSnapshot.data!;
-                            final bool hasMore = artists.length > 5;
-                            final displayArtists =
-                                hasMore ? artists.sublist(0, 5) : artists;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildSectionTitle(
-                                  "TOP ARTISTS",
-                                  hasMore,
-                                  () => showArtistModalBottomSheet(
-                                      context, artists),
-                                ),
-                                const SizedBox(height: sectionTitleSpacing),
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: displayArtists.map((artist) {
-                                      return Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: ArtistTileItemWidget(
-                                          artist: artist,
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    ArtistScreen(
-                                                        artistId: artist.id!),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                                const SizedBox(height: sectionSpacing),
-                              ],
-                            );
-                          }
-                        },
-                      ),
-                      // Suggested Playlists placeholder.
-                      const Text(
-                        "SUGGESTED PLAYLISTS",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: sectionTitleSpacing),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Icon(
-                            Icons.construction,
-                            color: Colors.grey,
-                            size: 24,
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Feature coming soon',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                                fontStyle: FontStyle.italic,
-                              ),
-                              textAlign: TextAlign.left,
+                                  const SizedBox(height: sectionSpacing),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                        // Suggested Playlists placeholder.
+                        const Text(
+                          "SUGGESTED PLAYLISTS",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: sectionTitleSpacing),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Icon(
+                              Icons.construction,
+                              color: Colors.grey,
+                              size: 24,
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: sectionSpacing),
-                    ],
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Feature coming soon',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: sectionSpacing),
+                      ],
+                    ),
                   ),
                 );
               }

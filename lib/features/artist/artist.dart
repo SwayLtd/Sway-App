@@ -1,3 +1,5 @@
+// lib/features/artist/screens/artist_screen.dart
+
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart'; // sectionSpacing & sectionTitleSpacing
@@ -8,7 +10,7 @@ import 'package:sway/features/artist/screens/edit_artist_screen.dart';
 import 'package:sway/features/artist/services/artist_genre_service.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
 import 'package:sway/features/artist/services/similar_artist_service.dart';
-import 'package:sway/features/artist/widgets/artist_item_widget.dart'; // Contient ArtistTileItemWidget
+import 'package:sway/features/artist/widgets/artist_item_widget.dart'; // Contains ArtistTileItemWidget
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
@@ -59,13 +61,13 @@ class _ArtistScreenState extends State<ArtistScreen> {
     _fetchData();
   }
 
-  // Méthode pour (re)initialiser tous les futurs.
+  // Initializes all futures.
   void _fetchData() {
     _artistFuture = ArtistService().getArtistById(widget.artistId);
     _eventsFuture = EventArtistService()
         .getEventsByArtistId(widget.artistId)
         .then((eventEntries) {
-      // Extraction des événements uniques
+      // Extract unique events.
       final uniqueEvents = eventEntries
           .fold<Map<int, Event>>({}, (map, entry) {
             final event = entry['event'] as Event;
@@ -85,7 +87,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
         SimilarArtistService().getSimilarArtistsByArtistId(widget.artistId);
   }
 
-  // Callback de rafraîchissement pour le RefreshIndicator.
+  // Callback for RefreshIndicator.
   Future<void> _refreshData() async {
     setState(() {
       _fetchData();
@@ -100,7 +102,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
     ]);
   }
 
-  /// Construit un titre de section avec une flèche si nécessaire.
+  /// Builds a section title with a forward arrow if needed.
   Widget _buildSectionTitle(String title, bool hasMore, VoidCallback? onMore) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -126,10 +128,10 @@ class _ArtistScreenState extends State<ArtistScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Ordre des icônes : edit, share, follow.
+        // Icons order: edit, share, follow.
         title: Text(artistName),
         actions: [
-          // Bouton d'édition conditionnel
+          // Conditional edit button.
           FutureBuilder<bool>(
             future: UserPermissionService().hasPermissionForCurrentUser(
               widget.artistId,
@@ -166,7 +168,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
               );
             },
           ),
-          // Bouton de partage
+          // Share button.
           Transform.flip(
             flipX: true,
             child: IconButton(
@@ -176,7 +178,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
               },
             ),
           ),
-          // Bouton de suivi
+          // Follow button.
           FollowingButtonWidget(
               entityId: widget.artistId, entityType: 'artist'),
         ],
@@ -188,10 +190,14 @@ class _ArtistScreenState extends State<ArtistScreen> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator.adaptive());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Center(child: Text('Artist not found'));
+            } else if (snapshot.hasError ||
+                !snapshot.hasData ||
+                snapshot.data == null) {
+              // Si une erreur survient ou si aucune donnée n'est disponible,
+              // afficher "You are offline." (pour signifier que les données ne peuvent pas être chargées)
+
+              // return const Center(child: Text("You're offline."));
+              return const SizedBox.shrink();
             } else {
               final artist = snapshot.data!;
               if (artistName == 'Artist') {
@@ -207,7 +213,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Image de l'artiste et informations de base
+                    // Artist image and basic info.
                     Center(
                       child: Container(
                         decoration: BoxDecoration(
@@ -230,86 +236,77 @@ class _ArtistScreenState extends State<ArtistScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: sectionTitleSpacing),
-                    // Display artist name with VerifiedIconWidget for verification status
-                    Container(
-                      width: double.infinity,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            artist.name,
-                            textAlign: TextAlign.left,
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
-                          ),
-                          VerifiedIconWidget(
-                            isVerified: artist
-                                .isVerified, // Make sure your Artist model has an "isVerified" property
-                            entityType: 'artist',
-                            entityName: artist.name,
-                            entityId: artist.id,
-                          ),
-                        ],
-                      ),
+                    const SizedBox(height: sectionTitleSpacing),
+                    // Artist name with verification icon.
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          artist.name,
+                          style: const TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        VerifiedIconWidget(
+                          isVerified: artist.isVerified,
+                          entityType: 'artist',
+                          entityName: artist.name,
+                          entityId: artist.id,
+                        ),
+                      ],
                     ),
-
-                    SizedBox(height: 5),
-                    // Compteur de followers
+                    const SizedBox(height: 5),
+                    // Followers count.
                     FollowersCountWidget(
                         entityId: widget.artistId, entityType: 'artist'),
-                    SizedBox(height: sectionSpacing),
-                    // Section ABOUT avec ExpandableText (affichée si description non vide)
+                    const SizedBox(height: sectionSpacing),
+                    // ABOUT section.
                     if (artist.description.isNotEmpty) ...[
                       const Text(
                         "ABOUT",
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(height: sectionTitleSpacing),
-                      Container(
-                        width: MediaQuery.of(context).size.width - 32,
-                        child: ExpandableText(
-                          artist.description,
-                          expandText: 'show more',
-                          collapseText: 'show less',
-                          maxLines: 3,
-                          linkColor: Theme.of(context).primaryColor,
-                        ),
+                      const SizedBox(height: sectionTitleSpacing),
+                      ExpandableText(
+                        artist.description,
+                        expandText: 'show more',
+                        collapseText: 'show less',
+                        maxLines: 3,
+                        linkColor: Theme.of(context).primaryColor,
                       ),
-                      SizedBox(height: sectionSpacing),
+                      const SizedBox(height: sectionSpacing),
                     ],
-                    // Section MOOD : affichage de quelques genres avec modal si plus de 6
+                    // MOOD section (Genres).
                     FutureBuilder<List<int>>(
-                      future: _genresFuture,
+                      future: ArtistGenreService()
+                          .getGenresByArtistId(widget.artistId),
                       builder: (context, genreSnapshot) {
                         if (genreSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
                               child: CircularProgressIndicator.adaptive());
-                        } else if (genreSnapshot.hasError) {
-                          return Center(
-                              child: Text('Error: ${genreSnapshot.error}'));
-                        } else if (!genreSnapshot.hasData ||
+                        } else if (genreSnapshot.hasError ||
+                            !genreSnapshot.hasData ||
                             genreSnapshot.data!.isEmpty) {
                           return const SizedBox.shrink();
                         } else {
                           final genres = genreSnapshot.data!;
-                          final bool hasMore = genres.length > 6;
+                          final bool hasMoreGenres = genres.length > 6;
                           final displayGenres =
-                              hasMore ? genres.sublist(0, 6) : genres;
+                              hasMoreGenres ? genres.sublist(0, 6) : genres;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSectionTitle(
                                 "MOOD",
-                                hasMore,
+                                hasMoreGenres,
                                 () =>
                                     showGenreModalBottomSheet(context, genres),
                               ),
-                              SizedBox(height: sectionTitleSpacing),
+                              const SizedBox(height: sectionTitleSpacing),
                               Wrap(
                                 spacing: 8.0,
+                                runSpacing: 8.0,
                                 children: displayGenres.map((genreId) {
                                   return GestureDetector(
                                     onTap: () {
@@ -325,42 +322,49 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                   );
                                 }).toList(),
                               ),
-                              SizedBox(height: sectionSpacing),
+                              const SizedBox(height: sectionSpacing),
                             ],
                           );
                         }
                       },
                     ),
-                    // UPCOMING EVENTS section: only show events after today.
-                    FutureBuilder<List<Event>>(
-                      future: _eventsFuture,
+                    // UPCOMING EVENTS section
+                    FutureBuilder<List<Map<String, dynamic>>>(
+                      future: EventArtistService()
+                          .getEventsByArtistId(widget.artistId),
                       builder: (context, eventSnapshot) {
                         if (eventSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
                               child: CircularProgressIndicator.adaptive());
-                        } else if (eventSnapshot.hasError) {
-                          return Center(
-                              child: Text('Error: ${eventSnapshot.error}'));
-                        } else if (!eventSnapshot.hasData ||
+                        } else if (eventSnapshot.hasError ||
+                            !eventSnapshot.hasData ||
                             eventSnapshot.data!.isEmpty) {
                           return const SizedBox.shrink();
                         } else {
-                          final allEvents = eventSnapshot.data!;
-                          final now = DateTime.now();
-                          // Filter events to only those after the current date.
-                          final events = allEvents
-                              .where((e) => e.eventDateTime.isAfter(now))
+                          // Extract the 'event' from each assignment and filter non-null ones.
+                          final allEvents = eventSnapshot.data!
+                              .map(
+                                  (assignment) => assignment['event'] as Event?)
+                              .where((event) => event != null)
+                              .cast<Event>()
                               .toList();
-                          // If there are no upcoming events after filtering, don't show the section.
-                          if (events.isEmpty) {
+
+                          final now = DateTime.now();
+                          final upcomingEvents = allEvents
+                              .where(
+                                  (event) => event.eventDateTime.isAfter(now))
+                              .toList();
+
+                          if (upcomingEvents.isEmpty)
                             return const SizedBox.shrink();
-                          }
+
                           const int displayCount = 5;
                           final List<Event> displayEvents =
-                              events.length > displayCount
-                                  ? events.sublist(0, displayCount)
-                                  : events;
+                              upcomingEvents.length > displayCount
+                                  ? upcomingEvents.sublist(0, displayCount)
+                                  : upcomingEvents;
+
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -374,17 +378,17 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold),
                                   ),
-                                  if (events.length > displayCount)
+                                  if (upcomingEvents.length > displayCount)
                                     IconButton(
                                       icon: const Icon(Icons.arrow_forward),
                                       onPressed: () {
                                         showEventModalBottomSheet(
-                                            context, events);
+                                            context, upcomingEvents);
                                       },
                                     ),
                                 ],
                               ),
-                              SizedBox(height: sectionTitleSpacing),
+                              const SizedBox(height: sectionTitleSpacing),
                               SizedBox(
                                 height: 258,
                                 child: ListView.builder(
@@ -414,41 +418,41 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                   },
                                 ),
                               ),
-                              SizedBox(height: sectionSpacing),
+                              const SizedBox(height: sectionSpacing),
                             ],
                           );
                         }
                       },
                     ),
-                    // Section RESIDENT PROMOTERS affichée verticalement sur toute la largeur
+                    // RESIDENT PROMOTERS section.
                     FutureBuilder<List<Promoter>>(
-                      future: _promotersFuture,
+                      future: PromoterResidentArtistsService()
+                          .getPromotersByArtistId(widget.artistId),
                       builder: (context, promoterSnapshot) {
                         if (promoterSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
                               child: CircularProgressIndicator.adaptive());
-                        } else if (promoterSnapshot.hasError) {
-                          return Center(
-                              child: Text('Error: ${promoterSnapshot.error}'));
-                        } else if (!promoterSnapshot.hasData ||
+                        } else if (promoterSnapshot.hasError ||
+                            !promoterSnapshot.hasData ||
                             promoterSnapshot.data!.isEmpty) {
                           return const SizedBox.shrink();
                         } else {
                           final promoters = promoterSnapshot.data!;
-                          final bool hasMore = promoters.length > 3;
-                          final displayPromoters =
-                              hasMore ? promoters.sublist(0, 3) : promoters;
+                          final bool hasMorePromoters = promoters.length > 3;
+                          final displayPromoters = hasMorePromoters
+                              ? promoters.sublist(0, 3)
+                              : promoters;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSectionTitle(
                                 "RESIDENT PROMOTERS",
-                                hasMore,
+                                hasMorePromoters,
                                 () => showPromoterModalBottomSheet(
                                     context, promoters),
                               ),
-                              SizedBox(height: sectionTitleSpacing),
+                              const SizedBox(height: sectionTitleSpacing),
                               Column(
                                 children: displayPromoters.map((promoter) {
                                   return Padding(
@@ -470,41 +474,40 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                   );
                                 }).toList(),
                               ),
-                              SizedBox(height: sectionSpacing),
+                              const SizedBox(height: sectionSpacing),
                             ],
                           );
                         }
                       },
                     ),
-                    // Section RESIDENT VENUES affichée verticalement sur toute la largeur
+                    // RESIDENT VENUES section.
                     FutureBuilder<List<Venue>>(
-                      future: _venuesFuture,
+                      future: VenueResidentArtistsService()
+                          .getVenuesByArtistId(widget.artistId),
                       builder: (context, venueSnapshot) {
                         if (venueSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
                               child: CircularProgressIndicator.adaptive());
-                        } else if (venueSnapshot.hasError) {
-                          return Center(
-                              child: Text('Error: ${venueSnapshot.error}'));
-                        } else if (!venueSnapshot.hasData ||
+                        } else if (venueSnapshot.hasError ||
+                            !venueSnapshot.hasData ||
                             venueSnapshot.data!.isEmpty) {
                           return const SizedBox.shrink();
                         } else {
                           final venues = venueSnapshot.data!;
-                          final bool hasMore = venues.length > 3;
+                          final bool hasMoreVenues = venues.length > 3;
                           final displayVenues =
-                              hasMore ? venues.sublist(0, 3) : venues;
+                              hasMoreVenues ? venues.sublist(0, 3) : venues;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSectionTitle(
                                 "RESIDENT VENUES",
-                                hasMore,
+                                hasMoreVenues,
                                 () =>
                                     showVenueModalBottomSheet(context, venues),
                               ),
-                              SizedBox(height: sectionTitleSpacing),
+                              const SizedBox(height: sectionTitleSpacing),
                               Column(
                                 children: displayVenues.map((venue) {
                                   return Padding(
@@ -525,24 +528,23 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                   );
                                 }).toList(),
                               ),
-                              SizedBox(height: sectionSpacing),
+                              const SizedBox(height: sectionSpacing),
                             ],
                           );
                         }
                       },
                     ),
-                    // Section FANS ALSO LIKE affichée horizontalement avec ArtistTileItemWidget
+                    // FANS ALSO LIKE section.
                     FutureBuilder<List<int>>(
-                      future: _similarArtistsFuture,
+                      future: SimilarArtistService()
+                          .getSimilarArtistsByArtistId(widget.artistId),
                       builder: (context, similarSnapshot) {
                         if (similarSnapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
                               child: CircularProgressIndicator.adaptive());
-                        } else if (similarSnapshot.hasError) {
-                          return Center(
-                              child: Text('Error: ${similarSnapshot.error}'));
-                        } else if (!similarSnapshot.hasData ||
+                        } else if (similarSnapshot.hasError ||
+                            !similarSnapshot.hasData ||
                             similarSnapshot.data!.isEmpty) {
                           return const SizedBox.shrink();
                         } else {
@@ -556,11 +558,8 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                 return const Center(
                                     child:
                                         CircularProgressIndicator.adaptive());
-                              } else if (artistListSnapshot.hasError) {
-                                return Center(
-                                    child: Text(
-                                        'Error: ${artistListSnapshot.error}'));
-                              } else if (!artistListSnapshot.hasData ||
+                              } else if (artistListSnapshot.hasError ||
+                                  !artistListSnapshot.hasData ||
                                   artistListSnapshot.data!.isEmpty) {
                                 return const SizedBox.shrink();
                               } else {
@@ -578,7 +577,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                       () => showArtistModalBottomSheet(
                                           context, allArtists),
                                     ),
-                                    SizedBox(height: sectionTitleSpacing),
+                                    const SizedBox(height: sectionTitleSpacing),
                                     SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       child: Row(
@@ -603,7 +602,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
                                         }).toList(),
                                       ),
                                     ),
-                                    SizedBox(height: sectionSpacing),
+                                    const SizedBox(height: sectionSpacing),
                                   ],
                                 );
                               }
@@ -612,9 +611,9 @@ class _ArtistScreenState extends State<ArtistScreen> {
                         }
                       },
                     ),
+                    // Claim Page Tile.
                     ClaimPageTile(
-                      isVerified: artist
-                          .isVerified, // Make sure your Artist model has an "isVerified" property
+                      isVerified: artist.isVerified,
                       entityType: 'artist',
                       entityName: artist.name,
                       entityId: artist.id,

@@ -151,10 +151,10 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
 
       // Add the artist to the database and get the created object with the assigned ID
       final createdArtist = await _artistService.addArtist(newArtist);
-      print('Created Artist: ${createdArtist.toJson()}');
+      print('Created Artist: ${createdArtist?.toJson()}');
 
       // Upload the image and get the URL
-      final imageUrl = await _uploadImage(createdArtist.id!);
+      final imageUrl = await _uploadImage(createdArtist!.id!);
       print('Image Uploaded: $imageUrl');
 
       // Update the artist with the image URL

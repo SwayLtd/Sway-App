@@ -2,14 +2,15 @@
 
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
-import 'package:sway/core/constants/dimensions.dart'; // Import des constantes
+import 'package:sway/core/constants/dimensions.dart'; // sectionSpacing, sectionTitleSpacing
 import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
-import 'package:sway/features/artist/widgets/artist_item_widget.dart'; // Contient ArtistTileItemWidget
+import 'package:sway/features/artist/widgets/artist_item_widget.dart';
 import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
 import 'package:sway/features/claim/widgets/claim_widgets.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
 import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart';
 import 'package:sway/features/genre/genre.dart';
@@ -38,9 +39,7 @@ class PromoterScreen extends StatefulWidget {
 class _PromoterScreenState extends State<PromoterScreen> {
   Promoter? _promoter;
   bool _isLoading = true;
-  String? _error;
-  // maxEvents peut rester à 2 pour la navigation rapide (dans le header) si nécessaire
-  final int maxEvents = 2;
+  String? _error; // Variable pour stocker le message d'erreur
 
   final UserPermissionService _permissionService = UserPermissionService();
 
@@ -48,7 +47,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
   Future<void> _fetchPromoterData() async {
     try {
       final promoter =
-          await PromoterService().getPromoterByIdWithEvents(widget.promoterId);
+          await PromoterService().getPromoterById(widget.promoterId);
       if (promoter == null) {
         setState(() {
           _error = 'Promoter not found';
@@ -58,13 +57,23 @@ class _PromoterScreenState extends State<PromoterScreen> {
         setState(() {
           _promoter = promoter;
           _isLoading = false;
+          _error = null;
         });
       }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      final errorMessage = e.toString();
+      if (errorMessage.contains('No internet connection') ||
+          errorMessage.contains('SocketException')) {
+        setState(() {
+          _error = 'You are offline';
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'An unexpected error occurred: $errorMessage';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -78,14 +87,13 @@ class _PromoterScreenState extends State<PromoterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_promoter != null ? '${_promoter!.name}' : 'Promoter'),
+        title: Text(_promoter != null ? _promoter!.name : 'Promoter'),
         actions: [
-          // Bouton d'édition (affiché selon les permissions)
           FutureBuilder<bool>(
             future: _permissionService.hasPermissionForCurrentUser(
               widget.promoterId,
               'promoter',
-              2, // manager ou supérieur
+              2,
             ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
@@ -93,28 +101,26 @@ class _PromoterScreenState extends State<PromoterScreen> {
                   !snapshot.hasData ||
                   !snapshot.data!) {
                 return const SizedBox.shrink();
-              } else {
-                return IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () async {
-                    if (_promoter != null) {
-                      final updatedPromoter = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              EditPromoterScreen(promoter: _promoter!),
-                        ),
-                      );
-                      if (updatedPromoter != null) {
-                        _fetchPromoterData();
-                      }
-                    }
-                  },
-                );
               }
+              return IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () async {
+                  if (_promoter != null) {
+                    final updatedPromoter = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            EditPromoterScreen(promoter: _promoter!),
+                      ),
+                    );
+                    if (updatedPromoter != null) {
+                      _fetchPromoterData();
+                    }
+                  }
+                },
+              );
             },
           ),
-          // Bouton de partage
           FutureBuilder<Promoter?>(
             future: PromoterService().getPromoterById(widget.promoterId),
             builder: (context, snapshot) {
@@ -137,7 +143,6 @@ class _PromoterScreenState extends State<PromoterScreen> {
               }
             },
           ),
-          // Bouton de suivi
           FollowingButtonWidget(
             entityId: widget.promoterId,
             entityType: 'promoter',
@@ -149,14 +154,19 @@ class _PromoterScreenState extends State<PromoterScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator.adaptive())
             : _error != null
-                ? Center(child: Text('Error: $_error'))
+                ? Center(
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(fontSize: 16, color: Colors.red),
+                    ),
+                  )
                 : SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Image du promoteur
+                        // Promoter image
                         Center(
                           child: Container(
                             decoration: BoxDecoration(
@@ -180,36 +190,31 @@ class _PromoterScreenState extends State<PromoterScreen> {
                           ),
                         ),
                         const SizedBox(height: sectionTitleSpacing),
-                        // Display promoter name with VerifiedIconWidget for verification status
-                        Container(
-                          width: double.infinity,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
+                        // Promoter name and verification icon
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
                                 _promoter!.name,
-                                textAlign: TextAlign.left,
                                 style: const TextStyle(
                                     fontSize: 24, fontWeight: FontWeight.bold),
                               ),
-                              VerifiedIconWidget(
-                                isVerified: _promoter!
-                                    .isVerified, // Make sure your Artist model has an "isVerified" property
-                                entityType: 'promoter',
-                                entityName: _promoter!.name,
-                                entityId: _promoter!.id,
-                              ),
-                            ],
-                          ),
+                            ),
+                            VerifiedIconWidget(
+                              isVerified: _promoter!.isVerified,
+                              entityType: 'promoter',
+                              entityName: _promoter!.name,
+                              entityId: _promoter!.id,
+                            ),
+                          ],
                         ),
                         const SizedBox(height: sectionTitleSpacing),
-                        // Compteur de followers
                         FollowersCountWidget(
                           entityId: widget.promoterId,
                           entityType: 'promoter',
                         ),
                         const SizedBox(height: sectionSpacing),
-                        // Section "ABOUT"
+                        // About section
                         if (_promoter!.description.isNotEmpty)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,7 +309,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
                         ),
                         // Section "UPCOMING EVENTS" inspirée de VenueScreen
                         FutureBuilder<List<Event>>(
-                          future: PromoterService()
+                          future: EventService()
                               .getEventsByIds(_promoter!.upcomingEvents),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==

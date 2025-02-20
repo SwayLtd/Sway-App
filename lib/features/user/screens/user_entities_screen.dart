@@ -72,7 +72,7 @@ class UserEntitiesScreen extends StatelessWidget {
         break;
       case 'promoter':
         final promoter =
-            await PromoterService().getPromoterByIdWithEvents(entityId);
+            await PromoterService().getPromoterById(entityId);
         if (promoter != null) {
           Navigator.push(
             context,
@@ -155,7 +155,7 @@ class UserEntitiesScreen extends StatelessWidget {
         break;
       case 'promoter':
         final promoter =
-            await PromoterService().getPromoterByIdWithEvents(entityId);
+            await PromoterService().getPromoterById(entityId);
         if (promoter != null) {
           Navigator.push(
             context,
@@ -339,7 +339,7 @@ class UserEntitiesScreen extends StatelessWidget {
                     children: promoterPermissions.map((permission) {
                       return FutureBuilder<Promoter?>(
                         future: PromoterService()
-                            .getPromoterByIdWithEvents(permission.entityId),
+                            .getPromoterById(permission.entityId),
                         builder: (context, promoterSnapshot) {
                           if (promoterSnapshot.connectionState ==
                               ConnectionState.waiting) {

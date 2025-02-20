@@ -187,10 +187,13 @@ class _VenueScreenState extends State<VenueScreen> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator.adaptive());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Center(child: Text('Venue not found'));
+            } else if (snapshot.hasError ||
+                !snapshot.hasData ||
+                snapshot.data == null) {
+              // Si une erreur survient (par exemple SocketException) ou que rien n'est chargé,
+              // on affiche "You are offline."
+              // return const Center(child: Text("You're offline."));
+              return const SizedBox.shrink();
             } else {
               final venue = snapshot.data!;
               return SingleChildScrollView(

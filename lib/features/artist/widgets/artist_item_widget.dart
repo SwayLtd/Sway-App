@@ -92,9 +92,6 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
       // Trier les événements par date ascendante
       upcomingEvents.sort((a, b) => a.eventDateTime.compareTo(b.eventDateTime));
 
-      print(
-          'Upcoming event:${upcomingEvents.first.title} le ${upcomingEvents.first.eventDateTime}');
-
       // Configurer le timer pour l'alternance si non déjà configuré
       if (!_hasTimer) {
         _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -250,8 +247,6 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                       );
                     } else {
                       final upcomingEvents = snapshot.data!;
-                      print(
-                          'Upcoming Events List: $upcomingEvents'); // Log pour débogage
                       // Vérifier que la liste n'est pas vide
                       if (upcomingEvents.isEmpty) {
                         // Si la liste est vide, afficher "No upcoming events"

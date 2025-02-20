@@ -3,7 +3,7 @@
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart'; // sectionSpacing & sectionTitleSpacing
-import 'package:sway/core/utils/date_utils.dart'; // Utilise ici la fonction formatEventDateRange
+import 'package:sway/core/utils/date_utils.dart'; // for formatEventDateRange
 import 'package:sway/core/utils/share_util.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
@@ -164,7 +164,6 @@ class _EventScreenState extends State<EventScreen> {
                 final int count = tickets.length;
                 final String ticketText =
                     count <= 1 ? '$count ticket' : '$count tickets';
-
                 return GestureDetector(
                   onTap: () {
                     if (count == 0) {
@@ -231,7 +230,7 @@ class _EventScreenState extends State<EventScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Event image (kept with the same format)
+              // Event image.
               Center(
                 child: Container(
                   decoration: BoxDecoration(
@@ -256,24 +255,21 @@ class _EventScreenState extends State<EventScreen> {
                 ),
               ),
               const SizedBox(height: sectionSpacing),
-              // Event title
+              // Event title.
               Text(
                 _event.title,
                 style:
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: sectionTitleSpacing),
-              // Followers count
+              // Followers count.
               FollowersCountWidget(entityId: _event.id!, entityType: 'event'),
               const SizedBox(height: sectionSpacing),
-              // InfoCard: Date (using formatEventDateRange from date_utils.dart)
+              // InfoCard: Date.
               GestureDetector(
                 onTap: () async {
-                  // Retrieve the venue dynamically
                   final venue = await _venueFuture;
-                  // Use an empty string if venue location is null
                   final location = venue?.location ?? '';
-                  // Create a calendar event using the calendar package with iOS and Android parameters
                   final calendarEvent = calendar.Event(
                     title: _event.title,
                     description: _event.description,
@@ -288,8 +284,6 @@ class _EventScreenState extends State<EventScreen> {
                       emailInvites: [],
                     ),
                   );
-                  debugPrint("InfoCard tapped");
-                  // Add the event to the calendar
                   try {
                     await calendar.Add2Calendar.addEvent2Cal(calendarEvent);
                   } catch (e) {
@@ -303,7 +297,7 @@ class _EventScreenState extends State<EventScreen> {
                 ),
               ),
               const SizedBox(height: sectionTitleSpacing),
-              // InfoCard: Location
+              // InfoCard: Location.
               FutureBuilder<Venue?>(
                 future: _venueFuture,
                 builder: (context, snapshot) {
@@ -333,7 +327,7 @@ class _EventScreenState extends State<EventScreen> {
                 },
               ),
               const SizedBox(height: sectionSpacing),
-              // ABOUT section (description)
+              // ABOUT section.
               if (_event.description.isNotEmpty) ...[
                 _buildSectionTitle("ABOUT", false, null),
                 const SizedBox(height: sectionTitleSpacing),
@@ -347,7 +341,7 @@ class _EventScreenState extends State<EventScreen> {
                 ),
                 const SizedBox(height: sectionSpacing),
               ],
-              // MOOD section (Genres)
+              // MOOD section.
               FutureBuilder<List>(
                 future: _genresFuture,
                 builder: (context, snapshot) {
@@ -357,6 +351,7 @@ class _EventScreenState extends State<EventScreen> {
                   } else if (snapshot.hasError ||
                       !snapshot.hasData ||
                       snapshot.data!.isEmpty) {
+                    // return const Center(child: Text("You're offline."));
                     return const SizedBox.shrink();
                   } else {
                     final genres = snapshot.data!;
@@ -367,7 +362,6 @@ class _EventScreenState extends State<EventScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSectionTitle("MOOD", hasMore, () {
-                          // Show up to 10 genres in a modal.
                           showGenreModalBottomSheet(
                               context, genres.take(10).cast<int>().toList());
                         }),
@@ -395,7 +389,7 @@ class _EventScreenState extends State<EventScreen> {
                   }
                 },
               ),
-              // LINE UP section (Artists)
+              // LINE UP section.
               FutureBuilder<List<Map<String, dynamic>>>(
                 future: _artistsFuture,
                 builder: (context, snapshot) {
@@ -405,10 +399,10 @@ class _EventScreenState extends State<EventScreen> {
                   } else if (snapshot.hasError ||
                       !snapshot.hasData ||
                       snapshot.data!.isEmpty) {
+                    // return const Center(child: Text("You're offline."));
                     return const SizedBox.shrink();
                   } else {
                     final artistEntries = snapshot.data!;
-                    // Flatten and deduplicate the list of artists.
                     final Map<int, Artist> uniqueArtists = {};
                     for (final entry in artistEntries) {
                       final List<dynamic> artists =
@@ -425,7 +419,6 @@ class _EventScreenState extends State<EventScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSectionTitle("LINE UP", hasMore, () {
-                          // Show up to 10 artists in a modal.
                           showArtistModalBottomSheet(
                               context, artistsList.take(10).toList());
                         }),
@@ -458,7 +451,7 @@ class _EventScreenState extends State<EventScreen> {
                   }
                 },
               ),
-              // ORGANIZED BY section (Promoters)
+              // ORGANIZED BY section.
               FutureBuilder<List<Promoter>>(
                 future: _promotersFuture,
                 builder: (context, snapshot) {
@@ -468,6 +461,7 @@ class _EventScreenState extends State<EventScreen> {
                   } else if (snapshot.hasError ||
                       !snapshot.hasData ||
                       snapshot.data!.isEmpty) {
+                    // return const Center(child: Text("You're offline."));
                     return const SizedBox.shrink();
                   } else {
                     final promoters = snapshot.data!;
@@ -478,7 +472,6 @@ class _EventScreenState extends State<EventScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSectionTitle("ORGANIZED BY", hasMore, () {
-                          // Show up to 10 promoters in a modal.
                           showPromoterModalBottomSheet(
                               context, promoters.take(10).toList());
                         }),
@@ -509,7 +502,7 @@ class _EventScreenState extends State<EventScreen> {
                   }
                 },
               ),
-              // Map section: displays the event location on a map.
+              // MAP section.
               FutureBuilder<Venue?>(
                 future: _venueFuture,
                 builder: (context, snapshot) {
