@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Fix and Optimize Upcoming Events Display for Promoter
 - Fix GenreScreen app bar title update and prevent setState errors
 - Simplified Notification Permission Request Dialog
 - Improve Security: Fix search_path Warnings & Enable RLS

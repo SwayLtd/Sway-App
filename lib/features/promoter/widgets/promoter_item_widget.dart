@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/event/services/event_promoter_service.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
@@ -30,16 +31,20 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
 
   final UserFollowPromoterService _userFollowPromoterService =
       UserFollowPromoterService();
-  final PromoterService _promoterService = PromoterService();
+  final EventPromoterService _eventPromoterService =
+      EventPromoterService(); // Utiliser EventPromoterService
 
   @override
   void initState() {
     super.initState();
     _followersCountFuture = _userFollowPromoterService
         .getPromoterFollowersCount(widget.promoter.id!);
-    _upcomingEventsCountFuture = _promoterService
-        .getPromoterById(widget.promoter.id!)
-        .then((promoter) => promoter?.upcomingEvents.length ?? 0);
+
+    // Utiliser EventPromoterService pour obtenir le nombre d'événements à venir
+    _upcomingEventsCountFuture = _eventPromoterService
+        .getEventsByPromoterId(widget.promoter.id!)
+        .then((events) =>
+            events.length); // Récupérer la longueur de la liste d'événements
   }
 
   @override
@@ -137,7 +142,8 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
                   },
                 ),
                 FutureBuilder<int>(
-                  future: _upcomingEventsCountFuture,
+                  future:
+                      _upcomingEventsCountFuture, // Utiliser _upcomingEventsCountFuture
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Text(

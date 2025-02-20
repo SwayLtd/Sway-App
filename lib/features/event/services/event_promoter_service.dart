@@ -1,11 +1,14 @@
+// lib/features/event/services/event_promoter_service.dart
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/utils/connectivity_helper.dart';
 import 'package:sway/features/promoter/models/isar_promoter.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
-import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/core/services/database_service.dart';
 import 'package:isar/isar.dart';
 import 'package:sway/features/event/models/isar_event.dart';
+import 'package:sway/features/event/models/event_model.dart';
+import 'package:sway/features/promoter/services/promoter_service.dart';
 
 class EventPromoterService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -39,6 +42,57 @@ class EventPromoterService {
     } else {
       // Offline: use the helper to load from the cache.
       return await _loadCachedPromoters(eventId, isar);
+    }
+  }
+
+  // Récupérer les événements associés à un promoteur (en ligne ou depuis le cache)
+  Future<List<Event>> getEventsByPromoterId(int promoterId) async {
+    final online = await isConnected();
+    final isar = await _isarFuture;
+
+    // print('Fetching events for promoter ID: $promoterId'); // Log pour vérifier l'ID du promoteur
+
+    if (online) {
+      try {
+        // Récupérer les événements associés au promoteur depuis Supabase
+        final response = await _supabase
+            .from('event_promoter')
+            .select('event_id')
+            .eq('promoter_id', promoterId);
+
+        // print('Supabase response for promoter ID $promoterId: $response'); // Log de la réponse
+
+        if ((response as List).isEmpty) {
+          // print('No events found for promoter ID $promoterId on Supabase');
+          return [];
+        }
+
+        final List<int> eventIds =
+            response.map<int>((entry) => entry['event_id'] as int).toList();
+
+        // Récupérer les événements depuis Supabase
+        final eventsResponse = await _supabase
+            .from('events')
+            .select()
+            .filter('id', 'in', eventIds);
+        // print('Fetched events from Supabase: ${eventsResponse.length} events'); // Log des événements récupérés
+
+        final events = (eventsResponse as List)
+            .map<Event>((json) => Event.fromJson(json))
+            .toList();
+
+        // Met à jour le cache avec les événements récupérés
+        await _updateEventsCache(events, isar);
+
+        return events;
+      } catch (e) {
+        // print('Error fetching events from Supabase: $e');
+        return [];
+      }
+    } else {
+      // Si hors ligne, récupérer les événements du cache local
+      // print('Offline mode. Loading events from Isar cache.');
+      return await _loadEventsFromCache(promoterId, isar);
     }
   }
 
@@ -170,5 +224,53 @@ class EventPromoterService {
       return await _promoterService.getPromotersByIds(cachedIds);
     }
     return [];
+  }
+
+  // Met à jour le cache local avec les événements récupérés depuis Supabase
+  Future<void> _updateEventsCache(List<Event> events, Isar isar) async {
+    await isar.writeTxn(() async {
+      for (final event in events) {
+        final isarEvent = IsarEvent()
+          ..remoteId = event.id ?? 0
+          ..title = event.title
+          ..type = event.type
+          ..eventDateTime = event.eventDateTime
+          ..eventEndDateTime = event.eventEndDateTime
+          ..description = event.description
+          ..imageUrl = event.imageUrl
+          ..price = event.price ?? ''
+          ..interestedUsersCount = event.interestedUsersCount ?? 0;
+
+        await isar.isarEvents.put(isarEvent);
+      }
+    });
+  }
+
+  // Récupère les événements depuis le cache local Isar
+  Future<List<Event>> _loadEventsFromCache(int promoterId, Isar isar) async {
+    final isarPromoter = await isar.isarPromoters
+        .filter()
+        .remoteIdEqualTo(promoterId)
+        .findFirst();
+    if (isarPromoter == null) return [];
+
+    final isarEvents = await isar.isarEvents
+        .filter()
+        .promoters((q) => q.remoteIdEqualTo(promoterId))
+        .findAll();
+
+    return isarEvents.map((isarEvent) {
+      return Event(
+        id: isarEvent.remoteId,
+        title: isarEvent.title,
+        type: isarEvent.type,
+        eventDateTime: isarEvent.eventDateTime,
+        eventEndDateTime: isarEvent.eventEndDateTime,
+        description: isarEvent.description,
+        imageUrl: isarEvent.imageUrl,
+        price: isarEvent.price,
+        interestedUsersCount: isarEvent.interestedUsersCount,
+      );
+    }).toList();
   }
 }

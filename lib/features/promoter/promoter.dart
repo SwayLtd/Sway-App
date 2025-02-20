@@ -10,9 +10,8 @@ import 'package:sway/features/artist/widgets/artist_modal_bottom_sheet.dart';
 import 'package:sway/features/claim/widgets/claim_widgets.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
-import 'package:sway/features/event/services/event_service.dart';
+import 'package:sway/features/event/services/event_promoter_service.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
-import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/genre/widgets/genre_modal_bottom_sheet.dart';
@@ -40,6 +39,7 @@ class _PromoterScreenState extends State<PromoterScreen> {
   Promoter? _promoter;
   bool _isLoading = true;
   String? _error; // Variable pour stocker le message d'erreur
+  List<Event> _upcomingEvents = [];
 
   final UserPermissionService _permissionService = UserPermissionService();
 
@@ -59,6 +59,11 @@ class _PromoterScreenState extends State<PromoterScreen> {
           _isLoading = false;
           _error = null;
         });
+
+        // Récupérer les événements à partir de EventPromoterService
+        _upcomingEvents = await EventPromoterService()
+            .getEventsByPromoterId(widget.promoterId);
+        // Nous n'appelons pas setState ici pour éviter de redessiner toute la page
       }
     } catch (e) {
       final errorMessage = e.toString();
@@ -310,79 +315,47 @@ class _PromoterScreenState extends State<PromoterScreen> {
                           },
                         ),
                         // Section "UPCOMING EVENTS" inspirée de VenueScreen
-                        FutureBuilder<List<Event>>(
-                          future: EventService()
-                              .getEventsByIds(_promoter!.upcomingEvents),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const SizedBox();
-                            } else if (snapshot.hasError ||
-                                !snapshot.hasData ||
-                                snapshot.data!.isEmpty) {
-                              return const SizedBox();
-                            } else {
-                              final events = snapshot.data!;
-                              final bool hasMore = events.length > 5;
-                              final displayEvents =
-                                  hasMore ? events.sublist(0, 5) : events;
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "UPCOMING EVENTS",
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: sectionTitleSpacing),
-                                  SizedBox(
-                                    height: 258,
-                                    child: ListView.builder(
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: displayEvents.length,
-                                      itemBuilder: (context, index) {
-                                        final event = displayEvents[index];
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                              right: 16.0),
-                                          child: SizedBox(
-                                            width: 320,
-                                            child: EventCardItemWidget(
-                                              event: event,
-                                              onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        EventScreen(
-                                                            event: event),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  if (hasMore)
-                                    IconButton(
-                                      icon: const Icon(Icons.arrow_forward),
-                                      onPressed: () {
-                                        showEventModalBottomSheet(
-                                            context, events.take(10).toList());
-                                      },
-                                    ),
-                                  const SizedBox(height: sectionSpacing),
-                                ],
-                              );
-                            }
-                          },
-                        ),
+                        if (_upcomingEvents.isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "UPCOMING EVENTS",
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: sectionTitleSpacing),
+                              SizedBox(
+                                height: 258,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _upcomingEvents.length,
+                                  itemBuilder: (context, index) {
+                                    final event = _upcomingEvents[index];
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 16.0),
+                                      child: SizedBox(
+                                        width: 320,
+                                        child: EventCardItemWidget(
+                                          event: event,
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EventScreen(event: event),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                         // RESIDENT ARTISTS Section
                         FutureBuilder<List<Artist>>(
                           future: PromoterResidentArtistsService()

@@ -117,33 +117,51 @@ class EventService {
   }
 
   /// Returns events by a list of event IDs using an offline-first approach.
-  Future<List<Event>> getEventsByIds(List<int?> eventIds) async {
-    if (eventIds.isEmpty) return [];
+  Future<List<Event>> getEventsByIds(List<int> eventIds) async {
+    if (eventIds.isEmpty) {
+      print('No event IDs provided.');
+      return [];
+    }
+
+    print('Fetching events with IDs: $eventIds'); // Log des IDs envoyés
+
     final online = await isConnected();
     final isar = await _isarFuture;
 
     if (online) {
       try {
-        // Build an 'or' filter string for Supabase.
         final String orFilter = eventIds.map((id) => 'id.eq.$id').join(',');
+        print(
+            'Supabase query filter: $orFilter'); // Log du filtre utilisé dans la requête
+
         final response = await _supabase.from('events').select().or(orFilter);
+        print(
+            'Supabase response: $response'); // Log de la réponse brute de Supabase
+
         if ((response as List).isEmpty) {
-          return await _loadAllEventsFromIsar(isar);
+          print('No events found on Supabase for IDs: $eventIds');
+          return [];
         }
-        final fetchedEvents =
+
+        final events =
             response.map<Event>((json) => Event.fromJson(json)).toList();
-        // Update local cache.
-        for (final event in fetchedEvents) {
+        print('Fetched events from Supabase: ${events.length} events found.');
+
+        // Met à jour le cache avec les événements récupérés
+        for (final event in events) {
           await _storeEventInIsar(isar, event);
         }
-        return fetchedEvents;
+
+        return events;
       } catch (e) {
-        print('Error in getEventsByIds (online): $e');
-        return await _loadAllEventsFromIsar(isar);
+        print('Error fetching events from Supabase: $e');
+        return [];
       }
     } else {
-      // Offline: load all events from local cache.
-      return await _loadAllEventsFromIsar(isar);
+      // Mode hors ligne, récupération depuis Isar
+      final events = await _loadAllEventsFromIsar(isar);
+      print('Loaded events from Isar cache: ${events.length}');
+      return events;
     }
   }
 
