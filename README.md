@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Fix getArtistsByIds to fetch missing artists from Supabase
 - Add performance time and end time to artist widgets
 - Fix FollowersCountWidget error and add shimmer loading state
 - Add Feedback / Feature Requests ListTile with external URL launch

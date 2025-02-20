@@ -72,14 +72,16 @@ class ArtistService {
   /// Returns artists by a list of IDs using an offline-first approach.
   Future<List<Artist>> getArtistsByIds(List<int> artistIds) async {
     if (artistIds.isEmpty) return [];
+    final online = await isConnected();
     final isar = await _isarFuture;
-    // Utilisation de anyOf pour filtrer sur le champ remoteId.
+
+    // Récupérer les artistes présents dans le cache
     final isarArtists = await isar.isarArtists
         .filter()
         .anyOf(artistIds, (q, id) => q.remoteIdEqualTo(id))
         .findAll();
 
-    // Utiliser une Map pour garantir l'unicité (clé = remoteId).
+    // Construire une map pour garantir l'unicité (clé = remoteId)
     final Map<int, Artist> result = {};
     for (final isarArtist in isarArtists) {
       await isarArtist.genres.load();
@@ -92,11 +94,29 @@ class ArtistService {
         followers: isarArtist.followers,
         isFollowing: isarArtist.isFollowing,
         genres: isarArtist.genres.map((g) => g.remoteId).toList(),
-        upcomingEvents: [], // Populate if needed.
+        upcomingEvents: [], // à compléter si nécessaire
         links: (jsonDecode(isarArtist.linksJson) as Map<dynamic, dynamic>)
             .map((k, v) => MapEntry(k.toString(), v.toString())),
       );
     }
+
+    // Déterminer quels IDs sont manquants dans le cache
+    final missingIds =
+        artistIds.where((id) => !result.containsKey(id)).toList();
+
+    if (missingIds.isNotEmpty) {
+      // Vérifier la connexion pour récupérer les artistes manquants depuis Supabase
+      if (online) {
+        // Pour chaque artiste manquant, utiliser getArtistById qui gère le stockage en cache
+        for (final id in missingIds) {
+          final artist = await getArtistById(id);
+          if (artist != null) {
+            result[artist.id!] = artist;
+          }
+        }
+      }
+    }
+
     print(
         "getArtistsByIds: Requested IDs: $artistIds, retrieved: ${result.keys.toList()}");
     return result.values.toList();
