@@ -53,21 +53,26 @@ class AuthStateManager extends ChangeNotifier {
   /// Met à jour le token FCM dans la base de données Supabase
   Future<void> _setFcmToken(String fcmToken) async {
     final user = supabase.auth.currentUser;
-    if (user != null) {
-      try {
-        await supabase.from('users').upsert(
-          {
-            'supabase_id': user.id,
-            'fcm_token': fcmToken,
-          },
-          onConflict: 'supabase_id', // Assurez-vous que 'supabase_id' est une clé unique
-        );
-        print('FCM token mis à jour avec succès.');
-      } catch (e) {
-        print('Erreur lors de la mise à jour du token FCM: $e');
-      }
-    } else {
-      print('Aucun utilisateur authentifié trouvé.');
+    // Si l'utilisateur est anonyme (email null), on ne fait rien.
+    if (user == null || user.email == null) {
+      print(
+          'Utilisateur anonyme ou email non défini, mise à jour du token FCM ignorée.');
+      return;
+    }
+
+    try {
+      await supabase.from('users').upsert(
+        {
+          'supabase_id': user.id,
+          'email': user.email,
+          'fcm_token': fcmToken,
+        },
+        onConflict:
+            'supabase_id', // Assurez-vous que 'supabase_id' est une clé unique
+      );
+      print('FCM token mis à jour avec succès.');
+    } catch (e) {
+      print('Erreur lors de la mise à jour du token FCM: $e');
     }
   }
 }
