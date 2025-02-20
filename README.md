@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Update SearchScreen UI and functionality
 - Fix auth trigger and sync username issues
 
 ### Known Issues

@@ -1,6 +1,7 @@
-// search.dart
+// lib/features/search/search.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
@@ -14,13 +15,14 @@ import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
-import 'package:sway/features/search/screens/filters_screen.dart';
 import 'package:sway/features/user/models/user_model.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/user.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/venue/venue.dart';
+
+enum SearchCategory { events, genres, promoters, venues, users }
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -38,6 +40,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final GenreService _genreService = GenreService();
   final UserService _userService = UserService();
 
+  // Stockage des résultats de recherche par entité
   Map<String, List<dynamic>> _searchResults = {};
   Map<String, dynamic> _filters = {
     'city': null,
@@ -46,6 +49,9 @@ class _SearchScreenState extends State<SearchScreen> {
     'genres': [],
     'near_me': false,
   };
+
+  // Catégorie de recherche sélectionnée (si null, tous les résultats sont affichés)
+  SearchCategory? _selectedCategory;
 
   @override
   void initState() {
@@ -75,8 +81,23 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  List<Event> sortUpcomingEvents(List<Event> events) {
+    final now = DateTime.now();
+    // Keep only future events (including events starting exactly now)
+    final futureEvents = events
+        .where((e) =>
+            e.eventDateTime.isAfter(now) ||
+            e.eventDateTime.isAtSameMomentAs(now))
+        .toList();
+    // Sort events in ascending order: soonest event first.
+    futureEvents.sort((a, b) => a.eventDateTime.compareTo(b.eventDateTime));
+    return futureEvents;
+  }
+
+// Example integration in _performSearch:
   Future<void> _performSearch(String query) async {
-    final events = await _eventService.searchEvents(query, _filters);
+    final eventsRaw = await _eventService.searchEvents(query, _filters);
+    final events = sortUpcomingEvents(eventsRaw);
     final artists = await _artistService.searchArtists(query);
     final venues = await _venueService.searchVenues(query);
     final promoters = await _promoterService.searchPromoters(query);
@@ -86,12 +107,12 @@ class _SearchScreenState extends State<SearchScreen> {
     if (!mounted) return;
     setState(() {
       _searchResults = {
-        'Events': events.take(5).toList(),
-        'Promoters': promoters.take(5).toList(),
-        'Artists': artists.take(5).toList(),
-        'Venues': venues.take(5).toList(),
-        'Genres': genres.take(5).toList(),
-        'Users': users.take(5).toList(),
+        'Events': events.take(10).toList(),
+        'Artists': artists.take(10).toList(),
+        'Promoters': promoters.take(10).toList(),
+        'Venues': venues.take(10).toList(),
+        'Genres': genres.take(10).toList(),
+        'Users': users.take(10).toList(),
       };
 
       _searchResults.removeWhere((key, value) => value.isEmpty);
@@ -103,29 +124,61 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  Future<void> _showFilters() async {
-    final Map<String, dynamic>? selectedFilters = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FiltersScreen(filters: _filters),
-      ),
-    );
-
-    if (selectedFilters != null) {
-      if (!mounted) return;
-      setState(() {
-        _filters = selectedFilters;
-        _performSearch(_searchController.text);
-      });
-    }
-  }
-
+  // Bouton de filtre désactivé : affiche un message en anglais.
   void _showMapFeatureMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         behavior: SnackBarBehavior.floating,
         content: Text('Map feature will be integrated later.'),
         duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // Ligne horizontale des tuiles de catégories
+  Widget _buildCategoryChips() {
+    return SizedBox(
+      height: 50,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        children: SearchCategory.values.map((category) {
+          String label;
+          switch (category) {
+            case SearchCategory.events:
+              label = 'Events';
+              break;
+            case SearchCategory.genres:
+              label = 'Genres';
+              break;
+            case SearchCategory.promoters:
+              label = 'Promoters';
+              break;
+            case SearchCategory.venues:
+              label = 'Venues';
+              break;
+            case SearchCategory.users:
+              label = 'Users';
+              break;
+          }
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: ChoiceChip(
+              label: Text(label),
+              selected: _selectedCategory == category,
+              onSelected: (selected) {
+                setState(() {
+                  // Si on clique sur le même chip, on désélectionne pour afficher tous
+                  _selectedCategory =
+                      (selected && _selectedCategory != category)
+                          ? category
+                          : null;
+                  _performSearch(_searchController.text);
+                });
+              },
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -168,7 +221,11 @@ class _SearchScreenState extends State<SearchScreen> {
     if (_filters['date'] != null) {
       filterWidgets.add(
         Chip(
-          label: Text('Date: ${_filters['date'].toString().split(' ')[0]}'),
+          label: Text(
+            'Date: ${_filters['date'].toString().split(' ')[0]}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           onDeleted: () {
             if (!mounted) return;
             setState(() {
@@ -185,7 +242,11 @@ class _SearchScreenState extends State<SearchScreen> {
         (_filters['venueTypes'] as List<String>)
             .map(
               (type) => Chip(
-                label: Text('Venue Type: $type'),
+                label: Text(
+                  'Venue Type: $type',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 onDeleted: () {
                   if (!mounted) return;
                   setState(() {
@@ -245,55 +306,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: TextField(
-          controller: _searchController,
-          focusNode: _searchFocusNode,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText:
-                'Search events, artists, venues, promoters, genres, users',
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: () {
-                _searchController.clear();
-                if (!mounted) return;
-                setState(() {
-                  _searchResults = {};
-                });
-              },
-            ),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.map),
-            onPressed: _showMapFeatureMessage,
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showFilters,
-          ),
-        ],
-      ),
-      body: ListView(
-        children: [
-          _buildSelectedFilters(),
-          ..._searchResults.entries.expand((entry) {
-            return [
-              _buildSectionTitle(entry.key),
-              ...entry.value.map((result) => _buildListTile(result)),
-            ];
-          }),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -303,6 +315,8 @@ class _SearchScreenState extends State<SearchScreen> {
           fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -367,7 +381,13 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             const Icon(Icons.location_on, size: 16, color: Colors.grey),
             const SizedBox(width: 4),
-            Text(result.location),
+            Expanded(
+              child: Text(
+                result.location,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         onTap: () {
@@ -409,7 +429,18 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 const Icon(Icons.date_range, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(result.eventDateTime.toString()),
+                // Formater la date de l'événement en utilisant date_utils.dart
+                Text(
+                  formatEventDate(result.eventDateTime),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  formatEventTime(result.eventDateTime),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
             const SizedBox(height: 4),
@@ -443,14 +474,15 @@ class _SearchScreenState extends State<SearchScreen> {
                 } else {
                   return Row(
                     children: [
-                      const Icon(
-                        Icons.music_note,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
+                      const Icon(Icons.music_note,
+                          size: 16, color: Colors.grey),
                       const SizedBox(width: 4),
-                      Text(
-                        snapshot.data!.map((genre) => genre.name).join(', '),
+                      Expanded(
+                        child: Text(
+                          snapshot.data!.map((genre) => genre.name).join(', '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   );
@@ -478,5 +510,80 @@ class _SearchScreenState extends State<SearchScreen> {
     final genres =
         await Future.wait(genreIds.map((id) => _genreService.getGenreById(id)));
     return genres.whereType<Genre>().toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: TextField(
+          controller: _searchController,
+          focusNode: _searchFocusNode,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText:
+                'Search events, artists, venues, promoters, genres, users',
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () {
+                _searchController.clear();
+                if (!mounted) return;
+                setState(() {
+                  _searchResults = {};
+                });
+              },
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.map),
+            onPressed: _showMapFeatureMessage,
+          ),
+          // Bouton de filtre temporairement désactivé
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  behavior: SnackBarBehavior.floating,
+                  content: Text('Feature in development'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 16),
+          // Tuiles de sélection de catégorie
+          _buildCategoryChips(),
+          const SizedBox(height: 8),
+          _buildSelectedFilters(),
+          Expanded(
+            child: ListView(
+              children: _searchResults.entries.expand<Widget>((entry) {
+                // Si une catégorie est sélectionnée, ne garder que la section correspondante.
+                if (_selectedCategory != null) {
+                  String selectedKey =
+                      _selectedCategory.toString().split('.').last;
+                  if (entry.key.toLowerCase() != selectedKey.toLowerCase()) {
+                    return [];
+                  }
+                }
+                return [
+                  _buildSectionTitle(entry.key),
+                  ...entry.value
+                      .map<Widget>((result) => _buildListTile(result)),
+                ];
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
