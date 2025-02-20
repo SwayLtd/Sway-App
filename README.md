@@ -16,7 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
-- Cache system
+- Full integration of Isar caching system and compatibility fixes
 - Add global validator and multilingual banned words system
 - Add recommended artists logic in Explore Screen
 
