@@ -16,10 +16,10 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Improve ExploreScreen fallback loading behavior
 - Improve connectivity, refresh, and error handling
 - Improve error handling and UI consistency
 - Full integration of Isar caching system and compatibility fixes
-- Add global validator and multilingual banned words system
 
 ### Known Issues
 

@@ -72,8 +72,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   bool _isLoggedIn = false;
   // Current user stored to pass username to RandomGreetingTile.
-  // Note: The User model is imported from user_service.
-  var _currentUser; // type User? (from AppUser.User)
+  var _currentUser;
+
+  // Indicateur pour savoir si toutes les futures sont terminées
+  bool _allLoaded = false;
+  // Indicateur pour savoir si au moins une section a renvoyé des données
+  bool _hasContent = false;
 
   @override
   void initState() {
@@ -81,8 +85,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
     _loadRecommendations();
   }
 
-  /// Load recommendations and current user.
+  /// Charge les recommandations et l'utilisateur courant.
   Future<void> _loadRecommendations() async {
+    // Réinitialiser _hasContent à chaque chargement
+    setState(() {
+      _hasContent = false;
+    });
+
     _currentUser = await _userService.getCurrentUser();
     if (_currentUser != null) {
       _isLoggedIn = true;
@@ -91,8 +100,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
       _isLoggedIn = false;
       await _fetchGenericRecommendations();
     }
-    if (!mounted) return;
-    setState(() {});
+    // Marquer le chargement global comme terminé.
+    setState(() {
+      _allLoaded = true;
+    });
   }
 
   /// Pour utilisateur connecté.
@@ -108,6 +119,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
         _venueService.getRecommendedVenues(userId: userId, limit: 10);
     _suggestedGenresFuture =
         _genreService.getRecommendedGenres(userId: userId, limit: 10);
+
+    try {
+      await Future.wait([
+        _topEventsFuture!,
+        _suggestedEventsFuture!,
+        _suggestedArtistsFuture!,
+        _suggestedPromotersFuture!,
+        _suggestedVenuesFuture!,
+        _suggestedGenresFuture!,
+      ]);
+    } catch (e) {
+      // En cas d'erreur, on continue pour permettre l'affichage
+    }
   }
 
   /// Pour utilisateur anonyme.
@@ -123,12 +147,26 @@ class _ExploreScreenState extends State<ExploreScreen> {
         _venueService.getRecommendedVenues(userId: null, limit: 10);
     _suggestedGenresFuture =
         _genreService.getRecommendedGenres(userId: null, limit: 10);
+
+    try {
+      await Future.wait([
+        _topEventsFuture!,
+        _suggestedEventsFuture!,
+        _suggestedArtistsFuture!,
+        _suggestedPromotersFuture!,
+        _suggestedVenuesFuture!,
+        _suggestedGenresFuture!,
+      ]);
+    } catch (e) {
+      // En cas d'erreur, on continue pour permettre l'affichage
+    }
   }
 
   Future<void> _refreshRecommendations() async {
-    // Update the key so that EventInfoTile is rebuilt
     setState(() {
       _eventInfoRefreshKey = UniqueKey();
+      _allLoaded = false;
+      _hasContent = false;
     });
     await _loadRecommendations();
   }
@@ -371,6 +409,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Si le chargement global est terminé et qu'aucune section n'a fourni de données (_hasContent == false),
+    // on souhaite afficher les shimmers (les loadingSection).
+    bool showFallback = _allLoaded && !_hasContent;
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -420,6 +462,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
+            // Section avec les FutureBuilders pour chaque type de contenu
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -427,14 +470,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   children: [
                     // Random greeting tile
                     RandomGreetingTile(username: _currentUser?.username),
-                    // Event info tile
+                    // Event info tile (pour utilisateur connecté)
                     if (_isLoggedIn)
                       EventInfoTile(refreshKey: _eventInfoRefreshKey),
                     // Section Top Events
                     FutureBuilder<List<Event>>(
                       future: _topEventsFuture,
                       builder: (context, snapshot) {
-                        // Tant que la donnée n'est pas encore chargée, on affiche le titre et le shimmer.
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return _buildLoadingSection('Top Events');
@@ -442,9 +484,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           return _buildLoadingSection('Top Events');
                         } else if (!snapshot.hasData ||
                             snapshot.data!.isEmpty) {
-                          // Une fois chargé, si aucune donnée, on masque la section.
                           return const SizedBox.shrink();
                         } else {
+                          // Dès qu'une section a des données, on signale que du contenu est disponible.
+                          if (!_hasContent) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!_hasContent) {
+                                setState(() {
+                                  _hasContent = true;
+                                });
+                              }
+                            });
+                          }
                           _allTopEvents = snapshot.data!;
                           final displayCount = 5;
                           final hasMore = _allTopEvents.length > displayCount;
@@ -481,6 +532,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             snapshot.data!.isEmpty) {
                           return const SizedBox.shrink();
                         } else {
+                          if (!_hasContent) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!_hasContent) {
+                                setState(() {
+                                  _hasContent = true;
+                                });
+                              }
+                            });
+                          }
                           _allSuggestedEvents = snapshot.data!;
                           final displayCount = 5;
                           final hasMore =
@@ -518,6 +578,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             snapshot.data!.isEmpty) {
                           return const SizedBox.shrink();
                         } else {
+                          if (!_hasContent) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!_hasContent) {
+                                setState(() {
+                                  _hasContent = true;
+                                });
+                              }
+                            });
+                          }
                           _allSuggestedArtists = snapshot.data!;
                           final displayCount = 3;
                           final hasMore =
@@ -550,6 +619,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             snapshot.data!.isEmpty) {
                           return const SizedBox.shrink();
                         } else {
+                          if (!_hasContent) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!_hasContent) {
+                                setState(() {
+                                  _hasContent = true;
+                                });
+                              }
+                            });
+                          }
                           _allSuggestedPromoters = snapshot.data!;
                           final displayCount = 3;
                           final hasMore =
@@ -583,6 +661,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             snapshot.data!.isEmpty) {
                           return const SizedBox.shrink();
                         } else {
+                          if (!_hasContent) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!_hasContent) {
+                                setState(() {
+                                  _hasContent = true;
+                                });
+                              }
+                            });
+                          }
                           _allSuggestedVenues = snapshot.data!;
                           final displayCount = 3;
                           final hasMore =
@@ -615,6 +702,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             snapshot.data!.isEmpty) {
                           return const SizedBox.shrink();
                         } else {
+                          if (!_hasContent) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (!_hasContent) {
+                                setState(() {
+                                  _hasContent = true;
+                                });
+                              }
+                            });
+                          }
                           _allSuggestedGenres = snapshot.data!;
                           final displayCount = 6;
                           final hasMore =
@@ -638,9 +734,29 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
               ),
             ),
+            // Affichage global des loadingSection en fallback uniquement
+            // si le chargement global est terminé (_allLoaded == true)
+            // et qu'aucune section n'a fourni de données (_hasContent == false)
             SliverFillRemaining(
               hasScrollBody: false,
-              child: Container(),
+              child: showFallback
+                  ? Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLoadingSection('Top Events'),
+                            _buildLoadingSection('Suggested Events'),
+                            _buildLoadingSection('Suggested Artists'),
+                            _buildLoadingSection('Suggested Promoters'),
+                            _buildLoadingSection('Suggested Venues'),
+                            _buildLoadingSection('Suggested Genres'),
+                          ],
+                        ),
+                      ),
+                    )
+                  : Container(),
             ),
           ],
         ),

@@ -8,7 +8,7 @@ part 'isar_artist.g.dart';
 
 @Collection()
 class IsarArtist {
-  Id id = Isar.autoIncrement; // ✅ Correction ici
+  Id id = Isar.autoIncrement;
 
   late int remoteId;
   late String name;
