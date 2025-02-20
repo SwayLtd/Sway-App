@@ -174,7 +174,6 @@ class _EditProfileScreenState extends State<EditUserScreen> {
         SnackBar(
           content: Text('Error: ${e.message}'),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
         ),
       );
     } catch (e) {
@@ -187,7 +186,6 @@ class _EditProfileScreenState extends State<EditUserScreen> {
         const SnackBar(
           content: Text('Error: An unexpected error occurred.'),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
         ),
       );
     } finally {
@@ -235,7 +233,6 @@ class _EditProfileScreenState extends State<EditUserScreen> {
         SnackBar(
           content: Text('Error: ${e.message}'),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
         ),
       );
     } catch (e) {
@@ -248,7 +245,6 @@ class _EditProfileScreenState extends State<EditUserScreen> {
         const SnackBar(
           content: Text('Error: An unexpected error occurred.'),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
         ),
       );
     } finally {
@@ -330,7 +326,6 @@ class _EditProfileScreenState extends State<EditUserScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
         content: Text('Error: ${e.toString()}'),
-        backgroundColor: Colors.red,
       ));
     }
   }

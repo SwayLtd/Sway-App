@@ -10,92 +10,108 @@ class UserFollowPromoterService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final UserService _userService = UserService();
 
-  /// Récupère l'ID de l'utilisateur actuellement connecté
   Future<int?> _getCurrentUserId() async {
     final currentUser = await _userService.getCurrentUser();
     return currentUser?.id;
   }
 
-  /// Vérifie si l'utilisateur suit un promotere spécifique
   Future<bool> isFollowingPromoter(int promoterId) async {
-    final userId = await _getCurrentUserId();
-    if (userId == null) {
-      throw Exception('User not authenticated.');
+    try {
+      final userId = await _getCurrentUserId();
+      if (userId == null) return false;
+
+      final response = await _supabase
+          .from('user_follow_promoter')
+          .select()
+          .eq('user_id', userId)
+          .eq('promoter_id', promoterId);
+
+      return response.isNotEmpty;
+    } catch (e) {
+      print('Error checking follow status for promoter $promoterId: $e');
+      return false;
     }
-
-    final response = await _supabase
-        .from('user_follow_promoter')
-        .select()
-        .eq('user_id', userId)
-        .eq('promoter_id', promoterId);
-
-    return response.isNotEmpty;
   }
 
-  /// Suit un promotere
   Future<void> followPromoter(int promoterId) async {
-    final userId = await _getCurrentUserId();
-    if (userId == null) {
-      throw Exception('User not authenticated.');
-    }
+    try {
+      final userId = await _getCurrentUserId();
+      if (userId == null) return;
 
-    await _supabase.from('user_follow_promoter').insert({
-      'user_id': userId,
-      'promoter_id': promoterId,
-    });
+      await _supabase.from('user_follow_promoter').insert({
+        'user_id': userId,
+        'promoter_id': promoterId,
+      });
+    } catch (e) {
+      print('Error following promoter $promoterId: $e');
+    }
   }
 
-  /// Ne suit plus un promotere
   Future<void> unfollowPromoter(int promoterId) async {
-    final userId = await _getCurrentUserId();
-    if (userId == null) {
-      throw Exception('User not authenticated.');
+    try {
+      final userId = await _getCurrentUserId();
+      if (userId == null) return;
+
+      await _supabase
+          .from('user_follow_promoter')
+          .delete()
+          .eq('user_id', userId)
+          .eq('promoter_id', promoterId);
+    } catch (e) {
+      print('Error unfollowing promoter $promoterId: $e');
     }
-
-    await _supabase
-        .from('user_follow_promoter')
-        .delete()
-        .eq('user_id', userId)
-        .eq('promoter_id', promoterId);
   }
 
-  /// Récupère le nombre de followers d'un promotere
   Future<int> getPromoterFollowersCount(int promoterId) async {
-    final response = await _supabase
-        .from('user_follow_promoter')
-        .select('user_id')
-        .eq('promoter_id', promoterId);
+    try {
+      final response = await _supabase
+          .from('user_follow_promoter')
+          .select('user_id')
+          .eq('promoter_id', promoterId);
 
-    return response.length;
+      return response.length;
+    } catch (e) {
+      print('Error getting followers count for promoter $promoterId: $e');
+      return 0;
+    }
   }
 
-  /// Récupère les promoteres suivis par un utilisateur spécifique
   Future<List<Promoter>> getFollowedPromotersByUserId(int userId) async {
-    final response = await _supabase
-        .from('user_follow_promoter')
-        .select('promoter_id')
-        .eq('user_id', userId);
+    try {
+      final response = await _supabase
+          .from('user_follow_promoter')
+          .select('promoter_id')
+          .eq('user_id', userId);
 
-    final List<int> followedPromoterIds =
-        response.map((item) => item['promoter_id'] as int).toList();
+      final List<int> followedPromoterIds =
+          response.map((item) => item['promoter_id'] as int).toList();
 
-    final List<Promoter> allPromoters = await PromoterService().getPromoters();
+      final List<Promoter> allPromoters =
+          await PromoterService().getPromoters();
 
-    return allPromoters
-        .where((promoter) => followedPromoterIds.contains(promoter.id!))
-        .toList();
+      return allPromoters
+          .where((promoter) => followedPromoterIds.contains(promoter.id!))
+          .toList();
+    } catch (e) {
+      print('Error getting followed promoters for user $userId: $e');
+      return [];
+    }
   }
 
-  /// Récupère les utilisateurs qui suivent un promotere spécifique
   Future<List<AppUser.User>> getFollowersForPromoter(int promoterId) async {
-    final response = await _supabase
-        .from('user_follow_promoter')
-        .select('user_id')
-        .eq('promoter_id', promoterId);
+    try {
+      final response = await _supabase
+          .from('user_follow_promoter')
+          .select('user_id')
+          .eq('promoter_id', promoterId);
 
-    final List<int> followerIds =
-        response.map((item) => item['user_id'] as int).toList();
+      final List<int> followerIds =
+          response.map((item) => item['user_id'] as int).toList();
 
-    return await _userService.getUsersByIds(followerIds);
+      return await _userService.getUsersByIds(followerIds);
+    } catch (e) {
+      print('Error getting followers for promoter $promoterId: $e');
+      return [];
+    }
   }
 }

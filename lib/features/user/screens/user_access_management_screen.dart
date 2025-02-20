@@ -135,7 +135,8 @@ class _UserAccessManagementScreenState
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator.adaptive());
             } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return const SizedBox
+                  .shrink(); // Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return const Center(child: Text('No users found'));
             } else {
@@ -158,7 +159,8 @@ class _UserAccessManagementScreenState
                         return const CircularProgressIndicator.adaptive();
                       } else if (userSnapshot.hasError) {
                         return ListTile(
-                            title: Text('Error: ${userSnapshot.error}'));
+                          title: const SizedBox.shrink(), // Text('Error: ${userSnapshot.error}'),
+                        );
                       } else if (!userSnapshot.hasData ||
                           userSnapshot.data == null) {
                         return const ListTile(title: Text('User not found'));

@@ -248,7 +248,9 @@ class _PromoterScreenState extends State<PromoterScreen> {
                                   child: CircularProgressIndicator.adaptive());
                             } else if (snapshot.hasError) {
                               return Center(
-                                  child: Text('Error: ${snapshot.error}'));
+                                child: const SizedBox
+                                    .shrink(), // Text('Error: ${snapshot.error}'),
+                              );
                             } else if (!snapshot.hasData ||
                                 snapshot.data!.isEmpty) {
                               return const SizedBox.shrink();

@@ -10,92 +10,107 @@ class UserFollowGenreService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final UserService _userService = UserService();
 
-  /// Récupère l'ID de l'utilisateur actuellement connecté
   Future<int?> _getCurrentUserId() async {
     final currentUser = await _userService.getCurrentUser();
     return currentUser?.id;
   }
 
-  /// Vérifie si l'utilisateur suit un genree spécifique
   Future<bool> isFollowingGenre(int genreId) async {
-    final userId = await _getCurrentUserId();
-    if (userId == null) {
-      throw Exception('User not authenticated.');
+    try {
+      final userId = await _getCurrentUserId();
+      if (userId == null) return false;
+
+      final response = await _supabase
+          .from('user_follow_genre')
+          .select()
+          .eq('user_id', userId)
+          .eq('genre_id', genreId);
+
+      return response.isNotEmpty;
+    } catch (e) {
+      print('Error checking follow status for genre $genreId: $e');
+      return false;
     }
-
-    final response = await _supabase
-        .from('user_follow_genre')
-        .select()
-        .eq('user_id', userId)
-        .eq('genre_id', genreId);
-
-    return response.isNotEmpty;
   }
 
-  /// Suit un genree
   Future<void> followGenre(int genreId) async {
-    final userId = await _getCurrentUserId();
-    if (userId == null) {
-      throw Exception('User not authenticated.');
-    }
+    try {
+      final userId = await _getCurrentUserId();
+      if (userId == null) return;
 
-    await _supabase.from('user_follow_genre').insert({
-      'user_id': userId,
-      'genre_id': genreId,
-    });
+      await _supabase.from('user_follow_genre').insert({
+        'user_id': userId,
+        'genre_id': genreId,
+      });
+    } catch (e) {
+      print('Error following genre $genreId: $e');
+    }
   }
 
-  /// Ne suit plus un genree
   Future<void> unfollowGenre(int genreId) async {
-    final userId = await _getCurrentUserId();
-    if (userId == null) {
-      throw Exception('User not authenticated.');
+    try {
+      final userId = await _getCurrentUserId();
+      if (userId == null) return;
+
+      await _supabase
+          .from('user_follow_genre')
+          .delete()
+          .eq('user_id', userId)
+          .eq('genre_id', genreId);
+    } catch (e) {
+      print('Error unfollowing genre $genreId: $e');
     }
-
-    await _supabase
-        .from('user_follow_genre')
-        .delete()
-        .eq('user_id', userId)
-        .eq('genre_id', genreId);
   }
 
-  /// Récupère le nombre de followers d'un genree
   Future<int> getGenreFollowersCount(int genreId) async {
-    final response = await _supabase
-        .from('user_follow_genre')
-        .select('user_id')
-        .eq('genre_id', genreId);
+    try {
+      final response = await _supabase
+          .from('user_follow_genre')
+          .select('user_id')
+          .eq('genre_id', genreId);
 
-    return response.length;
+      return response.length;
+    } catch (e) {
+      print('Error getting followers count for genre $genreId: $e');
+      return 0;
+    }
   }
 
-  /// Récupère les genrees suivis par un utilisateur spécifique
   Future<List<Genre>> getFollowedGenresByUserId(int userId) async {
-    final response = await _supabase
-        .from('user_follow_genre')
-        .select('genre_id')
-        .eq('user_id', userId);
+    try {
+      final response = await _supabase
+          .from('user_follow_genre')
+          .select('genre_id')
+          .eq('user_id', userId);
 
-    final List<int> followedGenreIds =
-        response.map((item) => item['genre_id'] as int).toList();
+      final List<int> followedGenreIds =
+          response.map((item) => item['genre_id'] as int).toList();
 
-    final List<Genre> allGenres = await GenreService().getGenres();
+      final List<Genre> allGenres = await GenreService().getGenres();
 
-    return allGenres
-        .where((genre) => followedGenreIds.contains(genre.id))
-        .toList();
+      return allGenres
+          .where((genre) => followedGenreIds.contains(genre.id))
+          .toList();
+    } catch (e) {
+      print('Error getting followed genres for user $userId: $e');
+      return [];
+    }
   }
 
-  /// Récupère les utilisateurs qui suivent un genree spécifique
   Future<List<AppUser.User>> getFollowersForGenre(int genreId) async {
-    final response = await _supabase
-        .from('user_follow_genre')
-        .select('user_id')
-        .eq('genre_id', genreId);
+    try {
+      final response = await _supabase
+          .from('user_follow_genre')
+          .select('user_id')
+          .eq('genre_id', genreId);
 
-    final List<int> followerIds =
-        response.map((item) => item['user_id'] as int).toList();
+      final List<int> followerIds =
+          response.map((item) => item['user_id'] as int).toList();
 
-    return await _userService.getUsersByIds(followerIds);
+      return await _userService.getUsersByIds(followerIds);
+    } catch (e) {
+      print('Error getting followers for genre $genreId: $e');
+      return [];
+    }
   }
 }

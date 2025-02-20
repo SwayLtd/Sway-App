@@ -122,8 +122,8 @@ List<Map<String, dynamic>> standaloneRoutes = [
             );
           } else if (snapshot.hasError) {
             return Scaffold(
-              appBar: AppBar(title: const Text('Error')),
-              body: Center(child: Text('Error: ${snapshot.error}')),
+              appBar: AppBar(title: const Text('Event')),
+              body: const SizedBox.shrink(), // Center(child: Text('Error: ${snapshot.error}')),,
             );
           } else if (!snapshot.hasData || snapshot.data == null) {
             return Scaffold(

@@ -359,10 +359,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
             child: Text('No notifications found.'),
           ),
           firstPageErrorIndicatorBuilder: (context) => Center(
-            child: Text('Error: ${_pagingController.error}'),
+            child: Text('No notifications found.'), // Text('Error: ${_pagingController.error}'),
           ),
           newPageErrorIndicatorBuilder: (context) => Center(
-            child: Text('Error: ${_pagingController.error}'),
+            child: Text('No notifications found.'), // Text('Error: ${_pagingController.error}'),
           ),
         ),
       ),

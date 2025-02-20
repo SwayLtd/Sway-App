@@ -71,8 +71,7 @@ class UserEntitiesScreen extends StatelessWidget {
         }
         break;
       case 'promoter':
-        final promoter =
-            await PromoterService().getPromoterById(entityId);
+        final promoter = await PromoterService().getPromoterById(entityId);
         if (promoter != null) {
           Navigator.push(
             context,
@@ -154,8 +153,7 @@ class UserEntitiesScreen extends StatelessWidget {
         }
         break;
       case 'promoter':
-        final promoter =
-            await PromoterService().getPromoterById(entityId);
+        final promoter = await PromoterService().getPromoterById(entityId);
         if (promoter != null) {
           Navigator.push(
             context,
@@ -222,7 +220,10 @@ class UserEntitiesScreen extends StatelessWidget {
                   return const Center(
                       child: CircularProgressIndicator.adaptive());
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                    child: const SizedBox
+                        .shrink(), // Text('Error: ${snapshot.error}'),
+                  );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text('No events found'));
                 } else {
@@ -276,7 +277,10 @@ class UserEntitiesScreen extends StatelessWidget {
                   return const Center(
                       child: CircularProgressIndicator.adaptive());
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                    child: const SizedBox
+                        .shrink(), // Text('Error: ${snapshot.error}'),
+                  );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text('No venues found'));
                 } else {
@@ -330,7 +334,10 @@ class UserEntitiesScreen extends StatelessWidget {
                   return const Center(
                       child: CircularProgressIndicator.adaptive());
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                    child: const SizedBox
+                        .shrink(), // Text('Error: ${snapshot.error}'),
+                  );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text('No promoters found'));
                 } else {
@@ -384,7 +391,10 @@ class UserEntitiesScreen extends StatelessWidget {
                   return const Center(
                       child: CircularProgressIndicator.adaptive());
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                    child: const SizedBox
+                        .shrink(), // Text('Error: ${snapshot.error}'),
+                  );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text('No artists found'));
                 } else {

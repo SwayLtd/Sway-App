@@ -166,7 +166,9 @@ class _GenreScreenState extends State<GenreScreen> {
                                   child: CircularProgressIndicator.adaptive());
                             } else if (eventSnapshot.hasError) {
                               return Center(
-                                  child: Text('Error: ${eventSnapshot.error}'));
+                                child: const SizedBox
+                                    .shrink(), // Text('Error: ${eventSnapshot.error}'),
+                              );
                             } else if (!eventSnapshot.hasData ||
                                 eventSnapshot.data!.isEmpty) {
                               return const SizedBox.shrink();
@@ -255,8 +257,9 @@ class _GenreScreenState extends State<GenreScreen> {
                                   child: CircularProgressIndicator.adaptive());
                             } else if (artistSnapshot.hasError) {
                               return Center(
-                                  child:
-                                      Text('Error: ${artistSnapshot.error}'));
+                                child: const SizedBox
+                                    .shrink(), // Text('Error: ${artistSnapshot.error}'),
+                              );
                             } else if (!artistSnapshot.hasData ||
                                 artistSnapshot.data!.isEmpty) {
                               return const SizedBox.shrink();

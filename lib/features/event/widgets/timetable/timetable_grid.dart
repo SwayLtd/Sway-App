@@ -186,7 +186,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator.adaptive());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return const SizedBox.shrink(); // Center(child: Text('Error: ${snapshot.error}'));
         } else {
           return snapshot.data!;
         }

@@ -97,7 +97,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator.adaptive());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return const SizedBox.shrink(); // Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No festival days found'));
         } else {
@@ -174,7 +174,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                           child: CircularProgressIndicator.adaptive());
                     } else if (artistSnapshot.hasError) {
                       return Center(
-                        child: Text('Error: ${artistSnapshot.error}'),
+                        child: const SizedBox.shrink(), // Text('Error: ${artistSnapshot.error}'),
                       );
                     } else if (!artistSnapshot.hasData ||
                         artistSnapshot.data!.isEmpty) {
@@ -223,7 +223,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                                   );
                                 } else if (snapshot.hasError) {
                                   return Center(
-                                    child: Text('Error: ${snapshot.error}'),
+                                    child: const SizedBox.shrink(), // Text('Error: ${snapshot.error}'),
                                   );
                                 } else {
                                   return snapshot.data!;

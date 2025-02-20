@@ -382,7 +382,6 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
-          backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
       );

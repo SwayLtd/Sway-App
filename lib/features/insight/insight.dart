@@ -152,7 +152,10 @@ class InsightScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator.adaptive());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child:
+                  const SizedBox.shrink(), // Text('Error: ${snapshot.error}'),
+            );
           } else if (!snapshot.hasData) {
             return const Center(child: Text('No insights available'));
           } else {

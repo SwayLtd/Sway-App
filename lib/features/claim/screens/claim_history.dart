@@ -80,7 +80,7 @@ class _ClaimHistoryScreenState extends State<ClaimHistoryScreen> {
           if (entitySnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (entitySnapshot.hasError) {
-            return Center(child: Text('Error: ${entitySnapshot.error}'));
+            return const SizedBox.shrink(); // Center(child: Text('Error: ${entitySnapshot.error}'));
           } else {
             final entityName = entitySnapshot.data ?? 'Unknown Entity';
             return Column(
@@ -103,7 +103,7 @@ class _ClaimHistoryScreenState extends State<ClaimHistoryScreen> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
+                        return const SizedBox.shrink(); // Center(child: Text('Error: ${snapshot.error}'));
                       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return const Center(
                             child: Text('No claim history available.'));
