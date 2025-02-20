@@ -1,8 +1,10 @@
 // lib/features/notification/screens/notification_preferences_screen.dart
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:sway/features/notification/models/user_notification_preferences_model.dart';
 import 'package:sway/features/notification/services/notification_preferences_service.dart';
+import 'package:sway/features/notification/services/notification_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 
 class NotificationPreferencesScreen extends StatefulWidget {
@@ -24,6 +26,15 @@ class _NotificationPreferencesScreenState
   void initState() {
     super.initState();
     _loadPreferences();
+    // Display permissions dialog after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      // If the permission has not yet been authorized, the dialog is displayed.
+      if (settings.authorizationStatus != AuthorizationStatus.authorized) {
+        NotificationService().showPermissionRequestDialog(context);
+      }
+    });
   }
 
   /// Loads the notification preferences for the current user.

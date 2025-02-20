@@ -1,8 +1,10 @@
 // lib/features/notification/notification.dart
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:sway/features/notification/screens/notification_preferences_screen.dart';
+import 'package:sway/features/notification/services/notification_service.dart';
 import 'package:sway/features/notification/widgets/notification_list_item.dart';
 import 'package:sway/features/notification/models/notification_model.dart';
 import 'package:sway/features/notification/services/notification_history_service.dart';
@@ -34,6 +36,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
     super.initState();
     _pagingController.addPageRequestListener((pageKey) {
       _fetchPage(pageKey);
+    });
+
+    // Display permissions dialog after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      // If the permission has not yet been authorized, the dialog is displayed.
+      if (settings.authorizationStatus != AuthorizationStatus.authorized) {
+        NotificationService().showPermissionRequestDialog(context);
+      }
     });
   }
 
@@ -359,10 +371,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
             child: Text('No notifications found.'),
           ),
           firstPageErrorIndicatorBuilder: (context) => Center(
-            child: Text('No notifications found.'), // Text('Error: ${_pagingController.error}'),
+            child: Text(
+                'No notifications found.'), // Text('Error: ${_pagingController.error}'),
           ),
           newPageErrorIndicatorBuilder: (context) => Center(
-            child: Text('No notifications found.'), // Text('Error: ${_pagingController.error}'),
+            child: Text(
+                'No notifications found.'), // Text('Error: ${_pagingController.error}'),
           ),
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -16,6 +17,7 @@ import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/genre/widgets/genre_item_shimmer.dart';
 import 'package:sway/features/notification/notification.dart';
+import 'package:sway/features/notification/services/notification_service.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
@@ -83,6 +85,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
   void initState() {
     super.initState();
     _loadRecommendations();
+    // Display permissions dialog after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      // If the permission has not yet been authorized, the dialog is displayed.
+      if (settings.authorizationStatus != AuthorizationStatus.authorized) {
+        NotificationService().showPermissionRequestDialog(context);
+      }
+    });
   }
 
   /// Charge les recommandations et l'utilisateur courant.

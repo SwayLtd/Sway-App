@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Simplified Notification Permission Request Dialog
 - Improve Security: Fix search_path Warnings & Enable RLS
 - Update SearchScreen UI and functionality
 - Fix auth trigger and sync username issues

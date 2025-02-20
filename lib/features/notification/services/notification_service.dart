@@ -16,12 +16,6 @@ import 'package:sway/firebase_options.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-/// NotificationService is responsible for:
-/// 1) Initializing Firebase + flutter_local_notifications.
-/// 2) Handling foreground messages (showFlutterNotification).
-/// 3) Scheduling local notifications if needed (scheduleNotification).
-/// 4) Opening the correct screen (ticket, etc.) when the user clicks on the notification.
-
 class NotificationService {
   final NotificationPreferencesService _prefsService =
       NotificationPreferencesService();
@@ -79,27 +73,18 @@ class NotificationService {
     isFlutterLocalNotificationsInitialized = true;
   }
 
-  /// If we want to show a local notification for messages that contain a 'notification' block,
-  /// we do it here. However, for "ticket" type, we'll rely on the default system notification
-  /// and onMessageOpenedApp logic to open the ticket. We won't override that with a persistent local notif.
+  /// Displays a local notification based on the received [message].
   void showFlutterNotification(RemoteMessage message) {
     final notification = message.notification;
     final android = message.notification?.android;
     final notificationType = message.data['type'];
 
-    // If the push contains a "notification" block and we're on Android,
-    // the OS will show a system notification automatically.
-    // This method just displays a possible duplicate if we want.
     if (notification != null && android != null && !kIsWeb) {
-      // We'll do nothing special if it's a "ticket".
-      // We'll let the OS handle it normally. We'll rely on onMessageOpenedApp to open the ticket.
       if (notificationType == NotificationChannels.ticket) {
-        // We do NOT create a local persistent notification or remove the system one anymore.
         print(
             '[NotificationService] Ticket type notification handled by the system. '
             'We rely on onMessageOpenedApp for navigation.');
       } else {
-        // For other types, we might show a fallback local notification
         final channelId = (notificationType != null &&
                 NotificationChannels.channelNames.containsKey(notificationType))
             ? notificationType
@@ -126,18 +111,18 @@ class NotificationService {
     }
   }
 
-  /// Initialize Firebase, flutter_local_notifications, and handle the user
-  /// clicking on the notification.
+  /// Initialize Firebase, flutter_local_notifications, and set up message listeners.
+  /// Note: The permission request is no longer triggered here.
   Future<void> initialize() async {
     tz.initializeTimeZones();
 
-    // Initialization settings for Android and iOS
     const initializationSettingsAndroid =
         AndroidInitializationSettings('notification');
     final initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      // Do not request permissions here; the system prompt will be triggered manually.
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
     final initializationSettings = InitializationSettings(
@@ -145,17 +130,15 @@ class NotificationService {
       iOS: initializationSettingsIOS,
     );
 
-    // Local notifications plugin init
     await notificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (notificationResponse) async {
-        final actionId = notificationResponse.actionId; // e.g. "dismiss_action"
-        final notificationId = notificationResponse.id; // Notification's ID
-        final payload = notificationResponse.payload; // e.g. "ticket:123"
+        final actionId = notificationResponse.actionId;
+        final notificationId = notificationResponse.id;
+        final payload = notificationResponse.payload;
         print('[NotificationService] onDidReceiveNotificationResponse: '
             'actionId=$actionId, payload=$payload');
 
-        // If we had local actions like "dismiss_action" or "settings_action", they'd be handled here.
         if (actionId == 'dismiss_action') {
           if (notificationId != null) {
             await notificationsPlugin.cancel(notificationId);
@@ -164,8 +147,6 @@ class NotificationService {
           print('[NotificationService] User clicked "Notification settings"');
           // E.g.: router.push('/notification-preferences');
         } else {
-          // If actionId is empty or NotificationResponse.defaultActionId,
-          // it means the user clicked the main body of the notification.
           if (payload != null && payload.startsWith('ticket:')) {
             final ticketIdString = payload.split(':').last;
             final ticketId = int.tryParse(ticketIdString);
@@ -180,14 +161,17 @@ class NotificationService {
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // Foreground messages: showFlutterNotification is optional if you want a second local notification
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       showFlutterNotification(message);
     });
 
     await setupFlutterNotifications();
 
-    // ignore: unused_local_variable
+    // Note: We removed the direct call to requestPermission() here.
+  }
+
+  /// Triggers the system permission request for notifications.
+  Future<void> requestNotificationPermission() async {
     final settings = await FirebaseMessaging.instance.requestPermission(
       alert: true,
       announcement: false,
@@ -203,11 +187,44 @@ class NotificationService {
               IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, badge: true, sound: true);
     }
-
-    // print('User granted permission: ${settings.authorizationStatus}');
+    print('User granted permission: ${settings.authorizationStatus}');
   }
 
-  /// Builds NotificationDetails for local notifications if we need them.
+  /// Shows a dialog with a button that opens the real system pop-up to request notification permissions.
+  Future<void> showPermissionRequestDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent closing by tapping outside
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Notification Permission'),
+          content: const Text(
+            'We need your permission to send you notifications about the things you follow, so you can stay informed.\n\nYou can adjust your preferences later in the settings.',
+            textAlign: TextAlign.start,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Close the dialog without requesting permission.
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Trigger the system permission request.
+                await requestNotificationPermission();
+                // Close the dialog.
+                Navigator.of(context).pop();
+              },
+              child: const Text('Allow'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   NotificationDetails notificationDetails(String channelId) {
     return NotificationDetails(
       android: AndroidNotificationDetails(
@@ -223,7 +240,6 @@ class NotificationService {
     );
   }
 
-  /// A basic "showNotification" utility if needed for local notifications.
   Future<void> showNotification({
     int id = 0,
     String? title,
@@ -243,7 +259,6 @@ class NotificationService {
     );
   }
 
-  /// A basic scheduling method if needed for local notifications.
   Future<void> scheduleNotification({
     int id = 0,
     String? title,

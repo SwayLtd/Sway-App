@@ -31,7 +31,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  NotificationService().initialize();
+  await NotificationService().initialize();
 
   final authService = AuthService();
   // Make sure a user is logged in (authenticated or anonymous)
