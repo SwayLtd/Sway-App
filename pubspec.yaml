@@ -28,13 +28,11 @@ dependencies:
     sdk: flutter
   flutter_secure_storage: ^9.2.2
   flutter_sticky_header: ^0.7.0
-  go_router: ^14.2.1 # ^6.5.9 important
+  go_router: ^14.2.1 # ^6.5.9 was important before, keep it in ming
   google_fonts: ^6.2.1
   http: ^1.2.2
   intl: ^0.19.0
-  # isar: ^3.1.0+1 # Super Fast Cross-Platform Database - For bigger projects with more complex data structures - https://isar.dev/ - https://pub.dev/packages/isar
   # lemon_squeezy: ^1.0.3
-  # onesignal_flutter: ^5.2.2
   # qr_flutter: ^4.1.0
   responsive_framework: ^1.4.0
   share_plus: ^10.0.0
@@ -81,8 +79,8 @@ dependencies:
   path: ^1.9.0
   path_provider: ^2.1.5
   analyzer: any # ^5.13.0
-  isar: ^3.1.0+1
-  #isar:
+  isar: ^3.1.0+1 # Super Fast Cross-Platform Database - For bigger projects with more complex data structures - https://isar.dev/ - https://pub.dev/packages/isar
+  #isar: # Super Fast Cross-Platform Database - For bigger projects with more complex data structures - https://isar.dev/ - https://pub.dev/packages/isar
   #  hosted: https://pub.isar-community.dev
   #  version: 4.0.3
   isar_flutter_libs: ^3.1.0+1
