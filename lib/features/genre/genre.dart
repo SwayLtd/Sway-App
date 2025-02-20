@@ -1,3 +1,5 @@
+// lib/features/genre/genre.dart
+
 import 'package:expandable_text/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart'; // sectionSpacing & sectionTitleSpacing
@@ -84,9 +86,8 @@ class _GenreScreenState extends State<GenreScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(genreName),
+        title: Text(genreName), // title is updated dynamically
         actions: [
-          // Share button.
           Transform.flip(
             flipX: true,
             child: IconButton(
@@ -96,7 +97,6 @@ class _GenreScreenState extends State<GenreScreen> {
               },
             ),
           ),
-          // Following button.
           FollowingButtonWidget(entityId: widget.genreId, entityType: 'genre'),
         ],
       ),
@@ -112,12 +112,19 @@ class _GenreScreenState extends State<GenreScreen> {
               } else if (snapshot.hasError ||
                   !snapshot.hasData ||
                   snapshot.data == null) {
-                // Si une erreur survient (par exemple SocketException) ou que rien n'est chargé,
-                // on affiche "You are offline."
-                // return const Center(child: Text("You're offline."));
                 return const SizedBox.shrink();
               } else {
                 final genre = snapshot.data!;
+
+                // Update genreName after the first build phase
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      genreName = genre.name;
+                    });
+                  }
+                });
+
                 return SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Padding(
@@ -125,7 +132,6 @@ class _GenreScreenState extends State<GenreScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Genre title in the body.
                         Text(
                           genre.name,
                           style: const TextStyle(
@@ -136,13 +142,10 @@ class _GenreScreenState extends State<GenreScreen> {
                         FollowersCountWidget(
                             entityId: widget.genreId, entityType: 'genre'),
                         const SizedBox(height: sectionSpacing),
-                        // ABOUT section with description (if available).
                         if (genre.description.isNotEmpty) ...[
-                          const Text(
-                            "ABOUT",
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
+                          const Text("ABOUT",
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
                           const SizedBox(height: sectionTitleSpacing),
                           Container(
                             width: MediaQuery.of(context).size.width - 32,
