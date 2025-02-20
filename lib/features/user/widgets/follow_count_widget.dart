@@ -1,6 +1,7 @@
 // lib/features/user/widgets/followers_count_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:sway/features/user/screens/followers_screen.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
 import 'package:sway/features/user/services/user_follow_genre_service.dart';
@@ -130,9 +131,73 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const CircularProgressIndicator.adaptive();
-    }
+      final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+      final baseColor = isDarkMode
+          ? Colors.grey.shade700.withOpacity(0.1)
+          : Colors.grey.shade300;
+      final highlightColor = isDarkMode
+          ? Colors.grey.shade500.withOpacity(0.1)
+          : Colors.grey.shade100;
+      final containerColor =
+          isDarkMode ? Theme.of(context).scaffoldBackgroundColor : Colors.white;
 
+      return Shimmer.fromColors(
+        baseColor: baseColor,
+        highlightColor: highlightColor,
+        child: widget.entityType == 'event'
+            ? Row(
+                children: [
+                  Container(
+                    width: 120,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: containerColor,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 120,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: containerColor,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ],
+              )
+            : widget.entityType == 'user'
+                ? Row(
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: containerColor,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 120,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: containerColor,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                    ],
+                  )
+                : Container(
+                    width: 120,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: containerColor,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+      );
+    }
     if (widget.entityType == 'event') {
       final int interestedCount = counts['interested'] ?? 0;
       final int goingCount = counts['going'] ?? 0;

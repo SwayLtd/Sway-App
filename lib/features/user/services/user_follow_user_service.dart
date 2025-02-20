@@ -61,18 +61,20 @@ class UserFollowUserService {
   }
 
   Future<int> getFollowersCount(int targetUserId) async {
-    try {
-      final response = await _supabase
-          .from('user_follow_user')
-          .select('follower_id')
-          .eq('followed_id', targetUserId);
+  try {
+    final response = await _supabase
+        .from('user_follow_user')
+        .select('follower_id') // Assurez-vous de ne pas ajouter .single() ici
+        .eq('followed_id', targetUserId);
 
-      return response.length;
-    } catch (e) {
-      print('Error getting followers count for user $targetUserId: $e');
-      return 0;
-    }
+    // On s'assure que response est bien une liste
+    return response.length;
+  } catch (e) {
+    print('Error getting followers count for user $targetUserId: $e');
+    return 0;
   }
+}
+
 
   Future<int> getFollowingCount(int userId) async {
     try {
