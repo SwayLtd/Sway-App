@@ -133,10 +133,10 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
     if (isLoading) {
       final isDarkMode = Theme.of(context).brightness == Brightness.dark;
       final baseColor = isDarkMode
-          ? Colors.grey.shade700.withOpacity(0.1)
+          ? Colors.grey.shade700.withValues(alpha: 0.1)
           : Colors.grey.shade300;
       final highlightColor = isDarkMode
-          ? Colors.grey.shade500.withOpacity(0.1)
+          ? Colors.grey.shade500.withValues(alpha: 0.1)
           : Colors.grey.shade100;
       final containerColor =
           isDarkMode ? Theme.of(context).scaffoldBackgroundColor : Colors.white;
