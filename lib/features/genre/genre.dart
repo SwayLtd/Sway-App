@@ -192,13 +192,15 @@ class _GenreScreenState extends State<GenreScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        "${genreName.toUpperCase()} UPCOMING EVENTS",
-                                        style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                      Expanded(
+                                        child: Text(
+                                          "${genreName.toUpperCase()} UPCOMING EVENTS",
+                                          style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
                                       if (upcomingEvents.length > displayCount)
                                         IconButton(
