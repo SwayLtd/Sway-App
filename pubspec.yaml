@@ -8,7 +8,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.6.0+4 # Improve error handling and UI consistency
+version: 0.6.0+5 # Improve connectivity, refresh, and error handling
 
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
@@ -86,6 +86,7 @@ dependencies:
   #  hosted: https://pub.isar-community.dev
   #  version: 4.0.3
   isar_flutter_libs: ^3.1.0+1
+  internet_connection_checker: ^3.0.1
   #isar_flutter_libs:
   #  hosted: https://pub.isar-community.dev
   #  version: 4.0.3

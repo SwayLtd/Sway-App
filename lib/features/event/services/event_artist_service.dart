@@ -184,39 +184,83 @@ class EventArtistService {
 
   /// Retrieves events associated with a specific artist.
   Future<List<Map<String, dynamic>>> getEventsByArtistId(int artistId) async {
-    final response = await _supabase.from('event_artist').select();
-    if ((response as List).isEmpty) return [];
+    final online = await isConnected();
+    final isar = await _isarFuture;
 
-    final Set<int> eventIds = {};
-    for (final entry in response) {
-      final dynamic artistField = entry['artist_id'];
-      final Set<int> parsedIds = _parseArtistField(artistField);
-      if (parsedIds.contains(artistId)) {
-        eventIds.add(entry['event_id'] as int);
+    if (online) {
+      try {
+        final response = await _supabase.from('event_artist').select();
+        if ((response as List).isEmpty) return [];
+
+        final Set<int> eventIds = {};
+        for (final entry in response) {
+          final dynamic artistField = entry['artist_id'];
+          final Set<int> parsedIds = _parseArtistField(artistField);
+          if (parsedIds.contains(artistId)) {
+            eventIds.add(entry['event_id'] as int);
+          }
+        }
+        if (eventIds.isEmpty) return [];
+
+        final List<Event> events =
+            await _eventService.getEventsByIds(eventIds.toList());
+        // print("getEventsByArtistId: Events retrieved for artistId $artistId: ${events.map((e) => e.id).toList()}");
+        return response.where((entry) {
+          final dynamic artistField = entry['artist_id'];
+          final Set<int> parsedIds = _parseArtistField(artistField);
+          return parsedIds.contains(artistId);
+        }).map((entry) {
+          final int eventId = entry['event_id'] as int;
+          final matchingEvents = events.where((e) => e.id == eventId);
+          final Event? event =
+              matchingEvents.isNotEmpty ? matchingEvents.first : null;
+          return {
+            'event': event,
+            'start_time': entry['start_time'] as String?,
+            'end_time': entry['end_time'] as String?,
+            'status': entry['status'] as String? ?? '',
+            'stage': entry['stage'] as String? ?? '',
+          };
+        }).toList();
+      } catch (e) {
+        // Catching the error so it won't display an error on screen.
+        print("Error fetching data: $e");
+        return [];
+        // Optionally, you could show a SnackBar here:
+        // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to refresh data.")));
       }
-    }
-    if (eventIds.isEmpty) return [];
+    } else {
+      // Offline: load assignments from the local cache (isarEventArtists collection).
+      final cachedAssignments = await isar.isarEventArtists
+          .filter()
+          .artistIdsElementEqualTo(artistId)
+          .findAll();
+      if (cachedAssignments.isNotEmpty) {
+        final Set<int> uniqueEventIds = {};
+        for (final assignment in cachedAssignments) {
+          uniqueEventIds.add(assignment.eventId);
+        }
+        final List<Event> events =
+            await _eventService.getEventsByIds(uniqueEventIds.toList());
+        final Map<int, Event> eventMap = {for (var e in events) e.id!: e};
 
-    final List<Event> events =
-        await _eventService.getEventsByIds(eventIds.toList());
-    // print("getEventsByArtistId: Events retrieved for artistId $artistId: ${events.map((e) => e.id).toList()}");
-    return response.where((entry) {
-      final dynamic artistField = entry['artist_id'];
-      final Set<int> parsedIds = _parseArtistField(artistField);
-      return parsedIds.contains(artistId);
-    }).map((entry) {
-      final int eventId = entry['event_id'] as int;
-      final matchingEvents = events.where((e) => e.id == eventId);
-      final Event? event =
-          matchingEvents.isNotEmpty ? matchingEvents.first : null;
-      return {
-        'event': event,
-        'start_time': entry['start_time'] as String?,
-        'end_time': entry['end_time'] as String?,
-        'status': entry['status'] as String? ?? '',
-        'stage': entry['stage'] as String? ?? '',
-      };
-    }).toList();
+        final List<Map<String, dynamic>> result =
+            cachedAssignments.map((assignment) {
+          final Event? event = eventMap[assignment.eventId];
+          return {
+            'event': event,
+            'start_time': assignment.startTime.toIso8601String(),
+            'end_time': assignment.endTime.toIso8601String(),
+            'status': assignment.status,
+            'stage': assignment.stage,
+          };
+        }).toList();
+        // print("getEventsByArtistId (offline): Final cached result for artistId $artistId: ${result.map((r) => (r['event'] as Event).id).toList()}");
+        return result;
+      }
+      // print("getEventsByArtistId (offline): No cached assignments found for artistId $artistId.");
+      return [];
+    }
   }
 
   /// Adds a new artist assignment on Supabase and updates the local cache.

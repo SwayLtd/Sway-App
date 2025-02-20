@@ -38,22 +38,30 @@ class UserService {
     final online = await isConnected();
     final isar = await _isarFuture;
     if (online) {
-      final data = await _supabase
-          .from('users')
-          .select()
-          .eq('supabase_id', supabaseId)
-          .maybeSingle();
-      if (data == null) {
-        // Return cached data if available.
-        return await _loadUserFromIsarBySupabaseId(supabaseId, isar: isar);
+      try {
+        final data = await _supabase
+            .from('users')
+            .select()
+            .eq('supabase_id', supabaseId)
+            .maybeSingle();
+        if (data == null) {
+          // Return cached data if available.
+          return await _loadUserFromIsarBySupabaseId(supabaseId, isar: isar);
+        }
+        final user = AppUser.User.fromJson(data);
+        await _storeUserInIsar(isar, user);
+        return user;
+      } catch (e) {
+        // Catching the error so it won't display an error on screen.
+        print("Error fetching data: $e");
+        // Optionally, you could show a SnackBar here:
+        // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to refresh data.")));
       }
-      final user = AppUser.User.fromJson(data);
-      await _storeUserInIsar(isar, user);
-      return user;
     } else {
       // Offline: load user from cache.
       return await _loadUserFromIsarBySupabaseId(supabaseId, isar: isar);
     }
+    return null;
   }
 
   /// Retrieves the currently authenticated user.

@@ -92,14 +92,21 @@ class _ArtistScreenState extends State<ArtistScreen> {
     setState(() {
       _fetchData();
     });
-    await Future.wait([
-      _artistFuture,
-      _eventsFuture,
-      _genresFuture,
-      _promotersFuture,
-      _venuesFuture,
-      _similarArtistsFuture,
-    ]);
+    try {
+      await Future.wait([
+        _artistFuture,
+        _eventsFuture,
+        _genresFuture,
+        _promotersFuture,
+        _venuesFuture,
+        _similarArtistsFuture,
+      ]);
+    } catch (e) {
+      // Catching the refresh error so it won't display an error on screen.
+      print("Error refreshing data: $e");
+      // Optionally, you could show a SnackBar here:
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to refresh data.")));
+    }
   }
 
   /// Builds a section title with a forward arrow if needed.

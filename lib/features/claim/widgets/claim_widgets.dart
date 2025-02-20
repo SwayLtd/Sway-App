@@ -1,3 +1,5 @@
+// lib/features/claim/widgets/claim_widgets.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sway/features/user/services/user_service.dart';
@@ -57,15 +59,12 @@ class _ClaimPageTileState extends State<ClaimPageTile> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: isConnected(),
+    return StreamBuilder<bool>(
+      stream: ConnectivityHelper.connectivityStream,
+      initialData: true,
       builder: (context, snapshot) {
-        // If connection state is not done yet, don't show the widget.
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const SizedBox.shrink();
-        }
-        // If no connection, hide the widget.
-        if (snapshot.data == false) {
+        bool connected = snapshot.data ?? true;
+        if (!connected) {
           print(
               "ClaimPageTile: No internet connection detected – widget hidden.");
           return const SizedBox.shrink();
