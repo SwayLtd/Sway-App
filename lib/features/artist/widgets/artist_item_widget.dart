@@ -18,11 +18,15 @@ class ArtistListItemWidget extends StatefulWidget {
   final Artist artist;
   final VoidCallback onTap;
   final int maxTitleLength;
+  final DateTime? performanceTime;
+  final DateTime? performanceEndTime; // Nouveau paramètre
 
   const ArtistListItemWidget({
     required this.artist,
     required this.onTap,
-    this.maxTitleLength = 20, // Longueur maximale du titre par défaut
+    this.maxTitleLength = 20,
+    this.performanceTime,
+    this.performanceEndTime,
     Key? key,
   }) : super(key: key);
 
@@ -38,21 +42,18 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
       UserFollowArtistService();
   final EventArtistService _eventArtistService = EventArtistService();
 
-  bool _showUpcomingEventsCount = true; // État pour l'alternance
-  Timer? _timer; // Timer pour l'alternance
-  bool _hasTimer =
-      false; // Indicateur pour éviter de configurer plusieurs timers
+  bool _showUpcomingEventsCount = true;
+  Timer? _timer;
+  bool _hasTimer = false;
 
   @override
   void initState() {
     super.initState();
     _followersCountFuture =
         _userFollowArtistService.getArtistFollowersCount(widget.artist.id!);
-    _upcomingEventsFuture =
-        _fetchUpcomingEvents(); // Récupérer la liste des événements à venir
+    _upcomingEventsFuture = _fetchUpcomingEvents();
   }
 
-  /// Méthode pour récupérer la liste des événements à venir en utilisant getEventsByArtistId
   Future<List<Event>> _fetchUpcomingEvents() async {
     try {
       final List<Map<String, dynamic>> eventsData =
@@ -64,14 +65,12 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
         return [];
       }
 
-      // Extraire les objets Event à partir des maps retournées
       List<Event> events = eventsData
           .map((data) {
-            final event =
-                data['event'] as Event?; // Traiter 'event' comme un objet Event
+            final event = data['event'] as Event?;
             if (event == null) {
               print(
-                  'Données de l\'événement manquantes pour un événement associé à l\'artiste ID: ${widget.artist.id!}');
+                  'Données de l\'événement manquantes pour l\'artiste ID: ${widget.artist.id!}');
               return null;
             }
             return event;
@@ -80,7 +79,6 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
           .cast<Event>()
           .toList();
 
-      // Filtrer les événements à venir
       DateTime now = DateTime.now();
       List<Event> upcomingEvents =
           events.where((event) => event.eventDateTime.isAfter(now)).toList();
@@ -89,10 +87,8 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
         return [];
       }
 
-      // Trier les événements par date ascendante
       upcomingEvents.sort((a, b) => a.eventDateTime.compareTo(b.eventDateTime));
 
-      // Configurer le timer pour l'alternance si non déjà configuré
       if (!_hasTimer) {
         _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
           setState(() {
@@ -104,7 +100,6 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
 
       return upcomingEvents;
     } catch (e) {
-      // Gérer les erreurs ici ou les laisser remonter
       print('Erreur lors de la récupération des événements: $e');
       return [];
     }
@@ -112,14 +107,12 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
 
   @override
   void dispose() {
-    // Annuler le timer si actif
     _timer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Troncature du titre si nécessaire
     String truncatedTitle = widget.artist.name.length > widget.maxTitleLength
         ? '${widget.artist.name.substring(0, widget.maxTitleLength)}...'
         : widget.artist.name;
@@ -127,8 +120,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Card(
-        color:
-            Theme.of(context).cardColor, // Appliquez la couleur personnalisée
+        color: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -139,18 +131,16 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
               color: Theme.of(context)
                   .colorScheme
                   .onPrimary
-                  .withValues(alpha: 0.5), // Couleur de la bordure avec opacité
-              width: 2.0, // Épaisseur de la bordure
+                  .withValues(alpha: 0.5),
+              width: 2.0,
             ),
-            borderRadius:
-                BorderRadius.circular(12), // Coins arrondis de la bordure
+            borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
             onTap: widget.onTap,
             leading: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .cardColor, // Appliquer cardColor from theme
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Container(
@@ -159,11 +149,10 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                     color: Theme.of(context)
                         .colorScheme
                         .onPrimary
-                        .withValues(alpha: 0.5), // Couleur de la bordure
-                    width: 2.0, // Épaisseur de la bordure
+                        .withValues(alpha: 0.5),
+                    width: 2.0,
                   ),
-                  borderRadius:
-                      BorderRadius.circular(12), // Coins arrondis de la bordure
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
@@ -178,17 +167,14 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
             ),
             title: Text(
               truncatedTitle,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Affichage du nombre de followers
+                // Nombre de followers
                 FutureBuilder<int>(
                   future: _followersCountFuture,
                   builder: (context, snapshot) {
@@ -217,39 +203,35 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                     }
                   },
                 ),
-                const SizedBox(height: 4), // Espacement entre les sections
-                // Affichage des événements à venir
-                FutureBuilder<List<Event>>(
-                  future: _upcomingEventsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Text(
-                        'Loading upcoming events',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text(
-                        'Error: ${snapshot.error}',
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.grey),
-                      );
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      // Si aucun événement à venir, afficher "No upcoming events"
-                      // Annuler le timer si actif
-                      if (_hasTimer) {
-                        _timer?.cancel();
-                        _timer = null;
-                        _hasTimer = false;
-                      }
-                      return const Text(
-                        'No upcoming events',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      );
-                    } else {
-                      final upcomingEvents = snapshot.data!;
-                      // Vérifier que la liste n'est pas vide
-                      if (upcomingEvents.isEmpty) {
-                        // Si la liste est vide, afficher "No upcoming events"
+                const SizedBox(height: 4),
+                // Si une heure de passage est fournie, l'afficher (avec heure de fin si présente) et masquer les événements à venir.
+                if (widget.performanceTime != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Text(
+                      widget.performanceEndTime != null
+                          ? "${formatPerformanceTime(widget.performanceTime!)} - ${formatPerformanceTime(widget.performanceEndTime!)}"
+                          : "${formatPerformanceTime(widget.performanceTime!)}",
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  )
+                else
+                  // Sinon, afficher les événements à venir
+                  FutureBuilder<List<Event>>(
+                    future: _upcomingEventsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Text(
+                          'Loading upcoming events',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text(
+                          'Error: ${snapshot.error}',
+                          style:
+                              const TextStyle(fontSize: 12, color: Colors.grey),
+                        );
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         if (_hasTimer) {
                           _timer?.cancel();
                           _timer = null;
@@ -259,51 +241,38 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                           'No upcoming events',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         );
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Affichage conditionnel alterné entre "X upcoming events" et "Next Event"
-                          _showUpcomingEventsCount
-                              ? Text(
-                                  '${upcomingEvents.length} upcoming event${upcomingEvents.length > 1 ? 's' : ''}',
-                                  style: const TextStyle(
-                                      fontSize: 12, color: Colors.grey),
-                                )
-                              : GestureDetector(
-                                  onTap: () {
-                                    // Naviguer vers la page de détails de l'événement
-                                    context.push(
-                                        '/event/${upcomingEvents.first.id}');
-                                  },
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.navigate_next,
-                                        size: 16,
-                                        color: Colors.white,
+                      } else {
+                        final upcomingEvents = snapshot.data!;
+                        return _showUpcomingEventsCount
+                            ? Text(
+                                '${upcomingEvents.length} upcoming event${upcomingEvents.length > 1 ? 's' : ''}',
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.grey),
+                              )
+                            : GestureDetector(
+                                onTap: () {
+                                  context.push(
+                                      '/event/${upcomingEvents.first.id}');
+                                },
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.navigate_next,
+                                        size: 16, color: Colors.white),
+                                    Expanded(
+                                      child: Text(
+                                        '${upcomingEvents.first.title} on ${formatPerformanceTime(upcomingEvents.first.eventDateTime)}',
+                                        style: const TextStyle(
+                                            fontSize: 12, color: Colors.grey),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      Expanded(
-                                        child: Text(
-                                          '${upcomingEvents.first.title} on ${formatEventDate(upcomingEvents.first.eventDateTime)}',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey, // Texte neutre
-                                            // Pas de soulignement
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                          // Ajouter un espace entre les deux éléments si nécessaire
-                        ],
-                      );
-                    }
-                  },
-                ),
+                              );
+                      }
+                    },
+                  ),
               ],
             ),
             trailing: FollowingButtonWidget(
@@ -321,15 +290,26 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
 class ArtistTileItemWidget extends StatelessWidget {
   final Artist artist;
   final VoidCallback onTap;
+  final DateTime? performanceTime;
+  final DateTime? performanceEndTime; // Nouveau paramètre
 
   const ArtistTileItemWidget({
     required this.artist,
     required this.onTap,
+    this.performanceTime,
+    this.performanceEndTime,
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    String performanceText = '';
+    if (performanceTime != null) {
+      performanceText = performanceEndTime != null
+          ? "${formatPerformanceTime(performanceTime!)} - ${formatPerformanceTime(performanceEndTime!)}"
+          : formatPerformanceTime(performanceTime!);
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -362,6 +342,12 @@ class ArtistTileItemWidget extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          // Affichage de l'heure de passage et de fin si fournie
+          if (performanceText.isNotEmpty)
+            Text(
+              performanceText,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
         ],
       ),
     );

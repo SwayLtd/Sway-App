@@ -399,28 +399,63 @@ class _EventScreenState extends State<EventScreen> {
                   } else if (snapshot.hasError ||
                       !snapshot.hasData ||
                       snapshot.data!.isEmpty) {
-                    // return const Center(child: Text("You're offline."));
                     return const SizedBox.shrink();
                   } else {
                     final artistEntries = snapshot.data!;
                     final Map<int, Artist> uniqueArtists = {};
+                    final Map<int, DateTime?> performanceTimes = {};
+                    final Map<int, DateTime?> performanceEndTimes = {};
+
                     for (final entry in artistEntries) {
+                      DateTime? assignmentStartTime;
+                      DateTime? assignmentEndTime;
+                      if (entry['start_time'] != null) {
+                        if (entry['start_time'] is String) {
+                          assignmentStartTime =
+                              DateTime.parse(entry['start_time'] as String);
+                        } else if (entry['start_time'] is DateTime) {
+                          assignmentStartTime = entry['start_time'] as DateTime;
+                        }
+                      }
+                      if (entry['end_time'] != null) {
+                        if (entry['end_time'] is String) {
+                          assignmentEndTime =
+                              DateTime.parse(entry['end_time'] as String);
+                        } else if (entry['end_time'] is DateTime) {
+                          assignmentEndTime = entry['end_time'] as DateTime;
+                        }
+                      }
                       final List<dynamic> artists =
                           entry['artists'] as List<dynamic>;
                       for (final artist in artists.cast<Artist>()) {
                         uniqueArtists[artist.id!] = artist;
+                        if (!performanceTimes.containsKey(artist.id) &&
+                            assignmentStartTime != null) {
+                          performanceTimes[artist.id!] = assignmentStartTime;
+                        }
+                        if (!performanceEndTimes.containsKey(artist.id) &&
+                            assignmentEndTime != null) {
+                          performanceEndTimes[artist.id!] = assignmentEndTime;
+                        }
                       }
                     }
+
                     final artistsList = uniqueArtists.values.toList();
                     final bool hasMore = artistsList.length > 5;
                     final displayArtists =
                         hasMore ? artistsList.sublist(0, 5) : artistsList;
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSectionTitle("LINE UP", hasMore, () {
+                          // Passage du mapping performanceTimes et performanceEndTimes au modal.
                           showArtistModalBottomSheet(
-                              context, artistsList.take(10).toList());
+                            context,
+                            artistsList.take(10).toList(),
+                            performanceTimes: performanceTimes,
+                            performanceEndTimes: performanceEndTimes,
+                          );
                         }),
                         const SizedBox(height: sectionTitleSpacing),
                         SingleChildScrollView(
@@ -431,6 +466,9 @@ class _EventScreenState extends State<EventScreen> {
                                 padding: const EdgeInsets.all(12.0),
                                 child: ArtistTileItemWidget(
                                   artist: artist,
+                                  performanceTime: performanceTimes[artist.id],
+                                  performanceEndTime:
+                                      performanceEndTimes[artist.id],
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -451,6 +489,7 @@ class _EventScreenState extends State<EventScreen> {
                   }
                 },
               ),
+
               // ORGANIZED BY section.
               FutureBuilder<List<Promoter>>(
                 future: _promotersFuture,

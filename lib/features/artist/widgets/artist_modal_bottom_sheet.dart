@@ -7,7 +7,13 @@ import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/widgets/artist_item_widget.dart';
 
 Future<void> showArtistModalBottomSheet(
-    BuildContext context, List<Artist> artists) {
+  BuildContext context,
+  List<Artist> artists, {
+  Map<int, DateTime?>?
+      performanceTimes, // Mapping optionnel : id d'artiste -> performanceTime
+  Map<int, DateTime?>?
+      performanceEndTimes, // Mapping optionnel : id d'artiste -> performanceEndTime
+}) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -17,8 +23,7 @@ Future<void> showArtistModalBottomSheet(
     builder: (context) {
       return Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height *
-              0.8, // Hauteur maximale de 80%
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
         ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -57,8 +62,16 @@ Future<void> showArtistModalBottomSheet(
                 itemCount: artists.length,
                 itemBuilder: (context, index) {
                   final artist = artists[index];
+                  // Récupération optionnelle de l'heure de passage et de fin depuis les mappings
+                  final DateTime? artistStartTime =
+                      performanceTimes?[artist.id];
+                  final DateTime? artistEndTime =
+                      performanceEndTimes?[artist.id];
+
                   return ArtistListItemWidget(
                     artist: artist,
+                    performanceTime: artistStartTime,
+                    performanceEndTime: artistEndTime,
                     onTap: () {
                       Navigator.push(
                         context,

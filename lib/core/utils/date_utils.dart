@@ -40,3 +40,7 @@ String formatEventDateRange(DateTime start, DateTime end) {
 
   return '$startDate $startTime - $endDate $endTime';
 }
+
+String formatPerformanceTime(DateTime dateTime) {
+  return DateFormat('HH:mm').format(dateTime);
+}
