@@ -20,6 +20,7 @@ import 'package:sway/features/user/user.dart';
 import 'package:sway/features/user/widgets/auth_modal.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:sway/features/venue/screens/create_venue_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -74,6 +75,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context,
       MaterialPageRoute(builder: (context) => const AboutScreen()),
     );
+  }
+
+  Future<void> _launchFeatureRequests() async {
+    final Uri url = Uri.parse('https://swayapp.canny.io/');
+    if (!await launchUrl(url)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to open URL'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   /// Displays the authentication modal.
@@ -365,6 +378,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: const Icon(Icons.info),
                   title: const Text('About'),
                   onTap: _navigateToAbout,
+                ),
+                ListTile(
+                  leading: const Icon(Icons.track_changes),
+                  title: const Text('Feedback / Roadmap'),
+                  onTap: _launchFeatureRequests,
                 ),
                 const Divider(),
                 SizedBox(height: sectionSpacing),

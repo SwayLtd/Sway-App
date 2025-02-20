@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Add Feedback / Feature Requests ListTile with external URL launch
 - Improve ExploreScreen fallback loading behavior
 - Improve connectivity, refresh, and error handling
 - Improve error handling and UI consistency

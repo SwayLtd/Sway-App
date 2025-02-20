@@ -179,7 +179,6 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error creating artist: $e'),
-          backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
       );

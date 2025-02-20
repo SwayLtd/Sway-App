@@ -8,7 +8,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.6.6 # Improve ExploreScreen fallback loading behavior
+version: 0.6.6+1 # Add Feedback / Feature Requests ListTile with external URL launch
 
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
