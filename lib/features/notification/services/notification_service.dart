@@ -187,6 +187,7 @@ class NotificationService {
 
     await setupFlutterNotifications();
 
+    // ignore: unused_local_variable
     final settings = await FirebaseMessaging.instance.requestPermission(
       alert: true,
       announcement: false,
