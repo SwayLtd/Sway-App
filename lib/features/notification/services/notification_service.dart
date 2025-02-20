@@ -203,7 +203,7 @@ class NotificationService {
           ?.requestPermissions(alert: true, badge: true, sound: true);
     }
 
-    print('User granted permission: ${settings.authorizationStatus}');
+    // print('User granted permission: ${settings.authorizationStatus}');
   }
 
   /// Builds NotificationDetails for local notifications if we need them.
