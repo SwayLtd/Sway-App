@@ -157,6 +157,7 @@ flutter:
   assets:
     - .env
     - assets/
+    - assets/locales/
     - assets/images/icon.png
     - assets/images/logotype_transparent.png
     - assets/images/404.png
