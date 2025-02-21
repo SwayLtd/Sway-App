@@ -11,7 +11,6 @@ class Event {
   final int? venue;
   final String description;
   final String imageUrl;
-  final String? price;
   final List<int>? promoters;
   final List<int>? genres;
   final List<int>? artists;
@@ -27,7 +26,6 @@ class Event {
     this.venue,
     required this.description,
     required this.imageUrl,
-    this.price,
     this.promoters,
     this.genres,
     this.artists,
@@ -83,7 +81,6 @@ class Event {
       'description': description,
       'image_url': imageUrl,
       // 'distance': distance,
-      // 'price': price,
       // 'promoters': promoters,
       // 'genres': genres,
       // 'artists': artists,
@@ -103,7 +100,6 @@ class Event {
     String? description,
     String? imageUrl,
     String? distance,
-    String? price,
     List<int>? promoters,
     List<int>? genres,
     List<int>? artists,
@@ -119,7 +115,6 @@ class Event {
       venue: venue ?? this.venue,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
-      price: price ?? this.price,
       promoters: promoters ?? this.promoters,
       genres: genres ?? this.genres,
       artists: artists ?? this.artists,

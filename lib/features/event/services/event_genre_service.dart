@@ -214,7 +214,6 @@ class EventGenreService {
           eventEndDateTime: isarEvent.eventEndDateTime,
           description: isarEvent.description,
           imageUrl: isarEvent.imageUrl,
-          price: isarEvent.price,
           promoters: [], // à remplir si nécessaire
           genres: [], // à remplir si nécessaire
           artists: [], // à remplir si nécessaire

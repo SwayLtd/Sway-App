@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Remove "price" field from Event model and related components
 - Fix display of upcoming events in PromoterScreen
 - Fix metadata loading issue in EditEventScreen and refresh flow
 - Implement metadata system for Event with UI integration in EventScreen

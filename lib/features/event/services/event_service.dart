@@ -290,7 +290,6 @@ class EventService {
         ..eventEndDateTime = event.eventEndDateTime
         ..description = event.description
         ..imageUrl = event.imageUrl
-        ..price = event.price ?? ''
         ..interestedUsersCount = event.interestedUsersCount ?? 0;
 
       // TODO: Add linking for artists, genres, promoters, venue if needed.
@@ -314,7 +313,6 @@ class EventService {
       eventEndDateTime: isarEvent.eventEndDateTime,
       description: isarEvent.description,
       imageUrl: isarEvent.imageUrl,
-      price: isarEvent.price,
       promoters: [], // Populate if you store links.
       genres: [],
       artists: [],
@@ -334,7 +332,6 @@ class EventService {
         eventEndDateTime: isarEvent.eventEndDateTime,
         description: isarEvent.description,
         imageUrl: isarEvent.imageUrl,
-        price: isarEvent.price,
         promoters: [],
         genres: [],
         artists: [],

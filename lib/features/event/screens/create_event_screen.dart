@@ -315,7 +315,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         eventEndDateTime: _selectedEndDate!,
         description: _descriptionController.text.trim(),
         imageUrl: '',
-        price: '',
         promoters: [promoterId],
         metadata:
             metadata.isEmpty ? null : metadata, // Ne pas inclure metadata vide

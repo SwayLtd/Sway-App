@@ -17,7 +17,6 @@ class IsarEvent {
   late DateTime eventEndDateTime;
   late String description;
   late String imageUrl;
-  late String price;
   late int interestedUsersCount;
 
   // Forward links

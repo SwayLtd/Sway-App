@@ -238,7 +238,6 @@ class EventPromoterService {
           ..eventEndDateTime = event.eventEndDateTime
           ..description = event.description
           ..imageUrl = event.imageUrl
-          ..price = event.price ?? ''
           ..interestedUsersCount = event.interestedUsersCount ?? 0;
 
         await isar.isarEvents.put(isarEvent);
@@ -268,7 +267,6 @@ class EventPromoterService {
         eventEndDateTime: isarEvent.eventEndDateTime,
         description: isarEvent.description,
         imageUrl: isarEvent.imageUrl,
-        price: isarEvent.price,
         interestedUsersCount: isarEvent.interestedUsersCount,
       );
     }).toList();

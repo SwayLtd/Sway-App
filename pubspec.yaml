@@ -8,7 +8,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.9.2 # Fix display of upcoming events in PromoterScreen
+version: 0.9.2+1 # Remove "price" field from Event model and related components
 
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
