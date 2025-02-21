@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Only showing upcoming events on promoter screens.
 - Delete "links" data for artists
 - Allow optional performance times for artist assignments
 - Refactor and improve styling for the entities management screen

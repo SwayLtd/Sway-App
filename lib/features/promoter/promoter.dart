@@ -60,11 +60,17 @@ class _PromoterScreenState extends State<PromoterScreen> {
           _error = null;
         });
 
-        // Récupérer les événements à partir de EventPromoterService
-        _upcomingEvents = await EventPromoterService()
+        // Récupérer tous les événements pour ce promoteur
+        final allEvents = await EventPromoterService()
             .getEventsByPromoterId(widget.promoterId);
 
-        // Utiliser setState ici pour forcer la mise à jour de l'interface utilisateur
+        // Filtrer pour ne garder que les événements futurs (upcoming events)
+        final now = DateTime.now();
+        _upcomingEvents = allEvents
+            .where((event) => event.eventEndDateTime.isAfter(now))
+            .toList();
+
+        // Forcer la mise à jour de l'interface utilisateur
         setState(() {});
       }
     } catch (e) {
