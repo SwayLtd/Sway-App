@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Allow optional performance times for artist assignments
 - Refactor and improve styling for the entities management screen
 - New border side on dialog
 - Remove "price" field from Event model and related components

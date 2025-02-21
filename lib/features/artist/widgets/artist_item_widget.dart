@@ -310,6 +310,9 @@ class ArtistTileItemWidget extends StatelessWidget {
           : formatPerformanceTime(performanceTime!);
     }
 
+    // On définit une hauteur fixe pour le conteneur d'affichage du texte (par exemple 16 ou 20)
+    const double fixedTextHeight = 16;
+
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -342,12 +345,18 @@ class ArtistTileItemWidget extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          // Affichage de l'heure de passage et de fin si fournie
-          if (performanceText.isNotEmpty)
-            Text(
-              performanceText,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+          // Réserver toujours la même hauteur pour l'affichage de la performance
+          SizedBox(
+            height: fixedTextHeight,
+            child: Center(
+              child: Text(
+                performanceText,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
+          ),
         ],
       ),
     );

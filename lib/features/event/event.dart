@@ -363,6 +363,7 @@ class _EventScreenState extends State<EventScreen> {
               const SizedBox(height: sectionTitleSpacing),
               // InfoCard : Tickets (rendre cliquable avec URL)
               FutureBuilder<Map<String, dynamic>?>(
+                // Assurez-vous que le Map est non nul
                 future: _metadataFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -371,13 +372,14 @@ class _EventScreenState extends State<EventScreen> {
                     return const SizedBox.shrink();
                   } else {
                     final metadata = snapshot.data;
-                    final ticketLink = metadata?['ticket_link'];
-                    return ticketLink != null
+                    final ticketLink = metadata?['ticket_link'] ??
+                        ''; // Assurez-vous de fournir une chaîne vide si null
+                    return ticketLink.isNotEmpty
                         ? GestureDetector(
                             onTap: () => _launchURL(Uri.parse(ticketLink)),
                             child: InfoCard(
                               title: "Tickets",
-                              content: ticketLink ?? "No link available",
+                              content: ticketLink, // Contenu propre
                             ),
                           )
                         : const SizedBox.shrink();
@@ -542,13 +544,18 @@ class _EventScreenState extends State<EventScreen> {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: displayArtists.map((artist) {
+                              // Récupérer les heures de passage si disponibles
+                              DateTime? performanceTime =
+                                  performanceTimes[artist.id];
+                              DateTime? performanceEndTime =
+                                  performanceEndTimes[artist.id];
+
                               return Padding(
                                 padding: const EdgeInsets.all(12.0),
                                 child: ArtistTileItemWidget(
                                   artist: artist,
-                                  performanceTime: performanceTimes[artist.id],
-                                  performanceEndTime:
-                                      performanceEndTimes[artist.id],
+                                  performanceTime: performanceTime,
+                                  performanceEndTime: performanceEndTime,
                                   onTap: () {
                                     Navigator.push(
                                       context,

@@ -119,19 +119,31 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
     // Group assignments by day (format: YYYY-MM-DD)
     Map<String, List<Map<String, dynamic>>> groupByDay = {};
     _assignments.sort((a, b) {
-      DateTime aTime = a['start_time'] is String
-          ? DateTime.parse(a['start_time'])
-          : a['start_time'];
-      DateTime bTime = b['start_time'] is String
-          ? DateTime.parse(b['start_time'])
-          : b['start_time'];
+      DateTime? aTime = a['start_time'] is String
+          ? DateTime.parse(a['start_time'] as String)
+          : a['start_time'] as DateTime?;
+      DateTime? bTime = b['start_time'] is String
+          ? DateTime.parse(b['start_time'] as String)
+          : b['start_time'] as DateTime?;
+
+      // Si les deux valeurs sont null, elles sont égales
+      if (aTime == null && bTime == null) return 0;
+      // Considérez les assignations sans heure comme « plus tard »
+      if (aTime == null) return 1;
+      if (bTime == null) return -1;
       return aTime.compareTo(bTime);
     });
+
     for (var assignment in _assignments) {
-      DateTime start = assignment['start_time'] is String
-          ? DateTime.parse(assignment['start_time'])
-          : assignment['start_time'];
-      String dayKey = start.toLocal().toString().substring(0, 10);
+      DateTime? start = assignment['start_time'] is String
+          ? DateTime.parse(assignment['start_time'] as String)
+          : assignment['start_time'] as DateTime?;
+
+      // Si start_time est null, utilisez une clé spécifique (ex: "No specific time")
+      String dayKey = start != null
+          ? start.toLocal().toString().substring(0, 10)
+          : 'No specific time';
+
       groupByDay.putIfAbsent(dayKey, () => []).add(assignment);
     }
 
@@ -162,35 +174,53 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            formatEventDate(DateTime.parse(day)),
+                            day == 'No specific time'
+                                ? 'No specific time'
+                                : formatEventDate(DateTime.parse(day)),
                             style: const TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ),
                         ...assignments.map((assignment) {
-                          // Construction de l'affichage d'une assignation
+                          // Extraction des artistes
                           final List<dynamic> artists =
                               assignment['artists'] ?? [];
                           final String artistNames =
                               artists.map((a) => a.name).join(', ');
-                          final DateTime parsedStart =
+
+                          // Extraction des dates en tant que DateTime nullable
+                          final DateTime? parsedStart =
                               assignment['start_time'] is String
-                                  ? DateTime.parse(assignment['start_time'])
-                                  : assignment['start_time'];
-                          final DateTime parsedEnd =
-                              assignment['end_time'] is String
-                                  ? DateTime.parse(assignment['end_time'])
-                                  : assignment['end_time'];
-                          final String startDate =
-                              parsedStart.toLocal().toString().substring(0, 10);
-                          final String startHour = parsedStart
-                              .toLocal()
-                              .toString()
-                              .substring(11, 16);
-                          final String endDate =
-                              parsedEnd.toLocal().toString().substring(0, 10);
-                          final String endHour =
-                              parsedEnd.toLocal().toString().substring(11, 16);
+                                  ? DateTime.parse(
+                                      assignment['start_time'] as String)
+                                  : assignment['start_time'] as DateTime?;
+                          final DateTime? parsedEnd = assignment['end_time']
+                                  is String
+                              ? DateTime.parse(assignment['end_time'] as String)
+                              : assignment['end_time'] as DateTime?;
+
+                          // Construction du texte à afficher pour les horaires
+                          String timeDisplay;
+                          if (parsedStart != null && parsedEnd != null) {
+                            final String startDate = parsedStart
+                                .toLocal()
+                                .toString()
+                                .substring(0, 10);
+                            final String startHour = parsedStart
+                                .toLocal()
+                                .toString()
+                                .substring(11, 16);
+                            final String endDate =
+                                parsedEnd.toLocal().toString().substring(0, 10);
+                            final String endHour = parsedEnd
+                                .toLocal()
+                                .toString()
+                                .substring(11, 16);
+                            timeDisplay =
+                                '$startDate $startHour → $endDate $endHour';
+                          } else {
+                            timeDisplay = 'No specific time';
+                          }
 
                           List<Widget> infoRows = [];
                           infoRows.add(Row(
@@ -199,7 +229,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  '$startDate $startHour → $endDate $endHour',
+                                  timeDisplay,
                                   style: const TextStyle(fontSize: 14),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -207,6 +237,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
                               ),
                             ],
                           ));
+
                           if (assignment['custom_name'] != null &&
                               (assignment['custom_name'] as String)
                                   .isNotEmpty) {
@@ -460,29 +491,14 @@ class _ArtistAssignmentBottomSheetState
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_startTime == null || _endTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please select start and end times'),
-            behavior: SnackBarBehavior.floating),
-      );
-      return;
-    }
-    if (!_validateAssignmentTimes()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Assignment times must be within event times:\nStart: ${widget.eventStart.toLocal().toString().substring(0, 16)}\nEnd: ${widget.eventEnd.toLocal().toString().substring(0, 16)}'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
+
+    // On ne bloque plus la soumission si _startTime ou _endTime sont nulles
     if (_selectedArtistIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Please select at least one artist'),
-            behavior: SnackBarBehavior.floating),
+          content: Text('Please select at least one artist'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -491,8 +507,8 @@ class _ArtistAssignmentBottomSheetState
         await _eventArtistService.addArtistAssignment(
           eventId: widget.eventId,
           artistIds: _selectedArtistIds.toList(),
-          startTime: _startTime!,
-          endTime: _endTime!,
+          startTime: _startTime, // Peut être null
+          endTime: _endTime, // Peut être null
           customName: _customName,
           status: 'confirmed',
           stage: _stage,
@@ -510,8 +526,8 @@ class _ArtistAssignmentBottomSheetState
           eventId: widget.eventId,
           assignmentId: widget.assignment!['id'],
           artistIds: _selectedArtistIds.toList(),
-          startTime: _startTime!,
-          endTime: _endTime!,
+          startTime: _startTime,
+          endTime: _endTime,
           customName: _customName,
           status: 'confirmed',
           stage: _stage,
@@ -699,11 +715,21 @@ class _ArtistAssignmentBottomSheetState
                           Expanded(
                             child: GestureDetector(
                               onTap: widget.canEdit ? _pickStartTime : null,
-                              child: Text(
-                                _startTime == null
-                                    ? 'Select start time'
-                                    : 'Start: ${_startTime!.toLocal().toString().substring(0, 16)}',
-                                style: const TextStyle(fontSize: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _startTime == null
+                                        ? 'Select start time'
+                                        : 'Start: ${_startTime!.toLocal().toString().substring(0, 16)}',
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                  const Text(
+                                    'optional',
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.grey),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -714,17 +740,28 @@ class _ArtistAssignmentBottomSheetState
                         ],
                       ),
                       const SizedBox(height: sectionTitleSpacing),
+
                       // End time picker
                       Row(
                         children: [
                           Expanded(
                             child: GestureDetector(
                               onTap: widget.canEdit ? _pickEndTime : null,
-                              child: Text(
-                                _endTime == null
-                                    ? 'Select end time'
-                                    : 'End: ${_endTime!.toLocal().toString().substring(0, 16)}',
-                                style: const TextStyle(fontSize: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _endTime == null
+                                        ? 'Select end time'
+                                        : 'End: ${_endTime!.toLocal().toString().substring(0, 16)}',
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                  const Text(
+                                    'optional',
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.grey),
+                                  ),
+                                ],
                               ),
                             ),
                           ),

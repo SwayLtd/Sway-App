@@ -145,8 +145,7 @@ class PromoterGenreService {
       }
       await isarPromoter.genres.save();
     });
-    print("Cache updated for promoterId ${isarPromoter.remoteId}: " +
-        "genres in cache: ${isarPromoter.genres.map((g) => g.remoteId).toList()}");
+    // print("Cache updated for promoterId ${isarPromoter.remoteId}: " + "genres in cache: ${isarPromoter.genres.map((g) => g.remoteId).toList()}");
   }
 
   /// Factorized helper to add a genre link to a cached promoter.
@@ -163,8 +162,7 @@ class PromoterGenreService {
       }
       await isarPromoter.genres.save();
     });
-    print(
-        "Stored genreId $genreId in cache for promoterId ${isarPromoter.remoteId}");
+    // print("Stored genreId $genreId in cache for promoterId ${isarPromoter.remoteId}");
   }
 
   /// Factorized helper to load the genre IDs from the cache for a given promoter.
@@ -177,7 +175,7 @@ class PromoterGenreService {
     if (isarPromoter != null) {
       await isarPromoter.genres.load();
       final loadedIds = isarPromoter.genres.map((g) => g.remoteId).toList();
-      print("Loaded genres from cache for promoterId $promoterId: $loadedIds");
+      // print("Loaded genres from cache for promoterId $promoterId: $loadedIds");
       return loadedIds;
     }
     return [];

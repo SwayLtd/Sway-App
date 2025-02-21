@@ -117,8 +117,7 @@ class ArtistService {
       }
     }
 
-    print(
-        "getArtistsByIds: Requested IDs: $artistIds, retrieved: ${result.keys.toList()}");
+    // print("getArtistsByIds: Requested IDs: $artistIds, retrieved: ${result.keys.toList()}");
     return result.values.toList();
   }
 

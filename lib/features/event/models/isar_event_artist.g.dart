@@ -120,12 +120,12 @@ IsarEventArtist _isarEventArtistDeserialize(
   final object = IsarEventArtist();
   object.artistIds = reader.readLongList(offsets[0]) ?? [];
   object.customName = reader.readStringOrNull(offsets[1]);
-  object.endTime = reader.readDateTime(offsets[2]);
+  object.endTime = reader.readDateTimeOrNull(offsets[2]);
   object.eventId = reader.readLong(offsets[3]);
   object.id = id;
   object.remoteId = reader.readLong(offsets[4]);
   object.stage = reader.readStringOrNull(offsets[5]);
-  object.startTime = reader.readDateTime(offsets[6]);
+  object.startTime = reader.readDateTimeOrNull(offsets[6]);
   object.status = reader.readString(offsets[7]);
   return object;
 }
@@ -142,7 +142,7 @@ P _isarEventArtistDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
@@ -150,7 +150,7 @@ P _isarEventArtistDeserializeProp<P>(
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 7:
       return (reader.readString(offset)) as P;
     default:
@@ -553,7 +553,25 @@ extension IsarEventArtistQueryFilter
   }
 
   QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
-      endTimeEqualTo(DateTime value) {
+      endTimeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'endTime',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
+      endTimeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'endTime',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
+      endTimeEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'endTime',
@@ -564,7 +582,7 @@ extension IsarEventArtistQueryFilter
 
   QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
       endTimeGreaterThan(
-    DateTime value, {
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -578,7 +596,7 @@ extension IsarEventArtistQueryFilter
 
   QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
       endTimeLessThan(
-    DateTime value, {
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -592,8 +610,8 @@ extension IsarEventArtistQueryFilter
 
   QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
       endTimeBetween(
-    DateTime lower,
-    DateTime upper, {
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -931,7 +949,25 @@ extension IsarEventArtistQueryFilter
   }
 
   QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
-      startTimeEqualTo(DateTime value) {
+      startTimeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'startTime',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
+      startTimeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'startTime',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
+      startTimeEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'startTime',
@@ -942,7 +978,7 @@ extension IsarEventArtistQueryFilter
 
   QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
       startTimeGreaterThan(
-    DateTime value, {
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -956,7 +992,7 @@ extension IsarEventArtistQueryFilter
 
   QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
       startTimeLessThan(
-    DateTime value, {
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -970,8 +1006,8 @@ extension IsarEventArtistQueryFilter
 
   QueryBuilder<IsarEventArtist, IsarEventArtist, QAfterFilterCondition>
       startTimeBetween(
-    DateTime lower,
-    DateTime upper, {
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1416,7 +1452,7 @@ extension IsarEventArtistQueryProperty
     });
   }
 
-  QueryBuilder<IsarEventArtist, DateTime, QQueryOperations> endTimeProperty() {
+  QueryBuilder<IsarEventArtist, DateTime?, QQueryOperations> endTimeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'endTime');
     });
@@ -1440,7 +1476,7 @@ extension IsarEventArtistQueryProperty
     });
   }
 
-  QueryBuilder<IsarEventArtist, DateTime, QQueryOperations>
+  QueryBuilder<IsarEventArtist, DateTime?, QQueryOperations>
       startTimeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'startTime');

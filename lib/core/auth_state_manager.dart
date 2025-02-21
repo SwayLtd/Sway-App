@@ -55,8 +55,7 @@ class AuthStateManager extends ChangeNotifier {
     final user = supabase.auth.currentUser;
     // Si l'utilisateur est anonyme (email null), on ne fait rien.
     if (user == null || user.email == null) {
-      print(
-          'Utilisateur anonyme ou email non défini, mise à jour du token FCM ignorée.');
+      print('Anonymous user or email not defined, FCM token update ignored.');
       return;
     }
 
@@ -70,9 +69,9 @@ class AuthStateManager extends ChangeNotifier {
         onConflict:
             'supabase_id', // Assurez-vous que 'supabase_id' est une clé unique
       );
-      print('FCM token mis à jour avec succès.');
+      print('FCM token successfully updated.');
     } catch (e) {
-      print('Erreur lors de la mise à jour du token FCM: $e');
+      print('Error updating FCM token: $e');
     }
   }
 }
