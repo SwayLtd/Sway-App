@@ -1,0 +1,2 @@
+C:/Users/RA/GitHub/Sway/sway_app/android/app/.cxx/Debug/3c6r1x3k/x86/CMakeFiles/edit_cache.dir
+C:/Users/RA/GitHub/Sway/sway_app/android/app/.cxx/Debug/3c6r1x3k/x86/CMakeFiles/rebuild_cache.dir
