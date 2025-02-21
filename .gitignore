@@ -21,7 +21,7 @@ deps.txt
 *.env.local
 *.env.*.local
 /android/key.properties
-/keystore/
+*/keystore/
 *release-key.jks
 
 # IntelliJ related
