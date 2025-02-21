@@ -1,5 +1,3 @@
-// lib/features/user/screens/user_entities_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
@@ -15,21 +13,26 @@ import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/screens/edit_venue_screen.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/venue/venue.dart';
-
-// Nouveaux imports pour les artistes
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/screens/edit_artist_screen.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
 
-class UserEntitiesScreen extends StatelessWidget {
+class UserEntitiesScreen extends StatefulWidget {
   final int userId;
 
   const UserEntitiesScreen({required this.userId});
 
+  @override
+  _UserEntitiesScreenState createState() => _UserEntitiesScreenState();
+}
+
+class _UserEntitiesScreenState extends State<UserEntitiesScreen> {
+  bool _hasData = false;
+
   Future<List<UserPermission>> _getPermissions(String entityType) async {
     return await UserPermissionService()
-        .getPermissionsByUserIdAndType(userId, entityType);
+        .getPermissionsByUserIdAndType(widget.userId, entityType);
   }
 
   Future<void> _navigateToEntity(
@@ -87,7 +90,7 @@ class UserEntitiesScreen extends StatelessWidget {
           );
         }
         break;
-      case 'artist': // Nouveau cas pour les artistes
+      case 'artist':
         final artist = await ArtistService().getArtistById(entityId);
         if (artist != null) {
           Navigator.push(
@@ -169,7 +172,7 @@ class UserEntitiesScreen extends StatelessWidget {
           );
         }
         break;
-      case 'artist': // Nouveau cas pour les artistes
+      case 'artist':
         final artist = await ArtistService().getArtistById(entityId);
         if (artist != null) {
           Navigator.push(
@@ -199,7 +202,7 @@ class UserEntitiesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Entities'),
+        title: const Text('Manage Entities'),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -217,16 +220,13 @@ class UserEntitiesScreen extends StatelessWidget {
               future: _getPermissions('event'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child: CircularProgressIndicator.adaptive());
+                  return const SizedBox.shrink();
                 } else if (snapshot.hasError) {
-                  return Center(
-                    child: const SizedBox
-                        .shrink(), // Text('Error: ${snapshot.error}'),
-                  );
+                  return Center(child: const Text('Error loading events'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No events found'));
+                  return const SizedBox.shrink();
                 } else {
+                  _hasData = true;
                   final eventPermissions = snapshot.data!;
                   return Column(
                     children: eventPermissions.map((permission) {
@@ -236,7 +236,7 @@ class UserEntitiesScreen extends StatelessWidget {
                         builder: (context, eventSnapshot) {
                           if (eventSnapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const CircularProgressIndicator.adaptive();
+                            return const SizedBox.shrink();
                           } else if (eventSnapshot.hasError ||
                               !eventSnapshot.hasData) {
                             return const SizedBox.shrink();
@@ -262,63 +262,6 @@ class UserEntitiesScreen extends StatelessWidget {
                 }
               },
             ),
-            // Venues Section
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Venues',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            FutureBuilder<List<UserPermission>>(
-              future: _getPermissions('venue'),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child: CircularProgressIndicator.adaptive());
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: const SizedBox
-                        .shrink(), // Text('Error: ${snapshot.error}'),
-                  );
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No venues found'));
-                } else {
-                  final venuePermissions = snapshot.data!;
-                  return Column(
-                    children: venuePermissions.map((permission) {
-                      return FutureBuilder<Venue?>(
-                        future:
-                            VenueService().getVenueById(permission.entityId),
-                        builder: (context, venueSnapshot) {
-                          if (venueSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const CircularProgressIndicator.adaptive();
-                          } else if (venueSnapshot.hasError ||
-                              !venueSnapshot.hasData) {
-                            return const SizedBox.shrink();
-                          } else {
-                            final venue = venueSnapshot.data!;
-                            return ListTile(
-                              title: Text(venue.name),
-                              subtitle: Text(
-                                  'Role: ${getRoleLabel(permission.permissionLevel)}'),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () => _editEntity(
-                                    context, 'venue', permission.entityId),
-                              ),
-                              onTap: () => _navigateToEntity(
-                                  context, 'venue', permission.entityId),
-                            );
-                          }
-                        },
-                      );
-                    }).toList(),
-                  );
-                }
-              },
-            ),
             // Promoters Section
             const Padding(
               padding: EdgeInsets.all(16.0),
@@ -331,16 +274,13 @@ class UserEntitiesScreen extends StatelessWidget {
               future: _getPermissions('promoter'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child: CircularProgressIndicator.adaptive());
+                  return const SizedBox.shrink();
                 } else if (snapshot.hasError) {
-                  return Center(
-                    child: const SizedBox
-                        .shrink(), // Text('Error: ${snapshot.error}'),
-                  );
+                  return Center(child: const Text('Error loading promoters'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No promoters found'));
+                  return const SizedBox.shrink();
                 } else {
+                  _hasData = true;
                   final promoterPermissions = snapshot.data!;
                   return Column(
                     children: promoterPermissions.map((permission) {
@@ -350,7 +290,7 @@ class UserEntitiesScreen extends StatelessWidget {
                         builder: (context, promoterSnapshot) {
                           if (promoterSnapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const CircularProgressIndicator.adaptive();
+                            return const SizedBox.shrink();
                           } else if (promoterSnapshot.hasError ||
                               !promoterSnapshot.hasData) {
                             return const SizedBox.shrink();
@@ -376,6 +316,60 @@ class UserEntitiesScreen extends StatelessWidget {
                 }
               },
             ),
+            // Venues Section
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Venues',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            FutureBuilder<List<UserPermission>>(
+              future: _getPermissions('venue'),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox.shrink();
+                } else if (snapshot.hasError) {
+                  return Center(child: const Text('Error loading venues'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const SizedBox.shrink();
+                } else {
+                  _hasData = true;
+                  final venuePermissions = snapshot.data!;
+                  return Column(
+                    children: venuePermissions.map((permission) {
+                      return FutureBuilder<Venue?>(
+                        future:
+                            VenueService().getVenueById(permission.entityId),
+                        builder: (context, venueSnapshot) {
+                          if (venueSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const SizedBox.shrink();
+                          } else if (venueSnapshot.hasError ||
+                              !venueSnapshot.hasData) {
+                            return const SizedBox.shrink();
+                          } else {
+                            final venue = venueSnapshot.data!;
+                            return ListTile(
+                              title: Text(venue.name),
+                              subtitle: Text(
+                                  'Role: ${getRoleLabel(permission.permissionLevel)}'),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => _editEntity(
+                                    context, 'venue', permission.entityId),
+                              ),
+                              onTap: () => _navigateToEntity(
+                                  context, 'venue', permission.entityId),
+                            );
+                          }
+                        },
+                      );
+                    }).toList(),
+                  );
+                }
+              },
+            ),
             // Artists Section
             const Padding(
               padding: EdgeInsets.all(16.0),
@@ -388,16 +382,13 @@ class UserEntitiesScreen extends StatelessWidget {
               future: _getPermissions('artist'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child: CircularProgressIndicator.adaptive());
+                  return const SizedBox.shrink();
                 } else if (snapshot.hasError) {
-                  return Center(
-                    child: const SizedBox
-                        .shrink(), // Text('Error: ${snapshot.error}'),
-                  );
+                  return Center(child: const Text('Error loading artists'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No artists found'));
+                  return const SizedBox.shrink();
                 } else {
+                  _hasData = true;
                   final artistPermissions = snapshot.data!;
                   return Column(
                     children: artistPermissions.map((permission) {
@@ -407,7 +398,7 @@ class UserEntitiesScreen extends StatelessWidget {
                         builder: (context, artistSnapshot) {
                           if (artistSnapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const CircularProgressIndicator.adaptive();
+                            return const SizedBox.shrink();
                           } else if (artistSnapshot.hasError ||
                               !artistSnapshot.hasData) {
                             return const SizedBox.shrink();
@@ -433,6 +424,16 @@ class UserEntitiesScreen extends StatelessWidget {
                 }
               },
             ),
+            // Affichez le message uniquement si aucune section ne contient de données
+            if (!_hasData)
+              /*const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  "You don't have anything to manage right now",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),*/
+              const SizedBox.shrink(),
           ],
         ),
       ),

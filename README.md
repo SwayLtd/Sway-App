@@ -16,6 +16,8 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Refactor and improve styling for the entities management screen
+- New border side on dialog
 - Remove "price" field from Event model and related components
 - Fix display of upcoming events in PromoterScreen
 - Fix metadata loading issue in EditEventScreen and refresh flow
