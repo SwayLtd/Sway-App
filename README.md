@@ -16,15 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
-- Only showing upcoming events on promoter screens.
-- Delete "links" data for artists
-- Allow optional performance times for artist assignments
-- Refactor and improve styling for the entities management screen
-- New border side on dialog
-- Remove "price" field from Event model and related components
-- Fix display of upcoming events in PromoterScreen
-- Fix metadata loading issue in EditEventScreen and refresh flow
-- Implement metadata system for Event with UI integration in EventScreen
+- Release 1.0.0 - Add app signing configuration for release
 
 ### Known Issues
 

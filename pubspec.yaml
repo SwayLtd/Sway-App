@@ -1,6 +1,9 @@
 # https://stackoverflow.com/questions/51809421/flutter-is-not-able-to-install-the-apk-into-the-real-device-suddenly
 # dart run build_runner clean && dart run build_runner build --delete-conflicting-outputs
-# flutter build apk --obfuscate --split-debug-info=Sway/debug_info
+# keytool -genkeypair -v -keystore app/keystore/release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias sway-app -storepass "your@store$Password" -keypass "your@key$Password" -storetype JKS
+# keytool -importkeystore -srckeystore app/keystore/release-key.jks -destkeystore android/keystore/release-key.jks -deststoretype pkcs12
+# flutter build apk --release --obfuscate --split-debug-info=Sway/debug_info
+# flutter build appbundle --release --obfuscate --split-debug-info=Sway/debug_info
 # flutter pub deps > deps.txt
 
 name: sway
@@ -8,7 +11,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.9.9 # Ready for production after signing
+version: 1.0.0 # Release
 
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"

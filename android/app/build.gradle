@@ -9,6 +9,12 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "app.sway.main"
 
@@ -45,11 +51,32 @@ android {
         multiDexEnabled true
     }
 
+    signingConfigs {
+        release {
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+        }
+        debug {
+            // Utilise le keystore par défaut pour le mode debug
+            // storeFile file("path/to/debug.keystore")  // (optionnel) Si tu utilises un keystore spécifique pour le debug
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+        
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            // signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.release
+        }
+        debug {
+            // Utilisation de la signature debug pour les builds en mode debug
+            signingConfig signingConfigs.debug
         }
     }
     buildToolsVersion '35.0.0'
