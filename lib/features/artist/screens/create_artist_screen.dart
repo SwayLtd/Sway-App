@@ -145,7 +145,6 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
         description: _descriptionController.text.trim(),
         genres: [],
         similarArtists: [],
-        links: {},
         upcomingEvents: [],
       );
 

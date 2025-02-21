@@ -481,13 +481,13 @@ class _ArtistAssignmentBottomSheetState
     }
   }
 
-  bool _validateAssignmentTimes() {
+  /* bool _validateAssignmentTimes() {
     if (_startTime == null || _endTime == null) return false;
     // Ensure start is not before event start, end is not after event end, and start is before end.
     return !_startTime!.isBefore(widget.eventStart) &&
         !_endTime!.isAfter(widget.eventEnd) &&
         !_startTime!.isAfter(_endTime!);
-  }
+  } */
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;

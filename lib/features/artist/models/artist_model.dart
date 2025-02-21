@@ -8,7 +8,6 @@ class Artist {
   final List<int>? genres;
   final List<int>? upcomingEvents;
   final List<int>? similarArtists;
-  final Map<String, String>? links;
   final int? followers;
   final bool? isFollowing;
   final bool isVerified; // New property to indicate verification status
@@ -21,7 +20,6 @@ class Artist {
     this.genres,
     this.upcomingEvents = const [],
     this.similarArtists,
-    this.links,
     this.followers,
     this.isFollowing,
     this.isVerified = false,
@@ -40,8 +38,6 @@ class Artist {
       upcomingEvents:
           (json['upcoming_events'] as List<dynamic>?)?.cast<int>() ?? [],
       similarArtists: (json['similar_artists'] as List<dynamic>?)?.cast<int>(),
-      links: (json['links'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(key, value as String)),
       followers: json['followers'] as int?,
       isFollowing: json['is_following'] as bool?,
       isVerified: json['is_verified'] as bool? ??
@@ -69,7 +65,6 @@ class Artist {
     List<int>? genres,
     List<int>? upcomingEvents,
     List<int>? similarArtists,
-    Map<String, String>? links,
     int? followers,
     bool? isFollowing,
     bool? isVerified,
@@ -82,7 +77,6 @@ class Artist {
       genres: genres ?? this.genres,
       upcomingEvents: upcomingEvents ?? this.upcomingEvents,
       similarArtists: similarArtists ?? this.similarArtists,
-      links: links ?? this.links,
       followers: followers ?? this.followers,
       isFollowing: isFollowing ?? this.isFollowing,
       isVerified: isVerified ?? this.isVerified,

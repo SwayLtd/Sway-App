@@ -17,7 +17,6 @@ class IsarArtist {
   late bool isVerified;
   late int followers;
   late bool isFollowing;
-  late String linksJson;
 
   final genres = IsarLinks<IsarGenre>();
   final upcomingEvents = IsarLinks<IsarEvent>();

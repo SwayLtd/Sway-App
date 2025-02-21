@@ -1,6 +1,5 @@
 // lib/features/artist/services/artist_service.dart
 
-import 'dart:convert';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:isar/isar.dart';
@@ -95,8 +94,6 @@ class ArtistService {
         isFollowing: isarArtist.isFollowing,
         genres: isarArtist.genres.map((g) => g.remoteId).toList(),
         upcomingEvents: [], // à compléter si nécessaire
-        links: (jsonDecode(isarArtist.linksJson) as Map<dynamic, dynamic>)
-            .map((k, v) => MapEntry(k.toString(), v.toString())),
       );
     }
 
@@ -226,8 +223,6 @@ class ArtistService {
           isFollowing: isarArtist.isFollowing,
           genres: isarArtist.genres.map((g) => g.remoteId).toList(),
           upcomingEvents: [],
-          links: (jsonDecode(isarArtist.linksJson) as Map<dynamic, dynamic>)
-              .map((k, v) => MapEntry(k.toString(), v.toString())),
         );
       }
       final artists = result.values.toList();
@@ -287,8 +282,6 @@ class ArtistService {
       isarArtist.isVerified = artist.isVerified;
       isarArtist.followers = artist.followers ?? 0;
       isarArtist.isFollowing = artist.isFollowing ?? false;
-      isarArtist.linksJson =
-          artist.links != null ? jsonEncode(artist.links) : '{}';
 
       // Link genres if available.
       isarArtist.genres.clear();
@@ -326,8 +319,6 @@ class ArtistService {
       isFollowing: isarArtist.isFollowing,
       genres: isarArtist.genres.map((g) => g.remoteId).toList(),
       upcomingEvents: [],
-      links: (jsonDecode(isarArtist.linksJson) as Map<dynamic, dynamic>)
-          .map((k, v) => MapEntry(k.toString(), v.toString())),
     );
   }
 
@@ -347,8 +338,6 @@ class ArtistService {
         isFollowing: isarArtist.isFollowing,
         genres: isarArtist.genres.map((g) => g.remoteId).toList(),
         upcomingEvents: [],
-        links: (jsonDecode(isarArtist.linksJson) as Map<dynamic, dynamic>)
-            .map((k, v) => MapEntry(k.toString(), v.toString())),
       );
     }
     return result.values.toList();
@@ -373,8 +362,6 @@ class ArtistService {
         isFollowing: isarArtist.isFollowing,
         genres: isarArtist.genres.map((g) => g.remoteId).toList(),
         upcomingEvents: [],
-        links: (jsonDecode(isarArtist.linksJson) as Map<dynamic, dynamic>)
-            .map((k, v) => MapEntry(k.toString(), v.toString())),
       );
     }
     return result.values.toList();

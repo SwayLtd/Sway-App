@@ -42,18 +42,13 @@ const IsarArtistSchema = CollectionSchema(
       name: r'isVerified',
       type: IsarType.bool,
     ),
-    r'linksJson': PropertySchema(
-      id: 5,
-      name: r'linksJson',
-      type: IsarType.string,
-    ),
     r'name': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'name',
       type: IsarType.string,
     ),
     r'remoteId': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'remoteId',
       type: IsarType.long,
     )
@@ -99,7 +94,6 @@ int _isarArtistEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.description.length * 3;
   bytesCount += 3 + object.imageUrl.length * 3;
-  bytesCount += 3 + object.linksJson.length * 3;
   bytesCount += 3 + object.name.length * 3;
   return bytesCount;
 }
@@ -115,9 +109,8 @@ void _isarArtistSerialize(
   writer.writeString(offsets[2], object.imageUrl);
   writer.writeBool(offsets[3], object.isFollowing);
   writer.writeBool(offsets[4], object.isVerified);
-  writer.writeString(offsets[5], object.linksJson);
-  writer.writeString(offsets[6], object.name);
-  writer.writeLong(offsets[7], object.remoteId);
+  writer.writeString(offsets[5], object.name);
+  writer.writeLong(offsets[6], object.remoteId);
 }
 
 IsarArtist _isarArtistDeserialize(
@@ -133,9 +126,8 @@ IsarArtist _isarArtistDeserialize(
   object.imageUrl = reader.readString(offsets[2]);
   object.isFollowing = reader.readBool(offsets[3]);
   object.isVerified = reader.readBool(offsets[4]);
-  object.linksJson = reader.readString(offsets[5]);
-  object.name = reader.readString(offsets[6]);
-  object.remoteId = reader.readLong(offsets[7]);
+  object.name = reader.readString(offsets[5]);
+  object.remoteId = reader.readLong(offsets[6]);
   return object;
 }
 
@@ -159,8 +151,6 @@ P _isarArtistDeserializeProp<P>(
     case 5:
       return (reader.readString(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
-    case 7:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -660,140 +650,6 @@ extension IsarArtistQueryFilter
     });
   }
 
-  QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition> linksJsonEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'linksJson',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition>
-      linksJsonGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'linksJson',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition> linksJsonLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'linksJson',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition> linksJsonBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'linksJson',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition>
-      linksJsonStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'linksJson',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition> linksJsonEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'linksJson',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition> linksJsonContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'linksJson',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition> linksJsonMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'linksJson',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition>
-      linksJsonIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'linksJson',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition>
-      linksJsonIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'linksJson',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<IsarArtist, IsarArtist, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1229,18 +1085,6 @@ extension IsarArtistQuerySortBy
     });
   }
 
-  QueryBuilder<IsarArtist, IsarArtist, QAfterSortBy> sortByLinksJson() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'linksJson', Sort.asc);
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterSortBy> sortByLinksJsonDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'linksJson', Sort.desc);
-    });
-  }
-
   QueryBuilder<IsarArtist, IsarArtist, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1340,18 +1184,6 @@ extension IsarArtistQuerySortThenBy
     });
   }
 
-  QueryBuilder<IsarArtist, IsarArtist, QAfterSortBy> thenByLinksJson() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'linksJson', Sort.asc);
-    });
-  }
-
-  QueryBuilder<IsarArtist, IsarArtist, QAfterSortBy> thenByLinksJsonDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'linksJson', Sort.desc);
-    });
-  }
-
   QueryBuilder<IsarArtist, IsarArtist, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1411,13 +1243,6 @@ extension IsarArtistQueryWhereDistinct
     });
   }
 
-  QueryBuilder<IsarArtist, IsarArtist, QDistinct> distinctByLinksJson(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'linksJson', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<IsarArtist, IsarArtist, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1467,12 +1292,6 @@ extension IsarArtistQueryProperty
   QueryBuilder<IsarArtist, bool, QQueryOperations> isVerifiedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isVerified');
-    });
-  }
-
-  QueryBuilder<IsarArtist, String, QQueryOperations> linksJsonProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'linksJson');
     });
   }
 
