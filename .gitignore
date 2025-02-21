@@ -21,6 +21,7 @@ deps.txt
 *.env.local
 *.env.*.local
 /android/key.properties
+/keystore/
 
 # IntelliJ related
 *.iml
