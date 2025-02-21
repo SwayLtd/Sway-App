@@ -8,7 +8,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 0.9.0 # Implement metadata system for Event with UI integration in EventScreen
+version: 0.9.+1 # Fix metadata loading issue in EditEventScreen and refresh flow
 
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"

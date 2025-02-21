@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Fix metadata loading issue in EditEventScreen and refresh flow
 - Implement metadata system for Event with UI integration in EventScreen
 
 ### Known Issues

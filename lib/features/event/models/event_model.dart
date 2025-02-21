@@ -1,5 +1,7 @@
 // lib/features/event/models/event_model.dart
 
+import 'dart:convert';
+
 class Event {
   final int? id;
   final String title;
@@ -34,17 +36,26 @@ class Event {
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic>? decodedMetadata;
+
+    if (json['metadata'] is String && (json['metadata'] as String).isNotEmpty) {
+      try {
+        decodedMetadata = jsonDecode(json['metadata']) as Map<String, dynamic>;
+      } catch (e) {
+        print("Erreur lors du décodage de metadata : $e");
+      }
+    } else if (json['metadata'] is Map<String, dynamic>) {
+      decodedMetadata = json['metadata'] as Map<String, dynamic>;
+    }
+
     return Event(
       id: json['id'] as int?,
       title: json['title'] as String? ?? '',
       type: json['type'] as String? ?? '',
       eventDateTime: DateTime.parse(json['date_time'] as String),
       eventEndDateTime: DateTime.parse(json['end_date_time'] as String),
-      // venue: json['venue'] as int? ?? 0,
       description: json['description'] as String? ?? '',
       imageUrl: json['image_url'] as String? ?? '',
-      // distance: json['distance'] as String? ?? '',
-      // price: json['price'] as String? ?? '',
       promoters: (json['promoters'] as List<dynamic>?)
               ?.map((e) => e as int)
               .toList() ??
@@ -56,7 +67,8 @@ class Event {
           (json['artists'] as List<dynamic>?)?.map((e) => e as int).toList() ??
               [],
       interestedUsersCount: json['interested_users_count'] as int?,
-      metadata: json['metadata'] as Map<String, dynamic>?,
+      metadata: decodedMetadata ??
+          {}, // Assurez-vous de ne jamais laisser metadata être null
     );
   }
 

@@ -49,6 +49,7 @@ class EventScreen extends StatefulWidget {
 
 class _EventScreenState extends State<EventScreen> {
   late Event _event;
+  late Future<Event?> _eventFuture;
   late Future<List> _genresFuture;
   late Future<List<Map<String, dynamic>>> _artistsFuture;
   late Future<List<Promoter>> _promotersFuture;
@@ -59,6 +60,7 @@ class _EventScreenState extends State<EventScreen> {
   void initState() {
     super.initState();
     _event = widget.event;
+    _eventFuture = _fetchEventData();
     _fetchData();
     _metadataFuture = EventService().getEventMetadata(_event.id!);
   }
@@ -68,6 +70,11 @@ class _EventScreenState extends State<EventScreen> {
     if (!await launchUrl(url)) {
       throw 'Could not launch $url';
     }
+  }
+
+  Future<Event?> _fetchEventData() async {
+    final updatedEvent = await EventService().getEventById(_event.id!);
+    return updatedEvent;
   }
 
   // Initializes the futures for each section.
@@ -80,9 +87,12 @@ class _EventScreenState extends State<EventScreen> {
 
   Future<void> _refreshData() async {
     setState(() {
-      _fetchData();
+      _eventFuture =
+          _fetchEventData(); // Rafraîchissement des données de l'événement
+      _fetchData(); // Rafraîchissement des autres données
     });
     await Future.wait([
+      _eventFuture,
       _genresFuture,
       _artistsFuture,
       _promotersFuture,
@@ -134,6 +144,7 @@ class _EventScreenState extends State<EventScreen> {
               return IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () async {
+                  // Naviguer vers l'écran d'édition et attendre le retour avec l'événement mis à jour
                   final updatedEvent = await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -142,7 +153,8 @@ class _EventScreenState extends State<EventScreen> {
                   );
                   if (updatedEvent != null) {
                     setState(() {
-                      _event = updatedEvent;
+                      _event =
+                          updatedEvent; // Mettre à jour l'événement avec les modifications
                     });
                   }
                 },

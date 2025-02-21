@@ -28,6 +28,7 @@ Future<void> main() async {
   // Initialize Supabase
   await DatabaseService().initialize();
 
+  // Initialize Notification Services
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

@@ -93,12 +93,19 @@ class _EditEventScreenState extends State<EditEventScreen> {
   // It will be updated with the combined forbiddenWords (French + English).
   late FieldValidator defaultValidator;
 
+  Map<String, dynamic> _eventMetadata = {};
+
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.event.title);
     _descriptionController =
         TextEditingController(text: widget.event.description);
+    // Initialisation des contrôleurs pour ticketLink et locationPrecision
+    _ticketLinkController = TextEditingController();
+    _locationPrecisionController = TextEditingController();
+
+    _loadEventMetadata();
 
     // Convertir event.type (en minuscule) => label (ex: "festival" => "Festival")
     final capitalizedType =
@@ -123,17 +130,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
     // Load forbidden words for French and English, then update the validator.
     _loadDefaultForbiddenWords();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Initialiser les contrôleurs une fois que les données sont disponibles
-    _ticketLinkController = TextEditingController(
-        text: widget.event.metadata?['ticket_link'] ?? '');
-    _locationPrecisionController = TextEditingController(
-        text: widget.event.metadata?['location_precision'] ?? '');
-    setState(() {}); // Forcer la reconstruction pour refléter les données
   }
 
   Future<void> _loadDefaultForbiddenWords() async {
@@ -236,6 +232,30 @@ class _EditEventScreenState extends State<EditEventScreen> {
       print('Error loading event associations: $e');
     } finally {
       if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+
+  Future<void> _loadEventMetadata() async {
+    try {
+      // Charger les métadonnées depuis Supabase
+      final metadata = await EventService().getEventMetadata(widget.event.id!);
+      if (metadata != null) {
+        setState(() {
+          _eventMetadata = metadata;
+          _ticketLinkController.text = metadata['ticket_link'] ?? '';
+          _locationPrecisionController.text =
+              metadata['location_precision'] ?? '';
+        });
+      } else {
+        // Si aucune donnée n'est trouvée, laisser les champs vides ou avec des valeurs par défaut.
+        setState(() {
+          _eventMetadata = {};
+          _ticketLinkController.text = '';
+          _locationPrecisionController.text = '';
+        });
+      }
+    } catch (e) {
+      print("Error loading metadata: $e");
     }
   }
 
@@ -377,32 +397,35 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
       final String typeToStore = _selectedTypeLabel.toLowerCase();
 
-      // Mettre à jour les métadonnées avec les nouvelles valeurs
-      Map<String, dynamic> updatedMetadata = {};
+      // Fusionner l'ancienne metadata avec les nouvelles valeurs
+      final Map<String, dynamic> oldMetadata = widget.event.metadata ?? {};
+      final Map<String, dynamic> mergedMetadata =
+          Map<String, dynamic>.from(oldMetadata);
 
-      if (_ticketLinkController.text.trim().isNotEmpty) {
-        updatedMetadata['ticket_link'] = _ticketLinkController.text.trim();
+      // Mettre à jour ticket_link
+      final String ticketLink = _ticketLinkController.text.trim();
+      if (ticketLink.isNotEmpty) {
+        mergedMetadata['ticket_link'] = ticketLink;
+      } else {
+        mergedMetadata.remove('ticket_link');
       }
 
-      if (_locationPrecisionController.text.trim().isNotEmpty) {
-        updatedMetadata['location_precision'] =
-            _locationPrecisionController.text.trim();
+      // Mettre à jour location_precision
+      final String locationPrecision = _locationPrecisionController.text.trim();
+      if (locationPrecision.isNotEmpty) {
+        mergedMetadata['location_precision'] = locationPrecision;
+      } else {
+        mergedMetadata.remove('location_precision');
       }
 
-      // Si les deux champs sont vides, les métadonnées n'auront pas ces clés
-      if (updatedMetadata.isEmpty) {
-        updatedMetadata =
-            {}; // Optionnel, mais assure que les métadonnées ne contiennent rien
-      }
-
-      // Créer l'événement mis à jour
+      // Créer l'événement mis à jour avec la metadata fusionnée
       Event updatedEvent = widget.event.copyWith(
         title: _titleController.text.trim(),
         type: typeToStore,
         eventDateTime: _selectedStartDate,
         eventEndDateTime: _selectedEndDate,
         description: _descriptionController.text.trim(),
-        metadata: updatedMetadata, // Ajout des métadonnées mises à jour
+        metadata: mergedMetadata,
       );
 
       String newImageUrl = widget.event.imageUrl;
@@ -445,7 +468,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      Navigator.pop(context, finalEvent);
+      Navigator.pop(context, updatedEvent);
     } catch (e) {
       print('Error updating event: $e');
       ScaffoldMessenger.of(context).showSnackBar(
