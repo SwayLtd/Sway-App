@@ -63,7 +63,9 @@ class _PromoterScreenState extends State<PromoterScreen> {
         // Récupérer les événements à partir de EventPromoterService
         _upcomingEvents = await EventPromoterService()
             .getEventsByPromoterId(widget.promoterId);
-        // Nous n'appelons pas setState ici pour éviter de redessiner toute la page
+
+        // Utiliser setState ici pour forcer la mise à jour de l'interface utilisateur
+        setState(() {});
       }
     } catch (e) {
       final errorMessage = e.toString();
