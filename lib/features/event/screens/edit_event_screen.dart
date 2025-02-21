@@ -93,6 +93,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   // It will be updated with the combined forbiddenWords (French + English).
   late FieldValidator defaultValidator;
 
+  // ignore: unused_field
   Map<String, dynamic> _eventMetadata = {};
 
   @override

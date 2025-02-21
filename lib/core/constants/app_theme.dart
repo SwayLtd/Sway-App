@@ -94,6 +94,10 @@ class AppTheme {
           Colors.white, // Couleur de fond des dialogues en mode clair
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
+        side: BorderSide(
+          color: Colors.grey, // Set the color of the border to gray
+          width: 2.0, // Set the width of the border
+        ),
       ),
       elevation: 4.0,
     ),
@@ -288,6 +292,10 @@ class AppTheme {
           15, 13, 8, 1), // Couleur de fond des dialogues en mode sombre
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
+        side: BorderSide(
+          color: Colors.grey, // Set the color of the border to gray
+          width: 2.0, // Set the width of the border
+        ),
       ),
       elevation: 4.0,
     ),
