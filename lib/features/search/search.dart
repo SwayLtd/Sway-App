@@ -15,6 +15,7 @@ import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
+import 'package:sway/features/search/utils/levenshtein_similarity.dart';
 import 'package:sway/features/user/models/user_model.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/user.dart';
@@ -81,6 +82,35 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
+  List<Event> sortAndFilterEvents(List<Event> events, String query) {
+    final now = DateTime.now();
+
+    // Séparer événements à venir et passés
+    final upcomingEvents = events
+        .where((e) =>
+            e.eventDateTime.isAfter(now) ||
+            e.eventDateTime.isAtSameMomentAs(now))
+        .toList();
+
+    final pastEvents =
+        events.where((e) => e.eventDateTime.isBefore(now)).toList();
+
+    // Filtrer les événements passés qui correspondent bien à la recherche
+    final matchingPastEvents = pastEvents.where((event) {
+      double matchScore = similarity(event.title, query);
+      return matchScore >= 0.8; // Seuil ajustable en fonction de vos besoins
+    }).toList();
+
+    // Tri des événements à venir (les plus proches en premier)
+    upcomingEvents.sort((a, b) => a.eventDateTime.compareTo(b.eventDateTime));
+    // Tri des événements passés par ordre décroissant (les plus récents d'abord)
+    matchingPastEvents
+        .sort((a, b) => b.eventDateTime.compareTo(a.eventDateTime));
+
+    // Combiner les résultats : afficher d'abord les événements à venir puis les événements passés correspondants
+    return [...upcomingEvents, ...matchingPastEvents];
+  }
+
   List<Event> sortUpcomingEvents(List<Event> events) {
     final now = DateTime.now();
     // Keep only future events (including events starting exactly now)
@@ -96,8 +126,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
 // Example integration in _performSearch:
   Future<void> _performSearch(String query) async {
-    final eventsRaw = await _eventService.searchEvents(query, _filters);
-    final events = sortUpcomingEvents(eventsRaw);
+    final events = await _eventService.searchEvents(query, _filters);
+    // Utilisation de la nouvelle fonction de tri et filtrage
+    // final events = sortAndFilterEvents(eventsRaw, query);
+    // final events = sortUpcomingEvents(eventsRaw);
     final artists = await _artistService.searchArtists(query);
     final venues = await _venueService.searchVenues(query);
     final promoters = await _promoterService.searchPromoters(query);
