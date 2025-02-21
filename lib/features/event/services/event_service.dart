@@ -117,52 +117,57 @@ class EventService {
   }
 
   /// Returns events by a list of event IDs using an offline-first approach.
-  Future<List<Event>> getEventsByIds(List<int> eventIds) async {
-    if (eventIds.isEmpty) {
-      print('No event IDs provided.');
-      return [];
-    }
-
-    print('Fetching events with IDs: $eventIds'); // Log des IDs envoyés
-
+  Future<List<Event>> getEventsByIds(List<int?> eventIds) async {
+    if (eventIds.isEmpty) return [];
     final online = await isConnected();
     final isar = await _isarFuture;
 
     if (online) {
       try {
+        // Build an 'or' filter string for Supabase.
         final String orFilter = eventIds.map((id) => 'id.eq.$id').join(',');
-        print(
-            'Supabase query filter: $orFilter'); // Log du filtre utilisé dans la requête
-
         final response = await _supabase.from('events').select().or(orFilter);
-        print(
-            'Supabase response: $response'); // Log de la réponse brute de Supabase
-
         if ((response as List).isEmpty) {
-          print('No events found on Supabase for IDs: $eventIds');
-          return [];
+          return await _loadAllEventsFromIsar(isar);
         }
-
-        final events =
+        final fetchedEvents =
             response.map<Event>((json) => Event.fromJson(json)).toList();
-        print('Fetched events from Supabase: ${events.length} events found.');
-
-        // Met à jour le cache avec les événements récupérés
-        for (final event in events) {
+        // Update local cache.
+        for (final event in fetchedEvents) {
           await _storeEventInIsar(isar, event);
         }
-
-        return events;
+        return fetchedEvents;
       } catch (e) {
-        print('Error fetching events from Supabase: $e');
-        return [];
+        print('Error in getEventsByIds (online): $e');
+        return await _loadAllEventsFromIsar(isar);
       }
     } else {
-      // Mode hors ligne, récupération depuis Isar
-      final events = await _loadAllEventsFromIsar(isar);
-      print('Loaded events from Isar cache: ${events.length}');
-      return events;
+      // Offline: load all events from local cache.
+      return await _loadAllEventsFromIsar(isar);
     }
+  }
+
+  /// Returns only the metadata of an event by its ID from Supabase (online-first).
+  Future<Map<String, dynamic>?> getEventMetadata(int eventId) async {
+    final online = await isConnected();
+    if (online) {
+      try {
+        final response = await _supabase
+            .from('events')
+            .select('metadata')
+            .eq('id', eventId)
+            .maybeSingle(); // We use maybeSingle to ensure that we either get a result or null.
+
+        if (response != null && response['metadata'] != null) {
+          return Map<String, dynamic>.from(response['metadata']);
+        }
+        return null;
+      } catch (e) {
+        print('Error fetching event metadata: $e');
+        return null;
+      }
+    }
+    return null; // Return null if offline or an error occurs.
   }
 
   /// Adds a new event to Supabase and stores it locally.

@@ -36,7 +36,11 @@ class InfoCard extends StatelessWidget {
             title: Text(title),
             subtitle: GestureDetector(
               onTap: onTap,
-              child: Text(content),
+              child: Text(
+                content,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
         ),

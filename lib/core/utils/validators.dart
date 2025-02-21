@@ -99,6 +99,18 @@ String? passwordValidator(String? password) {
   return null;
 }
 
+// Validation URL pour tickets
+String? ticketLinkValidator(String? value) {
+  if (value != null && value.isNotEmpty) {
+    final urlRegex =
+        RegExp(r"^(http|https):\/\/[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+([\/?].*)?$");
+    if (!urlRegex.hasMatch(value)) {
+      return 'Please enter a valid URL for the ticket link.';
+    }
+  }
+  return null;
+}
+
 /// Loads forbidden words from a local JSON asset file based on the [languageCode].
 /// The expected file path is "assets/data/forbidden_words_{languageCode}.json".
 ///

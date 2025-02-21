@@ -14,6 +14,7 @@ class Event {
   final List<int>? genres;
   final List<int>? artists;
   final int? interestedUsersCount;
+  final Map<String, dynamic>? metadata;
 
   Event({
     this.id,
@@ -29,6 +30,7 @@ class Event {
     this.genres,
     this.artists,
     this.interestedUsersCount,
+    this.metadata,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -54,6 +56,7 @@ class Event {
           (json['artists'] as List<dynamic>?)?.map((e) => e as int).toList() ??
               [],
       interestedUsersCount: json['interested_users_count'] as int?,
+      metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
 
@@ -72,6 +75,8 @@ class Event {
       // 'promoters': promoters,
       // 'genres': genres,
       // 'artists': artists,
+      // 'interested_users_count': interestedUsersCount,
+      'metadata': metadata,
     };
   }
 
@@ -91,6 +96,7 @@ class Event {
     List<int>? genres,
     List<int>? artists,
     int? interestedUsersCount,
+    Map<String, dynamic>? metadata,
   }) {
     return Event(
       id: id ?? this.id,
@@ -106,6 +112,7 @@ class Event {
       genres: genres ?? this.genres,
       artists: artists ?? this.artists,
       interestedUsersCount: interestedUsersCount ?? this.interestedUsersCount,
+      metadata: metadata ?? this.metadata,
     );
   }
 }

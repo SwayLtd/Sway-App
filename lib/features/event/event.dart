@@ -15,6 +15,7 @@ import 'package:sway/features/event/screens/edit_event_screen.dart';
 import 'package:sway/features/event/services/event_artist_service.dart';
 import 'package:sway/features/event/services/event_genre_service.dart';
 import 'package:sway/features/event/services/event_promoter_service.dart';
+import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/event/widgets/info_card.dart';
 import 'package:sway/features/genre/genre.dart';
@@ -35,6 +36,7 @@ import 'package:sway/features/venue/venue.dart';
 import 'package:sway/features/user/widgets/interest_event_button_widget.dart';
 import 'package:sway/features/event/widgets/event_location_map_widget.dart';
 import 'package:add_2_calendar/add_2_calendar.dart' as calendar;
+import 'package:url_launcher/url_launcher.dart';
 
 class EventScreen extends StatefulWidget {
   final Event event;
@@ -51,12 +53,21 @@ class _EventScreenState extends State<EventScreen> {
   late Future<List<Map<String, dynamic>>> _artistsFuture;
   late Future<List<Promoter>> _promotersFuture;
   late Future<Venue?> _venueFuture;
+  late Future<Map<String, dynamic>?> _metadataFuture;
 
   @override
   void initState() {
     super.initState();
     _event = widget.event;
     _fetchData();
+    _metadataFuture = EventService().getEventMetadata(_event.id!);
+  }
+
+  /// Launches a URL if possible.
+  Future<void> _launchURL(Uri url) async {
+    if (!await launchUrl(url)) {
+      throw 'Could not launch $url';
+    }
   }
 
   // Initializes the futures for each section.
@@ -103,6 +114,9 @@ class _EventScreenState extends State<EventScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print(
+        'Building EventScreen for event: ${_event.title}'); // Log du titre de l'événement
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_event.title),
@@ -297,20 +311,24 @@ class _EventScreenState extends State<EventScreen> {
                 ),
               ),
               const SizedBox(height: sectionTitleSpacing),
-              // InfoCard: Location.
-              FutureBuilder<Venue?>(
-                future: _venueFuture,
+              // InfoCard : Location avec précision ajoutée
+              FutureBuilder<List<dynamic>>(
+                future: Future.wait([_venueFuture, _metadataFuture]),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const InfoCard(
                         title: "Location", content: 'Loading');
                   } else if (snapshot.hasError ||
-                      !snapshot.hasData ||
-                      snapshot.data == null) {
+                      snapshot.data == null ||
+                      snapshot.data!.isEmpty ||
+                      snapshot.data![0] == null) {
                     return const InfoCard(
                         title: "Location", content: 'Location not found');
                   } else {
-                    final venue = snapshot.data!;
+                    final venue = snapshot.data![0] as Venue;
+                    final metadata = snapshot.data![1] as Map<String, dynamic>?;
+                    final locationPrecision =
+                        metadata?['location_precision'] ?? '';
                     return GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -321,11 +339,61 @@ class _EventScreenState extends State<EventScreen> {
                           ),
                         );
                       },
-                      child: InfoCard(title: "Location", content: venue.name),
+                      child: InfoCard(
+                        title: "Location",
+                        content:
+                            '${venue.name} ${locationPrecision.isNotEmpty ? "- $locationPrecision" : ""}',
+                      ),
                     );
                   }
                 },
               ),
+              const SizedBox(height: sectionTitleSpacing),
+              // InfoCard : Tickets (rendre cliquable avec URL)
+              FutureBuilder<Map<String, dynamic>?>(
+                future: _metadataFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SizedBox.shrink();
+                  } else if (snapshot.hasError || !snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  } else {
+                    final metadata = snapshot.data;
+                    final ticketLink = metadata?['ticket_link'];
+                    return ticketLink != null
+                        ? GestureDetector(
+                            onTap: () => _launchURL(Uri.parse(ticketLink)),
+                            child: InfoCard(
+                              title: "Tickets",
+                              content: ticketLink ?? "No link available",
+                            ),
+                          )
+                        : const SizedBox.shrink();
+                  }
+                },
+              ),
+
+              /* // InfoCard : Prices
+              FutureBuilder<Map<String, dynamic>?>(
+                future: _metadataFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SizedBox.shrink();
+                  } else if (snapshot.hasError || !snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  } else {
+                    final metadata = snapshot.data;
+                    final ticketLink = metadata?['prices'];
+                    return ticketLink != null
+                        ? InfoCard(
+                            title: "Prices",
+                            content: ticketLink ?? "No prices available",
+                          )
+                        : const SizedBox.shrink();
+                  }
+                },
+              ),*/
+
               const SizedBox(height: sectionSpacing),
               // ABOUT section.
               if (_event.description.isNotEmpty) ...[

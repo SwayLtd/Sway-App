@@ -45,6 +45,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
   // Contrôleurs pour le titre et la description
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
+  late TextEditingController _ticketLinkController;
+  late TextEditingController _locationPrecisionController;
 
   // Types d'event (visuel vs stocké)
   final List<String> _eventTypeLabels = ['Festival', 'Rave', 'Party', 'Other'];
@@ -121,6 +123,17 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
     // Load forbidden words for French and English, then update the validator.
     _loadDefaultForbiddenWords();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialiser les contrôleurs une fois que les données sont disponibles
+    _ticketLinkController = TextEditingController(
+        text: widget.event.metadata?['ticket_link'] ?? '');
+    _locationPrecisionController = TextEditingController(
+        text: widget.event.metadata?['location_precision'] ?? '');
+    setState(() {}); // Forcer la reconstruction pour refléter les données
   }
 
   Future<void> _loadDefaultForbiddenWords() async {
@@ -230,6 +243,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _locationPrecisionController.dispose();
+    _ticketLinkController.dispose();
     super.dispose();
   }
 
@@ -346,6 +361,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       );
       return;
     }
+
     setState(() => _isUpdating = true);
     try {
       // Vérifier que l'utilisateur a au moins le niveau manager pour éditer
@@ -358,14 +374,37 @@ class _EditEventScreenState extends State<EditEventScreen> {
       if (!hasPermission) {
         throw Exception('Permission denied on this event.');
       }
+
       final String typeToStore = _selectedTypeLabel.toLowerCase();
+
+      // Mettre à jour les métadonnées avec les nouvelles valeurs
+      Map<String, dynamic> updatedMetadata = {};
+
+      if (_ticketLinkController.text.trim().isNotEmpty) {
+        updatedMetadata['ticket_link'] = _ticketLinkController.text.trim();
+      }
+
+      if (_locationPrecisionController.text.trim().isNotEmpty) {
+        updatedMetadata['location_precision'] =
+            _locationPrecisionController.text.trim();
+      }
+
+      // Si les deux champs sont vides, les métadonnées n'auront pas ces clés
+      if (updatedMetadata.isEmpty) {
+        updatedMetadata =
+            {}; // Optionnel, mais assure que les métadonnées ne contiennent rien
+      }
+
+      // Créer l'événement mis à jour
       Event updatedEvent = widget.event.copyWith(
         title: _titleController.text.trim(),
         type: typeToStore,
         eventDateTime: _selectedStartDate,
         eventEndDateTime: _selectedEndDate,
         description: _descriptionController.text.trim(),
+        metadata: updatedMetadata, // Ajout des métadonnées mises à jour
       );
+
       String newImageUrl = widget.event.imageUrl;
       if (_selectedImage != null) {
         newImageUrl = await _uploadImage(widget.event.id!, _selectedImage!);
@@ -382,7 +421,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
         }
         updatedEvent = updatedEvent.copyWith(imageUrl: newImageUrl);
       }
+
       final finalEvent = await _eventService.updateEvent(updatedEvent);
+
       if (_selectedPromoterObj != null) {
         await _eventPromoterService.updateEventPromoters(
           finalEvent.id!,
@@ -397,6 +438,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       }
       await _eventGenreService.updateEventGenres(
           finalEvent.id!, _selectedGenres);
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Event updated successfully!'),
@@ -724,11 +766,37 @@ class _EditEventScreenState extends State<EditEventScreen> {
                       readOnly: isReadOnly,
                     ),
                     const SizedBox(height: sectionSpacing),
+                    // Ticket link (URL format validation)
+                    TextFormField(
+                      controller: _ticketLinkController,
+                      decoration: const InputDecoration(
+                        labelText: 'Ticket Link',
+                        hintText: 'e.g. https://www.ticketux.be/',
+                        helperText: 'optional',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 1,
+                      validator: ticketLinkValidator,
+                      readOnly: isReadOnly,
+                    ),
+                    const SizedBox(height: sectionSpacing),
                     // Promoter section
                     _buildPromoterSection(isDark),
                     const SizedBox(height: sectionSpacing),
                     // Venue section
                     _buildVenueSection(isDark),
+                    const SizedBox(height: sectionSpacing),
+                    // Location precision (optional)
+                    TextFormField(
+                      controller: _locationPrecisionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Location Precision',
+                        hintText: 'e.g. "Room 10", "Hall 2"',
+                        helperText: 'optional',
+                      ),
+                      maxLines: 1,
+                      readOnly: isReadOnly,
+                    ),
                     const SizedBox(height: sectionSpacing),
                     // Genres section
                     _buildGenresSection(),

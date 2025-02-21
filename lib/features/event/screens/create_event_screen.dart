@@ -35,6 +35,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   // Contrôleurs
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _locationPrecisionController =
+      TextEditingController();
+  final TextEditingController _ticketLinkController = TextEditingController();
 
   // Types d'event (affiché vs stocké)
   final List<String> _eventTypeLabels = ['Festival', 'Rave', 'Party', 'Other'];
@@ -115,6 +118,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _locationPrecisionController.dispose();
+    _ticketLinkController.dispose();
     super.dispose();
   }
 
@@ -271,7 +276,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     }
 
     // Vérifier la permission (en théorie, on sait déjà qu'on l'a)
-    // => c'est redondant, mais par sécurité on peut checker
     final promoterId = _selectedPromoterObj!.id!;
     final canManage = await _permissionService.hasPermissionForCurrentUser(
       promoterId,
@@ -292,6 +296,18 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
     try {
       final typeToStore = _selectedTypeLabel.toLowerCase();
+      Map<String, dynamic> metadata = {};
+
+      // N'ajouter les clés que si elles ne sont pas vides
+      if (_ticketLinkController.text.trim().isNotEmpty) {
+        metadata['ticket_link'] = _ticketLinkController.text.trim();
+      }
+
+      if (_locationPrecisionController.text.trim().isNotEmpty) {
+        metadata['location_precision'] =
+            _locationPrecisionController.text.trim();
+      }
+
       final newEvent = Event(
         title: _titleController.text.trim(),
         type: typeToStore,
@@ -301,7 +317,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         imageUrl: '',
         price: '',
         promoters: [promoterId],
+        metadata:
+            metadata.isEmpty ? null : metadata, // Ne pas inclure metadata vide
       );
+
       final createdEvent = await _eventService.addEvent(newEvent);
 
       // Upload image
@@ -336,7 +355,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error creating event: $e'),
-          backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -493,6 +511,19 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 ),
                 maxLines: 3,
                 validator: (value) => defaultValidator.validate(value),
+              ),
+              const SizedBox(height: sectionSpacing),
+              // Ticket link (URL format validation)
+              TextFormField(
+                controller: _ticketLinkController,
+                decoration: const InputDecoration(
+                  labelText: 'Tickets Link',
+                  border: OutlineInputBorder(),
+                  hintText: 'e.g. https://www.ticketux.be/',
+                  helperText: 'optional',
+                ),
+                maxLines: 1,
+                validator: ticketLinkValidator,
               ),
               const SizedBox(height: sectionSpacing),
 
@@ -711,6 +742,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       ),
                     ),
                 ],
+              ),
+              // Location precision
+              TextFormField(
+                controller: _locationPrecisionController,
+                decoration: const InputDecoration(
+                  labelText: 'Location Precision',
+                  hintText: 'e.g. "Area 3", "Hall 2"',
+                  helperText: 'optional',
+                ),
+                maxLines: 1,
               ),
               const SizedBox(height: sectionSpacing),
 
