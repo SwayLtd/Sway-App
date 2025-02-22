@@ -55,16 +55,19 @@ Future<void> main() async {
   final PdfService pdfService = PdfService(rootNavigatorKey);
   await pdfService.initialize();
 
-  // You can initialize Firebase Analytics here if you want to use it from the start.
-  // For example, obtain an instance via:
-  // final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  // Initialize Firebase Analytics instance
+  final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   runApp(
-    SwayApp(),
+    SwayApp(analytics: analytics),
   );
 }
 
 class SwayApp extends StatelessWidget {
+  final FirebaseAnalytics analytics;
+
+  const SwayApp({Key? key, required this.analytics}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -92,6 +95,20 @@ class SwayApp extends StatelessWidget {
                       bottom: 0,
                       right: 0,
                       child: SecurityUtils(),
+                    ),
+                    // Example widget that logs an event when tapped
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: IconButton(
+                        icon: Icon(Icons.analytics),
+                        onPressed: () {
+                          analytics.logEvent(
+                            name: 'analytics_test',
+                            parameters: {'message': 'Analytics is working'},
+                          );
+                        },
+                      ),
                     ),
                   ],
                 );
