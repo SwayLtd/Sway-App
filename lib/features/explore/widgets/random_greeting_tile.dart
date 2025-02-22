@@ -24,7 +24,7 @@ class _RandomGreetingTileState extends State<RandomGreetingTile> {
   String _generateGreeting(String? username) {
     final List<String> allGreetings = [
       "Hello Raver!",
-      "Sleep is overrated"
+      "Sleep is overrated!",
       "Hi @username, welcome back!",
       "Have a great party!",
       "See you this weekend!",
