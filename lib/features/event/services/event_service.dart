@@ -228,22 +228,28 @@ class EventService {
 
   /// Returns top events based on the number of interested users.
   /// This example uses a Supabase RPC named 'get_top_events'.
-  Future<List<Event>> getTopEvents({int limit = 5}) async {
+  Future<List<Event>> getTopEvents({int? userId, int limit = 5}) async {
     try {
-      final data =
-          await _supabase.rpc('get_top_events', params: {'p_limit': limit});
+      // Construire les paramètres de l'appel RPC.
+      final params = <String, dynamic>{
+        'p_limit': limit,
+      };
+      if (userId != null) {
+        params['p_user_id'] = userId;
+      }
+      final data = await _supabase.rpc('get_top_events', params: params);
       if (data == null || (data as List).isEmpty) return [];
       final events = data
           .map<Event>((json) => Event.fromJson(json as Map<String, dynamic>))
           .toList();
-      // Optionally, store these events locally using Isar.
+      // Stockage local optionnel
       final isar = await _isarFuture;
       for (final event in events) {
         await _storeEventInIsar(isar, event);
       }
       return events;
     } catch (e) {
-      // If online fetch fails, fallback to local cache.
+      // Si l'appel en ligne échoue, on bascule sur le cache local
       final isar = await _isarFuture;
       return await _loadAllEventsFromIsar(isar);
     }

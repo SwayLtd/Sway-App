@@ -119,7 +119,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   /// Pour utilisateur connecté.
   Future<void> _fetchUserRecommendations(int userId) async {
-    _topEventsFuture = _eventService.getTopEvents(limit: 10);
+    _topEventsFuture = _eventService.getTopEvents(userId: userId, limit: 10);
     _suggestedEventsFuture =
         _eventService.getRecommendedEvents(userId: userId, limit: 10);
     _suggestedArtistsFuture =
