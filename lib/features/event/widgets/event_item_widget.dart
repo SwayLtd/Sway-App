@@ -69,52 +69,118 @@ class EventListItemWidget extends StatelessWidget {
               child: SizedBox.shrink(),
             );
           } else if (venueSnapshot.hasError) {
-            return const Text(
-              'Error loading venue',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            );
-          } else if (!venueSnapshot.hasData || venueSnapshot.data == null) {
-            return const Text(
-              'Unknown location',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            );
-          } else {
-            final venue = venueSnapshot.data!;
+            // On affiche la date et "Error loading venue" si erreur
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Afficher la date en premier avec icône rouge
                 Row(
                   children: [
                     const Icon(
                       Icons.calendar_today,
-                      color:
-                          Colors.red, // Changer la couleur de l'icône en rouge
+                      color: Colors.red,
                       size: 16,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         '${formatEventDate(event.eventDateTime)}, ${formatEventTime(event.eventDateTime)}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                        maxLines: 1, // Limiter à une ligne
-                        overflow: TextOverflow
-                            .ellipsis, // Troncature avec points de suspension
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                // Afficher le lieu ensuite
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on,
+                      color: Colors.grey,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: const Text(
+                        'Error loading venue',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          } else if (!venueSnapshot.hasData || venueSnapshot.data == null) {
+            // On affiche la date et "Unknown location" quand aucune location n'est trouvée
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today,
+                      color: Colors.red,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${formatEventDate(event.eventDateTime)}, ${formatEventTime(event.eventDateTime)}',
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on,
+                      color: Colors.grey,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: const Text(
+                        'Unknown location',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          } else {
+            final venue = venueSnapshot.data!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today,
+                      color: Colors.red,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${formatEventDate(event.eventDateTime)}, ${formatEventTime(event.eventDateTime)}',
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     const Icon(
@@ -125,12 +191,9 @@ class EventListItemWidget extends StatelessWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        venue
-                            .name, // Ou utilisez une autre propriété pertinente
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
+                        venue.name,
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -321,23 +384,26 @@ class EventCardItemWidget extends StatelessWidget {
                                   size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(
-                                'Loading', // 'Venue Loading',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
+                                'Loading',
+                                style:
+                                    TextStyle(fontSize: 14, color: Colors.grey),
                               ),
                             ],
                           );
                         } else if (snapshot.hasError ||
                             !snapshot.hasData ||
                             snapshot.data == null) {
-                          return const Text(
-                            'Unknown location',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
+                          return Row(
+                            children: const [
+                              Icon(Icons.location_on,
+                                  size: 16, color: Colors.grey),
+                              SizedBox(width: 4),
+                              Text(
+                                'Unknown location',
+                                style:
+                                    TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                            ],
                           );
                         } else {
                           final venue = snapshot.data!;
@@ -350,9 +416,7 @@ class EventCardItemWidget extends StatelessWidget {
                                 child: Text(
                                   venue.name,
                                   style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
+                                      fontSize: 14, color: Colors.grey),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -362,7 +426,6 @@ class EventCardItemWidget extends StatelessWidget {
                         }
                       },
                     ),
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),

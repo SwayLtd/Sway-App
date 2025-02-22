@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Fix event item display when location is missing
 - Update Firebase packages and integrate Analytics & Crashlytics
 - Fix following button widget connectivity issue
 - Release 1.0.0 - Add app signing configuration for release
