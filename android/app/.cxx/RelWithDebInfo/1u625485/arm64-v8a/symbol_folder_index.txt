@@ -1,1 +1,0 @@
-C:\Users\RA\GitHub\Sway\sway_app\build\app\intermediates\cxx\RelWithDebInfo\1u625485\obj\arm64-v8a

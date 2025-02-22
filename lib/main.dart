@@ -15,6 +15,8 @@ import 'package:sway/features/security/utils/security_utils.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:sway/features/user/services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -22,25 +24,40 @@ Future<void> main() async {
   await WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
 
-  // Initialize Isar first
+  // Initialize Isar and Supabase via DatabaseService
   await DatabaseService().isar;
-
-  // Initialize Supabase
   await DatabaseService().initialize();
 
-  // Initialize Notification Services
+  // Initialize Firebase with platform-specific options
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Crashlytics configuration:
+  // In development mode, disable report sending to avoid polluting your data.
+  bool isInDebugMode = false;
+  assert(() {
+    isInDebugMode = true;
+    return true;
+  }());
+  FlutterError.onError = isInDebugMode
+      ? FlutterError.dumpErrorToConsole
+      : FirebaseCrashlytics.instance.recordFlutterError;
+
+  // Initialize Notification Services (e.g., for Firebase Messaging)
   await NotificationService().initialize();
 
+  // Ensure a user is logged in (authenticated or anonymous)
   final authService = AuthService();
-  // Make sure a user is logged in (authenticated or anonymous)
   await authService.ensureUser();
 
-  // Initialize the ability to open PDFs with the application to import tickets
+  // Initialize PDF service (for importing tickets, etc.)
   final PdfService pdfService = PdfService(rootNavigatorKey);
   await pdfService.initialize();
+
+  // You can initialize Firebase Analytics here if you want to use it from the start.
+  // For example, obtain an instance via:
+  // final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
   runApp(
     SwayApp(),
@@ -60,7 +77,6 @@ class SwayApp extends StatelessWidget {
             initial: AdaptiveThemeMode.system,
             builder: (theme, darkTheme) => MaterialApp.router(
               debugShowCheckedModeBanner: false, // Remove debug banner
-              // showSemanticsDebugger: true, // Show Semantics Debugger on screen
               onGenerateTitle: (BuildContext context) => context.loc.title,
               theme: theme,
               darkTheme: darkTheme,
@@ -71,12 +87,11 @@ class SwayApp extends StatelessWidget {
                 return Stack(
                   children: [
                     child!,
-                    // Encapsulating SecurityUtils in a Positioned widget to ensure it doesn't visually affect the application.
+                    // Wrap SecurityUtils in a Positioned widget to ensure it doesn't visually affect the app.
                     const Positioned(
                       bottom: 0,
                       right: 0,
-                      child:
-                          SecurityUtils(), // Instantiating SecurityUtils to execute checkDetection for root and jailbreak detection.
+                      child: SecurityUtils(),
                     ),
                   ],
                 );

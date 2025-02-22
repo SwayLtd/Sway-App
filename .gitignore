@@ -1,3 +1,5 @@
+# git rm --cached -r files if needed
+
 # Miscellaneous
 *.class
 *.pyc
@@ -58,8 +60,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# git rm --cached -r android/app/.cxx
 /android/app/.cxx
 /android/app/keystore/*
+/android/app/.cxx/**/configure_fingerprint.bin
+
 
 # Deno
 deno.d.ts

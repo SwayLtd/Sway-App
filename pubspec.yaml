@@ -1,4 +1,5 @@
 # https://stackoverflow.com/questions/51809421/flutter-is-not-able-to-install-the-apk-into-the-real-device-suddenly
+
 # dart run build_runner clean && dart run build_runner build --delete-conflicting-outputs
 # keytool -genkeypair -v -keystore app/keystore/release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias sway-app -storepass "your@store$Password" -keypass "your@key$Password" -storetype JKS
 # keytool -importkeystore -srckeystore app/keystore/release-key.jks -destkeystore android/keystore/release-key.jks -deststoretype pkcs12
@@ -11,7 +12,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 1.0.0+1 # Fix following button widget connectivity issue
+version: 1.0.0+2 # Fix following button widget connectivity issue
 
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
@@ -56,8 +57,9 @@ dependencies:
   supabase_auth_ui: ^0.5.4
   cached_network_image: ^3.4.1
   firebase_messaging: ^15.1.5
-  firebase_core: ^3.8.0
-  firebase_analytics: ^11.3.5
+  firebase_core: ^3.12.0 # ^3.8.0
+  firebase_analytics: ^11.4.3 # ^11.3.5
+  firebase_crashlytics: ^4.3.3 # ^4.0.3
   flutter_local_notifications: ^18.0.1
   in_app_purchase: ^3.2.0
   infinite_scroll_pagination: ^4.1.0
@@ -71,7 +73,7 @@ dependencies:
   geocoding: ^3.0.0
   maps_launcher: ^3.0.0+1
   flutter_typeahead: ^5.2.0
-  flutter_form_builder: ^9.7.0
+  flutter_form_builder: ^10.0.0
   form_builder_validators: ^11.1.1
   package_info_plus: ^8.2.1
   in_app_review: ^2.0.10
@@ -102,14 +104,12 @@ dev_dependencies:
   #  url: https://github.com/isar-community/isar.git
   #  ref: 3.1.0+1
   #  path: packages/isar_generator
-  firebase_crashlytics: ^4.0.3
   flutter_driver:
     sdk: flutter
   flutter_launcher_icons: ^0.14.1
   flutter_test:
     sdk: flutter
   lint: ^2.3.0
-  # plausible_analytics: ^0.3.0
 
 # flutter_icons:
 #   android: "launcher_icon"
