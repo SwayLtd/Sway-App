@@ -96,20 +96,6 @@ class SwayApp extends StatelessWidget {
                       right: 0,
                       child: SecurityUtils(),
                     ),
-                    // Example widget that logs an event when tapped
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: IconButton(
-                        icon: Icon(Icons.analytics),
-                        onPressed: () {
-                          analytics.logEvent(
-                            name: 'analytics_test',
-                            parameters: {'message': 'Analytics is working'},
-                          );
-                        },
-                      ),
-                    ),
                   ],
                 );
               },
