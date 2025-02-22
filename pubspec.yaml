@@ -12,7 +12,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 1.0.0+2 # Fix following button widget connectivity issue
+version: 1.0.0+2 # Update Firebase packages and integrate Analytics & Crashlytics
 
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
