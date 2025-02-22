@@ -60,8 +60,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
           await _eventArtistService.getEventsByArtistId(widget.artist.id!);
 
       if (eventsData.isEmpty) {
-        print(
-            'Aucun événement trouvé pour l\'artiste ID: ${widget.artist.id!}');
+        // print('Aucun événement trouvé pour l\'artiste ID: ${widget.artist.id!}');
         return [];
       }
 
@@ -69,8 +68,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
           .map((data) {
             final event = data['event'] as Event?;
             if (event == null) {
-              print(
-                  'Données de l\'événement manquantes pour l\'artiste ID: ${widget.artist.id!}');
+              // print('Données de l\'événement manquantes pour l\'artiste ID: ${widget.artist.id!}');
               return null;
             }
             return event;
@@ -100,7 +98,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
 
       return upcomingEvents;
     } catch (e) {
-      print('Erreur lors de la récupération des événements: $e');
+      // print('Erreur lors de la récupération des événements: $e');
       return [];
     }
   }

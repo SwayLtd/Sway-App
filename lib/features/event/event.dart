@@ -124,9 +124,6 @@ class _EventScreenState extends State<EventScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        'Building EventScreen for event: ${_event.title}'); // Log du titre de l'événement
-
     return Scaffold(
       appBar: AppBar(
         title: Text(_event.title),
