@@ -1,4 +1,5 @@
-# git rm --cached -r files if needed
+# git rm --cached -r .
+# git add .
 
 # Miscellaneous
 *.class
