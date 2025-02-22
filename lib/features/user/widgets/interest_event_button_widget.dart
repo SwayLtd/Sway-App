@@ -110,7 +110,7 @@ class _InterestEventButtonWidgetState extends State<InterestEventButtonWidget> {
     Color iconColor;
     switch (_interestStatus) {
       case 'going':
-        iconData = Icons.check_circle;
+        iconData = Icons.event_available;
         iconColor = Theme.of(context).primaryColor;
         break;
       case 'interested':
