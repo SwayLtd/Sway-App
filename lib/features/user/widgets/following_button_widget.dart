@@ -1,7 +1,6 @@
 // lib/features/user/widgets/following_button_widget.dart
 
 import 'package:flutter/material.dart';
-import 'package:sway/core/utils/connectivity_helper.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
 import 'package:sway/features/user/services/user_follow_genre_service.dart';
 import 'package:sway/features/user/services/user_follow_promoter_service.dart';
@@ -9,7 +8,6 @@ import 'package:sway/features/user/services/user_follow_user_service.dart';
 import 'package:sway/features/user/services/user_follow_venue_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/snackbar_login.dart';
-import 'package:sway/core/widgets/snackbar_offline.dart';
 
 class FollowingButtonWidget extends StatefulWidget {
   final int entityId;
@@ -42,18 +40,16 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
     try {
       final currentUser = await _userService.getCurrentUser();
       if (currentUser == null) {
-        // User is anonymous
+        // L'utilisateur est anonyme
         if (!mounted) return;
-        // print("User is anonymous.");
         setState(() {
           isAnonymous = true;
           isLoading = false;
         });
       } else {
-        // Authenticated user: check if following the entity.
+        // L'utilisateur est authentifié, vérifier s'il suit l'entité
         bool following = await _isFollowing();
         if (!mounted) return;
-        // print("User is authenticated. Following status: $following");
         setState(() {
           isFollowing = following;
           isAnonymous = false;
@@ -89,7 +85,6 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
   }
 
   Future<void> _followEntity() async {
-    // print("Attempting to follow ${widget.entityType} with ID ${widget.entityId}");
     switch (widget.entityType) {
       case 'artist':
         await UserFollowArtistService().followArtist(widget.entityId);
@@ -112,7 +107,6 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
   }
 
   Future<void> _unfollowEntity() async {
-    // print("Attempting to unfollow ${widget.entityType} with ID ${widget.entityId}");
     switch (widget.entityType) {
       case 'artist':
         await UserFollowArtistService().unfollowArtist(widget.entityId);
@@ -140,21 +134,12 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
       isLoading = true;
     });
     try {
-      if (!await ConnectivityHelper.getCurrentConnectivity()) {
-        // print("Connectivity check: offline in _toggleFollow");
-        SnackbarOffline.showOfflineSnackBar(context);
-        setState(() {
-          isLoading = false;
-        });
-        return;
-      }
       if (isFollowing) {
         await _unfollowEntity();
       } else {
         await _followEntity();
       }
       bool updatedStatus = await _isFollowing();
-      // print("Updated follow status: $updatedStatus");
       if (!mounted) return;
       setState(() {
         isFollowing = updatedStatus;
@@ -169,7 +154,7 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          content: const Text('Error updating follow.'),
+          content: Text('Error updating follow.'),
         ),
       );
     }
@@ -177,58 +162,46 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<bool>(
-      stream: ConnectivityHelper.connectivityStream,
-      initialData: true,
-      builder: (context, snapshot) {
-        bool connected = snapshot.data ?? true;
-        // // print("Connectivity status in build: ${connected ? "online" : "offline"}");
-        IconData iconData;
-        Color iconColor;
-        VoidCallback? onPressed;
+    if (isLoading) {
+      /* return Padding(
+        padding: EdgeInsets.all(8.0),
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ); */
+      return IconButton(
+        icon: Icon(Icons.favorite_border, color: Colors.grey),
+        onPressed: () => SnackbarLogin.showLoginSnackBar(context),
+      );
+    } else {
+      IconData iconData;
+      Color iconColor;
+      VoidCallback? onPressed;
 
-        if (isLoading) {
-          iconData = Icons.favorite_border;
-          iconColor = Colors.grey;
-          onPressed = () {
-            // print("Loading in progress. Showing login snackbar.");
-            SnackbarLogin.showLoginSnackBar(context);
-          };
-        } else if (isAnonymous) {
-          iconData = Icons.favorite_border;
-          iconColor = Colors.grey;
-          onPressed = () {
-            // print("User is anonymous. Showing login snackbar.");
-            SnackbarLogin.showLoginSnackBar(context);
-          };
+      if (isAnonymous) {
+        // Utilisateur anonyme
+        iconData = Icons.favorite_border;
+        iconColor = Colors.grey;
+        onPressed = () => SnackbarLogin.showLoginSnackBar(context);
+      } else {
+        // Utilisateur authentifié
+        if (isFollowing) {
+          iconData = Icons.favorite;
+          iconColor = Theme.of(context).primaryColor;
         } else {
-          if (isFollowing) {
-            iconData = Icons.favorite;
-            iconColor = Theme.of(context).primaryColor;
-          } else {
-            iconData = Icons.favorite_border;
-            iconColor = Theme.of(context).iconTheme.color ?? Colors.grey;
-          }
-          if (!connected) {
-            // print("Device is offline. Graying out the icon and setting offline action.");
-            iconColor = Colors.grey;
-            onPressed = () {
-              // print("User tapped button while offline. Showing offline snackbar.");
-              SnackbarOffline.showOfflineSnackBar(context);
-            };
-          } else {
-            onPressed = _toggleFollow;
-          }
+          iconData = Icons.favorite_border;
+          // Utiliser une valeur par défaut si color est null
+          iconColor = Theme.of(context).iconTheme.color ?? Colors.grey;
         }
+        onPressed = _toggleFollow;
+      }
 
-        return IconButton(
-          icon: Icon(
-            iconData,
-            color: iconColor,
-          ),
-          onPressed: onPressed,
-        );
-      },
-    );
+      return IconButton(
+        icon: Icon(iconData, color: iconColor),
+        onPressed: onPressed,
+      );
+    }
   }
 }
