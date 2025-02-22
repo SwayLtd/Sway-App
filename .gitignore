@@ -89,6 +89,11 @@ supabase/seed.sql
 # Supabase project files
 /supabase/config.toml
 
+# Import script and files
+/supabase/imports/csv/join_tables/*.csv
+/supabase/imports/csv/*.csv
+/supabase/imports/import_data.py
+
 # Supabase build artifacts
 /build/
 /dist/
