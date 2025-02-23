@@ -3,6 +3,7 @@ import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/event.dart'; // Pour naviguer vers EventScreen, par exemple
+import 'package:sway/features/user/services/user_interest_event_service.dart';
 
 class EventInfoTile extends StatefulWidget {
   // A refreshKey is provided by the parent so that the widget is rebuilt on refresh.
@@ -15,6 +16,7 @@ class EventInfoTile extends StatefulWidget {
 
 class _EventInfoTileState extends State<EventInfoTile> {
   final EventService _eventService = EventService();
+  final UserInterestEventService _interestService = UserInterestEventService();
   Event? _currentEvent;
   Event? _todayEvent;
   bool _isLoading = true;
@@ -29,19 +31,28 @@ class _EventInfoTileState extends State<EventInfoTile> {
   Future<void> _fetchEventInfo() async {
     setState(() => _isLoading = true);
     try {
-      // Retrieve all events (this could be optimized with a specific RPC call)
+      // Retrieve all events.
       List<Event> events = await _eventService.getEvents();
       final now = DateTime.now();
 
-      // Find an event that is in progress: start time passed and end time in the future.
-      final inProgress = events.where((event) =>
+      // Filter events: include only those for which user interest status is "going".
+      List<Event> goingEvents = [];
+      for (final event in events) {
+        bool isGoing = await _interestService.isGoingToEvent(event.id!);
+        if (isGoing) {
+          goingEvents.add(event);
+        }
+      }
+
+      // Find an event that is in progress: start time passed and (end time null or in future)
+      final inProgress = goingEvents.where((event) =>
           event.eventDateTime.isBefore(now) &&
           (event.eventEndDateTime == null ||
               event.eventEndDateTime!.isAfter(now)));
       _currentEvent = inProgress.isNotEmpty ? inProgress.first : null;
 
       // If no event is in progress, find an event scheduled for today (same day and start time after now)
-      final todayEvents = events.where((event) =>
+      final todayEvents = goingEvents.where((event) =>
           event.eventDateTime.day == now.day &&
           event.eventDateTime.isAfter(now));
       _todayEvent = todayEvents.isNotEmpty ? todayEvents.first : null;
@@ -61,7 +72,7 @@ class _EventInfoTileState extends State<EventInfoTile> {
         Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.5);
 
     if (_isLoading) {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
 
     // Function to build the leading widget: use event image if available, otherwise fallback icon.

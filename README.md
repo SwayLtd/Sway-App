@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Display only "going" events in EventInfoTile
 - Improve event time display logic
 - Allow optional event end time and improve date selection
 - Fix event item display when location is missing
