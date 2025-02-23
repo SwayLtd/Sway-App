@@ -66,6 +66,8 @@ app.*.map.json
 /android/app/keystore/*
 /android/app/.cxx/**/configure_fingerprint.bin
 
+# Backend
+/backend
 
 # Deno
 deno.d.ts
