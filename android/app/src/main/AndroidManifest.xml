@@ -23,6 +23,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Permissions de localisation -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Si l’application nécessite l’accès à la localisation en arrière-plan (Android 10+) -->
+    <!--<uses-permission
+    android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />-->
+
     <application
         android:label="Sway"
         android:name="${applicationName}"

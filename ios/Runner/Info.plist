@@ -122,5 +122,13 @@
 			events.</string>
 		<key>NSCalendarsFullAccessUsageDescription</key>
 		<string>Sway requires access most functions for calendar viewing and editing.</string>
+		<!-- Image picker -->
+		<key>NSCameraUsageDescription</key>
+		<string>Sway needs access to the camera to take photos.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Sway needs access to your photo library to select images.</string>
+		<!-- Location -->
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Sway requires your location to provide location-based services.</string>
 	</dict>
 </plist>
