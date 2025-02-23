@@ -37,7 +37,7 @@ class EventVenueService {
         }
         return venue;
       } catch (e) {
-        print('Error in getVenueByEventId (online): $e');
+        // print(('Error in getVenueByEventId (online): $e');
         return await _loadVenueFromCachedEvent(eventId, isar: isar);
       }
     } else {
@@ -101,7 +101,7 @@ class EventVenueService {
         }
         return eventsData;
       } catch (e) {
-        print('Error in getEventsByVenueId (online): $e');
+        // print(('Error in getEventsByVenueId (online): $e');
         // Fallback to offline branch.
         return await _loadEventsByVenueFromCache(venueId, isar: isar);
       }
@@ -252,7 +252,7 @@ class EventVenueService {
       }
       return eventsData;
     } catch (e) {
-      print('Error in _loadEventsByVenueFromCache: $e');
+      // print(('Error in _loadEventsByVenueFromCache: $e');
       return [];
     }
   }
