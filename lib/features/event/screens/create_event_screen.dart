@@ -189,7 +189,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedStartDate ?? now,
-      firstDate: now,
+      firstDate: now.subtract(Duration(days: 365)),
       lastDate: DateTime(now.year + 5),
     );
     if (pickedDate != null) {
