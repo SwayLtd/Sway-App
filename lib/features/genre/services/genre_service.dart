@@ -28,7 +28,7 @@ class GenreService {
         }
         return genres;
       } catch (e) {
-        print('Error in searchGenres (online): $e');
+        // print('Error in searchGenres (online): $e');
         return [];
       }
     } else {
@@ -57,7 +57,7 @@ class GenreService {
         }
         return genres;
       } catch (e) {
-        print('Error in getGenres (online): $e');
+        // print('Error in getGenres (online): $e');
         return await _loadAllGenresFromIsar(isar);
       }
     } else {
@@ -86,7 +86,7 @@ class GenreService {
           return await _loadGenreFromIsar(genreId, isar: isar);
         }
       } catch (e) {
-        print('Error in getGenreById (online): $e');
+        // print('Error in getGenreById (online): $e');
         return await _loadGenreFromIsar(genreId, isar: isar);
       }
     } else {
@@ -115,7 +115,7 @@ class GenreService {
         }
         return genres;
       } catch (e) {
-        print('Error in getRecommendedGenres (online): $e');
+        // print('Error in getRecommendedGenres (online): $e');
         return await _loadAllGenresFromIsar(isar);
       }
     } else {
