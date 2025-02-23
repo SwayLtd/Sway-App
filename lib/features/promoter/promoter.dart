@@ -12,6 +12,7 @@ import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_promoter_service.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
+import 'package:sway/features/event/widgets/event_modal_bottom_sheet.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/genre/widgets/genre_modal_bottom_sheet.dart';
@@ -329,17 +330,41 @@ class _PromoterScreenState extends State<PromoterScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                "UPCOMING EVENTS",
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              // En-tête avec flèche si plus de 5 événements
+                              Row(
+                                mainAxisAlignment: _upcomingEvents.length > 5
+                                    ? MainAxisAlignment.spaceBetween
+                                    : MainAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "UPCOMING EVENTS",
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  if (_upcomingEvents.length > 5)
+                                    IconButton(
+                                      icon: const Icon(Icons.arrow_forward),
+                                      onPressed: () {
+                                        // Afficher la modal avec tous (ou une partie) des événements
+                                        showEventModalBottomSheet(
+                                          context,
+                                          _upcomingEvents
+                                              .take(10)
+                                              .toList(), // par exemple, les 10 premiers
+                                        );
+                                      },
+                                    ),
+                                ],
                               ),
                               const SizedBox(height: sectionTitleSpacing),
                               SizedBox(
                                 height: 258,
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: _upcomingEvents.length,
+                                  itemCount: _upcomingEvents.length > 5
+                                      ? 5
+                                      : _upcomingEvents.length,
                                   itemBuilder: (context, index) {
                                     final event = _upcomingEvents[index];
                                     return Padding(
