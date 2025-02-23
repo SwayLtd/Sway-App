@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Improve event time display logic
 - Allow optional event end time and improve date selection
 - Fix event item display when location is missing
 - Update Firebase packages and integrate Analytics & Crashlytics

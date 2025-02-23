@@ -126,9 +126,9 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
           ? DateTime.parse(b['start_time'] as String)
           : b['start_time'] as DateTime?;
 
-      // Si les deux valeurs sont null, elles sont égales
+      // If both are null, treat as equal
       if (aTime == null && bTime == null) return 0;
-      // Considérez les assignations sans heure comme « plus tard »
+      // Treat missing start times as later
       if (aTime == null) return 1;
       if (bTime == null) return -1;
       return aTime.compareTo(bTime);
@@ -139,7 +139,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
           ? DateTime.parse(assignment['start_time'] as String)
           : assignment['start_time'] as DateTime?;
 
-      // Si start_time est null, utilisez une clé spécifique (ex: "No specific time")
+      // If start_time is null, use a special key (e.g., "No specific time")
       String dayKey = start != null
           ? start.toLocal().toString().substring(0, 10)
           : 'No specific time';
@@ -151,7 +151,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
       appBar: AppBar(
         title: const Text('Artist Assignments'),
         actions: [
-          // Afficher le bouton "+" seulement si l'utilisateur peut éditer
+          // Show the "+" button only if the user can edit
           if (_canEdit)
             IconButton(
               icon: const Icon(Icons.add),
@@ -182,13 +182,13 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
                           ),
                         ),
                         ...assignments.map((assignment) {
-                          // Extraction des artistes
+                          // Extract artist names
                           final List<dynamic> artists =
                               assignment['artists'] ?? [];
                           final String artistNames =
                               artists.map((a) => a.name).join(', ');
 
-                          // Extraction des dates en tant que DateTime nullable
+                          // Extract start and end times as nullable DateTime
                           final DateTime? parsedStart =
                               assignment['start_time'] is String
                                   ? DateTime.parse(
@@ -199,7 +199,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
                               ? DateTime.parse(assignment['end_time'] as String)
                               : assignment['end_time'] as DateTime?;
 
-                          // Construction du texte à afficher pour les horaires
+                          // Display the time based on the conditions
                           String timeDisplay;
                           if (parsedStart != null && parsedEnd != null) {
                             final String startDate = parsedStart
@@ -218,6 +218,16 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
                                 .substring(11, 16);
                             timeDisplay =
                                 '$startDate $startHour → $endDate $endHour';
+                          } else if (parsedStart != null) {
+                            final String startDate = parsedStart
+                                .toLocal()
+                                .toString()
+                                .substring(0, 10);
+                            final String startHour = parsedStart
+                                .toLocal()
+                                .toString()
+                                .substring(11, 16);
+                            timeDisplay = '$startDate $startHour';
                           } else {
                             timeDisplay = 'No specific time';
                           }
