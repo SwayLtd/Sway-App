@@ -147,7 +147,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   /// Pour utilisateur anonyme.
   Future<void> _fetchGenericRecommendations() async {
-    _topEventsFuture = _eventService.getTopEvents(limit: 10);
+    _topEventsFuture = _eventService.getTopEvents(userId: null, limit: 10);
     _suggestedEventsFuture =
         _eventService.getRecommendedEvents(userId: null, limit: 10);
     _suggestedArtistsFuture =

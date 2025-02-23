@@ -67,7 +67,9 @@ class _PromoterScreenState extends State<PromoterScreen> {
         // Filtrer pour ne garder que les événements futurs (upcoming events)
         final now = DateTime.now();
         _upcomingEvents = allEvents
-            .where((event) => event.eventEndDateTime.isAfter(now))
+            .where((event) => (event.eventEndDateTime != null
+                ? event.eventEndDateTime!.isAfter(now)
+                : event.eventDateTime.isAfter(now)))
             .toList();
 
         // Forcer la mise à jour de l'interface utilisateur

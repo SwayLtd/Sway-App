@@ -7,7 +7,7 @@ class Event {
   final String title;
   final String type;
   final DateTime eventDateTime;
-  final DateTime eventEndDateTime;
+  final DateTime? eventEndDateTime; // Nullable désormais
   final int? venue;
   final String description;
   final String imageUrl;
@@ -22,7 +22,7 @@ class Event {
     required this.title,
     required this.type,
     required this.eventDateTime,
-    required this.eventEndDateTime,
+    this.eventEndDateTime, // Nullable
     this.venue,
     required this.description,
     required this.imageUrl,
@@ -51,7 +51,10 @@ class Event {
       title: json['title'] as String? ?? '',
       type: json['type'] as String? ?? '',
       eventDateTime: DateTime.parse(json['date_time'] as String),
-      eventEndDateTime: DateTime.parse(json['end_date_time'] as String),
+      // Si end_date_time est nul, on retourne null
+      eventEndDateTime: json['end_date_time'] != null
+          ? DateTime.parse(json['end_date_time'] as String)
+          : null,
       description: json['description'] as String? ?? '',
       imageUrl: json['image_url'] as String? ?? '',
       promoters: (json['promoters'] as List<dynamic>?)
@@ -65,8 +68,7 @@ class Event {
           (json['artists'] as List<dynamic>?)?.map((e) => e as int).toList() ??
               [],
       interestedUsersCount: json['interested_users_count'] as int?,
-      metadata: decodedMetadata ??
-          {}, // Assurez-vous de ne jamais laisser metadata être null
+      metadata: decodedMetadata ?? {},
     );
   }
 
@@ -76,20 +78,15 @@ class Event {
       'title': title,
       'type': type,
       'date_time': eventDateTime.toIso8601String(),
-      'end_date_time': eventEndDateTime.toIso8601String(),
-      // 'venue': venue,
+      // Convertir eventEndDateTime seulement s'il n'est pas null
+      'end_date_time': eventEndDateTime?.toIso8601String(),
       'description': description,
       'image_url': imageUrl,
-      // 'distance': distance,
-      // 'promoters': promoters,
-      // 'genres': genres,
-      // 'artists': artists,
-      // 'interested_users_count': interestedUsersCount,
       'metadata': metadata,
     };
   }
 
-  // Added copyWith method to create modified copies of an Event
+  // Méthode copyWith mise à jour si nécessaire.
   Event copyWith({
     int? id,
     String? title,
@@ -99,7 +96,6 @@ class Event {
     int? venue,
     String? description,
     String? imageUrl,
-    String? distance,
     List<int>? promoters,
     List<int>? genres,
     List<int>? artists,

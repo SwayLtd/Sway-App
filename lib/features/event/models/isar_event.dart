@@ -14,7 +14,7 @@ class IsarEvent {
   late String title;
   late String type;
   late DateTime eventDateTime;
-  late DateTime eventEndDateTime;
+  late DateTime? eventEndDateTime;
   late String description;
   late String imageUrl;
   late int interestedUsersCount;

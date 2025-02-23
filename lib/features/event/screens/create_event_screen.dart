@@ -262,7 +262,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate() ||
         _selectedStartDate == null ||
-        _selectedEndDate == null ||
         _selectedImage == null ||
         _selectedPromoterObj == null ||
         _selectedVenueObj == null) {
@@ -312,12 +311,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         title: _titleController.text.trim(),
         type: typeToStore,
         eventDateTime: _selectedStartDate!,
-        eventEndDateTime: _selectedEndDate!,
+        eventEndDateTime: _selectedEndDate, // Peut être null
         description: _descriptionController.text.trim(),
         imageUrl: '',
         promoters: [promoterId],
-        metadata:
-            metadata.isEmpty ? null : metadata, // Ne pas inclure metadata vide
+        metadata: metadata.isEmpty ? null : metadata,
       );
 
       final createdEvent = await _eventService.addEvent(newEvent);
@@ -485,18 +483,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     icon: const Icon(Icons.calendar_today),
                     onPressed: _pickEndDateTime,
                   ),
+                  helperText: 'optional',
                 ),
                 controller: TextEditingController(
                   text: _selectedEndDate == null
                       ? ''
                       : _selectedEndDate!.toLocal().toString().substring(0, 16),
                 ),
-                validator: (value) {
-                  if (_selectedEndDate == null) {
-                    return 'Please select the end date and time.';
-                  }
-                  return null;
-                },
+                // Pas de validateur pour ce champ, il est optionnel.
+                validator: (_) => null,
               ),
 
               const SizedBox(height: sectionSpacing),

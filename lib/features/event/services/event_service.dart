@@ -232,11 +232,9 @@ class EventService {
     try {
       // Construire les paramètres de l'appel RPC.
       final params = <String, dynamic>{
+        'p_user_id': userId,
         'p_limit': limit,
       };
-      if (userId != null) {
-        params['p_user_id'] = userId;
-      }
       final data = await _supabase.rpc('get_top_events', params: params);
       if (data == null || (data as List).isEmpty) return [];
       final events = data

@@ -129,7 +129,7 @@ IsarEvent _isarEventDeserialize(
   final object = IsarEvent();
   object.description = reader.readString(offsets[0]);
   object.eventDateTime = reader.readDateTime(offsets[1]);
-  object.eventEndDateTime = reader.readDateTime(offsets[2]);
+  object.eventEndDateTime = reader.readDateTimeOrNull(offsets[2]);
   object.id = id;
   object.imageUrl = reader.readString(offsets[3]);
   object.interestedUsersCount = reader.readLong(offsets[4]);
@@ -151,7 +151,7 @@ P _isarEventDeserializeProp<P>(
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
@@ -453,7 +453,25 @@ extension IsarEventQueryFilter
   }
 
   QueryBuilder<IsarEvent, IsarEvent, QAfterFilterCondition>
-      eventEndDateTimeEqualTo(DateTime value) {
+      eventEndDateTimeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'eventEndDateTime',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarEvent, IsarEvent, QAfterFilterCondition>
+      eventEndDateTimeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'eventEndDateTime',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarEvent, IsarEvent, QAfterFilterCondition>
+      eventEndDateTimeEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'eventEndDateTime',
@@ -464,7 +482,7 @@ extension IsarEventQueryFilter
 
   QueryBuilder<IsarEvent, IsarEvent, QAfterFilterCondition>
       eventEndDateTimeGreaterThan(
-    DateTime value, {
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -478,7 +496,7 @@ extension IsarEventQueryFilter
 
   QueryBuilder<IsarEvent, IsarEvent, QAfterFilterCondition>
       eventEndDateTimeLessThan(
-    DateTime value, {
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -492,8 +510,8 @@ extension IsarEventQueryFilter
 
   QueryBuilder<IsarEvent, IsarEvent, QAfterFilterCondition>
       eventEndDateTimeBetween(
-    DateTime lower,
-    DateTime upper, {
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1490,7 +1508,7 @@ extension IsarEventQueryProperty
     });
   }
 
-  QueryBuilder<IsarEvent, DateTime, QQueryOperations>
+  QueryBuilder<IsarEvent, DateTime?, QQueryOperations>
       eventEndDateTimeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'eventEndDateTime');

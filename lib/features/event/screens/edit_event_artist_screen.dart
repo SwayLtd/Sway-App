@@ -86,7 +86,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
       builder: (context) => ArtistAssignmentBottomSheet(
         eventId: widget.eventId,
         eventStart: _currentEvent!.eventDateTime,
-        eventEnd: _currentEvent!.eventEndDateTime,
+        eventEnd: _currentEvent!.eventEndDateTime!,
         assignment: assignment,
         canEdit: _canEdit,
       ),
@@ -105,7 +105,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
       builder: (context) => ArtistAssignmentBottomSheet(
         eventId: widget.eventId,
         eventStart: _currentEvent!.eventDateTime,
-        eventEnd: _currentEvent!.eventEndDateTime,
+        eventEnd: _currentEvent!.eventEndDateTime!,
         canEdit: _canEdit,
       ),
     );

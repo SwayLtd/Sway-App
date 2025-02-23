@@ -364,15 +364,16 @@ class _EditEventScreenState extends State<EditEventScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    if (_selectedStartDate == null || _selectedEndDate == null) {
+    if (_selectedStartDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select the start/end date.'),
+          content: Text('Please select the start date/time.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
       return;
     }
+
     if (_selectedPromoterObj == null || _selectedVenueObj == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -761,6 +762,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                           icon: const Icon(Icons.calendar_today),
                           onPressed: isReadOnly ? null : _pickEndDateTime,
                         ),
+                        helperText: 'optional',
                       ),
                       controller: TextEditingController(
                         text: _selectedEndDate == null
@@ -770,12 +772,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
                                 .toString()
                                 .substring(0, 16),
                       ),
-                      validator: (value) {
-                        if (_selectedEndDate == null) {
-                          return 'Please select the end date/time.';
-                        }
-                        return null;
-                      },
+                      // Pas de validateur requis, le champ est optionnel.
+                      validator: (_) => null,
                     ),
                     const SizedBox(height: sectionSpacing),
                     // Description
