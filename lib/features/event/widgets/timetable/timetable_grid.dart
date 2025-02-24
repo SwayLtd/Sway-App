@@ -66,17 +66,17 @@ class _GridViewWidgetState extends State<GridViewWidget> {
 
     // Sort artists by start time
     artistsToShow.sort((a, b) {
-      final DateTime? startTimeA = a['start_time'];
-      final DateTime? startTimeB = b['start_time'];
+      final DateTime? startTimeA = a['start_time'] as DateTime?;
+      final DateTime? startTimeB = b['start_time'] as DateTime?;
       return startTimeA!.compareTo(startTimeB!);
     });
 
     final DateTime earliestTime = artistsToShow
-        .map((e) => e['start_time'])
+        .map((e) => e['start_time'] as DateTime)
         .reduce((a, b) => a.isBefore(b) ? a : b);
 
     final DateTime latestTime = artistsToShow
-        .map((e) => e['end_time'])
+        .map((e) => e['end_time'] as DateTime)
         .reduce((a, b) => a.isAfter(b) ? a : b);
 
     final now = DateTime.now();
@@ -186,7 +186,8 @@ class _GridViewWidgetState extends State<GridViewWidget> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator.adaptive());
         } else if (snapshot.hasError) {
-          return const SizedBox.shrink(); // Center(child: Text('Error: ${snapshot.error}'));
+          return const SizedBox
+              .shrink(); // Center(child: Text('Error: ${snapshot.error}'));
         } else {
           return snapshot.data!;
         }
@@ -218,9 +219,9 @@ class _GridViewWidgetState extends State<GridViewWidget> {
 
     // Sort artists by start time
     artistsToShow.sort((a, b) {
-      final startTimeA = DateTime.parse(a['start_time']);
-      final startTimeB = DateTime.parse(b['start_time']);
-      return startTimeA.compareTo(startTimeB);
+      final startTimeA = a['start_time'] as DateTime?;
+      final startTimeB = b['start_time'] as DateTime?;
+      return startTimeA!.compareTo(startTimeB!);
     });
 
     final List<String> filteredStages = widget.stages
@@ -231,10 +232,10 @@ class _GridViewWidgetState extends State<GridViewWidget> {
         .toList();
 
     final DateTime earliestTime = artistsToShow
-        .map((e) => DateTime.parse(e['start_time']))
+        .map((e) => e['start_time'] as DateTime)
         .reduce((a, b) => a.isBefore(b) ? a : b);
     final DateTime latestTime = artistsToShow
-        .map((e) => DateTime.parse(e['end_time']))
+        .map((e) => e['end_time'] as DateTime)
         .reduce((a, b) => a.isAfter(b) ? a : b);
 
     final List<DateTime> hours = [];
