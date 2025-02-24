@@ -1,30 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sway/core/utils/text_formatting.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
+import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/utils/timetable_utils.dart';
 import 'package:sway/features/event/widgets/timetable/artist_image_rotator.dart';
+import 'package:sway/features/notification/services/notification_service.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
+import 'package:sway/features/user/services/user_service.dart';
+import 'package:sway/features/user/widgets/snackbar_login.dart';
 
 class GridViewWidget extends StatefulWidget {
+  final Event event; // Add event field
   final List<Map<String, dynamic>> eventArtists;
-  final DateTime selectedDay;
+  final bool showOnlyFollowedArtists;
   final List<String> stages;
   final List<String> selectedStages;
-  final bool showOnlyFollowedArtists;
+  final Set<int>? followedArtistIds;
 
   const GridViewWidget({
+    Key? key,
+    required this.event,
     required this.eventArtists,
-    required this.selectedDay,
+    required this.showOnlyFollowedArtists,
     required this.stages,
     required this.selectedStages,
-    required this.showOnlyFollowedArtists,
-  });
+    this.followedArtistIds,
+  }) : super(key: key);
 
   @override
-  _GridViewWidgetState createState() => _GridViewWidgetState();
+  State<GridViewWidget> createState() => _GridViewWidgetState();
 }
 
 class _GridViewWidgetState extends State<GridViewWidget> {
@@ -33,6 +41,8 @@ class _GridViewWidgetState extends State<GridViewWidget> {
   double _lastVerticalScrollOffset = 0.0;
   late ScrollController _horizontalScrollController;
   late ScrollController _verticalScrollController;
+  UserFollowArtistService userFollowService = UserFollowArtistService();
+  Set<int> _notifiedArtistIds = {}; // Ajoutez cette ligne ici
 
   @override
   void initState() {
@@ -42,102 +52,64 @@ class _GridViewWidgetState extends State<GridViewWidget> {
 
   Future<void> _loadLastScrollOffsets() async {
     final prefs = await SharedPreferences.getInstance();
-    final UserFollowArtistService userFollowArtistService =
-        UserFollowArtistService();
 
-    List<Map<String, dynamic>> artistsToShow = widget.eventArtists;
+    // Copie du eventArtists pour le manipuler
+    List<Map<String, dynamic>> artistsToShow = List.from(widget.eventArtists);
 
+    // 1) Filtrer si “showOnlyFollowedArtists”
     if (widget.showOnlyFollowedArtists) {
-      artistsToShow = [];
-      for (final artistMap in widget.eventArtists) {
-        final List<Artist> artists = (artistMap['artists'] as List<dynamic>)
-            .map((artist) => artist as Artist)
-            .toList();
-        for (final artist in artists) {
-          final bool isFollowing =
-              await userFollowArtistService.isFollowingArtist(artist.id!);
-          if (isFollowing) {
-            artistsToShow.add(artistMap);
+      final List<Map<String, dynamic>> filtered = [];
+      for (final artistMap in artistsToShow) {
+        final List<Artist> artists =
+            (artistMap['artists'] as List<dynamic>).cast<Artist>();
+        bool foundFollowing = false;
+        for (final art in artists) {
+          final isF = await userFollowService.isFollowingArtist(art.id!);
+          if (isF) {
+            foundFollowing = true;
             break;
           }
         }
+        if (foundFollowing) {
+          filtered.add(artistMap);
+        }
       }
+      artistsToShow = filtered;
     }
 
-    // Sort artists by start time
+    // 2) Tri par start_time
+    if (artistsToShow.isEmpty) {
+      // Aucun créneau => pas de reduce(...) possible
+      _initializeScrollControllers();
+      setState(() => _isScrollInitialized = true);
+      return;
+    }
     artistsToShow.sort((a, b) {
-      final DateTime? startTimeA = a['start_time'] as DateTime?;
-      final DateTime? startTimeB = b['start_time'] as DateTime?;
-      return startTimeA!.compareTo(startTimeB!);
+      final dtA = a['start_time'] as DateTime?;
+      final dtB = b['start_time'] as DateTime?;
+      return dtA!.compareTo(dtB!);
     });
 
-    final DateTime earliestTime = artistsToShow
-        .map((e) => e['start_time'] as DateTime)
-        .reduce((a, b) => a.isBefore(b) ? a : b);
+    double initialHorizontalOffset = 0.0;
 
-    final DateTime latestTime = artistsToShow
-        .map((e) => e['end_time'] as DateTime)
-        .reduce((a, b) => a.isAfter(b) ? a : b);
-
-    final now = DateTime.now();
-
-    final DateTime currentTime = now.isAfter(latestTime) ? earliestTime : now;
-
-    final int nowInMinutes = now.hour * 60 + now.minute;
-    final int latestTimeInMinutes = latestTime.hour * 60 + latestTime.minute;
-    final int earliestTimeInMinutes =
-        earliestTime.hour * 60 + earliestTime.minute;
-
-    final bool isAfterMidnight = currentTime.isAfter(
-          DateTime(currentTime.year, currentTime.month, currentTime.day),
-        ) &&
-        currentTime.isBefore(
-          DateTime(
-            currentTime.year,
-            currentTime.month,
-            currentTime.day + 1,
-            latestTime.hour,
-            latestTime.minute,
-          ),
-        );
-
-    double initialHorizontalOffset;
-
-    if (nowInMinutes > latestTimeInMinutes) {
-      initialHorizontalOffset = 0.0;
-      if (nowInMinutes >= earliestTimeInMinutes &&
-          nowInMinutes <= latestTimeInMinutes + 24 * 60) {
-        initialHorizontalOffset =
-            ((nowInMinutes - earliestTimeInMinutes) % (24 * 60)) * 200.0 / 60.0;
-      } else {
-        initialHorizontalOffset = 0;
-      }
-    } else if (isAfterMidnight) {
-      initialHorizontalOffset =
-          (24 + currentTime.hour - earliestTime.hour) * 200.0 +
-              (currentTime.minute * 200.0 / 60.0);
-    } else {
-      initialHorizontalOffset = 0;
-    }
-
+    // On lit le offset stocké
     _lastHorizontalScrollOffset =
         prefs.getDouble('lastHorizontalScrollOffset') ??
             initialHorizontalOffset;
     _lastVerticalScrollOffset =
         prefs.getDouble('lastVerticalScrollOffset') ?? 0.0;
 
+    // Check lastVisitedTime
     final lastVisitedTime = prefs.getString('lastVisitedTime');
     final shouldResetScroll = lastVisitedTime != null &&
         DateTime.now().difference(DateTime.parse(lastVisitedTime)).inMinutes >
             15;
-
     if (shouldResetScroll) {
       _lastHorizontalScrollOffset = initialHorizontalOffset;
       _lastVerticalScrollOffset = 0.0;
     }
 
     _initializeScrollControllers();
-    if (!mounted) return;
     setState(() {
       _isScrollInitialized = true;
     });
@@ -147,11 +119,11 @@ class _GridViewWidgetState extends State<GridViewWidget> {
     _horizontalScrollController = ScrollController(
       initialScrollOffset: _lastHorizontalScrollOffset,
     );
-    _horizontalScrollController.addListener(_saveScrollOffsets);
-
     _verticalScrollController = ScrollController(
       initialScrollOffset: _lastVerticalScrollOffset,
     );
+
+    _horizontalScrollController.addListener(_saveScrollOffsets);
     _verticalScrollController.addListener(_saveScrollOffsets);
   }
 
@@ -159,11 +131,18 @@ class _GridViewWidgetState extends State<GridViewWidget> {
     if (!_horizontalScrollController.hasClients ||
         !_verticalScrollController.hasClients) return;
     final prefs = await SharedPreferences.getInstance();
-    final horizontalOffset = _horizontalScrollController.offset;
-    final verticalOffset = _verticalScrollController.offset;
-    await prefs.setDouble('lastHorizontalScrollOffset', horizontalOffset);
-    await prefs.setDouble('lastVerticalScrollOffset', verticalOffset);
-    await prefs.setString('lastVisitedTime', DateTime.now().toIso8601String());
+    await prefs.setDouble(
+      'lastHorizontalScrollOffset',
+      _horizontalScrollController.offset,
+    );
+    await prefs.setDouble(
+      'lastVerticalScrollOffset',
+      _verticalScrollController.offset,
+    );
+    await prefs.setString(
+      'lastVisitedTime',
+      DateTime.now().toIso8601String(),
+    );
   }
 
   @override
@@ -182,131 +161,133 @@ class _GridViewWidgetState extends State<GridViewWidget> {
     }
     return FutureBuilder<Widget>(
       future: _buildGridView(context),
-      builder: (context, snapshot) {
+      builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator.adaptive());
         } else if (snapshot.hasError) {
-          return const SizedBox
-              .shrink(); // Center(child: Text('Error: ${snapshot.error}'));
+          return Text("Grid Error: ${snapshot.error}");
         } else {
-          return snapshot.data!;
+          return snapshot.data ?? const SizedBox.shrink();
         }
       },
     );
   }
 
+  /// -----------
+  /// LE BUILD GRID
+  /// -----------
   Future<Widget> _buildGridView(BuildContext context) async {
-    final UserFollowArtistService userFollowArtistService =
-        UserFollowArtistService();
-    List<Map<String, dynamic>> artistsToShow = widget.eventArtists;
-
-    if (widget.showOnlyFollowedArtists) {
-      artistsToShow = [];
-      for (final artistMap in widget.eventArtists) {
-        final List<Artist> artists = (artistMap['artists'] as List<dynamic>)
-            .map((artist) => artist as Artist)
-            .toList();
-        for (final artist in artists) {
-          final bool isFollowing =
-              await userFollowArtistService.isFollowingArtist(artist.id!);
-          if (isFollowing) {
-            artistsToShow.add(artistMap);
-            break;
-          }
+    // 1. Filtrer les assignations selon showOnlyFollowedArtists en utilisant followedArtistIds
+    List<Map<String, dynamic>> artistsToShow = [];
+    if (widget.showOnlyFollowedArtists && widget.followedArtistIds != null) {
+      for (final assignment in widget.eventArtists) {
+        final List<Artist> artists =
+            (assignment['artists'] as List<dynamic>).cast<Artist>();
+        // Si au moins un artiste de cette assignation est suivi, on l'inclut
+        if (artists
+            .any((artist) => widget.followedArtistIds!.contains(artist.id))) {
+          artistsToShow.add(assignment);
         }
       }
+    } else {
+      artistsToShow = List.from(widget.eventArtists);
     }
 
-    // Sort artists by start time
-    artistsToShow.sort((a, b) {
-      final startTimeA = a['start_time'] as DateTime?;
-      final startTimeB = b['start_time'] as DateTime?;
-      return startTimeA!.compareTo(startTimeB!);
-    });
+    if (artistsToShow.isEmpty) {
+      return const Center(child: Text("No assignments on selected stages"));
+    }
 
-    final List<String> filteredStages = widget.stages
-        .where((stage) => widget.selectedStages.contains(stage))
-        .where(
-          (stage) => artistsToShow.any((artist) => artist['stage'] == stage),
-        )
+    // 2. Filtrer les stages en se basant sur widget.selectedStages (pour respecter l'ordre des filtres)
+    final List<String> filteredStages = widget.selectedStages
+        .where((stage) => artistsToShow.any((a) => a['stage'] == stage))
         .toList();
 
-    final DateTime earliestTime = artistsToShow
+    if (filteredStages.isEmpty) {
+      return const Center(child: Text("No assignments on selected stages"));
+    }
+
+    // 3. Trier les assignations par heure de début
+    artistsToShow.sort((a, b) {
+      final stA = a['start_time'] as DateTime;
+      final stB = b['start_time'] as DateTime;
+      return stA.compareTo(stB);
+    });
+
+    // 4. Calculer l'heure la plus tôt et la plus tardive
+    final earliestTime = artistsToShow
         .map((e) => e['start_time'] as DateTime)
         .reduce((a, b) => a.isBefore(b) ? a : b);
-    final DateTime latestTime = artistsToShow
+    final latestTime = artistsToShow
         .map((e) => e['end_time'] as DateTime)
         .reduce((a, b) => a.isAfter(b) ? a : b);
 
+    // 5. Construire la liste d'heures horizontales
     final List<DateTime> hours = [];
-    DateTime currentTime = DateTime(
-      widget.selectedDay.year,
-      widget.selectedDay.month,
-      widget.selectedDay.day,
-      earliestTime.hour,
-    );
-    while (currentTime.isBefore(latestTime) ||
-        currentTime.isAtSameMomentAs(latestTime)) {
-      hours.add(currentTime);
-      currentTime = currentTime.add(const Duration(hours: 1));
+    DateTime current = DateTime(earliestTime.year, earliestTime.month,
+        earliestTime.day, earliestTime.hour);
+    while (!current.isAfter(latestTime)) {
+      hours.add(current);
+      current = current.add(const Duration(hours: 1));
     }
 
+    // 6. Regrouper les assignations par stage (en se basant sur widget.selectedStages)
+    final Map<String, List<Map<String, dynamic>>> artistsByStage = {};
+    for (final assignment in artistsToShow) {
+      final String? stage = assignment['stage'] as String?;
+      if (stage == null) continue;
+      if (!widget.selectedStages.contains(stage)) continue;
+      artistsByStage.putIfAbsent(stage, () => []).add(assignment);
+    }
+
+    // 7. Construction de la grille
     return LayoutBuilder(
-      builder: (context, constraints) {
+      builder: (ctx, constraints) {
         return SingleChildScrollView(
           controller: _verticalScrollController,
           child: Stack(
             children: [
+              // 1) La grille "fond"
               SingleChildScrollView(
                 controller: _horizontalScrollController,
                 scrollDirection: Axis.horizontal,
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: IntrinsicHeight(
                     child: Stack(
                       children: [
+                        // Le background "timeline"
                         Positioned.fill(
                           child: IgnorePointer(
                             child: Column(
                               children: [
-                                Container(
-                                  height: 50,
-                                ),
+                                Container(height: 50),
                                 Expanded(
                                   child: Row(
                                     children: [
                                       Container(
                                         width: 100,
-                                        margin: const EdgeInsets.only(
-                                          top: 20,
-                                        ),
+                                        margin: const EdgeInsets.only(top: 20),
                                         decoration: const BoxDecoration(
                                           border: Border(
                                             right: BorderSide(
-                                              color: Colors.grey,
-                                              width: 0.5,
-                                            ),
+                                                color: Colors.grey, width: 0.5),
                                           ),
                                         ),
                                       ),
-                                      ...hours.skip(1).map(
-                                            (hour) => Container(
-                                              width: 200,
-                                              margin: const EdgeInsets.only(
-                                                top: 20,
-                                              ),
-                                              decoration: const BoxDecoration(
-                                                border: Border(
-                                                  right: BorderSide(
-                                                    color: Colors.grey,
-                                                    width: 0.5,
-                                                  ),
-                                                ),
-                                              ),
+                                      ...hours.skip(1).map((hour) {
+                                        return Container(
+                                          width: 200,
+                                          margin:
+                                              const EdgeInsets.only(top: 20),
+                                          decoration: const BoxDecoration(
+                                            border: Border(
+                                              right: BorderSide(
+                                                  color: Colors.grey,
+                                                  width: 0.5),
                                             ),
                                           ),
+                                        );
+                                      }).toList(),
                                     ],
                                   ),
                                 ),
@@ -314,15 +295,14 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                             ),
                           ),
                         ),
+                        // 2) Les "rows" par stage
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // La "row" d'heures
                             Row(
                               children: [
-                                const SizedBox(
-                                  width: 50,
-                                  height: 100,
-                                ),
+                                const SizedBox(width: 50, height: 100),
                                 Container(
                                   width: 100,
                                   height: 100,
@@ -330,342 +310,116 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                   child: Padding(
                                     padding: const EdgeInsets.only(left: 30.0),
                                     child: Text(
-                                      DateFormat.Hm().format(hours.first),
-                                    ),
+                                        DateFormat.Hm().format(hours.first)),
                                   ),
                                 ),
-                                ...hours.skip(1).map(
-                                      (hour) => Container(
-                                        width: 200,
-                                        height: 100,
-                                        alignment: Alignment.centerLeft,
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 130.0,
-                                          ),
-                                          child: Text(
-                                            DateFormat.Hm().format(hour),
-                                          ),
-                                        ),
-                                      ),
+                                ...hours.skip(1).map((hour) {
+                                  return Container(
+                                    width: 200,
+                                    height: 100,
+                                    alignment: Alignment.centerLeft,
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(left: 130.0),
+                                      child: Text(DateFormat.Hm().format(hour)),
                                     ),
+                                  );
+                                }).toList(),
                               ],
                             ),
+                            // Pour chaque stage filtré
                             ...filteredStages.map((stage) {
+                              // On construit la "row" horizontale
                               final List<Widget> stageRow = [
-                                Container(
-                                  width: 100,
-                                ),
+                                const SizedBox(width: 100)
                               ];
-
                               double accumulatedOffset = 0;
-                              DateTime?
-                                  lastEndTime; // Track end time of the last added artist
+                              DateTime? lastEndTime;
 
-                              for (final artistMap in artistsToShow
-                                  .where((e) => e['stage'] == stage)) {
-                                final List<Artist> artists =
+                              // Parcourir les artists sur ce stage
+                              final stageAssignments = artistsToShow
+                                  .where((a) => a['stage'] == stage)
+                                  .toList();
+
+                              for (final artistMap in stageAssignments) {
+                                final artists =
                                     (artistMap['artists'] as List<dynamic>)
-                                        .map((artist) => artist as Artist)
-                                        .toList();
-                                final customName = artistMap['custom_name'];
-                                final DateTime startTime =
-                                    artistMap['start_time'];
-                                final DateTime endTime = artistMap['end_time'];
+                                        .cast<Artist>();
+                                final customName =
+                                    artistMap['custom_name'] as String?;
+                                final nameToShow = (customName != null &&
+                                        customName.isNotEmpty)
+                                    ? customName
+                                    : artists
+                                        .map((a) => a.name)
+                                        .join(', '); // B2B
 
+                                final startTime =
+                                    artistMap['start_time'] as DateTime;
+                                final endTime =
+                                    artistMap['end_time'] as DateTime;
                                 final durationInHours =
                                     endTime.difference(startTime).inMinutes /
                                         60.0;
-                                final offsetInHours = startTime
+                                final offsetInHours = (startTime
                                             .difference(hours.first)
                                             .inMinutes /
-                                        60.0 -
+                                        60.0) -
                                     accumulatedOffset;
-                                final status = artistMap['status'];
+                                final status =
+                                    artistMap['status'] as String? ?? '';
 
-                                // Skip if overlaps with previous artist
+                                // Overlap skip
                                 if (lastEndTime != null &&
                                     startTime.isBefore(lastEndTime)) {
                                   continue;
                                 }
 
+                                // Espace libre
                                 if (offsetInHours > 0) {
-                                  stageRow.add(
-                                    SizedBox(
-                                      width: 200 * offsetInHours,
-                                      height: 100,
-                                    ),
-                                  );
+                                  stageRow.add(SizedBox(
+                                    width: 200 * offsetInHours,
+                                    height: 100,
+                                  ));
                                 }
 
-                                // This part of the code should be within the for-loop where artists are being processed
+                                // Check overlap pour le marker
                                 bool isOverlap = false;
-
-                                for (final otherArtistMap in artistsToShow
-                                    .where((e) => e['stage'] == stage)) {
-                                  if (artistMap == otherArtistMap) continue;
-
-                                  final DateTime? otherStartTime =
-                                      otherArtistMap['start_time'];
-                                  final DateTime? otherEndTime =
-                                      otherArtistMap['end_time'];
-
-                                  if (otherStartTime != null &&
-                                      otherEndTime != null) {
-                                    if (startTime.isBefore(otherEndTime) &&
-                                        endTime.isAfter(otherStartTime)) {
+                                for (final other in stageAssignments) {
+                                  if (identical(other, artistMap)) continue;
+                                  final oStart =
+                                      other['start_time'] as DateTime?;
+                                  final oEnd = other['end_time'] as DateTime?;
+                                  if (oStart != null && oEnd != null) {
+                                    if (startTime.isBefore(oEnd) &&
+                                        endTime.isAfter(oStart)) {
                                       isOverlap = true;
                                       break;
                                     }
                                   }
                                 }
 
-                                // Continue to add the artist widget
+                                // On ajoute la "carte" d'artiste
                                 stageRow.add(
                                   SizedBox(
                                     width: 200 * durationInHours,
                                     height: 100,
-                                    child: Stack(
-                                      children: [
-                                        FutureBuilder<bool>(
-                                          future: Future.wait(
-                                            artists
-                                                .map(
-                                                  (artist) =>
-                                                      userFollowArtistService
-                                                          .isFollowingArtist(
-                                                    artist.id!,
-                                                  ),
-                                                )
-                                                .toList(),
-                                          ).then(
-                                            (results) => results.any(
-                                              (isFollowing) => isFollowing,
-                                            ),
-                                          ),
-                                          builder: (context, snapshot) {
-                                            final bool isFollowing =
-                                                snapshot.data ?? false;
-
-                                            return GestureDetector(
-                                              onTap: () {
-                                                if (artists.length > 1) {
-                                                  showArtistsBottomSheet(
-                                                    context,
-                                                    artists,
-                                                  );
-                                                } else {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          ArtistScreen(
-                                                        artistId:
-                                                            artists.first.id!,
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                              child: Card(
-                                                color: isFollowing
-                                                    ? Theme.of(context)
-                                                        .primaryColor
-                                                    : Theme.of(context)
-                                                        .cardColor,
-                                                shape: RoundedRectangleBorder(
-                                                  side: BorderSide(
-                                                    color: Theme.of(context)
-                                                        .primaryColor,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                    10.0,
-                                                  ),
-                                                ),
-                                                child: Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                    horizontal: 8.0,
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      if (100 *
-                                                              durationInHours >=
-                                                          100)
-                                                        Container(
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            border: Border.all(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .colorScheme
-                                                                  .onPrimary
-                                                                  .withValues(
-                                                                      alpha:
-                                                                          0.5), // Couleur de la bordure
-                                                              width:
-                                                                  2.0, // Épaisseur de la bordure
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        12), // Coins arrondis de la bordure
-                                                          ),
-                                                          child: ClipRRect(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                              8.0,
-                                                            ),
-                                                            child: artists
-                                                                        .length ==
-                                                                    1
-                                                                ? ImageWithErrorHandler(
-                                                                    imageUrl: artists
-                                                                        .first
-                                                                        .imageUrl,
-                                                                    width: 40,
-                                                                    height: 40,
-                                                                  )
-                                                                : ArtistImageRotator(
-                                                                    artists:
-                                                                        artists,
-                                                                  ),
-                                                          ),
-                                                        ),
-                                                      const SizedBox(
-                                                        width: 8.0,
-                                                      ),
-                                                      Expanded(
-                                                        child: Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .center,
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Text(
-                                                              customName ??
-                                                                  artists
-                                                                      .map(
-                                                                        (artist) =>
-                                                                            artist.name,
-                                                                      )
-                                                                      .join(
-                                                                        ' B2B ',
-                                                                      ),
-                                                              style: TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: status ==
-                                                                        'cancelled'
-                                                                    ? Colors.red
-                                                                    : isFollowing
-                                                                        ? Colors
-                                                                            .black
-                                                                        : Theme.of(context)
-                                                                            .textTheme
-                                                                            .bodyMedium
-                                                                            ?.color,
-                                                                decoration: status ==
-                                                                        'cancelled'
-                                                                    ? TextDecoration
-                                                                        .lineThrough
-                                                                    : null,
-                                                              ),
-                                                            ),
-                                                            Text(
-                                                              '${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}',
-                                                              style: TextStyle(
-                                                                fontSize: 12.0,
-                                                                color: isFollowing
-                                                                    ? Colors.grey[
-                                                                        800]
-                                                                    : Colors
-                                                                        .grey,
-                                                              ),
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      const Padding(
-                                                        padding:
-                                                            EdgeInsets.only(
-                                                          right: 8.0,
-                                                        ),
-                                                        child: Icon(
-                                                          Icons
-                                                              .add_alert_outlined,
-                                                          size: 20.0,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                        // Add a semi-transparent overlay if there's an overlap
-                                        if (isOverlap)
-                                          Padding(
-                                            padding: const EdgeInsets.all(
-                                              4.0,
-                                            ),
-                                            child: Container(
-                                              width: 200 * durationInHours,
-                                              height: 100,
-                                              decoration: BoxDecoration(
-                                                color: Colors.blue.withValues(
-                                                  alpha: 0.5,
-                                                ), // Blue color with reduced opacity
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                                border: Border.all(
-                                                  color: Colors
-                                                      .blue, // Full opacity border matching the overlay color
-                                                  width: 2.0,
-                                                ),
-                                              ),
-                                              child: const Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(
-                                                    Icons
-                                                        .warning, // Icon to indicate overlap
-                                                    color: Colors.white,
-                                                    size: 30.0,
-                                                  ),
-                                                  SizedBox(height: 4.0),
-                                                  Text(
-                                                    "OVERLAP",
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16.0,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                      ],
+                                    child: _buildArtistCard(
+                                      context,
+                                      artists,
+                                      nameToShow,
+                                      startTime,
+                                      endTime,
+                                      status,
+                                      isOverlap,
+                                      artistMap,
                                     ),
                                   ),
                                 );
 
                                 accumulatedOffset +=
                                     offsetInHours + durationInHours;
-                                lastEndTime =
-                                    endTime; // Update the last end time
+                                lastEndTime = endTime;
                               }
 
                               return Padding(
@@ -673,7 +427,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                     const EdgeInsets.symmetric(vertical: 20.0),
                                 child: Row(children: stageRow),
                               );
-                            }),
+                            }).toList(),
                           ],
                         ),
                       ],
@@ -681,38 +435,208 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                   ),
                 ),
               ),
+              // 3) Sur la gauche, on affiche le label du stage
               Positioned(
                 top: 30,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: filteredStages.map((stage) {
-                    return artistsToShow
-                            .any((artist) => artist['stage'] == stage)
-                        ? Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 60.0),
-                            child: Container(
-                              alignment: Alignment.centerLeft,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                              ),
-                              child: Text(
-                                stage,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                maxLines: 1,
-                              ),
-                            ),
-                          )
-                        : const SizedBox.shrink();
+                    // On check si ce stage a des assignments
+                    final hasAssignments =
+                        artistsToShow.any((a) => a['stage'] == stage);
+                    if (!hasAssignments) return const SizedBox.shrink();
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 60.0),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        decoration: const BoxDecoration(color: Colors.white),
+                        child: Text(
+                          capitalizeFirst(stage),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          maxLines: 1,
+                        ),
+                      ),
+                    );
                   }).toList(),
                 ),
               ),
             ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildArtistCard(
+    BuildContext context,
+    List<Artist> artists,
+    String nameToShow,
+    DateTime startTime,
+    DateTime endTime,
+    String status,
+    bool isOverlap,
+    Map<String, dynamic> artistMap, // artistMap ajouté ici
+  ) {
+    // On utilise l'ID du premier artiste pour identifier l'assignation
+    final int artistId = artists.first.id!;
+    final bool isAlreadyNotified = _notifiedArtistIds.contains(artistId);
+
+    return FutureBuilder<bool>(
+      future: Future.wait(
+        artists
+            .map((artist) => userFollowService.isFollowingArtist(artist.id!))
+            .toList(),
+      ).then((results) => results.any((follow) => follow)),
+      builder: (context, snapshot) {
+        final bool isFollowing = snapshot.data ?? false;
+        return GestureDetector(
+          onTap: () {
+            if (artists.length > 1) {
+              showArtistsBottomSheet(context, artists);
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (ctx) => ArtistScreen(artistId: artistId),
+                ),
+              );
+            }
+          },
+          child: Card(
+            color: isFollowing
+                ? Theme.of(context).primaryColor.withValues(alpha: 0.3)
+                : Theme.of(context).cardColor,
+            shape: RoundedRectangleBorder(
+              side: BorderSide(color: Theme.of(context).primaryColor),
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                children: [
+                  if (artists.length == 1) ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimary
+                              .withValues(alpha: 0.5),
+                          width: 2.0,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10.0),
+                        child: ImageWithErrorHandler(
+                          imageUrl: artists.first.imageUrl,
+                          width: 40,
+                          height: 40,
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    ArtistImageRotator(artists: artists),
+                  ],
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          nameToShow, // Utilisation de nameToShow ici
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color:
+                                status == 'cancelled' ? Colors.redAccent : null,
+                            decoration: status == 'cancelled'
+                                ? TextDecoration.lineThrough
+                                : null,
+                          ),
+                        ),
+                        Text(
+                          '${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}',
+                          style: const TextStyle(
+                              fontSize: 12.0, color: Colors.grey),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Bouton pour ajouter une notification dans Supabase
+                  IconButton(
+                    icon: Icon(
+                      isAlreadyNotified
+                          ? Icons.notifications_active
+                          : Icons.add_alert_outlined,
+                    ),
+                    onPressed: () async {
+                      if (isAlreadyNotified) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text("You will be notified for this artist."),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
+
+                      // Récupérer le supabaseId de l'utilisateur courant
+                      final currentUser = await UserService().getCurrentUser();
+                      final supabaseId = currentUser?.supabaseId;
+
+                      if (supabaseId == null) {
+                        SnackbarLogin.showLoginSnackBar(context);
+                        return;
+                      }
+
+                      // Calculer la date de notification : 15 minutes avant startTime
+                      final notificationTime =
+                          startTime.subtract(const Duration(minutes: 15));
+
+                      try {
+                        await NotificationService().addEventArtistNotification(
+                          supabaseId: supabaseId,
+                          artistId: artistId,
+                          eventTitle: widget.event.title,
+                          stage: capitalizeFirst(artistMap['stage'] ?? ''),
+                          scheduledTime: notificationTime,
+                          artistName:
+                              artists.first.name, // Nom standard de l'artiste
+                          customName: artistMap['custom_name'] ??
+                              '', // Nom personnalisé de l'artiste, s'il existe
+                        );
+
+                        setState(() {
+                          _notifiedArtistIds.add(artistId);
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Notification scheduled."),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Error scheduling notification: $e"),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },

@@ -1,310 +1,329 @@
-// timetable.dart
+// lib/features/event/widgets/timetable/timetable.dart
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sway/core/utils/date_utils.dart';
+import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_artist_service.dart';
-import 'package:sway/features/event/utils/timetable_utils.dart';
-import 'package:sway/features/event/widgets/timetable/timetable_grid.dart';
 import 'package:sway/features/event/widgets/timetable/timetable_list.dart';
+import 'package:sway/features/event/widgets/timetable/timetable_grid.dart';
+import 'package:sway/core/utils/text_formatting.dart';
+import 'package:sway/features/user/services/user_follow_artist_service.dart';
 
 class TimetableWidget extends StatefulWidget {
   final Event event;
 
-  const TimetableWidget({required this.event});
+  const TimetableWidget({Key? key, required this.event}) : super(key: key);
 
   @override
-  _TimetableWidgetState createState() => _TimetableWidgetState();
+  State<TimetableWidget> createState() => _TimetableWidgetState();
 }
 
 class _TimetableWidgetState extends State<TimetableWidget> {
   bool isGridView = false;
   bool showOnlyFollowedArtists = false;
-  DateTime selectedDay = DateTime.now();
-  List<Map<String, dynamic>> eventArtists = [];
-  List<String> stages = [];
+  Set<int> _followedArtistIds = {};
+
+  /// Index du jour sélectionné dans `metadata['festival_info']['days']`
+  int _selectedDayIndex = 0;
+
+  List<Map<String, dynamic>> _festivalDays =
+      []; // [{"name":"Day 1","start":"...","end":"..."},...]
+  List<String> _stages = []; // ["Main Stage","Second Stage",...]
   List<String> selectedStages = [];
   List<String> initialStages = [];
 
   @override
   void initState() {
     super.initState();
-    _initializeStages();
+    _loadMetadataFestivalInfo();
+    _loadArtistStages();
+    _preloadFollowedArtistIds(); // Ajout de cette méthode
   }
 
-  Future<void> _initializeStages() async {
-    final artists =
+  Future<void> _preloadFollowedArtistIds() async {
+    final userFollowService = UserFollowArtistService();
+    // Supposons que chaque assignation contient une liste d'artistes,
+    // on parcourt toutes les assignations pour récupérer tous les IDs.
+    final assignments =
         await EventArtistService().getArtistsByEventId(widget.event.id!);
-    final stageSet = artists.map((e) => e['stage'] as String).toSet().toList();
-
-    if (!mounted) return;
+    // On récupère tous les IDs uniques des artistes présents dans l'event.
+    final allArtistIds = assignments.expand((a) {
+      final ids =
+          (a['artists'] as List<Artist>).map((artist) => artist.id!).toList();
+      return ids;
+    }).toSet();
+    // Filtrer par ceux qui sont suivis.
+    final Set<int> followedIds = {};
+    for (final id in allArtistIds) {
+      if (await userFollowService.isFollowingArtist(id)) {
+        followedIds.add(id);
+      }
+    }
     setState(() {
-      stages = stageSet;
-      selectedStages = List.from(stageSet);
-      initialStages = List.from(stageSet); // Save initial order of stages
-    });
-
-    await _initializeSelectedDay();
-
-    // Forcer la mise à jour de la vue après l'initialisation des artistes
-    if (!mounted) return;
-    setState(() {
-      eventArtists = artists;
+      _followedArtistIds = followedIds;
     });
   }
 
-  Future<void> _initializeSelectedDay() async {
-    final prefs = await SharedPreferences.getInstance();
-    final now = DateTime.now();
-    final festivalDays = await calculateFestivalDays(widget.event);
+  /// 1) On lit le metadata['festival_info']
+  void _loadMetadataFestivalInfo() {
+    final metadata = widget.event.metadata ?? {};
+    final festivalInfo = metadata['festival_info'] as Map<String, dynamic>?;
+    if (festivalInfo == null) {
+      // Pas d'infos festival => on peut le signaler
+      return;
+    }
+    final days = festivalInfo['days'] as List<dynamic>? ?? [];
+    _festivalDays = days.map((obj) {
+      return {
+        'name': (obj['name'] as String?) ?? 'Day',
+        'start': DateTime.parse(obj['start'] as String),
+        'end': DateTime.parse(obj['end'] as String),
+      };
+    }).toList();
 
-    final lastSelectedDayString = prefs.getString('lastSelectedDay');
-    final lastSelectedDay = lastSelectedDayString != null
-        ? DateTime.parse(lastSelectedDayString)
-        : null;
-    final lastSelectedTimeString = prefs.getString('lastSelectedTime');
-    final lastSelectedTime = lastSelectedTimeString != null
-        ? DateTime.parse(lastSelectedTimeString)
-        : null;
+    final stages = festivalInfo['stages'] as List<dynamic>? ?? [];
+    _stages = stages.map((s) => s as String).toList();
+  }
 
-    final shouldResetDay = lastSelectedTime == null ||
-        now.difference(lastSelectedTime).inMinutes > 15;
+  /// 2) Charger toutes les assignations (pour l'évent), extraire la liste des stages
+  ///    et initialiser selectedStages
+  Future<void> _loadArtistStages() async {
+    final assignments =
+        await EventArtistService().getArtistsByEventId(widget.event.id!);
+    // Récupérer tous les stages distincts
+    final stageSet = assignments.map((a) => a['stage'] as String).toSet();
+    // Fusionner stageSet + _stages (venant du metadata) si tu veux
+    // ou alors tu décides que c'est le metadata qui prime
+    // Ici, on fait un simple union:
+    // final unionStages = <String>{..._stages, ...stageSet}.toList();
 
-    if (!mounted) return;
     setState(() {
-      if (shouldResetDay || lastSelectedDay == null) {
-        selectedDay = festivalDays.firstWhere(
-          (day) =>
-              day.day == now.day &&
-              day.month == now.month &&
-              day.year == now.year,
-          orElse: () => festivalDays.first,
-        );
-      } else if (!festivalDays.contains(lastSelectedDay)) {
-        selectedDay = festivalDays.first;
-      } else {
-        selectedDay = lastSelectedDay;
-      }
+      initialStages = stageSet.toList();
+      selectedStages = List.from(stageSet);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<DateTime>>(
-      future: calculateFestivalDays(widget.event),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator.adaptive());
-        } else if (snapshot.hasError) {
-          return const SizedBox.shrink(); // Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No festival days found'));
-        } else {
-          final List<DateTime> festivalDays = snapshot.data!;
+    // Si _festivalDays est vide => on affiche un message
+    if (_festivalDays.isEmpty) {
+      return const Center(
+        child: Text("No festival_info in metadata"),
+      );
+    }
+    return Column(
+      children: [
+        // Barre du haut (dropdown Days + switch list/grid + bouton filtrer)
+        _buildTopControls(context),
+        // Corps : on fetch TOUTES les assignations => on filtre par [start; end] du jour
+        Expanded(
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: _fetchDayAssignments(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                    child: CircularProgressIndicator.adaptive());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text("Error: ${snapshot.error}"));
+              }
+              final dayAssignments = snapshot.data ?? [];
+              if (dayAssignments.isEmpty) {
+                return const Center(child: Text("No programming for this day"));
+              }
 
-          // Déterminer le jour sélectionné effectif sans appeler setState
-          final DateTime effectiveSelectedDay =
-              festivalDays.contains(selectedDay)
-                  ? selectedDay
-                  : festivalDays.first;
+              // Filtrer par selectedStages
+              final filtered = dayAssignments
+                  .where(
+                    (a) => selectedStages.contains(a['stage'] as String),
+                  )
+                  .toList();
+              if (filtered.isEmpty) {
+                return const Center(
+                    child: Text("No programming on selected stages"));
+              }
 
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0),
-                      child: DropdownButton<DateTime>(
-                        value: effectiveSelectedDay,
-                        onChanged: (DateTime? newValue) async {
-                          if (newValue != null && newValue != selectedDay) {
-                            if (!mounted) return;
-                            setState(() {
-                              selectedDay = newValue;
-                            });
-                            final prefs = await SharedPreferences.getInstance();
-                            await prefs.setString(
-                                'lastSelectedDay', newValue.toIso8601String());
-                            await prefs.setString('lastSelectedTime',
-                                DateTime.now().toIso8601String());
-                          }
-                        },
-                        items: festivalDays.map((DateTime date) {
-                          return DropdownMenuItem<DateTime>(
-                            value: date,
-                            child: Text(DateFormat('EEEE, MMM d').format(date)),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            isGridView ? Icons.view_list : Icons.grid_view,
-                          ),
-                          onPressed: () {
-                            if (!mounted) return;
-                            setState(() {
-                              isGridView = !isGridView;
-                            });
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.filter_list),
-                          onPressed: _showFilterDialog,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: EventArtistService()
-                      .getArtistsByEventIdAndDay(widget.event.id!, selectedDay),
-                  builder: (context, artistSnapshot) {
-                    if (artistSnapshot.connectionState ==
-                        ConnectionState.waiting) {
+              // Choix final : ListView ou GridView
+              if (!isGridView) {
+                return FutureBuilder<Widget>(
+                  future: buildListView(
+                    context: context,
+                    eventArtists:
+                        filtered, // assignations filtrées pour le jour sélectionné
+                    showOnlyFollowedArtists: showOnlyFollowedArtists,
+                    stages: _stages,
+                    selectedStages: selectedStages,
+                    followedArtistIds:
+                        _followedArtistIds, // Ajouté ici si buildListView accepte ce paramètre
+                  ),
+                  builder: (ctx, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
                       return const Center(
                           child: CircularProgressIndicator.adaptive());
-                    } else if (artistSnapshot.hasError) {
-                      return Center(
-                        child: const SizedBox.shrink(), // Text('Error: ${artistSnapshot.error}'),
-                      );
-                    } else if (!artistSnapshot.hasData ||
-                        artistSnapshot.data!.isEmpty) {
-                      return const Center(child: Text('No events found'));
-                    } else {
-                      eventArtists = artistSnapshot.data!;
-
-                      final filteredArtists = eventArtists
-                          .where(
-                            (artist) =>
-                                selectedStages.contains(artist['stage']),
-                          )
-                          .toList();
-
-                      if (filteredArtists.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            'No programming available on selected stages for the selected day',
-                            textAlign: TextAlign.center,
-                          ),
-                        );
-                      }
-
-                      return isGridView
-                          ? GridViewWidget(
-                              eventArtists: filteredArtists,
-                              selectedDay: selectedDay,
-                              stages: stages,
-                              selectedStages: selectedStages,
-                              showOnlyFollowedArtists: showOnlyFollowedArtists,
-                            )
-                          : FutureBuilder<Widget>(
-                              future: buildListView(
-                                context,
-                                filteredArtists,
-                                selectedDay,
-                                stages,
-                                selectedStages,
-                                showOnlyFollowedArtists,
-                              ),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Center(
-                                    child: CircularProgressIndicator.adaptive(),
-                                  );
-                                } else if (snapshot.hasError) {
-                                  return Center(
-                                    child: const SizedBox.shrink(), // Text('Error: ${snapshot.error}'),
-                                  );
-                                } else {
-                                  return snapshot.data!;
-                                }
-                              },
-                            );
                     }
+                    if (snap.hasError) {
+                      return Center(child: Text("Error: ${snap.error}"));
+                    }
+                    return snap.data ?? const SizedBox.shrink();
                   },
-                ),
+                );
+              } else {
+                // Grid
+                return GridViewWidget(
+                  event: widget.event,
+                  eventArtists: filtered,
+                  showOnlyFollowedArtists: showOnlyFollowedArtists,
+                  stages: _stages,
+                  selectedStages: selectedStages,
+                  followedArtistIds:
+                      _followedArtistIds, // Transmet la liste préchargée
+                );
+              }
+            },
+          ),
+        ),
+        // Barre du bas : boutons PERSONNAL / FULL
+        _buildBottomButtons(context),
+      ],
+    );
+  }
+
+  // Méthode qui fetch TOUTES les assignations => puis on filtre par le jour
+  Future<List<Map<String, dynamic>>> _fetchDayAssignments() async {
+    final all =
+        await EventArtistService().getArtistsByEventId(widget.event.id!);
+    if (_selectedDayIndex >= _festivalDays.length) return [];
+    final dayInfo = _festivalDays[_selectedDayIndex];
+    // Utilise les créneaux du metadata
+    final dayStart = dayInfo['start'] as DateTime;
+    final dayEnd = dayInfo['end'] as DateTime;
+
+    return all.where((assignment) {
+      final st = assignment['start_time'] as DateTime?;
+      final et = assignment['end_time'] as DateTime?;
+      if (st == null) return false;
+      final eTime = et ?? st;
+      // On inclut si le créneau chevauche le créneau du metadata
+      return eTime.isAfter(dayStart) && st.isBefore(dayEnd);
+    }).toList();
+  }
+
+  Widget _buildTopControls(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0, left: 8.0, right: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Dropdown des "days"
+          DropdownButton<int>(
+            value: _selectedDayIndex,
+            onChanged: (newVal) {
+              if (newVal == null) return;
+              setState(() {
+                _selectedDayIndex = newVal;
+              });
+            },
+            items: List.generate(_festivalDays.length, (index) {
+              final dayInfo = _festivalDays[index];
+              final dayName = dayInfo['name'] as String; // ex. "Day 1"
+              final start =
+                  dayInfo['start'] as DateTime; // la date de début du jour
+              // Utilise formatShortDate (défini dans date_utils.dart) pour formater la date
+              final formattedDate = formatShortDate(start); // ex. "27/06"
+              final displayText = "$dayName ($formattedDate)";
+              return DropdownMenuItem<int>(
+                value: index,
+                child: Text(displayText),
+              );
+            }),
+          ),
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(isGridView ? Icons.view_list : Icons.grid_view),
+                onPressed: () {
+                  setState(() {
+                    isGridView = !isGridView;
+                  });
+                },
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (!mounted) return;
-                        setState(() {
-                          showOnlyFollowedArtists = true;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: showOnlyFollowedArtists
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).disabledColor,
-                        shape: const RoundedRectangleBorder(),
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                      ),
-                      child: Text(
-                        'PERSONAL',
-                        style: TextStyle(
-                          color: showOnlyFollowedArtists
-                              ? Colors.white
-                              : Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.grey[300]
-                                  : Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (!mounted) return;
-                        setState(() {
-                          showOnlyFollowedArtists = false;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: !showOnlyFollowedArtists
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).disabledColor,
-                        shape: const RoundedRectangleBorder(),
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                      ),
-                      child: Text(
-                        'FULL',
-                        style: TextStyle(
-                          color: !showOnlyFollowedArtists
-                              ? Colors.white
-                              : Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.grey[300]
-                                  : Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                onPressed: _showFilterDialog,
               ),
             ],
-          );
-        }
-      },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomButtons(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              setState(() {
+                showOnlyFollowedArtists = true;
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: showOnlyFollowedArtists
+                  ? Theme.of(context).primaryColor
+                  : Theme.of(context).disabledColor,
+              shape: const RoundedRectangleBorder(),
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+            ),
+            child: Text(
+              'PERSONAL',
+              style: TextStyle(
+                color: showOnlyFollowedArtists
+                    ? Colors.white
+                    : Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[300]
+                        : Colors.grey[600],
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              setState(() {
+                showOnlyFollowedArtists = false;
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: !showOnlyFollowedArtists
+                  ? Theme.of(context).primaryColor
+                  : Theme.of(context).disabledColor,
+              shape: const RoundedRectangleBorder(),
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+            ),
+            child: Text(
+              'FULL',
+              style: TextStyle(
+                color: !showOnlyFollowedArtists
+                    ? Colors.white
+                    : Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[300]
+                        : Colors.grey[600],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   void _showFilterDialog() {
     showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
+      builder: (ctx) {
         return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
+          builder: (ctx, setModalState) {
             return Column(
               children: [
                 Container(
@@ -322,24 +341,18 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                       child: Text(
                         'FILTERS',
                         style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     ),
                     Align(
                       alignment: Alignment.topRight,
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                          right: 8.0,
-                        ),
+                        padding: const EdgeInsets.only(right: 8.0),
                         child: IconButton(
                           icon: const Icon(Icons.refresh),
                           onPressed: () {
-                            if (!mounted) return;
-                            setState(() {
+                            setModalState(() {
                               selectedStages = List.from(initialStages);
-                              stages = List.from(initialStages);
                               showOnlyFollowedArtists = false;
                             });
                           },
@@ -354,53 +367,48 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'STAGES',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
                 Expanded(
                   child: ReorderableListView(
-                    onReorder: (int oldIndex, int newIndex) {
+                    onReorder: (oldIndex, newIndex) {
                       if (newIndex > oldIndex) {
                         newIndex -= 1;
                       }
-                      if (!mounted) return;
-                      setState(() {
-                        final String stage = stages.removeAt(oldIndex);
-                        stages.insert(newIndex, stage);
+                      setModalState(() {
+                        final String stage = selectedStages.removeAt(oldIndex);
+                        selectedStages.insert(newIndex, stage);
                       });
                     },
-                    children: stages.asMap().entries.map((entry) {
-                      final int idx = entry.key;
-                      final String stage = entry.value;
+                    children: selectedStages.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final stage = entry.value;
                       return Column(
                         key: Key(stage),
                         children: [
                           ListTile(
                             leading: const Icon(Icons.drag_handle),
-                            title: Text(stage),
+                            title: Text(capitalizeFirst(stage)),
                             trailing: Checkbox(
                               value: selectedStages.contains(stage),
-                              onChanged: (bool? value) {
-                                if (!mounted) return;
-                                setState(() {
-                                  if (value == true) {
+                              onChanged: (bool? val) {
+                                if (val == null) return;
+                                setModalState(() {
+                                  if (val == true &&
+                                      !selectedStages.contains(stage)) {
                                     selectedStages.add(stage);
-                                  } else {
+                                  } else if (!val) {
                                     selectedStages.remove(stage);
                                   }
                                 });
                               },
                             ),
                           ),
-                          if (idx < stages.length - 1)
-                            const Divider(
-                              color: Colors.grey,
-                              height: 1,
-                            ),
+                          if (idx < selectedStages.length - 1)
+                            const Divider(color: Colors.grey, height: 1),
                         ],
                       );
                     }).toList(),
@@ -409,10 +417,9 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                 SwitchListTile.adaptive(
                   title: const Text('Only followed artists'),
                   value: showOnlyFollowedArtists,
-                  onChanged: (bool value) {
-                    if (!mounted) return;
-                    setState(() {
-                      showOnlyFollowedArtists = value;
+                  onChanged: (bool val) {
+                    setModalState(() {
+                      showOnlyFollowedArtists = val;
                     });
                   },
                 ),
@@ -425,16 +432,11 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         backgroundColor: Theme.of(context).primaryColor,
                       ),
                       onPressed: () {
-                        if (!mounted) return;
-                        setState(() {
-                          Navigator.pop(context);
-                        });
-                        this.setState(() {});
+                        Navigator.pop(context);
+                        setState(() {}); // Forcer refresh sur l'écran principal
                       },
-                      child: const Text(
-                        'APPLY',
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      child: const Text('APPLY',
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ),

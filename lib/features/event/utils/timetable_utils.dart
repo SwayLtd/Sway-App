@@ -127,7 +127,7 @@ void showArtistsBottomSheet(BuildContext context, List<Artist> artists) {
                       BorderRadius.circular(12), // Coins arrondis de la bordure
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(10.0),
                   child: ImageWithErrorHandler(
                     imageUrl: artist.imageUrl,
                     width: 40,

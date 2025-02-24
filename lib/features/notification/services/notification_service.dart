@@ -441,4 +441,48 @@ class NotificationService {
       eventStartTime: eventStartTime,
     );
   }
+
+  Future<void> addEventArtistNotification({
+    required String supabaseId,
+    required int artistId,
+    required String eventTitle,
+    required String stage,
+    required DateTime scheduledTime,
+    required String customName, // Ajouter l'argument pour le nom personnalisé
+    required String artistName, // Ajouter l'argument pour le nom de l'artiste
+  }) async {
+    // Utiliser customName s'il est disponible, sinon utiliser le nom de l'artiste
+    final String nameToUse = customName.isNotEmpty ? customName : artistName;
+
+    // Construire le body de la notification en anglais
+    final String body =
+        "$nameToUse will play on stage $stage in 15 minutes"; // Utiliser le nom choisi
+
+    // Préparer les données à insérer dans Supabase
+    final Map<String, dynamic> notificationData = {
+      'supabase_id': supabaseId,
+      'title': eventTitle,
+      'body': body,
+      'type': 'artist', // ou un autre type si nécessaire
+      'scheduled_time': scheduledTime.toIso8601String(),
+    };
+
+    try {
+      // Insérer la notification dans Supabase
+      final response = await _supabase
+          .from('notifications')
+          .insert(notificationData)
+          .select()
+          .maybeSingle();
+
+      if (response == null) {
+        throw Exception("Failed to add artist notification");
+      } else {
+        print("Artist notification added: $response");
+      }
+    } catch (e) {
+      print("Error adding event artist notification: $e");
+      rethrow;
+    }
+  }
 }

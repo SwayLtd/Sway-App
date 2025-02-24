@@ -18,6 +18,7 @@ import 'package:sway/features/event/services/event_promoter_service.dart';
 import 'package:sway/features/event/services/event_service.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/event/widgets/info_card.dart';
+import 'package:sway/features/event/widgets/timetable/timetable.dart';
 import 'package:sway/features/genre/genre.dart';
 import 'package:sway/features/genre/widgets/genre_chip.dart';
 import 'package:sway/features/genre/widgets/genre_modal_bottom_sheet.dart';
@@ -55,6 +56,15 @@ class _EventScreenState extends State<EventScreen> {
   late Future<List<Promoter>> _promotersFuture;
   late Future<Venue?> _venueFuture;
   late Future<Map<String, dynamic>?> _metadataFuture;
+
+  int _selectedTabIndex = 0; // Pour gérer l’onglet sélectionné
+  final ScrollController _scrollController = ScrollController();
+
+  void _onAppBarItemTap(int index) {
+    setState(() {
+      _selectedTabIndex = index;
+    });
+  }
 
   @override
   void initState() {
@@ -244,151 +254,189 @@ class _EventScreenState extends State<EventScreen> {
             },
           )
         ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refreshData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Event image.
-              Center(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onPrimary
-                          .withValues(alpha: 0.5),
-                      width: 2.0,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
+        bottom: _event.type == 'festival'
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(36),
+                child: SizedBox(
+                  height: 36,
+                  child: ListView(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      // Onglet "Overview"
+                      EventAppBarItem(
+                        title: 'Overview',
+                        index: 0,
+                        onTap: _onAppBarItemTap,
+                        selectedIndex: _selectedTabIndex,
+                      ),
+                      // Onglet "Timetable"
+                      EventAppBarItem(
+                        title: 'Timetable',
+                        index: 1,
+                        onTap: _onAppBarItemTap,
+                        selectedIndex: _selectedTabIndex,
+                      ),
+                    ],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: ImageWithErrorHandler(
-                      imageUrl: _event.imageUrl,
-                      width: double.infinity,
-                      height: 200,
-                      fit: BoxFit.cover,
-                    ),
+                ),
+              )
+            : null,
+      ),
+      body: _event.type.toLowerCase() == 'festival'
+          ? IndexedStack(
+              index: _selectedTabIndex,
+              children: [
+                _buildOverview(),
+                TimetableWidget(event: _event),
+              ],
+            )
+          : _buildOverview(),
+    );
+  }
+
+  Widget _buildOverview() {
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Event image.
+            Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onPrimary
+                        .withValues(alpha: 0.5),
+                    width: 2.0,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: ImageWithErrorHandler(
+                    imageUrl: _event.imageUrl,
+                    width: double.infinity,
+                    height: 200,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
-              const SizedBox(height: sectionSpacing),
-              // Event title.
-              Text(
-                _event.title,
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: sectionSpacing),
+            // Event title.
+            Text(
+              _event.title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: sectionTitleSpacing),
+            // Followers count.
+            FollowersCountWidget(entityId: _event.id!, entityType: 'event'),
+            const SizedBox(height: sectionSpacing),
+            // InfoCard: Date.
+            GestureDetector(
+              onTap: () async {
+                final venue = await _venueFuture;
+                final location = venue?.location ?? '';
+                final calendarEvent = calendar.Event(
+                  title: _event.title,
+                  description: _event.description,
+                  location: location,
+                  startDate: _event.eventDateTime,
+                  endDate: _event.eventEndDateTime ??
+                      _event.eventDateTime.add(const Duration(hours: 1)),
+                  iosParams: const calendar.IOSParams(
+                    reminder: Duration(minutes: 60),
+                    url: 'https://sway.events',
+                  ),
+                  androidParams: const calendar.AndroidParams(
+                    emailInvites: [],
+                  ),
+                );
+
+                try {
+                  await calendar.Add2Calendar.addEvent2Cal(calendarEvent);
+                } catch (e) {
+                  debugPrint("Error adding event to calendar: $e");
+                }
+              },
+              child: InfoCard(
+                title: "Date",
+                content: _event.eventEndDateTime != null
+                    ? formatEventDateRange(
+                        _event.eventDateTime, _event.eventEndDateTime!)
+                    : "${formatEventDate(_event.eventDateTime)} ${formatEventTime(_event.eventDateTime)}",
               ),
-              const SizedBox(height: sectionTitleSpacing),
-              // Followers count.
-              FollowersCountWidget(entityId: _event.id!, entityType: 'event'),
-              const SizedBox(height: sectionSpacing),
-              // InfoCard: Date.
-              GestureDetector(
-                onTap: () async {
-                  final venue = await _venueFuture;
-                  final location = venue?.location ?? '';
-                  final calendarEvent = calendar.Event(
-                    title: _event.title,
-                    description: _event.description,
-                    location: location,
-                    startDate: _event.eventDateTime,
-                    endDate: _event.eventEndDateTime ??
-                        _event.eventDateTime.add(const Duration(hours: 1)),
-                    iosParams: const calendar.IOSParams(
-                      reminder: Duration(minutes: 60),
-                      url: 'https://sway.events',
-                    ),
-                    androidParams: const calendar.AndroidParams(
-                      emailInvites: [],
+            ),
+            const SizedBox(height: sectionTitleSpacing),
+            // InfoCard : Location avec précision ajoutée
+            FutureBuilder<List<dynamic>>(
+              future: Future.wait([_venueFuture, _metadataFuture]),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const InfoCard(title: "Location", content: 'Loading');
+                } else if (snapshot.hasError ||
+                    snapshot.data == null ||
+                    snapshot.data!.isEmpty ||
+                    snapshot.data![0] == null) {
+                  return const InfoCard(
+                      title: "Location", content: 'Location not found');
+                } else {
+                  final venue = snapshot.data![0] as Venue;
+                  final metadata = snapshot.data![1] as Map<String, dynamic>?;
+                  final locationPrecision =
+                      metadata?['location_precision'] ?? '';
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VenueScreen(venueId: venue.id!),
+                        ),
+                      );
+                    },
+                    child: InfoCard(
+                      title: "Location",
+                      content:
+                          '${venue.name} ${locationPrecision.isNotEmpty ? "- $locationPrecision" : ""}',
                     ),
                   );
-
-                  try {
-                    await calendar.Add2Calendar.addEvent2Cal(calendarEvent);
-                  } catch (e) {
-                    debugPrint("Error adding event to calendar: $e");
-                  }
-                },
-                child: InfoCard(
-                  title: "Date",
-                  content: _event.eventEndDateTime != null
-                      ? formatEventDateRange(
-                          _event.eventDateTime, _event.eventEndDateTime!)
-                      : "${formatEventDate(_event.eventDateTime)} ${formatEventTime(_event.eventDateTime)}",
-                ),
-              ),
-              const SizedBox(height: sectionTitleSpacing),
-              // InfoCard : Location avec précision ajoutée
-              FutureBuilder<List<dynamic>>(
-                future: Future.wait([_venueFuture, _metadataFuture]),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const InfoCard(
-                        title: "Location", content: 'Loading');
-                  } else if (snapshot.hasError ||
-                      snapshot.data == null ||
-                      snapshot.data!.isEmpty ||
-                      snapshot.data![0] == null) {
-                    return const InfoCard(
-                        title: "Location", content: 'Location not found');
-                  } else {
-                    final venue = snapshot.data![0] as Venue;
-                    final metadata = snapshot.data![1] as Map<String, dynamic>?;
-                    final locationPrecision =
-                        metadata?['location_precision'] ?? '';
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                VenueScreen(venueId: venue.id!),
+                }
+              },
+            ),
+            const SizedBox(height: sectionTitleSpacing),
+            // InfoCard : Tickets (rendre cliquable avec URL)
+            FutureBuilder<Map<String, dynamic>?>(
+              // Assurez-vous que le Map est non nul
+              future: _metadataFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox.shrink();
+                } else if (snapshot.hasError || !snapshot.hasData) {
+                  return const SizedBox.shrink();
+                } else {
+                  final metadata = snapshot.data;
+                  final ticketLink = metadata?['ticket_link'] ??
+                      ''; // Assurez-vous de fournir une chaîne vide si null
+                  return ticketLink.isNotEmpty
+                      ? GestureDetector(
+                          onTap: () => _launchURL(Uri.parse(ticketLink)),
+                          child: InfoCard(
+                            title: "Tickets",
+                            content: ticketLink, // Contenu propre
                           ),
-                        );
-                      },
-                      child: InfoCard(
-                        title: "Location",
-                        content:
-                            '${venue.name} ${locationPrecision.isNotEmpty ? "- $locationPrecision" : ""}',
-                      ),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: sectionTitleSpacing),
-              // InfoCard : Tickets (rendre cliquable avec URL)
-              FutureBuilder<Map<String, dynamic>?>(
-                // Assurez-vous que le Map est non nul
-                future: _metadataFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SizedBox.shrink();
-                  } else if (snapshot.hasError || !snapshot.hasData) {
-                    return const SizedBox.shrink();
-                  } else {
-                    final metadata = snapshot.data;
-                    final ticketLink = metadata?['ticket_link'] ??
-                        ''; // Assurez-vous de fournir une chaîne vide si null
-                    return ticketLink.isNotEmpty
-                        ? GestureDetector(
-                            onTap: () => _launchURL(Uri.parse(ticketLink)),
-                            child: InfoCard(
-                              title: "Tickets",
-                              content: ticketLink, // Contenu propre
-                            ),
-                          )
-                        : const SizedBox.shrink();
-                  }
-                },
-              ),
+                        )
+                      : const SizedBox.shrink();
+                }
+              },
+            ),
 
-              /* // InfoCard : Prices
+            /* // InfoCard : Prices
               FutureBuilder<Map<String, dynamic>?>(
                 future: _metadataFuture,
                 builder: (context, snapshot) {
@@ -409,251 +457,292 @@ class _EventScreenState extends State<EventScreen> {
                 },
               ),*/
 
-              const SizedBox(height: sectionSpacing),
-              // ABOUT section.
-              if (_event.description.isNotEmpty) ...[
-                _buildSectionTitle("ABOUT", false, null),
-                const SizedBox(height: sectionTitleSpacing),
-                ExpandableText(
-                  _event.description,
-                  expandText: 'show more',
-                  collapseText: 'show less',
-                  maxLines: 3,
-                  linkColor: Theme.of(context).primaryColor,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: sectionSpacing),
-              ],
-              // MOOD section.
-              FutureBuilder<List>(
-                future: _genresFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                        child: CircularProgressIndicator.adaptive());
-                  } else if (snapshot.hasError ||
-                      !snapshot.hasData ||
-                      snapshot.data!.isEmpty) {
-                    // return const Center(child: Text("You're offline."));
-                    return const SizedBox.shrink();
-                  } else {
-                    final genres = snapshot.data!;
-                    final bool hasMore = genres.length > 5;
-                    final displayGenres =
-                        hasMore ? genres.sublist(0, 5) : genres;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle("MOOD", hasMore, () {
-                          showGenreModalBottomSheet(
-                              context, genres.take(10).cast<int>().toList());
-                        }),
-                        const SizedBox(height: sectionTitleSpacing),
-                        Wrap(
-                          spacing: 8.0,
-                          children: displayGenres.map<Widget>((genreId) {
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        GenreScreen(genreId: genreId),
-                                  ),
-                                );
-                              },
-                              child: GenreChip(genreId: genreId),
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: sectionSpacing),
-                      ],
-                    );
-                  }
-                },
+            const SizedBox(height: sectionSpacing),
+            // ABOUT section.
+            if (_event.description.isNotEmpty) ...[
+              _buildSectionTitle("ABOUT", false, null),
+              const SizedBox(height: sectionTitleSpacing),
+              ExpandableText(
+                _event.description,
+                expandText: 'show more',
+                collapseText: 'show less',
+                maxLines: 3,
+                linkColor: Theme.of(context).primaryColor,
+                style: const TextStyle(fontSize: 16),
               ),
-              // LINE UP section.
-              FutureBuilder<List<Map<String, dynamic>>>(
-                future: _artistsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                        child: CircularProgressIndicator.adaptive());
-                  } else if (snapshot.hasError ||
-                      !snapshot.hasData ||
-                      snapshot.data!.isEmpty) {
-                    return const SizedBox.shrink();
-                  } else {
-                    final artistEntries = snapshot.data!;
-                    final Map<int, Artist> uniqueArtists = {};
-                    final Map<int, DateTime?> performanceTimes = {};
-                    final Map<int, DateTime?> performanceEndTimes = {};
-
-                    for (final entry in artistEntries) {
-                      DateTime? assignmentStartTime;
-                      DateTime? assignmentEndTime;
-                      if (entry['start_time'] != null) {
-                        if (entry['start_time'] is String) {
-                          assignmentStartTime =
-                              DateTime.parse(entry['start_time'] as String);
-                        } else if (entry['start_time'] is DateTime) {
-                          assignmentStartTime = entry['start_time'] as DateTime;
-                        }
-                      }
-                      if (entry['end_time'] != null) {
-                        if (entry['end_time'] is String) {
-                          assignmentEndTime =
-                              DateTime.parse(entry['end_time'] as String);
-                        } else if (entry['end_time'] is DateTime) {
-                          assignmentEndTime = entry['end_time'] as DateTime;
-                        }
-                      }
-                      final List<dynamic> artists =
-                          entry['artists'] as List<dynamic>;
-                      for (final artist in artists.cast<Artist>()) {
-                        uniqueArtists[artist.id!] = artist;
-                        if (!performanceTimes.containsKey(artist.id) &&
-                            assignmentStartTime != null) {
-                          performanceTimes[artist.id!] = assignmentStartTime;
-                        }
-                        if (!performanceEndTimes.containsKey(artist.id) &&
-                            assignmentEndTime != null) {
-                          performanceEndTimes[artist.id!] = assignmentEndTime;
-                        }
-                      }
-                    }
-
-                    final artistsList = uniqueArtists.values.toList();
-                    final bool hasMore = artistsList.length > 5;
-                    final displayArtists =
-                        hasMore ? artistsList.sublist(0, 5) : artistsList;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle("LINE UP", hasMore, () {
-                          // Passage du mapping performanceTimes et performanceEndTimes au modal.
-                          showArtistModalBottomSheet(
-                            context,
-                            artistsList.take(10).toList(),
-                            performanceTimes: performanceTimes,
-                            performanceEndTimes: performanceEndTimes,
-                          );
-                        }),
-                        const SizedBox(height: sectionTitleSpacing),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: displayArtists.map((artist) {
-                              // Récupérer les heures de passage si disponibles
-                              DateTime? performanceTime =
-                                  performanceTimes[artist.id];
-                              DateTime? performanceEndTime =
-                                  performanceEndTimes[artist.id];
-
-                              return Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: ArtistTileItemWidget(
-                                  artist: artist,
-                                  performanceTime: performanceTime,
-                                  performanceEndTime: performanceEndTime,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            ArtistScreen(artistId: artist.id!),
-                                      ),
-                                    );
-                                  },
+              const SizedBox(height: sectionSpacing),
+            ],
+            // MOOD section.
+            FutureBuilder<List>(
+              future: _genresFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator.adaptive());
+                } else if (snapshot.hasError ||
+                    !snapshot.hasData ||
+                    snapshot.data!.isEmpty) {
+                  // return const Center(child: Text("You're offline."));
+                  return const SizedBox.shrink();
+                } else {
+                  final genres = snapshot.data!;
+                  final bool hasMore = genres.length > 5;
+                  final displayGenres = hasMore ? genres.sublist(0, 5) : genres;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionTitle("MOOD", hasMore, () {
+                        showGenreModalBottomSheet(
+                            context, genres.take(10).cast<int>().toList());
+                      }),
+                      const SizedBox(height: sectionTitleSpacing),
+                      Wrap(
+                        spacing: 8.0,
+                        children: displayGenres.map<Widget>((genreId) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      GenreScreen(genreId: genreId),
                                 ),
                               );
-                            }).toList(),
-                          ),
-                        ),
-                        const SizedBox(height: sectionSpacing),
-                      ],
-                    );
-                  }
-                },
-              ),
+                            },
+                            child: GenreChip(genreId: genreId),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: sectionSpacing),
+                    ],
+                  );
+                }
+              },
+            ),
+            // LINE UP section.
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: _artistsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator.adaptive());
+                } else if (snapshot.hasError ||
+                    !snapshot.hasData ||
+                    snapshot.data!.isEmpty) {
+                  return const SizedBox.shrink();
+                } else {
+                  final artistEntries = snapshot.data!;
+                  final Map<int, Artist> uniqueArtists = {};
+                  final Map<int, DateTime?> performanceTimes = {};
+                  final Map<int, DateTime?> performanceEndTimes = {};
 
-              // ORGANIZED BY section.
-              FutureBuilder<List<Promoter>>(
-                future: _promotersFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                        child: CircularProgressIndicator.adaptive());
-                  } else if (snapshot.hasError ||
-                      !snapshot.hasData ||
-                      snapshot.data!.isEmpty) {
-                    // return const Center(child: Text("You're offline."));
-                    return const SizedBox.shrink();
-                  } else {
-                    final promoters = snapshot.data!;
-                    final bool hasMore = promoters.length > 3;
-                    final displayPromoters =
-                        hasMore ? promoters.sublist(0, 3) : promoters;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle("ORGANIZED BY", hasMore, () {
-                          showPromoterModalBottomSheet(
-                              context, promoters.take(10).toList());
-                        }),
-                        const SizedBox(height: sectionTitleSpacing),
-                        Column(
-                          children: displayPromoters.map((promoter) {
+                  for (final entry in artistEntries) {
+                    DateTime? assignmentStartTime;
+                    DateTime? assignmentEndTime;
+                    if (entry['start_time'] != null) {
+                      if (entry['start_time'] is String) {
+                        assignmentStartTime =
+                            DateTime.parse(entry['start_time'] as String);
+                      } else if (entry['start_time'] is DateTime) {
+                        assignmentStartTime = entry['start_time'] as DateTime;
+                      }
+                    }
+                    if (entry['end_time'] != null) {
+                      if (entry['end_time'] is String) {
+                        assignmentEndTime =
+                            DateTime.parse(entry['end_time'] as String);
+                      } else if (entry['end_time'] is DateTime) {
+                        assignmentEndTime = entry['end_time'] as DateTime;
+                      }
+                    }
+                    final List<dynamic> artists =
+                        entry['artists'] as List<dynamic>;
+                    for (final artist in artists.cast<Artist>()) {
+                      uniqueArtists[artist.id!] = artist;
+                      if (!performanceTimes.containsKey(artist.id) &&
+                          assignmentStartTime != null) {
+                        performanceTimes[artist.id!] = assignmentStartTime;
+                      }
+                      if (!performanceEndTimes.containsKey(artist.id) &&
+                          assignmentEndTime != null) {
+                        performanceEndTimes[artist.id!] = assignmentEndTime;
+                      }
+                    }
+                  }
+
+                  final artistsList = uniqueArtists.values.toList();
+                  final bool hasMore = artistsList.length > 5;
+                  final displayArtists =
+                      hasMore ? artistsList.sublist(0, 5) : artistsList;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionTitle("LINE UP", hasMore, () {
+                        // Passage du mapping performanceTimes et performanceEndTimes au modal.
+                        showArtistModalBottomSheet(
+                          context,
+                          artistsList.take(10).toList(),
+                          performanceTimes: performanceTimes,
+                          performanceEndTimes: performanceEndTimes,
+                        );
+                      }),
+                      const SizedBox(height: sectionTitleSpacing),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: displayArtists.map((artist) {
+                            // Récupérer les heures de passage si disponibles
+                            DateTime? performanceTime =
+                                performanceTimes[artist.id];
+                            DateTime? performanceEndTime =
+                                performanceEndTimes[artist.id];
+
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: PromoterListItemWidget(
-                                promoter: promoter,
+                              padding: const EdgeInsets.all(12.0),
+                              child: ArtistTileItemWidget(
+                                artist: artist,
+                                performanceTime: performanceTime,
+                                performanceEndTime: performanceEndTime,
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => PromoterScreen(
-                                          promoterId: promoter.id!),
+                                      builder: (context) =>
+                                          ArtistScreen(artistId: artist.id!),
                                     ),
                                   );
                                 },
-                                maxNameLength: 20,
                               ),
                             );
                           }).toList(),
                         ),
-                        const SizedBox(height: sectionSpacing),
-                      ],
-                    );
-                  }
-                },
-              ),
-              // MAP section.
-              FutureBuilder<Venue?>(
-                future: _venueFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SizedBox();
-                  } else if (snapshot.hasError ||
-                      !snapshot.hasData ||
-                      snapshot.data == null) {
-                    return const SizedBox();
-                  } else {
-                    final venue = snapshot.data!;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle("MAP", false, null),
-                        const SizedBox(height: sectionTitleSpacing),
-                        EventLocationMapWidget(location: venue.location),
-                        const SizedBox(height: sectionSpacing),
-                      ],
-                    );
-                  }
-                },
-              ),
-            ],
+                      ),
+                      const SizedBox(height: sectionSpacing),
+                    ],
+                  );
+                }
+              },
+            ),
+
+            // ORGANIZED BY section.
+            FutureBuilder<List<Promoter>>(
+              future: _promotersFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator.adaptive());
+                } else if (snapshot.hasError ||
+                    !snapshot.hasData ||
+                    snapshot.data!.isEmpty) {
+                  // return const Center(child: Text("You're offline."));
+                  return const SizedBox.shrink();
+                } else {
+                  final promoters = snapshot.data!;
+                  final bool hasMore = promoters.length > 3;
+                  final displayPromoters =
+                      hasMore ? promoters.sublist(0, 3) : promoters;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionTitle("ORGANIZED BY", hasMore, () {
+                        showPromoterModalBottomSheet(
+                            context, promoters.take(10).toList());
+                      }),
+                      const SizedBox(height: sectionTitleSpacing),
+                      Column(
+                        children: displayPromoters.map((promoter) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: PromoterListItemWidget(
+                              promoter: promoter,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PromoterScreen(
+                                        promoterId: promoter.id!),
+                                  ),
+                                );
+                              },
+                              maxNameLength: 20,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: sectionSpacing),
+                    ],
+                  );
+                }
+              },
+            ),
+            // MAP section.
+            FutureBuilder<Venue?>(
+              future: _venueFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox();
+                } else if (snapshot.hasError ||
+                    !snapshot.hasData ||
+                    snapshot.data == null) {
+                  return const SizedBox();
+                } else {
+                  final venue = snapshot.data!;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionTitle("MAP", false, null),
+                      const SizedBox(height: sectionTitleSpacing),
+                      EventLocationMapWidget(location: venue.location),
+                      const SizedBox(height: sectionSpacing),
+                    ],
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class EventAppBarItem extends StatelessWidget {
+  final String title;
+  final int index;
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
+
+  const EventAppBarItem({
+    Key? key,
+    required this.title,
+    required this.index,
+    required this.selectedIndex,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isSelected = selectedIndex == index;
+    return GestureDetector(
+      onTap: () => onTap(index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: isSelected
+                ? BorderSide(color: Theme.of(context).primaryColor, width: 2)
+                : BorderSide.none,
+          ),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).textTheme.bodyMedium?.color,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),

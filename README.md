@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Implement Event Timetable System and Artist Notifications for GridView
 - Implement Calendar Feature and Update Event Status Filtering
 - Release 1.0.0 - Add app signing configuration for release
 

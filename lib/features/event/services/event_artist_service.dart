@@ -145,43 +145,116 @@ class EventArtistService {
 
   /// Retrieves artist assignments for a specific event filtered by a given day.
   Future<List<Map<String, dynamic>>> getArtistsByEventIdAndDay(
-      int eventId, DateTime day) async {
-    // Fetch assignments from Supabase (online mode assumed).
-    final response =
-        await _supabase.from('event_artist').select().eq('event_id', eventId);
-    if ((response as List).isEmpty) return [];
+    int eventId,
+    DateTime day,
+  ) async {
+    final online = await isConnected();
+    final isar = await _isarFuture;
 
+    // dayStart/dayEnd pour filtrer localement
     final dayStart = DateTime(day.year, day.month, day.day);
     final dayEnd = dayStart.add(const Duration(days: 1));
 
-    final List<Map<String, dynamic>> filteredAssignments = [];
-    for (final assignment in response) {
-      if (assignment['start_time'] != null) {
-        final startTime = DateTime.parse(assignment['start_time'] as String);
-        if ((startTime.isAfter(dayStart) ||
-                startTime.isAtSameMomentAs(dayStart)) &&
-            startTime.isBefore(dayEnd)) {
-          filteredAssignments.add(assignment);
+    if (online) {
+      // 1) Récupérer toutes les affectations supabase pour cet event
+      final response =
+          await _supabase.from('event_artist').select().eq('event_id', eventId);
+      if ((response as List).isEmpty) return [];
+
+      // 2) Mettre à jour le cache local (comme dans getArtistsByEventId)
+      final assignments = response.map<Map<String, dynamic>>((e) => e).toList();
+      await _updateEventArtistAssignmentsCache(eventId, assignments);
+
+      // 3) Filtrer par jour (en tenant compte d’un overlap éventuel ?)
+      final filtered = <Map<String, dynamic>>[];
+      for (final assignment in assignments) {
+        final rawStart = assignment['start_time'] as String?;
+        final rawEnd = assignment['end_time'] as String?;
+        if (rawStart == null) continue;
+        final startTime = DateTime.parse(rawStart);
+        final endTime = rawEnd != null ? DateTime.parse(rawEnd) : startTime;
+
+        // Condition de chevauchement : le créneau doit être (end > dayStart) && (start < dayEnd)
+        if (endTime.isAfter(dayStart) && startTime.isBefore(dayEnd)) {
+          filtered.add(assignment);
         }
       }
-    }
 
-    final Set<int> artistIds = {};
-    for (final assignment in filteredAssignments) {
-      artistIds.addAll(_parseArtistField(assignment['artist_id']));
-    }
-    final artists = await _artistService.getArtistsByIds(artistIds.toList());
-    // print("getArtistsByEventIdAndDay: Artists retrieved for day ${day.toIso8601String()}: ${artists.map((a) => a.id).toList()}");
+      // 4) Récupérer la liste globale des IDs d’artistes
+      final Set<int> artistIds = {};
+      for (final entry in filtered) {
+        artistIds.addAll(_parseArtistField(entry['artist_id']));
+      }
 
-    return filteredAssignments.map((assignment) {
-      final Set<int> entryIds = _parseArtistField(assignment['artist_id']);
-      final List<Artist> assignmentArtists =
-          artists.where((a) => entryIds.contains(a.id)).toList();
-      return {
-        'assignment': assignment,
-        'artists': assignmentArtists,
-      };
-    }).toList();
+      // 5) Charger via ArtistService
+      final artists = await _artistService.getArtistsByIds(artistIds.toList());
+
+      // 6) Construire le résultat final
+      return filtered.map((assignment) {
+        final entryIds = _parseArtistField(assignment['artist_id']);
+        final assignmentArtists =
+            artists.where((a) => entryIds.contains(a.id)).toList();
+
+        return {
+          'id': assignment['id'],
+          'artists': assignmentArtists,
+          'custom_name': assignment['custom_name'] as String? ?? '',
+          'start_time': assignment['start_time'] != null
+              ? DateTime.parse(assignment['start_time'] as String)
+              : null,
+          'end_time': assignment['end_time'] != null
+              ? DateTime.parse(assignment['end_time'] as String)
+              : null,
+          'status': assignment['status'] as String? ?? '',
+          'stage': assignment['stage'] as String? ?? '',
+        };
+      }).toList();
+    } else {
+      // OFFLINE
+      // Charger depuis isarEventArtists
+      final cachedAssignments = await isar.isarEventArtists
+          .filter()
+          .eventIdEqualTo(eventId)
+          .findAll();
+
+      if (cachedAssignments.isEmpty) return [];
+
+      // Filtrer par jour
+      final filtered = cachedAssignments.where((assign) {
+        final startTime = assign.startTime ?? DateTime.now();
+        final endTime = assign.endTime ?? startTime;
+        // Condition de chevauchement
+        return endTime.isAfter(dayStart) && startTime.isBefore(dayEnd);
+      }).toList();
+
+      if (filtered.isEmpty) return [];
+
+      // Récupérer tous les artistes mentionnés
+      final Set<int> allIds = {};
+      for (final assign in filtered) {
+        allIds.addAll(assign.artistIds);
+      }
+
+      final artists = await _artistService.getArtistsByIds(allIds.toList());
+      final Map<int, Artist> artistMap = {for (var a in artists) a.id!: a};
+
+      // Reconstruire la liste
+      return filtered.map((assign) {
+        final List<Artist> assignmentArtists = assign.artistIds
+            .map((id) => artistMap[id])
+            .whereType<Artist>()
+            .toList();
+        return {
+          'id': assign.remoteId,
+          'artists': assignmentArtists,
+          'custom_name': assign.customName ?? '',
+          'start_time': assign.startTime,
+          'end_time': assign.endTime,
+          'status': assign.status,
+          'stage': assign.stage ?? '',
+        };
+      }).toList();
+    }
   }
 
   /// Retrieves events associated with a specific artist.
