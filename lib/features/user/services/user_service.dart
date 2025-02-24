@@ -140,14 +140,23 @@ class UserService {
     final online = await isConnected();
     final isar = await _isarFuture;
     if (online) {
-      final data =
-          await _supabase.from('users').select().eq('id', userId).maybeSingle();
-      if (data == null) {
+      try {
+        final data = await _supabase
+            .from('users')
+            .select()
+            .eq('id', userId)
+            .maybeSingle();
+        if (data == null) {
+          return await _loadUserFromIsarById(userId, isar: isar);
+        }
+        final user = AppUser.User.fromJson(data);
+        await _storeUserInIsar(isar, user);
+        return user;
+      } catch (e) {
+        print("Error fetching user by id online: $e");
+        // En cas d'erreur, retourner les données du cache
         return await _loadUserFromIsarById(userId, isar: isar);
       }
-      final user = AppUser.User.fromJson(data);
-      await _storeUserInIsar(isar, user);
-      return user;
     } else {
       return await _loadUserFromIsarById(userId, isar: isar);
     }
@@ -158,16 +167,23 @@ class UserService {
     final online = await isConnected();
     final isar = await _isarFuture;
     if (online) {
-      final data =
-          await _supabase.from('users').select().ilike('username', '%$query%');
-      if ((data as List).isEmpty) return [];
-      final fetchedUsers = data
-          .map<AppUser.User>((json) => AppUser.User.fromJson(json))
-          .toList();
-      for (final user in fetchedUsers) {
-        await _storeUserInIsar(isar, user);
+      try {
+        final data = await _supabase
+            .from('users')
+            .select()
+            .ilike('username', '%$query%');
+        if ((data as List).isEmpty) return [];
+        final fetchedUsers = data
+            .map<AppUser.User>((json) => AppUser.User.fromJson(json))
+            .toList();
+        for (final user in fetchedUsers) {
+          await _storeUserInIsar(isar, user);
+        }
+        return fetchedUsers;
+      } catch (e) {
+        print("Error in searchUsers (online): $e");
+        return await _localUserSearch(query, isar);
       }
-      return fetchedUsers;
     } else {
       return await _localUserSearch(query, isar);
     }
@@ -226,21 +242,27 @@ class UserService {
     final online = await isConnected();
     final isar = await _isarFuture;
     if (online) {
-      final params = <String, dynamic>{
-        'p_user_id': userId,
-        'p_limit': limit,
-      };
-      final response =
-          await _supabase.rpc('get_recommended_users', params: params);
-      if (response == null || (response as List).isEmpty) return [];
-      final users = (response)
-          .map<AppUser.User>(
-              (json) => AppUser.User.fromJson(json as Map<String, dynamic>))
-          .toList();
-      for (final user in users) {
-        await _storeUserInIsar(isar, user);
+      try {
+        final params = <String, dynamic>{
+          'p_user_id': userId,
+          'p_limit': limit,
+        };
+        final response =
+            await _supabase.rpc('get_recommended_users', params: params);
+        if (response == null || (response as List).isEmpty) return [];
+        final users = (response)
+            .map<AppUser.User>(
+                (json) => AppUser.User.fromJson(json as Map<String, dynamic>))
+            .toList();
+        // Stocker chaque utilisateur dans le cache local.
+        for (final user in users) {
+          await _storeUserInIsar(isar, user);
+        }
+        return users;
+      } catch (e) {
+        print("Error fetching recommended users (online): $e");
+        return await _loadAllUsersFromIsar(isar);
       }
-      return users;
     } else {
       return await _loadAllUsersFromIsar(isar);
     }
