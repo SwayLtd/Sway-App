@@ -203,6 +203,7 @@ class EventVenueService {
         ..name = venue.name
         ..imageUrl = venue.imageUrl
         ..description = venue.description
+        ..location = venue.location
         ..isVerified = venue.isVerified;
       await isar.isarVenues.put(isarVenue);
     });
@@ -222,6 +223,7 @@ class EventVenueService {
         'name': cachedEvent.venue.value!.name,
         'image_url': cachedEvent.venue.value!.imageUrl,
         'description': cachedEvent.venue.value!.description,
+        'location': cachedEvent.venue.value!.location,
         'is_verified': cachedEvent.venue.value!.isVerified,
       });
     }

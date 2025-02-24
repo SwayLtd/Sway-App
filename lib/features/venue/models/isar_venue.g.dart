@@ -32,13 +32,18 @@ const IsarVenueSchema = CollectionSchema(
       name: r'isVerified',
       type: IsarType.bool,
     ),
-    r'name': PropertySchema(
+    r'location': PropertySchema(
       id: 3,
+      name: r'location',
+      type: IsarType.string,
+    ),
+    r'name': PropertySchema(
+      id: 4,
       name: r'name',
       type: IsarType.string,
     ),
     r'remoteId': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'remoteId',
       type: IsarType.long,
     )
@@ -91,6 +96,7 @@ int _isarVenueEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.description.length * 3;
   bytesCount += 3 + object.imageUrl.length * 3;
+  bytesCount += 3 + object.location.length * 3;
   bytesCount += 3 + object.name.length * 3;
   return bytesCount;
 }
@@ -104,8 +110,9 @@ void _isarVenueSerialize(
   writer.writeString(offsets[0], object.description);
   writer.writeString(offsets[1], object.imageUrl);
   writer.writeBool(offsets[2], object.isVerified);
-  writer.writeString(offsets[3], object.name);
-  writer.writeLong(offsets[4], object.remoteId);
+  writer.writeString(offsets[3], object.location);
+  writer.writeString(offsets[4], object.name);
+  writer.writeLong(offsets[5], object.remoteId);
 }
 
 IsarVenue _isarVenueDeserialize(
@@ -119,8 +126,9 @@ IsarVenue _isarVenueDeserialize(
   object.id = id;
   object.imageUrl = reader.readString(offsets[1]);
   object.isVerified = reader.readBool(offsets[2]);
-  object.name = reader.readString(offsets[3]);
-  object.remoteId = reader.readLong(offsets[4]);
+  object.location = reader.readString(offsets[3]);
+  object.name = reader.readString(offsets[4]);
+  object.remoteId = reader.readLong(offsets[5]);
   return object;
 }
 
@@ -140,6 +148,8 @@ P _isarVenueDeserializeProp<P>(
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -572,6 +582,137 @@ extension IsarVenueQueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isVerified',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterFilterCondition> locationEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterFilterCondition> locationGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterFilterCondition> locationLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterFilterCondition> locationBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'location',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterFilterCondition> locationStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterFilterCondition> locationEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterFilterCondition> locationContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'location',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterFilterCondition> locationMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'location',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterFilterCondition> locationIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'location',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterFilterCondition>
+      locationIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'location',
+        value: '',
       ));
     });
   }
@@ -1041,6 +1182,18 @@ extension IsarVenueQuerySortBy on QueryBuilder<IsarVenue, IsarVenue, QSortBy> {
     });
   }
 
+  QueryBuilder<IsarVenue, IsarVenue, QAfterSortBy> sortByLocation() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'location', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterSortBy> sortByLocationDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'location', Sort.desc);
+    });
+  }
+
   QueryBuilder<IsarVenue, IsarVenue, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1116,6 +1269,18 @@ extension IsarVenueQuerySortThenBy
     });
   }
 
+  QueryBuilder<IsarVenue, IsarVenue, QAfterSortBy> thenByLocation() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'location', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarVenue, IsarVenue, QAfterSortBy> thenByLocationDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'location', Sort.desc);
+    });
+  }
+
   QueryBuilder<IsarVenue, IsarVenue, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1163,6 +1328,13 @@ extension IsarVenueQueryWhereDistinct
     });
   }
 
+  QueryBuilder<IsarVenue, IsarVenue, QDistinct> distinctByLocation(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'location', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<IsarVenue, IsarVenue, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1200,6 +1372,12 @@ extension IsarVenueQueryProperty
   QueryBuilder<IsarVenue, bool, QQueryOperations> isVerifiedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isVerified');
+    });
+  }
+
+  QueryBuilder<IsarVenue, String, QQueryOperations> locationProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'location');
     });
   }
 

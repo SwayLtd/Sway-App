@@ -247,6 +247,7 @@ Future<void> _storeVenueInIsar(Isar isar, Venue venue) async {
       ..name = venue.name
       ..imageUrl = venue.imageUrl
       ..description = venue.description
+      ..location = venue.location
       ..isVerified = venue.isVerified;
     // TODO: Add linking for residentArtists, genres, upcomingEvents if needed.
     await isar.isarVenues.put(isarVenue);
@@ -263,6 +264,7 @@ Future<Venue?> _loadVenueFromIsar(int venueId, {required Isar isar}) async {
     'name': isarVenue.name,
     'image_url': isarVenue.imageUrl,
     'description': isarVenue.description,
+    'location': isarVenue.location,
     'is_verified': isarVenue.isVerified,
     // If needed, add location and other fields here.
   });

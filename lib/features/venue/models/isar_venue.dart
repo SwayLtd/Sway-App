@@ -15,6 +15,7 @@ class IsarVenue {
   late String name;
   late String imageUrl;
   late String description;
+  late String location;
   late bool isVerified;
 
   // Forward links
