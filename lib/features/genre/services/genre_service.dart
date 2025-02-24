@@ -24,7 +24,7 @@ class GenreService {
         final genres =
             response.map<Genre>((json) => Genre.fromJson(json)).toList();
         for (final genre in genres) {
-          await _storeGenreInTransaction(isar, genre);
+          await _storeGenreInIsar(isar, genre);
         }
         return genres;
       } catch (e) {
@@ -53,7 +53,7 @@ class GenreService {
         final genres =
             response.map<Genre>((json) => Genre.fromJson(json)).toList();
         for (final genre in genres) {
-          await _storeGenreInTransaction(isar, genre);
+          await _storeGenreInIsar(isar, genre);
         }
         return genres;
       } catch (e) {
@@ -79,7 +79,7 @@ class GenreService {
         if (response != null) {
           final genre = Genre.fromJson(response);
 
-          await _storeGenreInTransaction(isar, genre);
+          await _storeGenreInIsar(isar, genre);
 
           return genre;
         } else {
@@ -111,7 +111,7 @@ class GenreService {
             .map<Genre>((json) => Genre.fromJson(json as Map<String, dynamic>))
             .toList();
         for (final genre in genres) {
-          await _storeGenreInTransaction(isar, genre);
+          await _storeGenreInIsar(isar, genre);
         }
         return genres;
       } catch (e) {
@@ -128,7 +128,7 @@ class GenreService {
   // --------------------------------------------------------------------------
 
   /// Factorized function to store a Genre in Isar.
-  Future<void> _storeGenreInTransaction(Isar isar, Genre genre) async {
+  Future<void> _storeGenreInIsar(Isar isar, Genre genre) async {
     await isar.writeTxn(() async {
       final isarGenre = IsarGenre()
         ..remoteId = genre.id
