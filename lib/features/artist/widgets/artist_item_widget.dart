@@ -258,7 +258,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
                                         size: 16, color: Colors.white),
                                     Expanded(
                                       child: Text(
-                                        '${upcomingEvents.first.title} on ${formatPerformanceTime(upcomingEvents.first.eventDateTime)}',
+                                        '${upcomingEvents.first.title} on ${formatShortDate(upcomingEvents.first.eventDateTime)}',
                                         style: const TextStyle(
                                             fontSize: 12, color: Colors.grey),
                                         maxLines: 1,

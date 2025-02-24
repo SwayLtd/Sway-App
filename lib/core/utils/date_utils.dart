@@ -44,3 +44,7 @@ String formatEventDateRange(DateTime start, DateTime end) {
 String formatPerformanceTime(DateTime dateTime) {
   return DateFormat('HH:mm').format(dateTime);
 }
+
+String formatShortDate(DateTime dateTime) {
+  return DateFormat('dd/MM').format(dateTime);
+}

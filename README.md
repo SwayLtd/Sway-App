@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Add formatShortDate function and update artist item widget to use short date format
 - Make eventEnd nullable and add clear button for end time in artist assignment
 - Add clear button to End Date & Time fields in event creation and editing screens
 - Implement FCM token update logic in AuthStateManager and NotificationService
