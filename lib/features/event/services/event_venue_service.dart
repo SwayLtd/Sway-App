@@ -37,7 +37,7 @@ class EventVenueService {
         }
         return venue;
       } catch (e) {
-        // print(('Error in getVenueByEventId (online): $e');
+        print("Error in getVenueByEventId (online): $e");
         return await _loadVenueFromCachedEvent(eventId, isar: isar);
       }
     } else {
@@ -52,7 +52,6 @@ class EventVenueService {
   Future<List<Map<String, dynamic>>> getEventsByVenueId(int venueId) async {
     final online = await isConnected();
     final isar = await _isarFuture;
-
     if (online) {
       try {
         final response = await _supabase
@@ -61,7 +60,7 @@ class EventVenueService {
             .eq('venue_id', venueId);
         if ((response as List).isEmpty) return [];
 
-        // Extract event IDs from the response.
+        // Extraction des IDs d'événements.
         final List<int> eventIds = [];
         for (final entry in response) {
           final dynamic eventIdField = entry['event_id'];
@@ -81,28 +80,24 @@ class EventVenueService {
         }
         if (eventIds.isEmpty) return [];
 
-        // Retrieve events via EventService.
+        // Récupère les events via EventService.
         final List<Event> events = await _eventService.getEventsByIds(eventIds);
-        // Optionnel : Vous pouvez mettre à jour le cache local ici si nécessaire.
-
         final now = DateTime.now();
         final upcomingEvents =
             events.where((event) => event.eventDateTime.isAfter(now)).toList();
-
         final List<Map<String, dynamic>> eventsData = [];
         for (final event in upcomingEvents) {
           eventsData.add({
             'event': event,
             'start_time': event.eventDateTime.toIso8601String(),
             'end_time': event.eventDateTime.toIso8601String(),
-            'status': '', // Add additional details if available.
+            'status': '', // Ajoutez des détails si nécessaire.
             'stage': '',
           });
         }
         return eventsData;
       } catch (e) {
-        // print(('Error in getEventsByVenueId (online): $e');
-        // Fallback to offline branch.
+        print("Error in getEventsByVenueId (online): $e");
         return await _loadEventsByVenueFromCache(venueId, isar: isar);
       }
     } else {
@@ -119,20 +114,22 @@ class EventVenueService {
     if (!online) {
       throw Exception("No internet connection to add venue to event.");
     }
-
-    final response = await _supabase.from('event_venue').insert({
-      'event_id': eventId,
-      'venue_id': venueId,
-    }).select();
-
-    if ((response as List).isEmpty) {
-      throw Exception('Failed to add venue to event.');
-    }
-
-    // If successful, update the local cache.
-    final venue = await _venueService.getVenueById(venueId);
-    if (venue != null) {
-      await _storeVenueInIsar(isar, venue);
+    try {
+      final response = await _supabase.from('event_venue').insert({
+        'event_id': eventId,
+        'venue_id': venueId,
+      }).select();
+      if ((response as List).isEmpty) {
+        throw Exception('Failed to add venue to event.');
+      }
+      // Met à jour le cache en récupérant le venue.
+      final venue = await _venueService.getVenueById(venueId);
+      if (venue != null) {
+        await _storeVenueInIsar(isar, venue);
+      }
+    } catch (e) {
+      print("Error in addVenueToEvent: $e");
+      throw Exception('Failed to add venue to event (RPC error).');
     }
   }
 
@@ -144,24 +141,27 @@ class EventVenueService {
     if (!online) {
       throw Exception("No internet connection to remove venue from event.");
     }
-
-    final response = await _supabase
-        .from('event_venue')
-        .delete()
-        .eq('event_id', eventId)
-        .eq('venue_id', venueId)
-        .select();
-    if ((response as List).isEmpty) {
-      throw Exception('Failed to remove venue from event.');
-    }
-
-    // Update local cache: clear the venue link for the event.
-    final isar = await _isarFuture;
-    final cachedEvent =
-        await isar.isarEvents.filter().remoteIdEqualTo(eventId).findFirst();
-    if (cachedEvent != null) {
-      cachedEvent.venue.value = null;
-      await cachedEvent.venue.save();
+    try {
+      final response = await _supabase
+          .from('event_venue')
+          .delete()
+          .eq('event_id', eventId)
+          .eq('venue_id', venueId)
+          .select();
+      if ((response as List).isEmpty) {
+        throw Exception('Failed to remove venue from event.');
+      }
+      // Met à jour le cache en supprimant la référence venue dans l'événement.
+      final isar = await _isarFuture;
+      final cachedEvent =
+          await isar.isarEvents.filter().remoteIdEqualTo(eventId).findFirst();
+      if (cachedEvent != null) {
+        cachedEvent.venue.value = null;
+        await cachedEvent.venue.save();
+      }
+    } catch (e) {
+      print("Error in removeVenueFromEvent: $e");
+      throw Exception('Failed to remove venue from event (RPC error).');
     }
   }
 
@@ -174,24 +174,25 @@ class EventVenueService {
     if (!online) {
       throw Exception("No internet connection to update event venue.");
     }
-
-    // Delete any existing venue record for the event.
-    await _supabase.from('event_venue').delete().eq('event_id', eventId);
-
-    // Insert the new venue record.
-    final response = await _supabase.from('event_venue').insert({
-      'event_id': eventId,
-      'venue_id': venueId,
-    }).select();
-
-    if ((response as List).isEmpty) {
-      throw Exception('Failed to update event venue.');
-    }
-
-    // Update local cache.
-    final venue = await _venueService.getVenueById(venueId);
-    if (venue != null) {
-      await _storeVenueInIsar(isar, venue);
+    try {
+      // Supprime l'ancien lien venue.
+      await _supabase.from('event_venue').delete().eq('event_id', eventId);
+      // Insère le nouveau lien.
+      final response = await _supabase.from('event_venue').insert({
+        'event_id': eventId,
+        'venue_id': venueId,
+      }).select();
+      if ((response as List).isEmpty) {
+        throw Exception('Failed to update event venue.');
+      }
+      // Met à jour le cache en récupérant le nouveau venue.
+      final venue = await _venueService.getVenueById(venueId);
+      if (venue != null) {
+        await _storeVenueInIsar(isar, venue);
+      }
+    } catch (e) {
+      print("Error in updateEventVenue: $e");
+      throw Exception('Failed to update event venue (RPC error).');
     }
   }
 
@@ -231,8 +232,6 @@ class EventVenueService {
   Future<List<Map<String, dynamic>>> _loadEventsByVenueFromCache(int venueId,
       {required Isar isar}) async {
     try {
-      // Suppose that in your IsarEvent model, the venue is declared as:
-      // final venue = IsarLink<IsarVenue>();
       final events = await isar.isarEvents
           .filter()
           .venue((q) => q.remoteIdEqualTo(venueId))
@@ -252,7 +251,7 @@ class EventVenueService {
       }
       return eventsData;
     } catch (e) {
-      // print(('Error in _loadEventsByVenueFromCache: $e');
+      print("Error in _loadEventsByVenueFromCache: $e");
       return [];
     }
   }
