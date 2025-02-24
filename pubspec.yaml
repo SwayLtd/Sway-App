@@ -12,7 +12,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 1.0.0+8 # Implement FCM token update logic in AuthStateManager and NotificationService
+version: 1.0.1+1 # Add clear button to End Date & Time fields in event creation and editing screens
 
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"

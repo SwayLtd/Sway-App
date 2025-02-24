@@ -758,11 +758,26 @@ class _EditEventScreenState extends State<EditEventScreen> {
                       decoration: InputDecoration(
                         labelText: 'End Date & Time',
                         border: const OutlineInputBorder(),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.calendar_today),
-                          onPressed: isReadOnly ? null : _pickEndDateTime,
-                        ),
                         helperText: 'optional',
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: isReadOnly
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _selectedEndDate = null;
+                                      });
+                                    },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.calendar_today),
+                              onPressed: isReadOnly ? null : _pickEndDateTime,
+                            ),
+                          ],
+                        ),
                       ),
                       controller: TextEditingController(
                         text: _selectedEndDate == null
@@ -772,9 +787,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
                                 .toString()
                                 .substring(0, 16),
                       ),
-                      // Pas de validateur requis, le champ est optionnel.
                       validator: (_) => null,
                     ),
+
                     const SizedBox(height: sectionSpacing),
                     // Description
                     TextFormField(

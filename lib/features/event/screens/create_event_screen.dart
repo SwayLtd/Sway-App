@@ -472,25 +472,39 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
               const SizedBox(height: sectionSpacing),
 
-              // End date/time
+              // End date/time TextFormField
               TextFormField(
                 readOnly: true,
                 onTap: _pickEndDateTime,
                 decoration: InputDecoration(
                   labelText: 'End Date & Time',
                   border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.calendar_today),
-                    onPressed: _pickEndDateTime,
-                  ),
                   helperText: 'optional',
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Bouton pour effacer la date de fin
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _selectedEndDate = null;
+                          });
+                        },
+                      ),
+                      // Bouton pour picker la date
+                      IconButton(
+                        icon: const Icon(Icons.calendar_today),
+                        onPressed: _pickEndDateTime,
+                      ),
+                    ],
+                  ),
                 ),
                 controller: TextEditingController(
                   text: _selectedEndDate == null
                       ? ''
                       : _selectedEndDate!.toLocal().toString().substring(0, 16),
                 ),
-                // Pas de validateur pour ce champ, il est optionnel.
                 validator: (_) => null,
               ),
 
