@@ -116,20 +116,17 @@ class UserInterestEventService {
     try {
       final response = await _supabase
           .from('user_interest_event')
-          .select('event_id')
+          .select('event_id, status')
           .eq('user_id', userId)
-          .filter('status', 'in', '("interested","going")');
+          .eq('status', 'interested');
 
       final List<int> eventIds =
           response.map((item) => item['event_id'] as int).toList();
 
-      final List<Event> allEvents = await _eventService.getEvents();
-      final DateTime now = DateTime.now();
-
-      return allEvents
-          .where((event) =>
-              eventIds.contains(event.id!) && event.eventDateTime.isAfter(now))
-          .toList();
+      final List<Event> allEvents =
+          await _eventService.getEventsByIds(eventIds);
+      // Retourne tous les events, sans filtrer par date.
+      return allEvents;
     } catch (e) {
       print('Error getting interested events for user $userId: $e');
       return [];
@@ -147,13 +144,10 @@ class UserInterestEventService {
       final List<int> eventIds =
           response.map((item) => item['event_id'] as int).toList();
 
-      final List<Event> allEvents = await _eventService.getEvents();
-      final DateTime now = DateTime.now();
-
-      return allEvents
-          .where((event) =>
-              eventIds.contains(event.id!) && event.eventDateTime.isBefore(now))
-          .toList();
+      final List<Event> allEvents =
+          await _eventService.getEventsByIds(eventIds);
+      // Retourne tous les events "going", sans filtrer par date.
+      return allEvents;
     } catch (e) {
       print('Error getting going events for user $userId: $e');
       return [];

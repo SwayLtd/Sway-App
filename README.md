@@ -16,17 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
-- Add formatShortDate function and update artist item widget to use short date format
-- Make eventEnd nullable and add clear button for end time in artist assignment
-- Add clear button to End Date & Time fields in event creation and editing screens
-- Implement FCM token update logic in AuthStateManager and NotificationService
-- Fix for promoters and venues caching with recommended functions
-- Display only "going" events in EventInfoTile
-- Improve event time display logic
-- Allow optional event end time and improve date selection
-- Fix event item display when location is missing
-- Update Firebase packages and integrate Analytics & Crashlytics
-- Fix following button widget connectivity issue
+- Implement Calendar Feature and Update Event Status Filtering
 - Release 1.0.0 - Add app signing configuration for release
 
 ### Known Issues

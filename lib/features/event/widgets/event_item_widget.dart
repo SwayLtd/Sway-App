@@ -360,14 +360,16 @@ class EventCardItemWidget extends StatelessWidget {
                           size: 16,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          '${formatEventDate(event.eventDateTime)}, ${formatEventTime(event.eventDateTime)}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
+                        Expanded(
+                          child: Text(
+                            '${formatEventDate(event.eventDateTime)}, ${formatEventTime(event.eventDateTime)}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),

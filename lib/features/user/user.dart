@@ -46,75 +46,96 @@ class UserScreen extends StatefulWidget {
 }
 
 class _UserScreenState extends State<UserScreen> {
-  // The user being viewed.
+  // L'utilisateur consulté.
   User? _user;
-  // The currently logged-in user.
+  // L'utilisateur connecté actuellement.
   User? _currentUser;
 
-  late Future<User?> _userFuture;
+  late Future<void> _loadDataFuture;
+
+  // On conserve les futures pour les sections asynchrones.
   late Future<List<Genre>> _followedGenresFuture;
   late Future<List<Artist>> _followedArtistsFuture;
   late Future<List<Venue>> _followedVenuesFuture;
   late Future<List<Promoter>> _followedPromotersFuture;
-  late Future<List<Event>> _upcomingEventsFuture;
-  late Future<List<Event>> _attendedEventsFuture;
+  Future<List<Event>> _upcomingEventsFuture = Future.value([]);
+  Future<List<Event>> _attendedEventsFuture = Future.value([]);
 
   @override
   void initState() {
     super.initState();
-    _fetchAllData();
+    // Initialisation par défaut pour éviter le LateInitializationError.
+    _followedGenresFuture = Future.value([]);
+    _followedArtistsFuture = Future.value([]);
+    _followedVenuesFuture = Future.value([]);
+    _followedPromotersFuture = Future.value([]);
+    _upcomingEventsFuture = Future.value([]);
+    _attendedEventsFuture = Future.value([]);
+
+    _loadDataFuture = _fetchAllData();
     _fetchCurrentUser();
   }
 
-  void _fetchAllData() {
-    _userFuture = UserService().getUserById(widget.userId);
-    _followedGenresFuture =
+  Future<void> _fetchAllData() async {
+    final fetchedUser = await UserService().getUserById(widget.userId);
+    final genres =
         UserFollowGenreService().getFollowedGenresByUserId(widget.userId);
-    _followedArtistsFuture =
+    final artists =
         UserFollowArtistService().getFollowedArtistsByUserId(widget.userId);
-    _followedVenuesFuture =
+    final venues =
         UserFollowVenueService().getFollowedVenuesByUserId(widget.userId);
-    _followedPromotersFuture =
+    final promoters =
         UserFollowPromoterService().getFollowedPromotersByUserId(widget.userId);
-    _upcomingEventsFuture =
-        UserInterestEventService().getInterestedEventsByUserId(widget.userId);
-    _attendedEventsFuture =
-        UserInterestEventService().getGoingEventsByUserId(widget.userId);
+
+    final allGoingEvents =
+        await UserInterestEventService().getGoingEventsByUserId(widget.userId);
+    final now = DateTime.now();
+    final upcomingEvents = allGoingEvents.where((event) {
+      if (event.eventEndDateTime != null) {
+        return event.eventEndDateTime!.isAfter(now);
+      } else {
+        return event.eventDateTime.isAfter(now);
+      }
+    }).toList();
+    final attendedEvents = allGoingEvents.where((event) {
+      if (event.eventEndDateTime != null) {
+        return event.eventEndDateTime!.isBefore(now);
+      } else {
+        return event.eventDateTime.isBefore(now);
+      }
+    }).toList();
+
+    setState(() {
+      _user = fetchedUser;
+      _followedGenresFuture = genres;
+      _followedArtistsFuture = artists;
+      _followedVenuesFuture = venues;
+      _followedPromotersFuture = promoters;
+      _upcomingEventsFuture = Future.value(upcomingEvents);
+      _attendedEventsFuture = Future.value(attendedEvents);
+    });
   }
 
   Future<void> _fetchCurrentUser() async {
     _currentUser = await UserService().getCurrentUser();
-    setState(() {}); // Refresh UI after fetching current user.
+    setState(
+        () {}); // Met à jour l'UI après récupération de l'utilisateur connecté.
   }
 
   Future<void> _refreshData() async {
     setState(() {
-      _fetchAllData();
+      _loadDataFuture = _fetchAllData();
       _fetchCurrentUser();
     });
-    await Future.wait([
-      _userFuture,
-      _followedGenresFuture,
-      _followedArtistsFuture,
-      _followedVenuesFuture,
-      _followedPromotersFuture,
-      _upcomingEventsFuture,
-      _attendedEventsFuture,
-    ]);
+    await _loadDataFuture;
   }
 
-  /// Helper widget to afficher le message "You're offline."
+  /// Widget d'affichage d'un message en cas d'absence de connexion.
   Widget _offlineMessage() {
-    /*return const Center(
-      child: Text(
-        "You're offline",
-        style: TextStyle(fontSize: 16, color: Colors.grey),
-      ),
-    );*/
     return SizedBox.shrink();
   }
 
-  /// Builds a section title with an arrow button if more items are available.
+  /// Construit un titre de section avec un bouton de flèche si des éléments supplémentaires sont disponibles.
   Widget _buildSectionTitle(String title, bool hasMore, VoidCallback? onMore) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -138,30 +159,31 @@ class _UserScreenState extends State<UserScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<User?>(
-      future: _userFuture,
+    return FutureBuilder<void>(
+      future: _loadDataFuture,
       builder: (context, snapshot) {
-        // Si l'utilisateur n'est pas connecté à Internet ou si le cache est vide,
-        // affiche "You're offline."
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
             appBar: AppBar(title: const Text('User Profile')),
             body: const Center(child: CircularProgressIndicator.adaptive()),
           );
-        } else if (snapshot.hasError ||
-            !snapshot.hasData ||
-            snapshot.data == null) {
+        } else if (snapshot.hasError) {
           return Scaffold(
             appBar: AppBar(title: const Text('User Profile')),
-            body: _offlineMessage(),
+            body: Center(child: Text("Erreur : ${snapshot.error}")),
           );
         } else {
-          _user = snapshot.data!;
+          // Les données ont été chargées. Vérification de la présence d'un utilisateur.
+          if (_user == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('User Profile')),
+              body: _offlineMessage(),
+            );
+          }
           return Scaffold(
             appBar: AppBar(
               title: Text(_user!.username),
               actions: [
-                // If the current user is viewing their own profile, show the edit button; otherwise, show the follow button.
                 if (_currentUser != null && _currentUser!.id == widget.userId)
                   IconButton(
                     icon: const Icon(Icons.edit),
@@ -180,7 +202,6 @@ class _UserScreenState extends State<UserScreen> {
                 else
                   FollowingButtonWidget(
                       entityId: widget.userId, entityType: 'user'),
-                // Share button
                 Transform.flip(
                   flipX: true,
                   child: IconButton(
@@ -203,7 +224,7 @@ class _UserScreenState extends State<UserScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // User picture.
+                      // Photo de profil.
                       Center(
                         child: Container(
                           decoration: BoxDecoration(
@@ -227,23 +248,23 @@ class _UserScreenState extends State<UserScreen> {
                         ),
                       ),
                       const SizedBox(height: sectionTitleSpacing),
-                      // Username.
+                      // Nom d'utilisateur.
                       Text(
                         _user!.username,
                         style: const TextStyle(
                             fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 5),
-                      // Registration date.
+                      // Date d'inscription.
                       if (_user!.createdAt != null)
                         Text(formatEventDate(_user!.createdAt!.toLocal()),
                             style: const TextStyle(fontSize: 16)),
                       const SizedBox(height: sectionSpacing),
-                      // FOLLOWERS & FOLLOWING buttons.
+                      // Boutons FOLLOWERS & FOLLOWING.
                       FollowersCountWidget(
                           entityId: widget.userId, entityType: 'user'),
                       const SizedBox(height: sectionSpacing),
-                      // ABOUT section.
+                      // Section ABOUT.
                       if (_user!.bio.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -268,7 +289,7 @@ class _UserScreenState extends State<UserScreen> {
                         ),
                       const SizedBox(height: sectionSpacing),
 
-                      // UPCOMING EVENTS Section (Interested events)
+                      // Section UPCOMING EVENTS (événements à venir).
                       FutureBuilder<List<Event>>(
                         future: _upcomingEventsFuture,
                         builder: (context, eventSnapshot) {
@@ -333,7 +354,8 @@ class _UserScreenState extends State<UserScreen> {
                           }
                         },
                       ),
-                      // ATTENDED EVENTS Section (Past events)
+
+                      // Section ATTENDED EVENTS (événements passés).
                       FutureBuilder<List<Event>>(
                         future: _attendedEventsFuture,
                         builder: (context, eventSnapshot) {
@@ -398,7 +420,8 @@ class _UserScreenState extends State<UserScreen> {
                           }
                         },
                       ),
-                      // GENRES Section
+
+                      // Section GENRES.
                       FutureBuilder<List<Genre>>(
                         future: _followedGenresFuture,
                         builder: (context, genreSnapshot) {
@@ -450,7 +473,8 @@ class _UserScreenState extends State<UserScreen> {
                           }
                         },
                       ),
-                      // ARTISTS Section
+
+                      // Section ARTISTS.
                       FutureBuilder<List<Artist>>(
                         future: _followedArtistsFuture,
                         builder: (context, artistSnapshot) {
@@ -506,7 +530,8 @@ class _UserScreenState extends State<UserScreen> {
                           }
                         },
                       ),
-                      // VENUES Section
+
+                      // Section VENUES.
                       FutureBuilder<List<Venue>>(
                         future: _followedVenuesFuture,
                         builder: (context, venueSnapshot) {
@@ -566,7 +591,8 @@ class _UserScreenState extends State<UserScreen> {
                           }
                         },
                       ),
-                      // PROMOTERS Section
+
+                      // Section PROMOTERS.
                       FutureBuilder<List<Promoter>>(
                         future: _followedPromotersFuture,
                         builder: (context, promoterSnapshot) {

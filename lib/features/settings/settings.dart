@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/screens/create_artist_screen.dart';
+import 'package:sway/features/calendar/screens/calendar_screen.dart';
 import 'package:sway/features/event/screens/create_event_screen.dart';
 import 'package:sway/features/notification/screens/notification_preferences_screen.dart';
 import 'package:sway/features/promoter/screens/create_promoter_screen.dart';
@@ -353,6 +354,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         }
                       : null,
                 ),
+                ListTile(
+                  leading: Icon(
+                    Icons.calendar_today,
+                    color:
+                        (!_isUserLoaded || !_isLoggedIn) ? Colors.grey : null,
+                  ),
+                  title: Text(
+                    'Your calendar',
+                    style: (!_isUserLoaded || !_isLoggedIn)
+                        ? const TextStyle(color: Colors.grey)
+                        : null,
+                  ),
+                  onTap: _isUserLoaded && _isLoggedIn
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const CalendarScreen()),
+                          );
+                        }
+                      : _showAuthModal,
+                ),
+
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.notifications),
