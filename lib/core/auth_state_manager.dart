@@ -4,6 +4,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sway/features/notification/services/notification_service.dart';
+import 'package:sway/features/user/services/user_service.dart';
 
 class AuthStateManager extends ChangeNotifier {
   AuthChangeEvent? _authChangeEvent;
@@ -13,23 +15,44 @@ class AuthStateManager extends ChangeNotifier {
   final SupabaseClient supabase = Supabase.instance.client;
 
   AuthStateManager() {
+    Future<void> _updateFcmTokenIfAuthenticated(String fcmToken) async {
+      final session = supabase.auth.currentSession;
+      final user = supabase.auth.currentUser;
+      // Ne pas mettre à jour si la session ou le user est nul ou si l'email est absent.
+      if (user == null || session == null || user.email == null) {
+        print('Anonymous user or invalid session, token update ignored.');
+        return;
+      }
+
+      try {
+        // Vérifier via UserService que l'utilisateur existe déjà.
+        final existingUser = await UserService().getUserBySupabaseId(user.id);
+        if (existingUser == null) {
+          print('User not present in cache, token update skipped.');
+          return;
+        }
+
+        // Mise à jour du token via NotificationService.
+        await NotificationService()
+            .updateFcmToken(fcmToken, supabaseId: user.id, email: user.email!);
+      } catch (e) {
+        print("Error updating FCM token: $e");
+      }
+    }
+
     // Écouter les changements d'état d'authentification
     supabase.auth.onAuthStateChange.listen((AuthState authState) async {
       _authChangeEvent = authState.event;
       notifyListeners();
 
-      // Gestion des notifications push lors de la connexion
       if (authState.event == AuthChangeEvent.signedIn) {
-        // Optionnel : Demander la permission pour les notifications (si nécessaire)
+        // Optionnel : demander la permission pour les notifications
         // await FirebaseMessaging.instance.requestPermission();
-
-        // Obtenir le token APNS (iOS)
-        await FirebaseMessaging.instance.getAPNSToken();
 
         // Obtenir le token FCM
         final fcmToken = await FirebaseMessaging.instance.getToken();
         if (fcmToken != null) {
-          await _setFcmToken(fcmToken);
+          await _updateFcmTokenIfAuthenticated(fcmToken);
         }
       }
     });

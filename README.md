@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Implement FCM token update logic in AuthStateManager and NotificationService
 - Fix for promoters and venues caching with recommended functions
 - Display only "going" events in EventInfoTile
 - Improve event time display logic

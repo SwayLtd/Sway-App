@@ -24,7 +24,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  final SupabaseClient _supabaseClient = Supabase.instance.client;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   late List<AndroidNotificationChannel> channels;
 
@@ -328,6 +328,25 @@ class NotificationService {
   // ----------------------------------------------------------------
   // SUPABASE DATABASE LOGIC (INSERTING, DELETING NOTIFICATIONS)
   // ----------------------------------------------------------------
+
+  Future<void> updateFcmToken(String fcmToken,
+      {required String supabaseId, required String email}) async {
+    try {
+      await _supabase.from('users').upsert(
+        {
+          'supabase_id': supabaseId,
+          'email': email,
+          'fcm_token': fcmToken,
+        },
+        onConflict: 'supabase_id',
+      );
+      print('FCM token successfully updated.');
+    } catch (e) {
+      print('Error updating FCM token: $e');
+      rethrow;
+    }
+  }
+
   /// Schedules a "ticket" notification in Supabase DB, which is ultimately
   /// handled by your Edge Function or scheduled function.
   Future<void> addTicketNotification({
@@ -378,7 +397,7 @@ class NotificationService {
       'scheduled_time': notificationTime.toIso8601String(),
     };
 
-    final response = await _supabaseClient
+    final response = await _supabase
         .from('notifications')
         .insert(insertData)
         .select()
@@ -396,7 +415,7 @@ class NotificationService {
     required int ticketId,
   }) async {
     final actionData = "app.sway.main://app/ticket/$ticketId";
-    final deleteResponse = await _supabaseClient
+    final deleteResponse = await _supabase
         .from('notifications')
         .delete()
         .eq('supabase_id', supabaseId)
