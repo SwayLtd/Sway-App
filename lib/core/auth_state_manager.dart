@@ -18,21 +18,20 @@ class AuthStateManager extends ChangeNotifier {
     Future<void> _updateFcmTokenIfAuthenticated(String fcmToken) async {
       final session = supabase.auth.currentSession;
       final user = supabase.auth.currentUser;
-      // Ne pas mettre à jour si la session ou le user est nul ou si l'email est absent.
       if (user == null || session == null || user.email == null) {
         print('Anonymous user or invalid session, token update ignored.');
         return;
       }
 
       try {
-        // Vérifier via UserService que l'utilisateur existe déjà.
-        final existingUser = await UserService().getUserBySupabaseId(user.id);
-        if (existingUser == null) {
+        // Vérifie uniquement dans le cache local.
+        final cachedUser =
+            await UserService().getCachedUserBySupabaseId(user.id);
+        if (cachedUser == null) {
           print('User not present in cache, token update skipped.');
           return;
         }
-
-        // Mise à jour du token via NotificationService.
+        // Maintenant, on peut mettre à jour le token.
         await NotificationService()
             .updateFcmToken(fcmToken, supabaseId: user.id, email: user.email!);
       } catch (e) {

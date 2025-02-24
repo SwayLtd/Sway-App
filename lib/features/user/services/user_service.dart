@@ -403,4 +403,9 @@ class UserService {
     }
     return result.values.toList();
   }
+
+  Future<AppUser.User?> getCachedUserBySupabaseId(String supabaseId) async {
+    final isar = await _isarFuture;
+    return await _loadUserFromIsarBySupabaseId(supabaseId, isar: isar);
+  }
 }
