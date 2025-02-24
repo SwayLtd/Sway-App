@@ -209,22 +209,27 @@ class VenueService {
   Future<List<Venue>> getRecommendedVenues({int? userId, int limit = 5}) async {
     final online = await isConnected();
     final isar = await _isarFuture;
-    if (online) {
-      final params = <String, dynamic>{
-        'p_user_id': userId,
-        'p_limit': limit,
-      };
+
+    final params = <String, dynamic>{
+      'p_user_id': userId,
+      'p_limit': limit,
+    };
+
+    try {
       final response =
           await _supabase.rpc('get_recommended_venues', params: params);
       if (response == null || (response as List).isEmpty) return [];
       final venues = (response)
           .map<Venue>((json) => Venue.fromJson(json as Map<String, dynamic>))
           .toList();
-      for (final venue in venues) {
-        await _storeVenueInIsar(isar, venue);
+      if (online) {
+        // Stocker le cache pour chaque venue, en supposant que vous avez une fonction similaire
+        for (final venue in venues) {
+          await _storeVenueInIsar(isar, venue);
+        }
       }
       return venues;
-    } else {
+    } catch (e) {
       return await _loadAllVenuesFromIsar(isar);
     }
   }

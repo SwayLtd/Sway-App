@@ -100,24 +100,32 @@ class PromoterService {
   Future<List<Promoter>> getRecommendedPromoters(
       {int? userId, int limit = 5}) async {
     final online = await isConnected();
+    final isar = await _isarFuture;
+
     final params = <String, dynamic>{
       'p_user_id': userId,
       'p_limit': limit,
     };
-    final response =
-        await _supabase.rpc('get_recommended_promoters', params: params);
-    if (response == null || (response as List).isEmpty) return [];
-    final promoters = (response)
-        .map<Promoter>((json) =>
-            Promoter.fromJsonWithoutEvents(json as Map<String, dynamic>))
-        .toList();
-    if (online) {
-      final isar = await _isarFuture;
-      for (final promoter in promoters) {
-        await _storePromoterInIsar(isar, promoter);
+
+    try {
+      final response =
+          await _supabase.rpc('get_recommended_promoters', params: params);
+      if (response == null || (response as List).isEmpty) return [];
+      final promoters = (response)
+          .map<Promoter>((json) =>
+              Promoter.fromJsonWithoutEvents(json as Map<String, dynamic>))
+          .toList();
+      if (online) {
+        // Stocker le cache pour chaque promoter
+        for (final promoter in promoters) {
+          await _storePromoterInIsar(isar, promoter);
+        }
       }
+      return promoters;
+    } catch (e) {
+      // En cas d'erreur, on retourne les données du cache
+      return await _loadAllPromotersFromIsar(isar);
     }
-    return promoters;
   }
 
   /// Adds a new promoter to the server and stores it locally.
