@@ -61,6 +61,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android release
 android/app/google-services.json
 *google-services.json
 # git rm --cached -r android/app/.cxx
@@ -68,8 +70,9 @@ android/app/google-services.json
 /android/app/keystore/*
 /android/app/.cxx/**/configure_fingerprint.bin
 
-# Backend
-/backend
+# iOS release
+ios/Runner/GoogleService-Info.plist
+*GoogleService-Info.plist
 
 # Deno
 deno.d.ts
@@ -82,17 +85,20 @@ tsconfig.json
 # Deno dependencies lock file
 deno.lock
 
+# Backend
+/backend
+
 # Supabase
 *.branches
 supabase/.gitignore
 supabase/seed.sql
 
 # Supabase secrets and keys
-/supabase/.supabase
-/supabase/functions/service-account.json
+/backend/.supabase
+/backend/functions/service-account.json
 
 # Supabase project files
-/supabase/config.toml
+/backend/config.toml
 
 # Import script and files
 /supabase/imports/csv/join_tables/*.csv
