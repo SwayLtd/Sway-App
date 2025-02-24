@@ -74,10 +74,10 @@ class AuthStateManager extends ChangeNotifier {
 
   /// Met à jour le token FCM dans la base de données Supabase
   Future<void> _setFcmToken(String fcmToken) async {
+    final session = supabase.auth.currentSession;
     final user = supabase.auth.currentUser;
-    // Si l'utilisateur est anonyme (email null), on ne fait rien.
-    if (user == null || user.email == null) {
-      print('Anonymous user or email not defined, FCM token update ignored.');
+    if (user == null || session == null || user.email == null) {
+      print('Anonymous user or invalid session, token update ignored.');
       return;
     }
 
