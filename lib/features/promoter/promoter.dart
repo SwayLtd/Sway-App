@@ -325,33 +325,29 @@ class _PromoterScreenState extends State<PromoterScreen> {
                             }
                           },
                         ),
-                        // Section "UPCOMING EVENTS" inspirée de VenueScreen
+                        // Section "UPCOMING EVENTS"
                         if (_upcomingEvents.isNotEmpty)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // En-tête avec flèche si plus de 5 événements
                               Row(
-                                mainAxisAlignment: _upcomingEvents.length > 5
-                                    ? MainAxisAlignment.spaceBetween
-                                    : MainAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    "UPCOMING EVENTS",
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
+                                  Expanded(
+                                    child: const Text(
+                                      "UPCOMING EVENTS",
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
                                   ),
                                   if (_upcomingEvents.length > 5)
                                     IconButton(
                                       icon: const Icon(Icons.arrow_forward),
                                       onPressed: () {
-                                        // Afficher la modal avec tous (ou une partie) des événements
+                                        // Afficher la modal avec, par exemple, les 10 premiers événements
                                         showEventModalBottomSheet(
                                           context,
-                                          _upcomingEvents
-                                              .take(10)
-                                              .toList(), // par exemple, les 10 premiers
+                                          _upcomingEvents.take(10).toList(),
                                         );
                                       },
                                     ),

@@ -43,8 +43,13 @@ class _PromoterListItemWidgetState extends State<PromoterListItemWidget> {
     // Utiliser EventPromoterService pour obtenir le nombre d'événements à venir
     _upcomingEventsCountFuture = _eventPromoterService
         .getEventsByPromoterId(widget.promoter.id!)
-        .then((events) =>
-            events.length); // Récupérer la longueur de la liste d'événements
+        .then((events) {
+      final now = DateTime.now();
+      final upcoming = events.where((event) => event.eventEndDateTime != null
+          ? event.eventEndDateTime!.isAfter(now)
+          : event.eventDateTime.isAfter(now));
+      return upcoming.length;
+    });
   }
 
   @override
