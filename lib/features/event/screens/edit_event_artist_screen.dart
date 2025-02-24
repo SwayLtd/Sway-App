@@ -86,7 +86,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
       builder: (context) => ArtistAssignmentBottomSheet(
         eventId: widget.eventId,
         eventStart: _currentEvent!.eventDateTime,
-        eventEnd: _currentEvent!.eventEndDateTime!,
+        eventEnd: _currentEvent!.eventEndDateTime,
         assignment: assignment,
         canEdit: _canEdit,
       ),
@@ -326,16 +326,15 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
 class ArtistAssignmentBottomSheet extends StatefulWidget {
   final int eventId;
   final DateTime eventStart;
-  final DateTime eventEnd;
+  final DateTime? eventEnd; // Permet d'être null
   final Map<String, dynamic>? assignment;
-  // canEdit indicates if the user is allowed to add or edit.
   final bool canEdit;
 
   const ArtistAssignmentBottomSheet({
     Key? key,
     required this.eventId,
     required this.eventStart,
-    required this.eventEnd,
+    this.eventEnd, // Nullable
     this.assignment,
     required this.canEdit,
   }) : super(key: key);
@@ -389,7 +388,6 @@ class _ArtistAssignmentBottomSheetState
       final List<dynamic> artists = widget.assignment!['artists'] ?? [];
       _selectedArtistIds = artists.map((a) => a.id as int).toSet();
     } else {
-      // For a new assignment, start with no selection.
       _startTime = null;
       _endTime = null;
     }
@@ -426,10 +424,9 @@ class _ArtistAssignmentBottomSheetState
       context: context,
       initialDate: _startTime ?? widget.eventStart,
       firstDate: widget.eventStart,
-      lastDate: widget.eventEnd,
+      lastDate: widget.eventEnd ?? widget.eventStart.add(Duration(days: 365)),
     );
     if (pickedDate != null) {
-      // Utilise l'heure de début de l'événement comme valeur initiale si aucune heure n'est sélectionnée
       final initialTime = _startTime != null
           ? TimeOfDay.fromDateTime(_startTime!)
           : TimeOfDay.fromDateTime(widget.eventStart);
@@ -447,7 +444,6 @@ class _ArtistAssignmentBottomSheetState
         );
         setState(() {
           _startTime = newStart;
-          // Retirez la mise à jour automatique de _endTime.
         });
       }
     }
@@ -468,7 +464,8 @@ class _ArtistAssignmentBottomSheetState
       context: context,
       initialDate: _endTime ?? _startTime!,
       firstDate: _startTime!,
-      lastDate: widget.eventEnd,
+      // Si eventEnd est null, on fixe une date limite par défaut (par exemple, +1 an)
+      lastDate: widget.eventEnd ?? _startTime!.add(Duration(days: 365)),
     );
     if (pickedDate != null) {
       final pickedTime = await showTimePicker(
@@ -501,8 +498,6 @@ class _ArtistAssignmentBottomSheetState
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
-    // On ne bloque plus la soumission si _startTime ou _endTime sont nulles
     if (_selectedArtistIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -750,8 +745,7 @@ class _ArtistAssignmentBottomSheetState
                         ],
                       ),
                       const SizedBox(height: sectionTitleSpacing),
-
-                      // End time picker
+                      // End time picker with clear button
                       Row(
                         children: [
                           Expanded(
@@ -774,6 +768,16 @@ class _ArtistAssignmentBottomSheetState
                                 ],
                               ),
                             ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: widget.canEdit
+                                ? () {
+                                    setState(() {
+                                      _endTime = null;
+                                    });
+                                  }
+                                : null,
                           ),
                           IconButton(
                             icon: const Icon(Icons.calendar_today),
