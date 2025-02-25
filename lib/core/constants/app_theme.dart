@@ -34,6 +34,18 @@ class AppTheme {
       actionTextColor: Colors.white, // Use your primary color for actions
       contentTextStyle: TextStyle(color: Colors.white),
     ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        // foregroundColor: Theme.of(context).colorScheme.onSurface,
+        side: BorderSide(color: Colors.black, width: 1),
+        minimumSize: const Size(double.infinity, 50),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    ),
     chipTheme: ChipThemeData(
       backgroundColor: Colors.grey[200],
       shape: RoundedRectangleBorder(
@@ -229,6 +241,18 @@ class AppTheme {
     snackBarTheme: SnackBarThemeData(
       actionTextColor: Colors.black, // Dark text for actions
       contentTextStyle: TextStyle(color: Colors.black),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        elevation: 2,
+        backgroundColor: Colors.black54,
+        // foregroundColor: Theme.of(context).colorScheme.onSurface,
+        side: BorderSide(color: Colors.white, width: 1),
+        minimumSize: const Size(double.infinity, 50),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
     ),
     chipTheme: ChipThemeData(
       backgroundColor: Color.fromRGBO(15, 13, 8, 1),

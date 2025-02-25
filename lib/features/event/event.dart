@@ -134,6 +134,8 @@ class _EventScreenState extends State<EventScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool showTimetable = _event.metadata?['timetable'] == true;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_event.title),
@@ -254,7 +256,7 @@ class _EventScreenState extends State<EventScreen> {
             },
           )
         ],
-        bottom: _event.type == 'festival'
+        bottom: showTimetable
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(36),
                 child: SizedBox(
