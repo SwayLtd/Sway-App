@@ -27,7 +27,6 @@ class _TimetableWidgetState extends State<TimetableWidget> {
 
   final UserService _userService = UserService();
   bool _isLoggedIn = false;
-  bool _isLoading = true;
 
   /// Index du jour sélectionné dans `metadata['festival_info']['days']`
   int _selectedDayIndex = 0;
@@ -54,14 +53,12 @@ class _TimetableWidgetState extends State<TimetableWidget> {
       if (!mounted) return;
       setState(() {
         _isLoggedIn = currentUser != null;
-        _isLoading = false;
       });
     } catch (e) {
       print('Error loading user status: $e');
       if (!mounted) return;
       setState(() {
         _isLoggedIn = false;
-        _isLoading = false;
       });
     }
   }
