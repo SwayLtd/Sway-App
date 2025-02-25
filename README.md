@@ -16,9 +16,11 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Hide bottom buttons and "Only followed artists" when user is not logged in
+- Integrate Artist Notification Button & Improve Timetable Filtering
 - Implement Event Timetable System and Artist Notifications for GridView
 - Implement Calendar Feature and Update Event Status Filtering
-- Release 1.0.0 - Add app signing configuration for release
+- Release 1.0.1 - Calendar and Timetable features
 
 ### Known Issues
 
@@ -27,15 +29,11 @@ Migrated to [Canny](https://swayapp.canny.io/)
 - (Notification) Ticket notification doesn't show the ticket on click
 - (Notification) Remote notification preferences not linked to notification
   channels
-- (Timetable) The day selection show days without artists programmed.
-- (FIXED)(Ticketing) Delete white margins on PDF during import
-- (FIXED)(Ticketing) Multiple pages PDF are not unpacked a multiple tickets
-- (FIXED)(Ticketing) Multiple ticckets navigation for one event fixed.
 
 See the [open issues](https://github.com/SwayLtd/Sway-App/issues) for a list of
 proposed features (and known issues).
 
 ## Multi-platform
 
-Currently under development for Android and iOS. A Web, MacOS, iPadOS, Windows
-version will be adapted in the future.
+Currently under development for Android and iOS. A Web version will be adapted
+in the future.

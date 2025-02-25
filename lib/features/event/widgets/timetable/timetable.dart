@@ -9,6 +9,7 @@ import 'package:sway/features/event/widgets/timetable/timetable_list.dart';
 import 'package:sway/features/event/widgets/timetable/timetable_grid.dart';
 import 'package:sway/core/utils/text_formatting.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
+import 'package:sway/features/user/services/user_service.dart';
 
 class TimetableWidget extends StatefulWidget {
   final Event event;
@@ -23,6 +24,10 @@ class _TimetableWidgetState extends State<TimetableWidget> {
   bool isGridView = false;
   bool showOnlyFollowedArtists = false;
   Set<int> _followedArtistIds = {};
+
+  final UserService _userService = UserService();
+  bool _isLoggedIn = false;
+  bool _isLoading = true;
 
   /// Index du jour sélectionné dans `metadata['festival_info']['days']`
   int _selectedDayIndex = 0;
@@ -40,6 +45,25 @@ class _TimetableWidgetState extends State<TimetableWidget> {
     _loadMetadataFestivalInfo();
     _loadArtistStages();
     _preloadFollowedArtistIds(); // Ajout de cette méthode
+    _loadUserStatus();
+  }
+
+  Future<void> _loadUserStatus() async {
+    try {
+      final currentUser = await _userService.getCurrentUser();
+      if (!mounted) return;
+      setState(() {
+        _isLoggedIn = currentUser != null;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading user status: $e');
+      if (!mounted) return;
+      setState(() {
+        _isLoggedIn = false;
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _preloadFollowedArtistIds() async {
@@ -125,7 +149,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     child: CircularProgressIndicator.adaptive());
               }
               if (snapshot.hasError) {
-                return Center(child: Text("Error: ${snapshot.error}"));
+                return Center(child: Text("You're offline."));
               }
               final dayAssignments = snapshot.data ?? [];
               if (dayAssignments.isEmpty) {
@@ -171,7 +195,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
           ),
         ),
         // Barre du bas : boutons PERSONNAL / FULL
-        _buildBottomButtons(context),
+        if (_isLoggedIn) _buildBottomButtons(context),
       ],
     );
   }
@@ -407,15 +431,16 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     }).toList(),
                   ),
                 ),
-                SwitchListTile.adaptive(
-                  title: const Text('Only followed artists'),
-                  value: showOnlyFollowedArtists,
-                  onChanged: (bool val) {
-                    setModalState(() {
-                      showOnlyFollowedArtists = val;
-                    });
-                  },
-                ),
+                if (_isLoggedIn)
+                  SwitchListTile.adaptive(
+                    title: const Text('Only followed artists'),
+                    value: showOnlyFollowedArtists,
+                    onChanged: (bool val) {
+                      setModalState(() {
+                        showOnlyFollowedArtists = val;
+                      });
+                    },
+                  ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: SizedBox(
