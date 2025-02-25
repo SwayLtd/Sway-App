@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/core/utils/text_formatting.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
+import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/utils/timetable_utils.dart';
@@ -439,176 +440,195 @@ class _TimetableListViewState extends State<TimetableListView> {
                         ),
                         child: Stack(
                           children: [
-                            ListTile(
-                              leading: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    formatTime(startTime!),
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    formatTime(endTime!),
-                                    style: const TextStyle(
-                                        fontSize: 12, color: Colors.grey),
-                                  ),
-                                ],
-                              ),
-                              title: Row(
-                                children: [
-                                  if (artists.length == 1) ...[
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onPrimary
-                                              .withValues(alpha: 0.5),
-                                          width: 2.0,
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                        child: ImageWithErrorHandler(
-                                          imageUrl: artists.first.imageUrl,
-                                          width: 40,
-                                          height: 40,
-                                        ),
-                                      ),
+                            GestureDetector(
+                              onTap: () {
+                                // Display the artist's profile
+                                if (artists.length == 1) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ArtistScreen(
+                                          artistId: artists.first.id!),
                                     ),
-                                  ] else ...[
-                                    ArtistImageRotator(artists: artists),
+                                  );
+                                }
+                              },
+                              child: ListTile(
+                                leading: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      formatTime(startTime!),
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      formatTime(endTime!),
+                                      style: const TextStyle(
+                                          fontSize: 12, color: Colors.grey),
+                                    ),
                                   ],
-                                  const SizedBox(width: 8.0),
-                                  Expanded(
-                                    child: Text(
-                                      displayedName,
-                                      style: TextStyle(
-                                        color: status == 'cancelled'
-                                            ? Colors.redAccent
-                                            : null,
-                                        fontWeight: isFollowing
-                                            ? FontWeight.bold
-                                            : null,
-                                        decoration: status == 'cancelled'
-                                            ? TextDecoration.lineThrough
-                                            : null,
+                                ),
+                                title: Row(
+                                  children: [
+                                    if (artists.length == 1) ...[
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onPrimary
+                                                .withValues(alpha: 0.5),
+                                            width: 2.0,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                          child: ImageWithErrorHandler(
+                                            imageUrl: artists.first.imageUrl,
+                                            width: 40,
+                                            height: 40,
+                                          ),
+                                        ),
                                       ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                                    ] else ...[
+                                      ArtistImageRotator(artists: artists),
+                                    ],
+                                    const SizedBox(width: 8.0),
+                                    Expanded(
+                                      child: Text(
+                                        displayedName,
+                                        style: TextStyle(
+                                          color: status == 'cancelled'
+                                              ? Colors.redAccent
+                                              : null,
+                                          fontWeight: isFollowing
+                                              ? FontWeight.bold
+                                              : null,
+                                          decoration: status == 'cancelled'
+                                              ? TextDecoration.lineThrough
+                                              : null,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  FollowingButtonWidget(
-                                    entityId: artists.first.id!,
-                                    entityType: 'artist',
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      isLoadingNotify
-                                          ? Icons.add_alert_outlined
-                                          : (_notifiedArtistIds
-                                                  .contains(artists.first.id!)
-                                              ? Icons.notifications_active
-                                              : Icons.add_alert_outlined),
-                                      color: isLoadingNotify ||
+                                  ],
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    FollowingButtonWidget(
+                                      entityId: artists.first.id!,
+                                      entityType: 'artist',
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        isLoadingNotify
+                                            ? Icons.add_alert_outlined
+                                            : (_notifiedArtistIds
+                                                    .contains(artists.first.id!)
+                                                ? Icons.notifications_active
+                                                : Icons.add_alert_outlined),
+                                        color: isLoadingNotify ||
+                                                status == 'cancelled'
+                                            ? Colors.grey
+                                            : null, // Gris pour "cancelled"
+                                      ),
+                                      onPressed: isLoadingNotify ||
                                               status == 'cancelled'
-                                          ? Colors.grey
-                                          : null, // Gris pour "cancelled"
-                                    ),
-                                    onPressed: isLoadingNotify ||
-                                            status == 'cancelled'
-                                        ? null
-                                        : () async {
-                                            if (_notifiedArtistIds
-                                                .contains(artists.first.id!)) {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                      "Notification already scheduled."),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
-                                              );
-                                              return;
-                                            }
-
-                                            setState(() {
-                                              isLoadingNotify = true;
-                                            });
-
-                                            final currentUser =
-                                                await UserService()
-                                                    .getCurrentUser();
-                                            final supabaseId =
-                                                currentUser?.supabaseId;
-
-                                            if (supabaseId == null) {
-                                              SnackbarLogin.showLoginSnackBar(
-                                                  context);
-                                              setState(() {
-                                                isLoadingNotify = false;
-                                              });
-                                              return;
-                                            }
-
-                                            final notificationTime = startTime
-                                                .subtract(const Duration(
-                                                    minutes: 15));
-
-                                            try {
-                                              await NotificationService()
-                                                  .addEventArtistNotification(
-                                                supabaseId: supabaseId,
-                                                artistId: artists.first.id!,
-                                                eventTitle: widget.event.title,
-                                                stage: entry['stage'] ?? '',
-                                                scheduledTime: notificationTime,
-                                                artistName: artists.first.name,
-                                                customName:
-                                                    entry['custom_name'] ?? '',
-                                              );
-
-                                              await _addNotifiedArtistId(
-                                                  artists.first.id!);
-
-                                              setState(() {
-                                                isLoadingNotify = false;
-                                              });
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                const SnackBar(
+                                          ? null
+                                          : () async {
+                                              if (_notifiedArtistIds.contains(
+                                                  artists.first.id!)) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
                                                     content: Text(
-                                                        "Notification scheduled."),
+                                                        "Notification already scheduled."),
                                                     behavior: SnackBarBehavior
-                                                        .floating),
-                                              );
-                                            } catch (e) {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                      "Error scheduling notification: $e"),
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                ),
-                                              );
+                                                        .floating,
+                                                  ),
+                                                );
+                                                return;
+                                              }
+
                                               setState(() {
-                                                isLoadingNotify = false;
+                                                isLoadingNotify = true;
                                               });
-                                            }
-                                          },
-                                  ),
-                                ],
+
+                                              final currentUser =
+                                                  await UserService()
+                                                      .getCurrentUser();
+                                              final supabaseId =
+                                                  currentUser?.supabaseId;
+
+                                              if (supabaseId == null) {
+                                                SnackbarLogin.showLoginSnackBar(
+                                                    context);
+                                                setState(() {
+                                                  isLoadingNotify = false;
+                                                });
+                                                return;
+                                              }
+
+                                              final notificationTime = startTime
+                                                  .subtract(const Duration(
+                                                      minutes: 15));
+
+                                              try {
+                                                await NotificationService()
+                                                    .addEventArtistNotification(
+                                                  supabaseId: supabaseId,
+                                                  artistId: artists.first.id!,
+                                                  eventTitle:
+                                                      widget.event.title,
+                                                  stage: entry['stage'] ?? '',
+                                                  scheduledTime:
+                                                      notificationTime,
+                                                  artistName:
+                                                      artists.first.name,
+                                                  customName:
+                                                      entry['custom_name'] ??
+                                                          '',
+                                                );
+
+                                                await _addNotifiedArtistId(
+                                                    artists.first.id!);
+
+                                                setState(() {
+                                                  isLoadingNotify = false;
+                                                });
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                      content: Text(
+                                                          "Notification scheduled."),
+                                                      behavior: SnackBarBehavior
+                                                          .floating),
+                                                );
+                                              } catch (e) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                        "Error scheduling notification: $e"),
+                                                    behavior: SnackBarBehavior
+                                                        .floating,
+                                                  ),
+                                                );
+                                                setState(() {
+                                                  isLoadingNotify = false;
+                                                });
+                                              }
+                                            },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],

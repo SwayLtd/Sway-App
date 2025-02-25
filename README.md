@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Centralized loading indicator and other optimizations
 - Hide bottom buttons and "Only followed artists" when user is not logged in
 - Integrate Artist Notification Button & Improve Timetable Filtering
 - Implement Event Timetable System and Artist Notifications for GridView
