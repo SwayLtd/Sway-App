@@ -477,7 +477,8 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                                       color: Theme.of(context)
                                                           .colorScheme
                                                           .onPrimary
-                                                          .withValues(alpha: 0.5),
+                                                          .withValues(
+                                                              alpha: 0.5),
                                                       width: 2.0,
                                                     ),
                                                     borderRadius:

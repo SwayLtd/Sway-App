@@ -395,7 +395,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.lock),
-                  title: const Text('Privacy'),
+                  title: const Text('Privacy Preferences'),
                   onTap: () {
                     Navigator.push(
                       context,

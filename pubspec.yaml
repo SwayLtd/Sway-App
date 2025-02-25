@@ -4,7 +4,7 @@
 # keytool -genkeypair -v -keystore app/keystore/release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias sway-app -storepass "your@store$Password" -keypass "your@key$Password" -storetype JKS
 # keytool -importkeystore -srckeystore app/keystore/release-key.jks -destkeystore android/keystore/release-key.jks -deststoretype pkcs12
 # flutter build appbundle --release --obfuscate --split-debug-info=Sway/debug_info
-# flutter build apk --release --obfuscate --split-debug-info=Sway/debug_info
+# flutter build apk --release --obfuscate --split-per-abi --split-debug-info=Sway/debug_info
 # flutter pub deps > deps.txt
 
 name: sway

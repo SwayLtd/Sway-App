@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sway/features/settings/screens/privacy_policy_screen.dart';
 
 class PrivacyPreferencesScreen extends StatefulWidget {
   const PrivacyPreferencesScreen({Key? key}) : super(key: key);
@@ -16,8 +17,7 @@ class _PrivacyPreferencesScreenState extends State<PrivacyPreferencesScreen> {
   bool _adPersonalizationConsent = false;
 
   // Création du channel pour communiquer avec le code natif
-  static const MethodChannel _consentChannel =
-      MethodChannel('consent_manager');
+  static const MethodChannel _consentChannel = MethodChannel('consent_manager');
 
   /// Appelle la méthode native pour mettre à jour le consentement
   Future<void> _updateConsent() async {
@@ -53,55 +53,59 @@ class _PrivacyPreferencesScreenState extends State<PrivacyPreferencesScreen> {
               children: [
                 SwitchListTile.adaptive(
                   title: const Text('Analytics Storage'),
-                  subtitle:
-                      const Text('Autoriser le stockage pour les analyses'),
+                  subtitle: const Text('Authorize storage for analysis'),
                   value: _analyticsConsent,
                   onChanged: (bool value) {
                     setState(() {
                       _analyticsConsent = value;
                     });
+                    _updateConsent();
                   },
                 ),
                 SwitchListTile.adaptive(
                   title: const Text('Ad Storage'),
-                  subtitle:
-                      const Text('Autoriser le stockage pour la publicité'),
+                  subtitle: const Text('Authorize storage for advertising'),
                   value: _adStorageConsent,
                   onChanged: (bool value) {
                     setState(() {
                       _adStorageConsent = value;
                     });
+                    _updateConsent();
                   },
                 ),
                 SwitchListTile.adaptive(
                   title: const Text('Ad User Data'),
-                  subtitle: const Text('Autoriser l’utilisation des données utilisateur pour la pub'),
+                  subtitle: const Text(
+                      'Authorize the use of user data for advertising purposes'),
                   value: _adUserDataConsent,
                   onChanged: (bool value) {
                     setState(() {
                       _adUserDataConsent = value;
                     });
+                    _updateConsent();
                   },
                 ),
                 SwitchListTile.adaptive(
                   title: const Text('Ad Personalization'),
-                  subtitle: const Text('Autoriser la personnalisation des publicités'),
+                  subtitle: const Text('Allow ad personalization'),
                   value: _adPersonalizationConsent,
                   onChanged: (bool value) {
                     setState(() {
                       _adPersonalizationConsent = value;
                     });
+                    _updateConsent();
                   },
                 ),
               ],
             ),
           ),
-          // Bouton placé en bas pour déclencher la mise à jour du consentement
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextButton(
-              onPressed: _updateConsent,
-              child: const Text('Mettre à jour le consentement'),
+              onPressed: () {
+                MaterialPageRoute(builder: (context) => PrivacyPolicyScreen());
+              },
+              child: const Text('Privacy Policy'),
             ),
           ),
         ],
