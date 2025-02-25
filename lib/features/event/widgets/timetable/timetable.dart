@@ -29,9 +29,10 @@ class _TimetableWidgetState extends State<TimetableWidget> {
 
   List<Map<String, dynamic>> _festivalDays =
       []; // [{"name":"Day 1","start":"...","end":"..."},...]
-  List<String> _stages = []; // ["Main Stage","Second Stage",...]
-  List<String> selectedStages = [];
-  List<String> initialStages = [];
+  List<String> _stages = []; // Liste pour l'affichage des stages dans l'ordre
+  List<String> selectedStages =
+      []; // Liste pour les stages sélectionnées (cochées)
+  List<String> initialStages = []; // Pour réinitialiser l'ordre
 
   @override
   void initState() {
@@ -91,16 +92,14 @@ class _TimetableWidgetState extends State<TimetableWidget> {
   Future<void> _loadArtistStages() async {
     final assignments =
         await EventArtistService().getArtistsByEventId(widget.event.id!);
-    // Récupérer tous les stages distincts
-    final stageSet = assignments.map((a) => a['stage'] as String).toSet();
-    // Fusionner stageSet + _stages (venant du metadata) si tu veux
-    // ou alors tu décides que c'est le metadata qui prime
-    // Ici, on fait un simple union:
-    // final unionStages = <String>{..._stages, ...stageSet}.toList();
+
+    final stageSet =
+        assignments.map((a) => (a['stage'] as String).toLowerCase()).toSet();
 
     setState(() {
-      initialStages = stageSet.toList();
-      selectedStages = List.from(stageSet);
+      _stages = stageSet.toList(); // Storing stages in the correct order
+      initialStages = List.from(_stages); // Keep the initial order
+      selectedStages = List.from(_stages); // Initially all stages are selected
     });
   }
 
@@ -146,27 +145,15 @@ class _TimetableWidgetState extends State<TimetableWidget> {
 
               // Choix final : ListView ou GridView
               if (!isGridView) {
-                return FutureBuilder<Widget>(
-                  future: buildListView(
-                    context: context,
-                    eventArtists:
-                        filtered, // assignations filtrées pour le jour sélectionné
-                    showOnlyFollowedArtists: showOnlyFollowedArtists,
-                    stages: _stages,
-                    selectedStages: selectedStages,
-                    followedArtistIds:
-                        _followedArtistIds, // Ajouté ici si buildListView accepte ce paramètre
-                  ),
-                  builder: (ctx, snap) {
-                    if (snap.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                          child: CircularProgressIndicator.adaptive());
-                    }
-                    if (snap.hasError) {
-                      return Center(child: Text("Error: ${snap.error}"));
-                    }
-                    return snap.data ?? const SizedBox.shrink();
-                  },
+                return TimetableListView(
+                  event: widget.event,
+                  eventArtists:
+                      filtered, // assignations filtrées pour le jour sélectionné
+                  showOnlyFollowedArtists: showOnlyFollowedArtists,
+                  stages: _stages,
+                  selectedStages: selectedStages,
+                  followedArtistIds:
+                      _followedArtistIds, // Ajouté ici si nécessaire
                 );
               } else {
                 // Grid
@@ -195,7 +182,6 @@ class _TimetableWidgetState extends State<TimetableWidget> {
         await EventArtistService().getArtistsByEventId(widget.event.id!);
     if (_selectedDayIndex >= _festivalDays.length) return [];
     final dayInfo = _festivalDays[_selectedDayIndex];
-    // Utilise les créneaux du metadata
     final dayStart = dayInfo['start'] as DateTime;
     final dayEnd = dayInfo['end'] as DateTime;
 
@@ -206,6 +192,10 @@ class _TimetableWidgetState extends State<TimetableWidget> {
       final eTime = et ?? st;
       // On inclut si le créneau chevauche le créneau du metadata
       return eTime.isAfter(dayStart) && st.isBefore(dayEnd);
+    }).where((assignment) {
+      final stage = assignment['stage'] as String;
+      // Inclure seulement les stages sélectionnées (même non cochées)
+      return selectedStages.contains(stage);
     }).toList();
   }
 
@@ -318,6 +308,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
     );
   }
 
+  // Affichage du filtre pour la sélection et le réordonnancement des stages
   void _showFilterDialog() {
     showModalBottomSheet(
       context: context,
@@ -349,11 +340,12 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                       child: Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: IconButton(
-                          icon: const Icon(Icons.refresh),
+                          icon: const Icon(Icons.restore),
                           onPressed: () {
                             setModalState(() {
+                              // Réinitialiser l'ordre des stages
                               selectedStages = List.from(initialStages);
-                              showOnlyFollowedArtists = false;
+                              _stages = List.from(initialStages);
                             });
                           },
                         ),
@@ -375,17 +367,18 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                 Expanded(
                   child: ReorderableListView(
                     onReorder: (oldIndex, newIndex) {
-                      if (newIndex > oldIndex) {
-                        newIndex -= 1;
-                      }
                       setModalState(() {
+                        // Mettre à jour l'ordre des stages dans _stages et selectedStages
                         final String stage = selectedStages.removeAt(oldIndex);
                         selectedStages.insert(newIndex, stage);
+
+                        // Réorganiser également _stages pour que l'ordre des stages décochées soit le même
+                        _stages.removeAt(oldIndex);
+                        _stages.insert(newIndex, stage);
                       });
                     },
-                    children: selectedStages.asMap().entries.map((entry) {
-                      final idx = entry.key;
-                      final stage = entry.value;
+                    children: _stages.map((stage) {
+                      final isChecked = selectedStages.contains(stage);
                       return Column(
                         key: Key(stage),
                         children: [
@@ -393,10 +386,11 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                             leading: const Icon(Icons.drag_handle),
                             title: Text(capitalizeFirst(stage)),
                             trailing: Checkbox(
-                              value: selectedStages.contains(stage),
+                              value: isChecked,
                               onChanged: (bool? val) {
                                 if (val == null) return;
                                 setModalState(() {
+                                  // Si on coche/décoche une stage
                                   if (val == true &&
                                       !selectedStages.contains(stage)) {
                                     selectedStages.add(stage);
@@ -407,8 +401,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                               },
                             ),
                           ),
-                          if (idx < selectedStages.length - 1)
-                            const Divider(color: Colors.grey, height: 1),
+                          const Divider(color: Colors.grey, height: 1),
                         ],
                       );
                     }).toList(),
@@ -433,7 +426,8 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                       ),
                       onPressed: () {
                         Navigator.pop(context);
-                        setState(() {}); // Forcer refresh sur l'écran principal
+                        setState(
+                            () {}); // Rafraîchir l'écran principal après application du filtre
                       },
                       child: const Text('APPLY',
                           style: TextStyle(color: Colors.white)),

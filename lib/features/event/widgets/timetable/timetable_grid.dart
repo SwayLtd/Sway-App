@@ -42,12 +42,49 @@ class _GridViewWidgetState extends State<GridViewWidget> {
   late ScrollController _horizontalScrollController;
   late ScrollController _verticalScrollController;
   UserFollowArtistService userFollowService = UserFollowArtistService();
+
   Set<int> _notifiedArtistIds = {}; // Ajoutez cette ligne ici
+  bool isLoadingNotify = false;
 
   @override
   void initState() {
     super.initState();
     _loadLastScrollOffsets();
+    _loadNotifiedIds(); // Ajoutez cette ligne ici
+  }
+
+  Future<void> _loadNotifiedIds() async {
+    final loadedIds = await _loadNotifiedArtistIds(widget.event.id!);
+    setState(() {
+      _notifiedArtistIds = loadedIds;
+    });
+  }
+
+  Future<void> _addNotifiedArtistId(int artistId) async {
+    setState(() {
+      _notifiedArtistIds.add(artistId);
+    });
+    await _saveNotifiedArtistIds(widget.event.id!, _notifiedArtistIds);
+  }
+
+  // Function to load notified artist IDs from SharedPreferences
+  Future<Set<int>> _loadNotifiedArtistIds(int eventId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final idsString = prefs.getString('notifiedArtistIds_$eventId') ?? '';
+    if (idsString.isEmpty) return {};
+    // Assuming IDs are stored as a comma-separated string
+    return idsString
+        .split(',')
+        .map((s) => int.tryParse(s.trim()))
+        .whereType<int>()
+        .toSet();
+  }
+
+// Function to save notified artist IDs to SharedPreferences
+  Future<void> _saveNotifiedArtistIds(int eventId, Set<int> ids) async {
+    final prefs = await SharedPreferences.getInstance();
+    final idsString = ids.join(',');
+    await prefs.setString('notifiedArtistIds_$eventId', idsString);
   }
 
   Future<void> _loadLastScrollOffsets() async {
@@ -384,7 +421,6 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                 }
 
                                 // Check overlap pour le marker
-                                bool isOverlap = false;
                                 for (final other in stageAssignments) {
                                   if (identical(other, artistMap)) continue;
                                   final oStart =
@@ -393,7 +429,6 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                   if (oStart != null && oEnd != null) {
                                     if (startTime.isBefore(oEnd) &&
                                         endTime.isAfter(oStart)) {
-                                      isOverlap = true;
                                       break;
                                     }
                                   }
@@ -404,15 +439,237 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                   SizedBox(
                                     width: 200 * durationInHours,
                                     height: 100,
-                                    child: _buildArtistCard(
-                                      context,
-                                      artists,
-                                      nameToShow,
-                                      startTime,
-                                      endTime,
-                                      status,
-                                      isOverlap,
-                                      artistMap,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        if (artists.length > 1) {
+                                          showArtistsBottomSheet(
+                                              context, artists);
+                                        } else {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (ctx) => ArtistScreen(
+                                                  artistId: artists.first.id!),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      child: Card(
+                                        color: Theme.of(context).cardColor,
+                                        shape: RoundedRectangleBorder(
+                                          side: BorderSide(
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Row(
+                                            children: [
+                                              // Artist Image
+                                              if (artists.length == 1) ...[
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .onPrimary
+                                                          .withOpacity(0.5),
+                                                      width: 2.0,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                  ),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                    child:
+                                                        ImageWithErrorHandler(
+                                                      imageUrl: artists
+                                                          .first.imageUrl,
+                                                      width: 40,
+                                                      height: 40,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ] else ...[
+                                                ArtistImageRotator(
+                                                    artists: artists),
+                                              ],
+                                              const SizedBox(width: 8.0),
+                                              Expanded(
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      nameToShow,
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: status ==
+                                                                'cancelled'
+                                                            ? Colors.redAccent
+                                                            : null,
+                                                        decoration: status ==
+                                                                'cancelled'
+                                                            ? TextDecoration
+                                                                .lineThrough
+                                                            : null,
+                                                      ),
+                                                      maxLines: 2,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                    Text(
+                                                      '${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}',
+                                                      style: const TextStyle(
+                                                          fontSize: 12.0,
+                                                          color: Colors.grey),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              // Conditional notification button display
+                                              if (status !=
+                                                  'cancelled') // Hide button for cancelled artists
+                                                IconButton(
+                                                  icon: Icon(
+                                                    _notifiedArtistIds.contains(
+                                                            artists.first.id!)
+                                                        ? Icons
+                                                            .notifications_active
+                                                        : Icons
+                                                            .add_alert_outlined,
+                                                  ),
+                                                  onPressed: isLoadingNotify
+                                                      ? null
+                                                      : () async {
+                                                          if (_notifiedArtistIds
+                                                              .contains(artists
+                                                                  .first.id!)) {
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              const SnackBar(
+                                                                content: Text(
+                                                                    "You will be notified for this artist."),
+                                                                behavior:
+                                                                    SnackBarBehavior
+                                                                        .floating,
+                                                              ),
+                                                            );
+                                                            return;
+                                                          }
+
+                                                          setState(() {
+                                                            isLoadingNotify =
+                                                                true;
+                                                          });
+
+                                                          final currentUser =
+                                                              await UserService()
+                                                                  .getCurrentUser();
+                                                          final supabaseId =
+                                                              currentUser
+                                                                  ?.supabaseId;
+                                                          if (supabaseId ==
+                                                              null) {
+                                                            SnackbarLogin
+                                                                .showLoginSnackBar(
+                                                                    context);
+                                                            setState(() {
+                                                              isLoadingNotify =
+                                                                  false;
+                                                            });
+                                                            return;
+                                                          }
+
+                                                          final notificationTime =
+                                                              startTime.subtract(
+                                                                  const Duration(
+                                                                      minutes:
+                                                                          15));
+
+                                                          try {
+                                                            await NotificationService()
+                                                                .addEventArtistNotification(
+                                                              supabaseId:
+                                                                  supabaseId,
+                                                              artistId: artists
+                                                                  .first.id!,
+                                                              eventTitle: widget
+                                                                  .event.title,
+                                                              stage: capitalizeFirst(
+                                                                  artistMap[
+                                                                          'stage'] ??
+                                                                      ''),
+                                                              scheduledTime:
+                                                                  notificationTime,
+                                                              artistName:
+                                                                  artists.first
+                                                                      .name,
+                                                              customName: artistMap[
+                                                                      'custom_name'] ??
+                                                                  '',
+                                                            );
+
+                                                            await _addNotifiedArtistId(
+                                                                artists
+                                                                    .first.id!);
+
+                                                            setState(() {
+                                                              _notifiedArtistIds
+                                                                  .add(artists
+                                                                      .first
+                                                                      .id!);
+                                                              isLoadingNotify =
+                                                                  false;
+                                                            });
+
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              const SnackBar(
+                                                                content: Text(
+                                                                    "Notification scheduled."),
+                                                                behavior:
+                                                                    SnackBarBehavior
+                                                                        .floating,
+                                                              ),
+                                                            );
+                                                          } catch (e) {
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                    "Error scheduling notification: $e"),
+                                                                behavior:
+                                                                    SnackBarBehavior
+                                                                        .floating,
+                                                              ),
+                                                            );
+                                                            setState(() {
+                                                              isLoadingNotify =
+                                                                  false;
+                                                            });
+                                                          }
+                                                        },
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 );
@@ -437,7 +694,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
               ),
               // 3) Sur la gauche, on affiche le label du stage
               Positioned(
-                top: 30,
+                top: 26,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: filteredStages.map((stage) {
@@ -472,173 +729,37 @@ class _GridViewWidgetState extends State<GridViewWidget> {
       },
     );
   }
+}
 
-  Widget _buildArtistCard(
-    BuildContext context,
-    List<Artist> artists,
-    String nameToShow,
-    DateTime startTime,
-    DateTime endTime,
-    String status,
-    bool isOverlap,
-    Map<String, dynamic> artistMap, // artistMap ajouté ici
-  ) {
-    // On utilise l'ID du premier artiste pour identifier l'assignation
-    final int artistId = artists.first.id!;
-    final bool isAlreadyNotified = _notifiedArtistIds.contains(artistId);
+class NotificationIcon extends StatefulWidget {
+  final int artistId;
+  final bool isNotified;
+  final Function onPressed;
 
-    return FutureBuilder<bool>(
-      future: Future.wait(
-        artists
-            .map((artist) => userFollowService.isFollowingArtist(artist.id!))
-            .toList(),
-      ).then((results) => results.any((follow) => follow)),
-      builder: (context, snapshot) {
-        final bool isFollowing = snapshot.data ?? false;
-        return GestureDetector(
-          onTap: () {
-            if (artists.length > 1) {
-              showArtistsBottomSheet(context, artists);
-            } else {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (ctx) => ArtistScreen(artistId: artistId),
-                ),
-              );
-            }
-          },
-          child: Card(
-            color: isFollowing
-                ? Theme.of(context).primaryColor.withValues(alpha: 0.3)
-                : Theme.of(context).cardColor,
-            shape: RoundedRectangleBorder(
-              side: BorderSide(color: Theme.of(context).primaryColor),
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                children: [
-                  if (artists.length == 1) ...[
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onPrimary
-                              .withValues(alpha: 0.5),
-                          width: 2.0,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0),
-                        child: ImageWithErrorHandler(
-                          imageUrl: artists.first.imageUrl,
-                          width: 40,
-                          height: 40,
-                        ),
-                      ),
-                    ),
-                  ] else ...[
-                    ArtistImageRotator(artists: artists),
-                  ],
-                  const SizedBox(width: 8.0),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          nameToShow, // Utilisation de nameToShow ici
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color:
-                                status == 'cancelled' ? Colors.redAccent : null,
-                            decoration: status == 'cancelled'
-                                ? TextDecoration.lineThrough
-                                : null,
-                          ),
-                        ),
-                        Text(
-                          '${DateFormat.Hm().format(startTime)} - ${DateFormat.Hm().format(endTime)}',
-                          style: const TextStyle(
-                              fontSize: 12.0, color: Colors.grey),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Bouton pour ajouter une notification dans Supabase
-                  IconButton(
-                    icon: Icon(
-                      isAlreadyNotified
-                          ? Icons.notifications_active
-                          : Icons.add_alert_outlined,
-                    ),
-                    onPressed: () async {
-                      if (isAlreadyNotified) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content:
-                                Text("You will be notified for this artist."),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                        return;
-                      }
+  const NotificationIcon({
+    Key? key,
+    required this.artistId,
+    required this.isNotified,
+    required this.onPressed,
+  }) : super(key: key);
 
-                      // Récupérer le supabaseId de l'utilisateur courant
-                      final currentUser = await UserService().getCurrentUser();
-                      final supabaseId = currentUser?.supabaseId;
+  @override
+  _NotificationIconState createState() => _NotificationIconState();
+}
 
-                      if (supabaseId == null) {
-                        SnackbarLogin.showLoginSnackBar(context);
-                        return;
-                      }
-
-                      // Calculer la date de notification : 15 minutes avant startTime
-                      final notificationTime =
-                          startTime.subtract(const Duration(minutes: 15));
-
-                      try {
-                        await NotificationService().addEventArtistNotification(
-                          supabaseId: supabaseId,
-                          artistId: artistId,
-                          eventTitle: widget.event.title,
-                          stage: capitalizeFirst(artistMap['stage'] ?? ''),
-                          scheduledTime: notificationTime,
-                          artistName:
-                              artists.first.name, // Nom standard de l'artiste
-                          customName: artistMap['custom_name'] ??
-                              '', // Nom personnalisé de l'artiste, s'il existe
-                        );
-
-                        setState(() {
-                          _notifiedArtistIds.add(artistId);
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Notification scheduled."),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("Error scheduling notification: $e"),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
+class _NotificationIconState extends State<NotificationIcon> {
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        widget.isNotified
+            ? Icons.notifications_active
+            : Icons.add_alert_outlined,
+      ),
+      onPressed: () async {
+        widget.onPressed(widget.artistId);
+        setState(
+            () {}); // Met à jour localement l'icône sans rafraîchir tout l'écran
       },
     );
   }

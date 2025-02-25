@@ -1,3 +1,5 @@
+// lib/features/event/utils/timetable_utils.dart
+
 import 'package:flutter/material.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
@@ -5,6 +7,7 @@ import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_artist_service.dart';
+import 'package:sway/features/user/widgets/following_button_widget.dart';
 
 Future<List<DateTime>> calculateFestivalDays(Event event) async {
   final List<Map<String, dynamic>> artists =
@@ -86,7 +89,6 @@ Future<List<DateTime>> calculateFestivalDays(Event event) async {
 void showArtistsBottomSheet(BuildContext context, List<Artist> artists) {
   showModalBottomSheet(
     context: context,
-    shape: const RoundedRectangleBorder(),
     builder: (BuildContext context) {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -123,8 +125,7 @@ void showArtistsBottomSheet(BuildContext context, List<Artist> artists) {
                         .withValues(alpha: 0.5), // Couleur de la bordure
                     width: 2.0, // Épaisseur de la bordure
                   ),
-                  borderRadius:
-                      BorderRadius.circular(12), // Coins arrondis de la bordure
+                  borderRadius: BorderRadius.circular(12), // Coins arrondis
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10.0),
@@ -145,6 +146,10 @@ void showArtistsBottomSheet(BuildContext context, List<Artist> artists) {
                   ),
                 );
               },
+              trailing: FollowingButtonWidget(
+                entityId: artist.id!, // L'ID de l'artiste
+                entityType: 'artist', // Type d'entité ici 'artist'
+              ), // Ajout du bouton de suivi
             );
           }),
         ],
