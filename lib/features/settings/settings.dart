@@ -12,6 +12,7 @@ import 'package:sway/features/notification/screens/notification_preferences_scre
 import 'package:sway/features/promoter/screens/create_promoter_screen.dart';
 import 'package:sway/features/settings/screens/about_screen.dart';
 import 'package:sway/features/settings/screens/help_screen.dart';
+import 'package:sway/features/settings/screens/privacy_preferences_screen.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/screens/user_entities_screen.dart';
 import 'package:sway/features/user/services/auth_service.dart';
@@ -391,6 +392,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           );
                         }
                       : _showAuthModal,
+                ),
+                ListTile(
+                  leading: const Icon(Icons.lock),
+                  title: const Text('Privacy'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PrivacyPreferencesScreen(),
+                      ),
+                    );
+                  },
                 ),
                 ListTile(
                   leading: const Icon(Icons.color_lens),
