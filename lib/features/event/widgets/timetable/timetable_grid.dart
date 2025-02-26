@@ -285,7 +285,7 @@ class _GridViewWidgetState extends State<GridViewWidget> {
     if (currentMinutes >= startMinutes && currentMinutes <= endMinutes) {
       final diffMinutes = currentMinutes - startMinutes;
       // Exemple : 150 pixels par heure et 100 pixels de décalage initial pour les labels
-      currentOffset = 100 + (diffMinutes * 150 / 60);
+      currentOffset = 100 + (diffMinutes * 200 / 60);
     } else {
       print("The current time is not within the range displayed.");
     }
