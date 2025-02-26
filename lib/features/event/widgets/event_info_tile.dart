@@ -44,11 +44,13 @@ class _EventInfoTileState extends State<EventInfoTile> {
         }
       }
 
-      // Find an event that is in progress: start time passed and (end time null or in future)
+      // Find an event that is in progress: start time passed and (end time exists and is in future, or no end time but event is today)
       final inProgress = goingEvents.where((event) =>
           event.eventDateTime.isBefore(now) &&
-          (event.eventEndDateTime == null ||
-              event.eventEndDateTime!.isAfter(now)));
+          ((event.eventEndDateTime != null &&
+                  event.eventEndDateTime!.isAfter(now)) ||
+              (event.eventEndDateTime == null &&
+                  event.eventDateTime.day == now.day)));
       _currentEvent = inProgress.isNotEmpty ? inProgress.first : null;
 
       // If no event is in progress, find an event scheduled for today (same day and start time after now)
