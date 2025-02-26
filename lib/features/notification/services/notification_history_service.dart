@@ -20,6 +20,7 @@ class NotificationHistoryService {
           .from('notifications')
           .select()
           .eq('supabase_id', userSupabaseId)
+          .eq('is_sent', true) // Ajout du filtre sur is_sent
           .order('created_at', ascending: false)
           .range(pageKey, pageKey + pageSize - 1);
 

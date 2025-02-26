@@ -80,10 +80,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
-  /// Groups notifications under headers to avoid duplicate headers.
+  /// Regroupe les notifications sous des entêtes en utilisant la date effective (scheduledTime si renseignée, sinon createdAt),
+  /// après avoir trié les notifications par cette date décroissante, et n'affiche que celles dont is_sent est true.
   List<ListItem> _groupNotifications(
       List<NotificationModel> notifications, bool isFirstPage) {
     List<ListItem> items = [];
+
+    // Filter only the sent notifications
+    List<NotificationModel> sentNotifications =
+        notifications.where((n) => n.isSent).toList();
+
+    // Sort by effective date (scheduledTime if available, otherwise createdAt)
+    sentNotifications.sort((a, b) {
+      DateTime effectiveA = a.scheduledTime ?? a.createdAt;
+      DateTime effectiveB = b.scheduledTime ?? b.createdAt;
+      return effectiveB.compareTo(effectiveA);
+    });
 
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
@@ -92,17 +104,33 @@ class _NotificationScreenState extends State<NotificationScreen> {
     DateTime last30Days = today.subtract(Duration(days: 30));
 
     if (isFirstPage) {
-      _lastHeader = null; // Reset header for the first page
+      _lastHeader = null; // Reset for the first page
     }
 
-    for (var notification in notifications) {
-      String header = _getHeaderForDate(
-          notification.createdAt, today, yesterday, last7Days, last30Days);
+    for (var notification in sentNotifications) {
+      // If scheduledTime is set and is in the future, skip the notification.
+      if (notification.scheduledTime != null &&
+          notification.scheduledTime!.isAfter(now)) {
+        debugPrint(
+            "Notification ${notification.id} skipped because scheduledTime (${notification.scheduledTime}) is in the future relative to $now");
+        continue;
+      }
 
-      // Add header only if it's different from the last added header
+      // Use scheduledTime if available, otherwise createdAt
+      DateTime effectiveDate =
+          notification.scheduledTime ?? notification.createdAt;
+      debugPrint(
+          "Notification ${notification.id} - effectiveDate: $effectiveDate");
+
+      String header = _getHeaderForDate(
+          effectiveDate, today, yesterday, last7Days, last30Days);
+      debugPrint("Notification ${notification.id} - header: $header");
+
+      // Add the header only if it differs from the previous one
       if (header != _lastHeader) {
         _lastHeader = header;
         items.add(HeaderItem(header));
+        debugPrint("Header added: $header");
       }
 
       items.add(NotificationItem(notification));

@@ -16,13 +16,14 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Fix notification grouping and filtering
 - Update EditEventArtistScreen for Timetable Integration
 - Centralized loading indicator and other optimizations
 - Hide bottom buttons and "Only followed artists" when user is not logged in
 - Integrate Artist Notification Button & Improve Timetable Filtering
 - Implement Event Timetable System and Artist Notifications for GridView
 - Implement Calendar Feature and Update Event Status Filtering
-- Release 1.0.1 - Calendar and Timetable features
+- Release 1.0.2 - Calendar and Timetable features
 
 ### Known Issues
 
