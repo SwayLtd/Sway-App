@@ -64,10 +64,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
       }
 
       List<Event> events = eventsData
-          .map((data) {
-            final event = data['event'] as Event?;
-            return event;
-          })
+          .map((data) => data['event'] as Event?)
           .where((event) => event != null)
           .cast<Event>()
           .toList();
@@ -80,11 +77,14 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
         return [];
       }
 
-      // Filtrer pour ne garder qu'un seul événement par ID
-      final Map<String, Event> uniqueEvents = {};
+      // Vérifier les doublons en utilisant le bon type pour l'ID
+      final Map<int, Event> uniqueEvents = {};
       for (var event in upcomingEvents) {
-        uniqueEvents.putIfAbsent(event.id as String, () => event);
+        if (event.id != null) {
+          uniqueEvents.putIfAbsent(event.id!, () => event);
+        }
       }
+
       final distinctUpcomingEvents = uniqueEvents.values.toList();
 
       // Trier par date d'événement
