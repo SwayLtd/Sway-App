@@ -338,143 +338,141 @@ class _TimetableWidgetState extends State<TimetableWidget> {
     );
   }
 
-  // Affichage du filtre pour la sélection et le réordonnancement des stages
   void _showFilterDialog() {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true, // Permet d'utiliser toute la hauteur disponible
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setModalState) {
-            return Column(
-              children: [
-                Container(
-                  height: 5,
-                  width: 50,
-                  margin: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                Stack(
-                  children: [
-                    const Center(
-                      child: Text(
-                        'FILTERS',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
+        return Container(
+          height: MediaQuery.of(context).size.height *
+              0.7, // 70% de la hauteur de l'écran
+          child: StatefulBuilder(
+            builder: (ctx, setModalState) {
+              return Column(
+                children: [
+                  Container(
+                    height: 5,
+                    width: 50,
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: IconButton(
-                          icon: const Icon(Icons.restore),
-                          onPressed: () {
-                            setModalState(() {
-                              // Réinitialiser l'ordre des stages
-                              selectedStages = List.from(initialStages);
-                              _stages = List.from(initialStages);
-                            });
-                          },
+                  ),
+                  Stack(
+                    children: [
+                      const Center(
+                        child: Text(
+                          'FILTERS',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'STAGES',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: ReorderableListView(
-                    onReorder: (oldIndex, newIndex) {
-                      setModalState(() {
-                        // Mettre à jour l'ordre des stages dans _stages et selectedStages
-                        final String stage = selectedStages.removeAt(oldIndex);
-                        selectedStages.insert(newIndex, stage);
-
-                        // Réorganiser également _stages pour que l'ordre des stages décochées soit le même
-                        _stages.removeAt(oldIndex);
-                        _stages.insert(newIndex, stage);
-                      });
-                    },
-                    children: _stages.map((stage) {
-                      final isChecked = selectedStages.contains(stage);
-                      return Column(
-                        key: Key(stage),
-                        children: [
-                          ListTile(
-                            leading: const Icon(Icons.drag_handle),
-                            title: Text(capitalizeFirst(stage)),
-                            trailing: Checkbox(
-                              value: isChecked,
-                              onChanged: (bool? val) {
-                                if (val == null) return;
-                                setModalState(() {
-                                  // Si on coche/décoche une stage
-                                  if (val == true &&
-                                      !selectedStages.contains(stage)) {
-                                    selectedStages.add(stage);
-                                  } else if (!val) {
-                                    selectedStages.remove(stage);
-                                  }
-                                });
-                              },
-                            ),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: IconButton(
+                            icon: const Icon(Icons.restore),
+                            onPressed: () {
+                              setModalState(() {
+                                // Réinitialiser l'ordre des stages
+                                selectedStages = List.from(initialStages);
+                                _stages = List.from(initialStages);
+                              });
+                            },
                           ),
-                          const Divider(color: Colors.grey, height: 1),
-                        ],
-                      );
-                    }).toList(),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                SwitchListTile.adaptive(
-                  title: const Text('Compact grid view'),
-                  value: useCompactGridView,
-                  onChanged: (bool val) {
-                    setModalState(() {
-                      useCompactGridView = val;
-                    });
-                  },
-                ),
-                if (_isLoggedIn)
-                  SwitchListTile.adaptive(
-                    title: const Text('Only followed artists'),
-                    value: showOnlyFollowedArtists,
-                    onChanged: (bool val) {
-                      setModalState(() {
-                        showOnlyFollowedArtists = val;
-                      });
-                    },
-                  ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        setState(
-                            () {}); // Rafraîchir l'écran principal après application du filtre
-                      },
-                      child: const Text(
-                        'APPLY',
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'STAGES',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
+                  Expanded(
+                    child: ReorderableListView(
+                      onReorder: (oldIndex, newIndex) {
+                        setModalState(() {
+                          final String stage =
+                              selectedStages.removeAt(oldIndex);
+                          selectedStages.insert(newIndex, stage);
+                          _stages.removeAt(oldIndex);
+                          _stages.insert(newIndex, stage);
+                        });
+                      },
+                      children: _stages.map((stage) {
+                        final isChecked = selectedStages.contains(stage);
+                        return Column(
+                          key: Key(stage),
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.drag_handle),
+                              title: Text(capitalizeFirst(stage)),
+                              trailing: Checkbox(
+                                value: isChecked,
+                                onChanged: (bool? val) {
+                                  if (val == null) return;
+                                  setModalState(() {
+                                    if (val &&
+                                        !selectedStages.contains(stage)) {
+                                      selectedStages.add(stage);
+                                    } else if (!val) {
+                                      selectedStages.remove(stage);
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+                            const Divider(color: Colors.grey, height: 1),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  SwitchListTile.adaptive(
+                    title: const Text('Compact grid view'),
+                    value: useCompactGridView,
+                    onChanged: (bool val) {
+                      setModalState(() {
+                        useCompactGridView = val;
+                      });
+                    },
+                  ),
+                  if (_isLoggedIn)
+                    SwitchListTile.adaptive(
+                      title: const Text('Only followed artists'),
+                      value: showOnlyFollowedArtists,
+                      onChanged: (bool val) {
+                        setModalState(() {
+                          showOnlyFollowedArtists = val;
+                        });
+                      },
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() {});
+                        },
+                        child: const Text('APPLY'),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         );
       },
     );
