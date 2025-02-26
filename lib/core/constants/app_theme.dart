@@ -299,6 +299,9 @@ class AppTheme {
       ),
       elevation: 0.0,
       color: Color.fromRGBO(15, 13, 8, 1), // Fond de l'AppBar légèrement grisé
+      actionsIconTheme: IconThemeData(
+        size: 20.0,
+      ),
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor:
