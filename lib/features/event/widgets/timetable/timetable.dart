@@ -6,7 +6,7 @@ import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_artist_service.dart';
 import 'package:sway/features/event/widgets/timetable/timetable_list.dart';
-import 'package:sway/features/event/widgets/timetable/timetable_grid.dart';
+import 'package:sway/features/event/widgets/timetable/timetable_compact_grid.dart';
 import 'package:sway/core/utils/text_formatting.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
@@ -179,7 +179,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                 );
               } else {
                 // Grid
-                return GridViewWidget(
+                return CompactGridViewWidget(
                   event: widget.event,
                   eventArtists: filtered,
                   showOnlyFollowedArtists: showOnlyFollowedArtists,

@@ -259,6 +259,10 @@ class AppTheme {
         fontWeight: FontWeight.w400,
       ),
     ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.all(Colors.white),
+      trackColor: WidgetStateProperty.all(Colors.grey[500]),
+    ),
     // In the dark theme
     snackBarTheme: SnackBarThemeData(
       actionTextColor: Colors.black, // Dark text for actions

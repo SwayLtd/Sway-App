@@ -267,6 +267,29 @@ class _GridViewWidgetState extends State<GridViewWidget> {
       current = current.add(const Duration(hours: 1));
     }
 
+    final currentTime = DateTime.now();
+    double? currentOffset;
+
+    int startMinutes = hours.first.hour * 60 + hours.first.minute;
+    int endMinutes = hours.last.hour * 60 + hours.last.minute;
+    int currentMinutes = currentTime.hour * 60 + currentTime.minute;
+
+    // Si la plage traverse minuit, ajuster endMinutes (et currentMinutes si nécessaire)
+    if (endMinutes < startMinutes) {
+      endMinutes += 1440;
+      if (currentMinutes < startMinutes) {
+        currentMinutes += 1440;
+      }
+    }
+
+    if (currentMinutes >= startMinutes && currentMinutes <= endMinutes) {
+      final diffMinutes = currentMinutes - startMinutes;
+      // Exemple : 150 pixels par heure et 100 pixels de décalage initial pour les labels
+      currentOffset = 100 + (diffMinutes * 150 / 60);
+    } else {
+      print("The current time is not within the range displayed.");
+    }
+
     // 6. Regrouper les assignations par stage (en se basant sur widget.selectedStages)
     final Map<String, List<Map<String, dynamic>>> artistsByStage = {};
     for (final assignment in artistsToShow) {
@@ -332,6 +355,20 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                             ),
                           ),
                         ),
+
+                        // Ligne rouge indiquant l'heure actuelle
+                        if (currentOffset != null) ...[
+                          Positioned(
+                            left: currentOffset,
+                            top: 55, // 40 (Container) + 15 (margin)
+                            bottom: 0,
+                            child: Container(
+                              width: 2,
+                              color: Colors.red.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+
                         // 2) Les "rows" par stage
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,7 +492,15 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                                         }
                                       },
                                       child: Card(
-                                        color: Theme.of(context).cardColor,
+                                        color:
+                                            (widget.followedArtistIds != null &&
+                                                    widget.followedArtistIds!
+                                                        .contains(
+                                                            artists.first.id!))
+                                                ? Theme.of(context)
+                                                    .primaryColor
+                                                    .withValues(alpha: 0.3)
+                                                : Theme.of(context).cardColor,
                                         shape: RoundedRectangleBorder(
                                           side: BorderSide(
                                             color:
@@ -688,6 +733,36 @@ class _GridViewWidgetState extends State<GridViewWidget> {
                             }).toList(),
                           ],
                         ),
+
+                        if (currentOffset != null) ...[
+                          // Texte indiquant l'heure actuelle, si besoin de le superposer à la timeline
+                          Positioned(
+                            left: currentOffset - 30,
+                            top: 16,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 2.0, horizontal: 4),
+                              decoration: BoxDecoration(
+                                borderRadius: new BorderRadius.circular(8.0),
+                                border: Border.all(
+                                    color: Colors.red.withValues(alpha: 0.8)),
+                                color:
+                                    Theme.of(context).scaffoldBackgroundColor,
+                              ),
+                              height: 28,
+                              width: 60,
+                              alignment: Alignment.topCenter,
+                              // padding: const EdgeInsets.only(left: 4),
+                              child: Text(
+                                DateFormat.Hm().format(currentTime),
+                                style: TextStyle(
+                                  color: Colors.red.withValues(alpha: 0.8),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
