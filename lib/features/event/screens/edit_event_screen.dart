@@ -989,7 +989,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                                     });
                                   }
                                 },
-                                child: const Text('Manage Days'),
+                                child: const Text('MANAGE DAYS'),
                               ),
                             ),
                             // Pour gérer les stages
@@ -1010,7 +1010,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                                     });
                                   }
                                 },
-                                child: const Text('Manage Stages'),
+                                child: const Text('MANAGE STAGES'),
                               ),
                             ),
                           ],
@@ -2121,7 +2121,7 @@ class _ManageDaysBottomSheetState extends State<ManageDaysBottomSheet> {
           ),
           ElevatedButton(
             onPressed: _addDay,
-            child: const Text('Add Day'),
+            child: const Text('ADD DAY'),
           ),
         ],
       ),

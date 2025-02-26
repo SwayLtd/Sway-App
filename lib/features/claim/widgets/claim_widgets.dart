@@ -127,31 +127,6 @@ class _ClaimPageTileState extends State<ClaimPageTile> {
                                   '/claimForm/${widget.entityType}/${widget.entityId}';
                               context.push(route);
                             },
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                        backgroundColor: _isLoggedIn
-                            ? Theme.of(context).colorScheme.surface
-                            : Colors.transparent,
-                        foregroundColor: _isLoggedIn
-                            ? Theme.of(context).colorScheme.onSurface
-                            : Colors.grey,
-                        side: BorderSide(
-                          color: _isLoggedIn
-                              ? (Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.black)
-                              : Colors.grey,
-                          width: 1,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: _isLoggedIn
-                            ? (Theme.of(context).brightness == Brightness.dark
-                                ? 2
-                                : 0)
-                            : 0,
-                      ),
                       child: const Text('CLAIM THIS PAGE'),
                     )
                   ],

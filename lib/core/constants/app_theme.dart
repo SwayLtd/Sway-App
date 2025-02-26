@@ -49,9 +49,10 @@ class AppTheme {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
+        iconColor: Colors.black,
         elevation: 0,
         backgroundColor: Colors.white,
-        // foregroundColor: Theme.of(context).colorScheme.onSurface,
+        foregroundColor: Colors.black,
         side: BorderSide(color: Colors.black, width: 1),
         minimumSize: const Size(double.infinity, 50),
         shape: RoundedRectangleBorder(
@@ -265,9 +266,10 @@ class AppTheme {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
+        iconColor: Colors.white,
         elevation: 2,
         backgroundColor: Colors.black54,
-        // foregroundColor: Theme.of(context).colorScheme.onSurface,
+        foregroundColor: Colors.white,
         side: BorderSide(color: Colors.white, width: 1),
         minimumSize: const Size(double.infinity, 50),
         shape: RoundedRectangleBorder(

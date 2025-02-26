@@ -240,7 +240,7 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
               ElevatedButton.icon(
                 onPressed: _pickFile,
                 icon: const Icon(Icons.upload_file),
-                label: Text(_selectedFileName ?? 'Upload Proof File'),
+                label: Text(_selectedFileName ?? 'UPLOAD PROOF FILE'),
               ),
               const SizedBox(height: sectionTitleSpacing),
               // Text field for additional evidence or proof data.
@@ -258,16 +258,6 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
               const SizedBox(height: sectionSpacing),
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
-                style: ElevatedButton.styleFrom(
-                  elevation: isDark ? 2 : 0,
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                  side: BorderSide(
-                    color: isDark ? Colors.white : Colors.black,
-                    width: 1,
-                  ),
-                  minimumSize: const Size(double.infinity, 50),
-                ),
                 child: _isSubmitting
                     ? const SizedBox(
                         width: 20,
@@ -277,7 +267,7 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Submit Claim'),
+                    : const Text('SUBMIT CLAIM'),
               ),
               const SizedBox(height: sectionSpacing),
 // TextButton to navigate to Claim History Screen

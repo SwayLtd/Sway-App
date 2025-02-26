@@ -41,23 +41,7 @@ class HelpScreen extends StatelessWidget {
             // Action button using a style similar to your snippet.
             ElevatedButton(
               onPressed: onPressed,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Theme.of(context).colorScheme.surface,
-                foregroundColor: Theme.of(context).colorScheme.onSurface,
-                side: BorderSide(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
-                  width: 1,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation:
-                    Theme.of(context).brightness == Brightness.dark ? 2 : 0,
-              ),
-              child: Text(buttonText),
+              child: Text(buttonText.toUpperCase()),
             )
           ],
         ),

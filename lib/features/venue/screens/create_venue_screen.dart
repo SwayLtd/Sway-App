@@ -297,16 +297,7 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Create Venue'),
-                style: ElevatedButton.styleFrom(
-                  // Couleurs selon le thème
-                  side: BorderSide(
-                      color: isDark ? Colors.white : Colors.black, width: 1),
-                  elevation: isDark ? 2 : 0,
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                  minimumSize: const Size(double.infinity, 50),
-                ),
+                    : const Text('CREATE VENUE'),
               ),
             ],
           ),

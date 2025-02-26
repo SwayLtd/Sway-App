@@ -443,9 +443,6 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                      ),
                       onPressed: () {
                         Navigator.pop(context);
                         setState(

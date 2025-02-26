@@ -881,7 +881,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                   });
                                 }
                               },
-                              child: const Text('Manage Days'),
+                              child: const Text('MANAGE DAYS'),
                             ),
                           ),
                           Expanded(
@@ -900,7 +900,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                   });
                                 }
                               },
-                              child: const Text('Manage Stages'),
+                              child: const Text('MANAGE STAGES'),
                             ),
                           ),
                         ],
@@ -911,15 +911,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   // Bouton de création
                   ElevatedButton(
                     onPressed: _isSubmitting ? null : _submitForm,
-                    style: ElevatedButton.styleFrom(
-                      elevation: isDark ? 2 : 0,
-                      backgroundColor: Theme.of(context).colorScheme.surface,
-                      foregroundColor: Theme.of(context).colorScheme.onSurface,
-                      side: BorderSide(
-                          color: isDark ? Colors.white : Colors.black,
-                          width: 1),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
                     child: _isSubmitting
                         ? const SizedBox(
                             width: 20,
@@ -927,7 +918,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Create Event'),
+                        : const Text('CREATE EVENT'),
                   ),
                 ],
               ),
@@ -1550,7 +1541,7 @@ class _ManageDaysBottomSheetState extends State<ManageDaysBottomSheet> {
 
           ElevatedButton(
             onPressed: _addDay,
-            child: const Text('Add Day'),
+            child: const Text('ADD DAY'),
           ),
         ],
       ),
