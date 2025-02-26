@@ -328,7 +328,7 @@ class _TimetableListViewState extends State<TimetableListView> {
                                 children: [
                                   Icon(Icons.favorite_border,
                                       color: Colors.transparent),
-                                  SizedBox(width: 12.0),
+                                  SizedBox(width: 12.0), // usefull?
                                   IconButton(
                                     icon: Icon(
                                       isLoadingNotify

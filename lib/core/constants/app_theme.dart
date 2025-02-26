@@ -23,7 +23,8 @@ class AppTheme {
     fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
     disabledColor: Colors.black54,
     scaffoldBackgroundColor: Colors.grey[200], // Légèrement grisé pour le fond
-    cardColor: Colors.transparent, // Couleur blanche pour les cartes
+    cardColor:
+        Colors.white.withValues(alpha: 0.5), // Couleur blanche pour les cartes
     cardTheme: CardTheme(
       color: Colors.transparent,
       surfaceTintColor: Colors.transparent,

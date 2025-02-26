@@ -294,7 +294,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     ? Colors.white
                     : Theme.of(context).brightness == Brightness.dark
                         ? Colors.grey[300]
-                        : Colors.grey[600],
+                        : Colors.grey[500],
               ),
             ),
           ),
@@ -320,7 +320,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     ? Colors.white
                     : Theme.of(context).brightness == Brightness.dark
                         ? Colors.grey[300]
-                        : Colors.grey[600],
+                        : Colors.grey[500],
               ),
             ),
           ),
