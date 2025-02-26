@@ -60,17 +60,12 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
           await _eventArtistService.getEventsByArtistId(widget.artist.id!);
 
       if (eventsData.isEmpty) {
-        // print('Aucun événement trouvé pour l\'artiste ID: ${widget.artist.id!}');
         return [];
       }
 
       List<Event> events = eventsData
           .map((data) {
             final event = data['event'] as Event?;
-            if (event == null) {
-              // print('Données de l\'événement manquantes pour l\'artiste ID: ${widget.artist.id!}');
-              return null;
-            }
             return event;
           })
           .where((event) => event != null)
@@ -85,7 +80,16 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
         return [];
       }
 
-      upcomingEvents.sort((a, b) => a.eventDateTime.compareTo(b.eventDateTime));
+      // Filtrer pour ne garder qu'un seul événement par ID
+      final Map<String, Event> uniqueEvents = {};
+      for (var event in upcomingEvents) {
+        uniqueEvents.putIfAbsent(event.id as String, () => event);
+      }
+      final distinctUpcomingEvents = uniqueEvents.values.toList();
+
+      // Trier par date d'événement
+      distinctUpcomingEvents
+          .sort((a, b) => a.eventDateTime.compareTo(b.eventDateTime));
 
       if (!_hasTimer) {
         _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -96,9 +100,8 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
         _hasTimer = true;
       }
 
-      return upcomingEvents;
+      return distinctUpcomingEvents;
     } catch (e) {
-      // print('Erreur lors de la récupération des événements: $e');
       return [];
     }
   }
