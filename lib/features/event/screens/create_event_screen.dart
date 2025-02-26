@@ -24,15 +24,17 @@ import 'package:sway/features/venue/services/venue_service.dart';
 
 /// Modèle pour représenter une journée de festival
 class FestivalDay {
+  final String id;
   String name;
   DateTime start;
   DateTime end;
 
   FestivalDay({
+    String? id,
     required this.name,
     required this.start,
     required this.end,
-  });
+  }) : id = id ?? UniqueKey().toString();
 }
 
 class CreateEventScreen extends StatefulWidget {
@@ -561,6 +563,70 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   ),
                   const SizedBox(height: sectionSpacing),
 
+                  // Si timetable activé, afficher les boutons pour gérer Days et Stages
+                  if (_isTimetableEnabled)
+                    Container(
+                      width: MediaQuery.of(context).size.width,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4.0),
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  final result = await showModalBottomSheet<
+                                      List<FestivalDay>>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (context) => ManageDaysBottomSheet(
+                                        existingDays: _festivalDays),
+                                  );
+                                  if (result != null) {
+                                    setState(() {
+                                      _festivalDays = result;
+                                    });
+                                  }
+                                },
+                                child: const Text('MANAGE DAYS',
+                                    style: TextStyle(fontSize: 12)),
+                              ),
+                            ),
+                          ),
+                          // Pour gérer les stages
+                          Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4.0),
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  final result =
+                                      await showModalBottomSheet<List<String>>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (context) =>
+                                        ManageStagesBottomSheet(
+                                            existingStages: _stages),
+                                  );
+                                  if (result != null) {
+                                    setState(() {
+                                      _stages = result;
+                                    });
+                                  }
+                                },
+                                child: const Text(
+                                  'MANAGE STAGES',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: sectionSpacing),
+
                   // Description
                   TextFormField(
                     controller: _descriptionController,
@@ -854,56 +920,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                         children: _selectedGenres.map((genreId) {
                           return GenreChip(genreId: genreId);
                         }).toList(),
-                      ),
-                    ),
-                  const SizedBox(height: sectionSpacing),
-
-                  // Si timetable activé, afficher les boutons pour gérer Days et Stages
-                  if (_isTimetableEnabled)
-                    Container(
-                      width: MediaQuery.of(context).size.width,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                final result = await showModalBottomSheet<
-                                    List<FestivalDay>>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (context) => ManageDaysBottomSheet(
-                                      existingDays: _festivalDays),
-                                );
-                                if (result != null) {
-                                  setState(() {
-                                    _festivalDays = result;
-                                  });
-                                }
-                              },
-                              child: const Text('MANAGE DAYS'),
-                            ),
-                          ),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                final result =
-                                    await showModalBottomSheet<List<String>>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  builder: (context) => ManageStagesBottomSheet(
-                                      existingStages: _stages),
-                                );
-                                if (result != null) {
-                                  setState(() {
-                                    _stages = result;
-                                  });
-                                }
-                              },
-                              child: const Text('MANAGE STAGES'),
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   const SizedBox(height: sectionSpacing),
@@ -1436,14 +1452,13 @@ class _ManageDaysBottomSheetState extends State<ManageDaysBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.of(context).padding.top;
     final double screenHeight = MediaQuery.of(context).size.height;
-    final double sheetHeight =
-        min(screenHeight * 0.6, screenHeight - statusBarHeight - 100);
+    // Augmenter la hauteur du bottom sheet à 80 % de l'écran
+    final double sheetHeight = screenHeight * 0.8;
 
     return Container(
       height: sheetHeight,
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
       child: Column(
         children: [
           Container(
@@ -1460,15 +1475,20 @@ class _ManageDaysBottomSheetState extends State<ManageDaysBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () =>
-                      Navigator.of(context).pop(widget.existingDays)),
-              IconButton(icon: const Icon(Icons.save), onPressed: _saveDays),
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(widget.existingDays),
+              ),
+              IconButton(
+                icon: const Icon(Icons.save),
+                onPressed: _saveDays,
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          const Text('Manage Days',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text(
+            'MANAGE DAYS',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 16),
           Expanded(
             child: _days.isEmpty
@@ -1484,7 +1504,7 @@ class _ManageDaysBottomSheetState extends State<ManageDaysBottomSheet> {
                     children: [
                       for (int index = 0; index < _days.length; index++)
                         Card(
-                          key: ValueKey('day_$index'),
+                          key: ValueKey(_days[index].id),
                           child: ListTile(
                             leading: ReorderableDragStartListener(
                               index: index,
@@ -1538,7 +1558,6 @@ class _ManageDaysBottomSheetState extends State<ManageDaysBottomSheet> {
                     ],
                   ),
           ),
-
           ElevatedButton(
             onPressed: _addDay,
             child: const Text('ADD DAY'),
@@ -1615,7 +1634,7 @@ class _ManageStagesBottomSheetState extends State<ManageStagesBottomSheet> {
 
     return Container(
       height: sheetHeight,
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
       child: Column(
         children: [
           Container(
@@ -1639,7 +1658,7 @@ class _ManageStagesBottomSheetState extends State<ManageStagesBottomSheet> {
             ],
           ),
           const SizedBox(height: 16),
-          const Text('Manage Stages',
+          const Text('MANAGE STAGES',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Row(

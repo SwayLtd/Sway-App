@@ -29,15 +29,17 @@ import 'package:sway/features/artist/services/artist_service.dart';
 
 /// Modèle pour représenter une journée de festival
 class FestivalDay {
+  final String id;
   String name;
   DateTime start;
   DateTime end;
 
   FestivalDay({
+    String? id,
     required this.name,
     required this.start,
     required this.end,
-  });
+  }) : id = id ?? UniqueKey().toString();
 }
 
 /// EditEventScreen: permet d'éditer un event existant.
@@ -507,9 +509,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
       }
 
       // Ajout de la timetable
+      // Ajout de la timetable
       mergedMetadata['timetable'] = _isTimetableEnabled;
       if (_isTimetableEnabled) {
-        // Mettre à jour les jours de festival
+        // Préparer la liste des jours
         final List<Map<String, dynamic>> days = _festivalDays
             .map((day) => {
                   'name': day.name,
@@ -517,10 +520,21 @@ class _EditEventScreenState extends State<EditEventScreen> {
                   'end': day.end.toIso8601String(),
                 })
             .toList();
-        mergedMetadata['festival_days'] = days;
 
-        // Mettre à jour les stages
-        mergedMetadata['stages'] = _stages;
+        // Si les métadonnées originales contiennent "festival_info", on met à jour cette structure
+        if (mergedMetadata.containsKey('festival_info')) {
+          mergedMetadata['festival_info'] = {
+            'days': days,
+            'stages': _stages,
+          };
+          // Optionnel : Supprimer les anciennes clés si elles existent
+          mergedMetadata.remove('festival_days');
+          mergedMetadata.remove('stages');
+        } else {
+          // Sinon, on enregistre directement les données
+          mergedMetadata['festival_days'] = days;
+          mergedMetadata['stages'] = _stages;
+        }
       }
 
       // Créer l'événement mis à jour avec la metadata fusionnée
@@ -919,6 +933,71 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     ),
                     const SizedBox(height: sectionSpacing),
 
+                    // Si timetable activé, afficher les boutons pour gérer Days et Stages
+                    if (_isTimetableEnabled)
+                      Container(
+                        width: MediaQuery.of(context).size.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4.0),
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    final result = await showModalBottomSheet<
+                                        List<FestivalDay>>(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      builder: (context) =>
+                                          ManageDaysBottomSheet(
+                                              existingDays: _festivalDays),
+                                    );
+                                    if (result != null) {
+                                      setState(() {
+                                        _festivalDays = result;
+                                      });
+                                    }
+                                  },
+                                  child: const Text('MANAGE DAYS',
+                                      style: TextStyle(fontSize: 12)),
+                                ),
+                              ),
+                            ),
+                            // Pour gérer les stages
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4.0),
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    final result = await showModalBottomSheet<
+                                        List<String>>(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      builder: (context) =>
+                                          ManageStagesBottomSheet(
+                                              existingStages: _stages),
+                                    );
+                                    if (result != null) {
+                                      setState(() {
+                                        _stages = result;
+                                      });
+                                    }
+                                  },
+                                  child: const Text(
+                                    'MANAGE STAGES',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: sectionSpacing),
+
                     // Description
                     TextFormField(
                       controller: _descriptionController,
@@ -965,57 +1044,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
                     const SizedBox(height: sectionSpacing),
                     // Genres section
                     _buildGenresSection(),
-                    const SizedBox(height: sectionSpacing),
-                    // Si timetable activé, afficher les boutons pour gérer Days et Stages
-                    if (_isTimetableEnabled)
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  final result = await showModalBottomSheet<
-                                      List<FestivalDay>>(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (context) => ManageDaysBottomSheet(
-                                        existingDays: _festivalDays),
-                                  );
-                                  if (result != null) {
-                                    setState(() {
-                                      _festivalDays = result;
-                                    });
-                                  }
-                                },
-                                child: const Text('MANAGE DAYS'),
-                              ),
-                            ),
-                            // Pour gérer les stages
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  final result =
-                                      await showModalBottomSheet<List<String>>(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (context) =>
-                                        ManageStagesBottomSheet(
-                                            existingStages: _stages),
-                                  );
-                                  if (result != null) {
-                                    setState(() {
-                                      _stages = result;
-                                    });
-                                  }
-                                },
-                                child: const Text('MANAGE STAGES'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     const SizedBox(height: sectionSpacing),
                     // Artists section
                     _buildArtistsSection(),
@@ -2045,7 +2073,7 @@ class _ManageDaysBottomSheetState extends State<ManageDaysBottomSheet> {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Manage Days',
+            'MANAGE DAYS',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -2063,7 +2091,7 @@ class _ManageDaysBottomSheetState extends State<ManageDaysBottomSheet> {
                     children: [
                       for (int index = 0; index < _days.length; index++)
                         Card(
-                          key: ValueKey('day_$index'),
+                          key: ValueKey(_days[index].id),
                           child: ListTile(
                             leading: ReorderableDragStartListener(
                               index: index,
@@ -2086,8 +2114,7 @@ class _ManageDaysBottomSheetState extends State<ManageDaysBottomSheet> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        'Start: ${_days[index].start.toLocal().toString().substring(0, 16)}',
-                                      ),
+                                          'Start: ${_days[index].start.toLocal().toString().substring(0, 16)}'),
                                     ),
                                     IconButton(
                                       icon: const Icon(Icons.calendar_today),
@@ -2099,8 +2126,7 @@ class _ManageDaysBottomSheetState extends State<ManageDaysBottomSheet> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        'End: ${_days[index].end.toLocal().toString().substring(0, 16)}',
-                                      ),
+                                          'End: ${_days[index].end.toLocal().toString().substring(0, 16)}'),
                                     ),
                                     IconButton(
                                       icon: const Icon(Icons.calendar_today),
@@ -2219,7 +2245,7 @@ class _ManageStagesBottomSheetState extends State<ManageStagesBottomSheet> {
             ],
           ),
           const SizedBox(height: 16),
-          const Text('Manage Stages',
+          const Text('MANAGE STAGES',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Row(
