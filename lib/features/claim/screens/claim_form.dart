@@ -195,7 +195,6 @@ class _ClaimFormScreenState extends State<ClaimFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: Text('Claim Form for ${widget.entityType.capitalize()}'),
