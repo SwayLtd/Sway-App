@@ -30,6 +30,14 @@ class AppTheme {
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
     ),
+    canvasColor: Colors.white,
+    dropdownMenuTheme: DropdownMenuThemeData(
+      textStyle: TextStyle(
+        color: Colors.black,
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+      ),
+    ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.all(Colors.white),
       trackColor: WidgetStateProperty.all(Colors.grey[500]),
@@ -241,6 +249,14 @@ class AppTheme {
       color: Color.fromRGBO(15, 13, 8, 1),
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
+    ),
+    canvasColor: Colors.black,
+    dropdownMenuTheme: DropdownMenuThemeData(
+      textStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+      ),
     ),
     // In the dark theme
     snackBarTheme: SnackBarThemeData(
