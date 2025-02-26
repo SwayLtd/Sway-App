@@ -350,6 +350,25 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
                             ],
                           ));
 
+                          if (assignment['custom_name'] != null &&
+                              (assignment['custom_name'] as String)
+                                  .isNotEmpty) {
+                            infoRows.add(Row(
+                              children: [
+                                const Icon(Icons.edit, size: 14),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    assignment['custom_name'],
+                                    style: const TextStyle(fontSize: 14),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ));
+                          }
+
                           // Pour le champ stage, si timetable est active, afficher l'icône avec le message d'erreur à droite
                           if (_timetableActive) {
                             if (assignment['stage'] != null &&

@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Fix custom name reintegration on artist assignment screen
 - Fix timetable filtering issues
 - Fix notification grouping and filtering
 - Update EditEventArtistScreen for Timetable Integration
