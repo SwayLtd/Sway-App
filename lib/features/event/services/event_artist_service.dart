@@ -95,7 +95,7 @@ class EventArtistService {
               ? DateTime.parse(entry['end_time'] as String)
               : null,
           'status': entry['status'] as String? ?? '', // Valeur par défaut
-          'stage': (entry['stage'] as String? ?? '').toLowerCase(),
+          'stage': (entry['stage'] as String? ?? ''),
         };
       }).toList();
 
@@ -132,7 +132,7 @@ class EventArtistService {
             'start_time': assignment.startTime,
             'end_time': assignment.endTime,
             'status': assignment.status,
-            'stage': (assignment.stage ?? '').toLowerCase(),
+            'stage': (assignment.stage ?? ''),
           };
         }).toList();
         // print  "getArtistsByEventId (offline): Final cached result for eventId $eventId: ${result.map((r) => (r['artists'] as List).map((a) => (a as Artist).id).toList()).toList()}");
@@ -143,6 +143,7 @@ class EventArtistService {
     }
   }
 
+  // TODO : Method deprecated
   /// Retrieves artist assignments for a specific event filtered by a given day.
   Future<List<Map<String, dynamic>>> getArtistsByEventIdAndDay(
     int eventId,
@@ -323,7 +324,7 @@ class EventArtistService {
             'start_time': assignment.startTime?.toIso8601String(),
             'end_time': assignment.endTime?.toIso8601String(),
             'status': assignment.status,
-            'stage': (assignment.stage ?? '').toLowerCase(),
+            'stage': (assignment.stage ?? ''),
           };
         }).toList();
         // // print("getEventsByArtistId (offline): Final cached result for artistId $artistId: ${result.map((r) => (r['event'] as Event).id).toList()}");

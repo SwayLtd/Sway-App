@@ -107,7 +107,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
 
     final stages = festivalInfo['stages'] as List<dynamic>? ?? [];
     // On peut aussi normaliser ici en minuscule
-    _stages = stages.map((s) => (s as String).toLowerCase()).toList();
+    _stages = stages.map((s) => (s as String)).toList();
   }
 
   /// 2) Charger toutes les assignations (pour l'évent), extraire la liste des stages
@@ -116,8 +116,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
     final assignments =
         await EventArtistService().getArtistsByEventId(widget.event.id!);
 
-    final stageSet =
-        assignments.map((a) => (a['stage'] as String).toLowerCase()).toSet();
+    final stageSet = assignments.map((a) => (a['stage'] as String)).toSet();
 
     setState(() {
       _stages = stageSet.toList(); // Storing stages in the correct order
@@ -217,7 +216,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
       return eTime.isAfter(dayStart) && st.isBefore(dayEnd);
     }).where((assignment) {
       // Pour la comparaison, on met le stage en minuscules
-      final stage = (assignment['stage'] as String).toLowerCase();
+      final stage = (assignment['stage'] as String);
       return selectedStages.contains(stage);
     }).toList();
   }
