@@ -516,8 +516,8 @@ class _EditEventScreenState extends State<EditEventScreen> {
         final List<Map<String, dynamic>> days = _festivalDays
             .map((day) => {
                   'name': day.name,
-                  'start': day.start.toIso8601String(),
-                  'end': day.end.toIso8601String(),
+                  'start': day.start.toUtc().toIso8601String(),
+                  'end': day.end.toUtc().toIso8601String(),
                 })
             .toList();
 
