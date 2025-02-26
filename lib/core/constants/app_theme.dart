@@ -30,6 +30,10 @@ class AppTheme {
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
     ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.all(Colors.white),
+      trackColor: WidgetStateProperty.all(Colors.grey[500]),
+    ),
     // In the light theme
     snackBarTheme: SnackBarThemeData(
       actionTextColor: Colors.white, // Use your primary color for actions
