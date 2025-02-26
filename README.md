@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Add grid view selection option in filters
 - Add red timeline indicator for current time
 - New compact grid view for timetable
 - Fix custom name reintegration on artist assignment screen

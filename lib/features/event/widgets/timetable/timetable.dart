@@ -5,6 +5,7 @@ import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_artist_service.dart';
+import 'package:sway/features/event/widgets/timetable/timetable_grid.dart';
 import 'package:sway/features/event/widgets/timetable/timetable_list.dart';
 import 'package:sway/features/event/widgets/timetable/timetable_compact_grid.dart';
 import 'package:sway/core/utils/text_formatting.dart';
@@ -24,6 +25,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
   bool isGridView = false;
   bool showOnlyFollowedArtists = false;
   Set<int> _followedArtistIds = {};
+  bool useCompactGridView = true;
 
   final UserService _userService = UserService();
   bool _isLoggedIn = false;
@@ -166,28 +168,34 @@ class _TimetableWidgetState extends State<TimetableWidget> {
               }
 
               // Choix final : ListView ou GridView
+              // In the build() method, update the grid view choice:
               if (!isGridView) {
                 return TimetableListView(
-                  event: widget.event,
-                  eventArtists:
-                      filtered, // assignations filtrées pour le jour sélectionné
-                  showOnlyFollowedArtists: showOnlyFollowedArtists,
-                  stages: _stages,
-                  selectedStages: selectedStages,
-                  followedArtistIds:
-                      _followedArtistIds, // Ajouté ici si nécessaire
-                );
-              } else {
-                // Grid
-                return CompactGridViewWidget(
                   event: widget.event,
                   eventArtists: filtered,
                   showOnlyFollowedArtists: showOnlyFollowedArtists,
                   stages: _stages,
                   selectedStages: selectedStages,
-                  followedArtistIds:
-                      _followedArtistIds, // Transmet la liste préchargée
+                  followedArtistIds: _followedArtistIds,
                 );
+              } else {
+                return useCompactGridView
+                    ? CompactGridViewWidget(
+                        event: widget.event,
+                        eventArtists: filtered,
+                        showOnlyFollowedArtists: showOnlyFollowedArtists,
+                        stages: _stages,
+                        selectedStages: selectedStages,
+                        followedArtistIds: _followedArtistIds,
+                      )
+                    : GridViewWidget(
+                        event: widget.event,
+                        eventArtists: filtered,
+                        showOnlyFollowedArtists: showOnlyFollowedArtists,
+                        stages: _stages,
+                        selectedStages: selectedStages,
+                        followedArtistIds: _followedArtistIds,
+                      );
               }
             },
           ),
@@ -429,6 +437,15 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                     }).toList(),
                   ),
                 ),
+                SwitchListTile.adaptive(
+                  title: const Text('Compact grid view'),
+                  value: useCompactGridView,
+                  onChanged: (bool val) {
+                    setModalState(() {
+                      useCompactGridView = val;
+                    });
+                  },
+                ),
                 if (_isLoggedIn)
                   SwitchListTile.adaptive(
                     title: const Text('Only followed artists'),
@@ -449,8 +466,9 @@ class _TimetableWidgetState extends State<TimetableWidget> {
                         setState(
                             () {}); // Rafraîchir l'écran principal après application du filtre
                       },
-                      child: const Text('APPLY',
-                          style: TextStyle(color: Colors.white)),
+                      child: const Text(
+                        'APPLY',
+                      ),
                     ),
                   ),
                 ),

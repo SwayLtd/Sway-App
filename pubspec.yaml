@@ -12,7 +12,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 1.0.2+11 # New compact grid view for timetable and timeline indicator
+version: 1.0.2+12 # Add grid view selection option in filters
 
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
