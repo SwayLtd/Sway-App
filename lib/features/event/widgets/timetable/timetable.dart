@@ -99,13 +99,15 @@ class _TimetableWidgetState extends State<TimetableWidget> {
     _festivalDays = days.map((obj) {
       return {
         'name': (obj['name'] as String?) ?? 'Day',
-        'start': DateTime.parse(obj['start'] as String),
-        'end': DateTime.parse(obj['end'] as String),
+        // Conversion en local pour que la comparaison se fasse dans le même fuseau horaire que les assignations
+        'start': DateTime.parse(obj['start'] as String).toLocal(),
+        'end': DateTime.parse(obj['end'] as String).toLocal(),
       };
     }).toList();
 
     final stages = festivalInfo['stages'] as List<dynamic>? ?? [];
-    _stages = stages.map((s) => s as String).toList();
+    // On peut aussi normaliser ici en minuscule
+    _stages = stages.map((s) => (s as String).toLowerCase()).toList();
   }
 
   /// 2) Charger toutes les assignations (pour l'évent), extraire la liste des stages
@@ -211,11 +213,11 @@ class _TimetableWidgetState extends State<TimetableWidget> {
       final et = assignment['end_time'] as DateTime?;
       if (st == null) return false;
       final eTime = et ?? st;
-      // On inclut si le créneau chevauche le créneau du metadata
+      // On inclut si le créneau chevauche le créneau défini dans le metadata
       return eTime.isAfter(dayStart) && st.isBefore(dayEnd);
     }).where((assignment) {
-      final stage = assignment['stage'] as String;
-      // Inclure seulement les stages sélectionnées (même non cochées)
+      // Pour la comparaison, on met le stage en minuscules
+      final stage = (assignment['stage'] as String).toLowerCase();
       return selectedStages.contains(stage);
     }).toList();
   }

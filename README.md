@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Fix timetable filtering issues
 - Fix notification grouping and filtering
 - Update EditEventArtistScreen for Timetable Integration
 - Centralized loading indicator and other optimizations

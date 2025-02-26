@@ -95,7 +95,7 @@ class EventArtistService {
               ? DateTime.parse(entry['end_time'] as String)
               : null,
           'status': entry['status'] as String? ?? '', // Valeur par défaut
-          'stage': entry['stage'] as String? ?? '', // Valeur par défaut
+          'stage': (entry['stage'] as String? ?? '').toLowerCase(),
         };
       }).toList();
 
@@ -132,7 +132,7 @@ class EventArtistService {
             'start_time': assignment.startTime,
             'end_time': assignment.endTime,
             'status': assignment.status,
-            'stage': assignment.stage,
+            'stage': (assignment.stage ?? '').toLowerCase(),
           };
         }).toList();
         // print  "getArtistsByEventId (offline): Final cached result for eventId $eventId: ${result.map((r) => (r['artists'] as List).map((a) => (a as Artist).id).toList()).toList()}");
@@ -146,26 +146,29 @@ class EventArtistService {
   /// Retrieves artist assignments for a specific event filtered by a given day.
   Future<List<Map<String, dynamic>>> getArtistsByEventIdAndDay(
     int eventId,
-    DateTime day,
-  ) async {
+    DateTime day, {
+    DateTime? customDayStart,
+    DateTime? customDayEnd,
+  }) async {
     final online = await isConnected();
     final isar = await _isarFuture;
 
-    // dayStart/dayEnd pour filtrer localement
-    final dayStart = DateTime(day.year, day.month, day.day);
-    final dayEnd = dayStart.add(const Duration(days: 1));
+    // Si on fournit des bornes personnalisées (issues du metadata), on les utilise.
+    // Sinon, on se base sur le jour en cours (00:00 à 00:00).
+    final dayStart = customDayStart ?? DateTime(day.year, day.month, day.day);
+    final dayEnd = customDayEnd ?? dayStart.add(const Duration(days: 1));
 
     if (online) {
-      // 1) Récupérer toutes les affectations supabase pour cet event
+      // 1) Récupérer toutes les affectations Supabase pour cet event
       final response =
           await _supabase.from('event_artist').select().eq('event_id', eventId);
       if ((response as List).isEmpty) return [];
 
-      // 2) Mettre à jour le cache local (comme dans getArtistsByEventId)
+      // 2) Mettre à jour le cache local
       final assignments = response.map<Map<String, dynamic>>((e) => e).toList();
       await _updateEventArtistAssignmentsCache(eventId, assignments);
 
-      // 3) Filtrer par jour (en tenant compte d’un overlap éventuel ?)
+      // 3) Filtrer par jour en utilisant les bornes dayStart et dayEnd
       final filtered = <Map<String, dynamic>>[];
       for (final assignment in assignments) {
         final rawStart = assignment['start_time'] as String?;
@@ -174,22 +177,22 @@ class EventArtistService {
         final startTime = DateTime.parse(rawStart);
         final endTime = rawEnd != null ? DateTime.parse(rawEnd) : startTime;
 
-        // Condition de chevauchement : le créneau doit être (end > dayStart) && (start < dayEnd)
+        // Le créneau est inclus si son end_time > dayStart et son start_time < dayEnd
         if (endTime.isAfter(dayStart) && startTime.isBefore(dayEnd)) {
           filtered.add(assignment);
         }
       }
 
-      // 4) Récupérer la liste globale des IDs d’artistes
+      // Récupérer tous les IDs d’artistes pour ces assignations
       final Set<int> artistIds = {};
       for (final entry in filtered) {
         artistIds.addAll(_parseArtistField(entry['artist_id']));
       }
 
-      // 5) Charger via ArtistService
+      // Charger via ArtistService
       final artists = await _artistService.getArtistsByIds(artistIds.toList());
 
-      // 6) Construire le résultat final
+      // Construire le résultat final
       return filtered.map((assignment) {
         final entryIds = _parseArtistField(assignment['artist_id']);
         final assignmentArtists =
@@ -199,9 +202,7 @@ class EventArtistService {
           'id': assignment['id'],
           'artists': assignmentArtists,
           'custom_name': assignment['custom_name'] as String? ?? '',
-          'start_time': assignment['start_time'] != null
-              ? DateTime.parse(assignment['start_time'] as String)
-              : null,
+          'start_time': DateTime.parse(assignment['start_time'] as String),
           'end_time': assignment['end_time'] != null
               ? DateTime.parse(assignment['end_time'] as String)
               : null,
@@ -210,8 +211,7 @@ class EventArtistService {
         };
       }).toList();
     } else {
-      // OFFLINE
-      // Charger depuis isarEventArtists
+      // OFFLINE – même logique en filtrant le cache
       final cachedAssignments = await isar.isarEventArtists
           .filter()
           .eventIdEqualTo(eventId)
@@ -219,17 +219,14 @@ class EventArtistService {
 
       if (cachedAssignments.isEmpty) return [];
 
-      // Filtrer par jour
       final filtered = cachedAssignments.where((assign) {
         final startTime = assign.startTime ?? DateTime.now();
         final endTime = assign.endTime ?? startTime;
-        // Condition de chevauchement
         return endTime.isAfter(dayStart) && startTime.isBefore(dayEnd);
       }).toList();
 
       if (filtered.isEmpty) return [];
 
-      // Récupérer tous les artistes mentionnés
       final Set<int> allIds = {};
       for (final assign in filtered) {
         allIds.addAll(assign.artistIds);
@@ -238,7 +235,6 @@ class EventArtistService {
       final artists = await _artistService.getArtistsByIds(allIds.toList());
       final Map<int, Artist> artistMap = {for (var a in artists) a.id!: a};
 
-      // Reconstruire la liste
       return filtered.map((assign) {
         final List<Artist> assignmentArtists = assign.artistIds
             .map((id) => artistMap[id])
@@ -327,7 +323,7 @@ class EventArtistService {
             'start_time': assignment.startTime?.toIso8601String(),
             'end_time': assignment.endTime?.toIso8601String(),
             'status': assignment.status,
-            'stage': assignment.stage,
+            'stage': (assignment.stage ?? '').toLowerCase(),
           };
         }).toList();
         // // print("getEventsByArtistId (offline): Final cached result for artistId $artistId: ${result.map((r) => (r['event'] as Event).id).toList()}");
