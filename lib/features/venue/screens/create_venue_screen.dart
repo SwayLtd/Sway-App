@@ -210,6 +210,42 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Venue'),
+        actions: [
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                border: Border.all(
+                  width: 1,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onPrimary
+                      .withValues(alpha: 0.5),
+                ),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    "How it works?",
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
