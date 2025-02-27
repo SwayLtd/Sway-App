@@ -38,6 +38,7 @@ import 'package:sway/features/user/widgets/interest_event_button_widget.dart';
 import 'package:sway/features/event/widgets/event_location_map_widget.dart';
 import 'package:add_2_calendar/add_2_calendar.dart' as calendar;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
 
 class EventScreen extends StatefulWidget {
   final Event event;
@@ -56,6 +57,8 @@ class _EventScreenState extends State<EventScreen> {
   late Future<List<Promoter>> _promotersFuture;
   late Future<Venue?> _venueFuture;
   late Future<Map<String, dynamic>?> _metadataFuture;
+
+  bool _timerEnded = false;
 
   int _selectedTabIndex = 0; // Pour gérer l’onglet sélectionné
   final ScrollController _scrollController = ScrollController();
@@ -340,6 +343,79 @@ class _EventScreenState extends State<EventScreen> {
             // Followers count.
             FollowersCountWidget(entityId: _event.id!, entityType: 'event'),
             const SizedBox(height: sectionSpacing),
+            // Ajout du compte à rebours si la condition est respectée
+            Center(
+              child: Builder(
+                builder: (context) {
+                  final now = DateTime.now();
+                  // Afficher le compte à rebours uniquement si l'événement n'a pas commencé et que
+                  // la différence entre la date de début et maintenant est inférieure ou égale à 3 jours.
+                  if (now.isBefore(_event.eventDateTime) &&
+                      _event.eventDateTime.difference(now) <=
+                          const Duration(days: 3)) {
+                    if (now.isAfter(_event.eventDateTime
+                            .add(const Duration(hours: 2))) &&
+                        _timerEnded) {
+                      return Text(
+                        "Enjoy the ${_event.type.toLowerCase()}!",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: TimerCountdown(
+                        enableDescriptions: true,
+                        daysDescription: _event.eventDateTime.difference(now) <=
+                                const Duration(days: 2)
+                            ? "Day"
+                            : "Days",
+                        hoursDescription:
+                            _event.eventDateTime.difference(now) <=
+                                    const Duration(hours: 2)
+                                ? "Hour"
+                                : "Hours",
+                        minutesDescription:
+                            _event.eventDateTime.difference(now) <=
+                                    const Duration(minutes: 2)
+                                ? "Minute"
+                                : "Minutes",
+                        secondsDescription:
+                            _event.eventDateTime.difference(now) <=
+                                    const Duration(minutes: 2)
+                                ? "Second"
+                                : "Seconds",
+                        spacerWidth: 13,
+                        format: CountDownTimerFormat.daysHoursMinutesSeconds,
+                        // On masque le texte par défaut en fixant une taille nulle
+                        timeTextStyle: const TextStyle(fontSize: 46),
+                        colonsTextStyle: const TextStyle(fontSize: 24),
+                        descriptionTextStyle: const TextStyle(fontSize: 12),
+                        endTime: _event.eventDateTime,
+                        onTick: (remaining) {
+                          // Extraire les composants
+                          /* final int days = remaining.inDays;
+                          final int hours = remaining.inHours % 24;
+                          final int minutes = remaining.inMinutes % 60;
+                          final int seconds = remaining.inSeconds % 60; */
+                        },
+                        onEnd: () {
+                          // Mettre à jour l'état pour afficher le message final
+                          setState(() {
+                            _timerEnded = true;
+                          });
+                        },
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+            const SizedBox(height: sectionSpacing),
+
             // InfoCard: Date.
             GestureDetector(
               onTap: () async {
