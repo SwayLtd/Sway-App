@@ -67,23 +67,20 @@ class _TimetableWidgetState extends State<TimetableWidget> {
 
   Future<void> _preloadFollowedArtistIds() async {
     final userFollowService = UserFollowArtistService();
-    // Supposons que chaque assignation contient une liste d'artistes,
-    // on parcourt toutes les assignations pour récupérer tous les IDs.
     final assignments =
         await EventArtistService().getArtistsByEventId(widget.event.id!);
-    // On récupère tous les IDs uniques des artistes présents dans l'event.
     final allArtistIds = assignments.expand((a) {
       final ids =
           (a['artists'] as List<Artist>).map((artist) => artist.id!).toList();
       return ids;
     }).toSet();
-    // Filtrer par ceux qui sont suivis.
     final Set<int> followedIds = {};
     for (final id in allArtistIds) {
       if (await userFollowService.isFollowingArtist(id)) {
         followedIds.add(id);
       }
     }
+    if (!mounted) return;
     setState(() {
       _followedArtistIds = followedIds;
     });
@@ -117,13 +114,12 @@ class _TimetableWidgetState extends State<TimetableWidget> {
   Future<void> _loadArtistStages() async {
     final assignments =
         await EventArtistService().getArtistsByEventId(widget.event.id!);
-
     final stageSet = assignments.map((a) => (a['stage'] as String)).toSet();
-
+    if (!mounted) return;
     setState(() {
-      _stages = stageSet.toList(); // Storing stages in the correct order
-      initialStages = List.from(_stages); // Keep the initial order
-      selectedStages = List.from(_stages); // Initially all stages are selected
+      _stages = stageSet.toList();
+      initialStages = List.from(_stages);
+      selectedStages = List.from(_stages);
     });
   }
 
@@ -132,7 +128,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
     // Si _festivalDays est vide => on affiche un message
     if (_festivalDays.isEmpty) {
       return const Center(
-        child: Text("No festival_info in metadata"),
+        child: Text("The timetable is not available yet"),
       );
     }
     return Column(
