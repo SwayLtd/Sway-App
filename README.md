@@ -33,6 +33,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Known Issues
 
+- (Timetable) Shift to right of grid view if only one stage or artist to be displayed on timetable (only follower artist: true)
 - Residents don't need to be limited in modal bottom sheets
 - (Notification) Ticket notification actions are not working
 - (Notification) Ticket notification doesn't show the ticket on click

@@ -10,6 +10,8 @@ import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
+import 'package:sway/core/utils/text_formatting.dart';
+import 'package:sway/features/user/services/user_interest_event_service.dart';
 
 class EventListItemWidget extends StatelessWidget {
   final Event event;
@@ -378,54 +380,69 @@ class EventCardItemWidget extends StatelessWidget {
                     FutureBuilder<Venue?>(
                       future: eventVenueService.getVenueByEventId(event.id!),
                       builder: (context, snapshot) {
+                        String venueText;
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return Row(
-                            children: [
-                              const Icon(Icons.location_on,
-                                  size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Loading',
-                                style:
-                                    TextStyle(fontSize: 14, color: Colors.grey),
-                              ),
-                            ],
-                          );
+                          venueText = 'Loading';
                         } else if (snapshot.hasError ||
                             !snapshot.hasData ||
                             snapshot.data == null) {
-                          return Row(
-                            children: const [
-                              Icon(Icons.location_on,
-                                  size: 16, color: Colors.grey),
-                              SizedBox(width: 4),
-                              Text(
-                                'Unknown location',
-                                style:
-                                    TextStyle(fontSize: 14, color: Colors.grey),
-                              ),
-                            ],
-                          );
+                          venueText = 'Unknown location';
                         } else {
-                          final venue = snapshot.data!;
-                          return Row(
-                            children: [
-                              const Icon(Icons.location_on,
-                                  size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  venue.name,
-                                  style: const TextStyle(
-                                      fontSize: 14, color: Colors.grey),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          );
+                          venueText = snapshot.data!.name;
                         }
+                        return Row(
+                          children: [
+                            // Partie gauche : la venue
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.location_on,
+                                    size: 16,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      venueText,
+                                      style: const TextStyle(
+                                          fontSize: 14, color: Colors.grey),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Partie droite : le nombre de participants "going"
+                            FutureBuilder<int>(
+                              future: UserInterestEventService()
+                                  .getEventInterestCount(event.id!, 'going'),
+                              builder: (context, countSnapshot) {
+                                if (countSnapshot.connectionState ==
+                                        ConnectionState.waiting ||
+                                    !countSnapshot.hasData ||
+                                    countSnapshot.data! <= 0) {
+                                  return const SizedBox.shrink();
+                                }
+                                final formattedCount =
+                                    formatNumber(countSnapshot.data!);
+                                return Row(
+                                  children: [
+                                    const Icon(Icons.person, size: 16),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      formattedCount,
+                                      style: const TextStyle(
+                                          fontSize: 14, color: Colors.grey),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
+                        );
                       },
                     ),
                   ],

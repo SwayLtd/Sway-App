@@ -597,7 +597,7 @@ class _EventScreenState extends State<EventScreen> {
                 }
               },
             ),
-            // LINE UP section.
+            // ARTISTS section.
             FutureBuilder<List<Map<String, dynamic>>>(
               future: _artistsFuture,
               builder: (context, snapshot) {
@@ -656,7 +656,7 @@ class _EventScreenState extends State<EventScreen> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSectionTitle("LINE UP", hasMore, () {
+                      _buildSectionTitle("ARTISTS", hasMore, () {
                         // Passage du mapping performanceTimes et performanceEndTimes au modal.
                         showArtistModalBottomSheet(
                           context,

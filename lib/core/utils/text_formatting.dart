@@ -15,3 +15,20 @@ String capitalizeFirst(String input) {
   // On pourrait .trim() si on veut ignorer d'éventuels espaces de début/fin
   return input[0].toUpperCase() + input.substring(1);
 }
+
+String formatNumber(int number) {
+  if (number >= 1000000) {
+    double value = number / 1000000;
+    // Affiche sans décimales si entier, sinon 1 décimale
+    return value == value.toInt()
+        ? '${value.toInt()}M'
+        : '${value.toStringAsFixed(1)}M';
+  } else if (number >= 1000) {
+    double value = number / 1000;
+    return value == value.toInt()
+        ? '${value.toInt()}K'
+        : '${value.toStringAsFixed(1)}K';
+  } else {
+    return number.toString();
+  }
+}
