@@ -1,6 +1,7 @@
 // lib/features/user/widgets/interest_event_button_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/utils/text_formatting.dart';
 import 'package:sway/features/user/services/user_interest_event_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/snackbar_login.dart';
@@ -68,6 +69,14 @@ class _InterestEventButtonWidgetState extends State<InterestEventButtonWidget> {
     }
   }
 
+  Future<Map<String, int>> _getCounts() async {
+    int goingCount =
+        await _interestService.getEventInterestCount(widget.eventId, 'going');
+    int interestedCount = await _interestService.getEventInterestCount(
+        widget.eventId, 'interested');
+    return {'going': goingCount, 'interested': interestedCount};
+  }
+
   Future<void> _updateInterestStatus(String newStatus) async {
     setState(() {
       _isLoading = true;
@@ -121,29 +130,78 @@ class _InterestEventButtonWidgetState extends State<InterestEventButtonWidget> {
         iconData = Icons.favorite_border;
         iconColor = Theme.of(context).iconTheme.color ?? Colors.grey;
     }
-    return PopupMenuButton<String>(
-      icon: Icon(
-        iconData,
-        color: iconColor,
-      ),
-      onSelected: (String value) {
-        _updateInterestStatus(value);
-      },
-      itemBuilder: (BuildContext context) {
-        return <PopupMenuEntry<String>>[
-          const PopupMenuItem<String>(
-            value: 'interested',
-            child: Text('Interested'),
-          ),
-          const PopupMenuItem<String>(
-            value: 'going',
-            child: Text('Going'),
-          ),
-          const PopupMenuItem<String>(
-            value: 'not_interested',
-            child: Text('Not Interested'),
-          ),
-        ];
+    return FutureBuilder<Map<String, int>>(
+      future: _getCounts(),
+      builder: (context, snapshot) {
+        int goingCount = 0;
+        int interestedCount = 0;
+        if (snapshot.hasData) {
+          goingCount = snapshot.data!['going'] ?? 0;
+          interestedCount = snapshot.data!['interested'] ?? 0;
+        }
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Bouton avec badge pour le nombre de "going"
+            Stack(
+              alignment: Alignment.topRight,
+              children: [
+                PopupMenuButton<String>(
+                  icon: Icon(iconData, color: iconColor),
+                  onSelected: (String value) {
+                    _updateInterestStatus(value);
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'interested',
+                        child: Text('Interested'),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'going',
+                        child: Text('Going'),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'not_interested',
+                        child: Text('Not Interested'),
+                      ),
+                    ];
+                  },
+                ),
+                if (goingCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        formatNumber(goingCount),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 4),
+            // Affichage du nombre de "interested" sous forme de texte si > 0
+            if (interestedCount > 0)
+              Text(
+                'Interested ${formatNumber(interestedCount)}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+          ],
+        );
       },
     );
   }

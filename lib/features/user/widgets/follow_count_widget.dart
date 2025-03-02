@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:sway/core/utils/text_formatting.dart';
 import 'package:sway/features/user/screens/followers_screen.dart';
 import 'package:sway/features/user/services/user_follow_artist_service.dart';
 import 'package:sway/features/user/services/user_follow_genre_service.dart';
@@ -213,7 +214,7 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Text(
-                '$interestedCount interested',
+                '${formatNumber(interestedCount)} interested',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -233,7 +234,7 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Text(
-                '$goingCount going',
+                '${formatNumber(goingCount)} going',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -259,7 +260,7 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Text(
-                '$followersCount followers',
+                '${formatNumber(followersCount)} followers',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -279,7 +280,7 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Text(
-                '$followingCount following',
+                '${formatNumber(followingCount)} following',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -301,7 +302,7 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
             borderRadius: BorderRadius.circular(30),
           ),
           child: Text(
-            '$followersCount follower${followersCount == 1 ? '' : 's'}',
+            '${formatNumber(followersCount)} follower${followersCount == 1 ? '' : 's'}',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
