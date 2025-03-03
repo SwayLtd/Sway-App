@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/utils/url_launcher.dart';
 import 'package:sway/core/utils/validators.dart';
 import 'package:sway/features/security/services/storage_service.dart';
 import 'package:sway/features/user/services/user_service.dart';
@@ -212,7 +213,9 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
         title: const Text('Create Venue'),
         actions: [
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              launchURL("https://sway.events/docs/create/venues");
+            },
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

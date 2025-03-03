@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:sway/core/utils/url_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sway/core/constants/dimensions.dart'; // sectionSpacing is defined here
 import 'package:go_router/go_router.dart';
@@ -93,9 +94,9 @@ class _AboutScreenState extends State<AboutScreen> {
                 onTap: _requestReview,
               ),
               ListTile(
-                title: const Text('How it works'),
+                title: const Text('How it works?'),
                 onTap: () {
-                  // TODO: Implement navigation to the "How it works" screen
+                  launchURL("https://sway.events/docs/");
                 },
               ),
               ListTile(

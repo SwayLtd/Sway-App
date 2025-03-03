@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 // Importez vos services et modèles
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/utils/url_launcher.dart';
 import 'package:sway/core/utils/validators.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
@@ -403,6 +404,44 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Event'),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              launchURL("https://sway.events/docs/create/events");
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                border: Border.all(
+                  width: 1,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onPrimary
+                      .withValues(alpha: 0.5),
+                ),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    "How it works?",
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: ConstrainedBox(
