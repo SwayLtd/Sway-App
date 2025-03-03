@@ -9,3 +9,5 @@ targets:
         - lib/features/promoter/models/isar_promoter.dart
         - lib/features/user/models/isar_user.dart
         - lib/features/venue/models/isar_venue.dart
+        - lib/features/ticketing/models/isar_online_ticket.dart
+        - lib/features/ticketing/models/isar_scan_history.dart
