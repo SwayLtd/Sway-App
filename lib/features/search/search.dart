@@ -23,7 +23,7 @@ import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
 import 'package:sway/features/venue/venue.dart';
 
-enum SearchCategory { events, genres, promoters, venues, users }
+enum SearchCategory { events, artists, genres, promoters, venues, users }
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -179,6 +179,9 @@ class _SearchScreenState extends State<SearchScreen> {
           switch (category) {
             case SearchCategory.events:
               label = 'Events';
+              break;
+            case SearchCategory.artists:
+              label = 'Artists';
               break;
             case SearchCategory.genres:
               label = 'Genres';
