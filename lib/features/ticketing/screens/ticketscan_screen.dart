@@ -1,4 +1,4 @@
-// lib/features/ticketing/screens/ticketscan_screen.dart
+/* // lib/features/ticketing/screens/ticketscan_screen.dart
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -117,3 +117,4 @@ class _TicketScanPageState extends State<TicketScanPage> {
     );
   }
 }
+*/
