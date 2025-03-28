@@ -660,7 +660,7 @@ class _EventScreenState extends State<EventScreen> {
                         // Passage du mapping performanceTimes et performanceEndTimes au modal.
                         showArtistModalBottomSheet(
                           context,
-                          artistsList.take(10).toList(),
+                          artistsList.toList(),
                           performanceTimes: performanceTimes,
                           performanceEndTimes: performanceEndTimes,
                         );
