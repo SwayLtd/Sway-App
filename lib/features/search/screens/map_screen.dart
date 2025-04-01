@@ -129,6 +129,11 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tileUrl = isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Event Map'),
@@ -144,6 +149,9 @@ class _MapScreenState extends State<MapScreen> {
               initialZoom: _zoom,
               minZoom: 5,
               maxZoom: 18,
+              interactionOptions: InteractionOptions(
+                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+              ),
               onPositionChanged: _onPositionChanged,
               onMapReady: () {
                 _fetchEventsAndVenues();
@@ -151,9 +159,11 @@ class _MapScreenState extends State<MapScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: tileUrl,
+                subdomains: const ['a', 'b', 'c', 'd'],
               ),
-              CircleLayer(
+              // Uncomment this if you want to show a circle around the center point
+              /* CircleLayer(
                 circles: [
                   CircleMarker(
                     point: _center,
@@ -164,7 +174,7 @@ class _MapScreenState extends State<MapScreen> {
                     borderColor: Colors.blueAccent,
                   ),
                 ],
-              ),
+              ), */
               MarkerClusterLayerWidget(
                 options: MarkerClusterLayerOptions(
                   maxClusterRadius: 60,

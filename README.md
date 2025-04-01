@@ -16,20 +16,9 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
-- Implement event countdown on events
-- Add grid view selection option in filters
-- Add red timeline indicator for current time
-- New compact grid view for timetable
-- Fix custom name reintegration on artist assignment screen
-- Fix timetable filtering issues
-- Fix notification grouping and filtering
-- Update EditEventArtistScreen for Timetable Integration
-- Centralized loading indicator and other optimizations
-- Hide bottom buttons and "Only followed artists" when user is not logged in
-- Integrate Artist Notification Button & Improve Timetable Filtering
-- Implement Event Timetable System and Artist Notifications for GridView
-- Implement Calendar Feature and Update Event Status Filtering
-- Release 1.0.2 - Calendar and Timetable features
+- Change with light and dark mode with new map theme and disable rotation interaction option and remove of the blue circle layer
+- Implement event map navigation
+- Release 1.0.3 - Map and advanced search features
 
 ### Known Issues
 
