@@ -7,9 +7,6 @@ class Venue {
   final String description;
   final String location;
   final bool isVerified;
-  // Champs pour les coordonnées du lieu
-  final double? latitude;
-  final double? longitude;
 
   Venue({
     this.id,
@@ -18,8 +15,6 @@ class Venue {
     required this.description,
     required this.location,
     this.isVerified = false,
-    this.latitude,
-    this.longitude,
   });
 
   factory Venue.fromJson(Map<String, dynamic> json) {
@@ -31,12 +26,6 @@ class Venue {
       description: json['description'] as String? ?? '',
       location: json['location'] as String? ?? '',
       isVerified: json['is_verified'] as bool? ?? false,
-      latitude: json['venue_latitude'] != null
-          ? (json['venue_latitude'] as num).toDouble()
-          : null,
-      longitude: json['venue_longitude'] != null
-          ? (json['venue_longitude'] as num).toDouble()
-          : null,
     );
   }
 
@@ -48,8 +37,6 @@ class Venue {
       'description': description,
       'location': location,
       'is_verified': isVerified,
-      'venue_latitude': latitude,
-      'venue_longitude': longitude,
     };
   }
 
@@ -70,8 +57,6 @@ class Venue {
       description: description ?? this.description,
       location: location ?? this.location,
       isVerified: isVerified ?? this.isVerified,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
     );
   }
 }
