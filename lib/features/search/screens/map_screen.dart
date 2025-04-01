@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
 import 'package:sway/features/event/widgets/event_item_widget.dart';
@@ -41,7 +42,7 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     _mapController = MapController();
     _center = widget.initialCenter;
-    _zoom = 13; // Niveau de zoom initial
+    _zoom = 12; // Niveau de zoom initial
   }
 
   @override
@@ -120,10 +121,40 @@ class _MapScreenState extends State<MapScreen> {
   void _onMarkerTapped(Event event, Venue venue) {
     showModalBottomSheet(
       context: context,
-      builder: (_) => EventCardItemWidget(
-        event: event,
-        onTap: () => _onMarkerTapped(event, venue),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        final screenHeight = MediaQuery.of(context).size.height;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final containerColor = isDark ? Colors.grey[900] : Colors.white;
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: screenHeight * 0.05),
+          child: FractionallySizedBox(
+            heightFactor: 0.30,
+            child: Center(
+              child: Container(
+                width: 320,
+                decoration: BoxDecoration(
+                  color: containerColor, // Couleur de fond selon le mode
+                  borderRadius: BorderRadius.circular(16.0), // Bords arrondis
+                ),
+                child: EventCardItemWidget(
+                  event: event,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EventScreen(event: event),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -189,9 +220,9 @@ class _MapScreenState extends State<MapScreen> {
                   padding: const EdgeInsets.all(50),
                   builder: (context, markers) {
                     return Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.redAccent,
+                        color: Theme.of(context).primaryColor,
                       ),
                       child: Center(
                         child: Text(
@@ -219,14 +250,12 @@ class _MapScreenState extends State<MapScreen> {
                         );
                         if (distance > _radius) return null;
                         return Marker(
-                          width: 40,
-                          height: 40,
+                          width: 90, // Format 16:9 : 90x50 pour l'image
+                          height:
+                              90, // Taille totale pour contenir l'image et le label
                           point: LatLng(lat, lon),
-                          child: IconButton(
-                            icon: const Icon(Icons.location_on,
-                                color: Colors.red),
-                            iconSize: 40,
-                            onPressed: () => _onMarkerTapped(
+                          child: GestureDetector(
+                            onTap: () => _onMarkerTapped(
                               event,
                               Venue(
                                 id: meta['venue_id'],
@@ -236,6 +265,46 @@ class _MapScreenState extends State<MapScreen> {
                                 location: '',
                                 isVerified: false,
                               ),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 90,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Colors.grey, width: 1),
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    child: Image.network(
+                                      event.imageUrl,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                if (_zoom >= 16) // Seuil fixé à 16
+                                  Container(
+                                    width: 90,
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 2),
+                                    color:
+                                        Colors.transparent, // Fond transparent
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        meta['venue_name'] ?? '',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         );

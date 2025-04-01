@@ -577,12 +577,10 @@ class _SearchScreenState extends State<SearchScreen> {
           IconButton(
             icon: const Icon(Icons.map),
             onPressed: () {
-              Navigator.push(
-                context,
+              Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
-                  builder: (context) => MapScreen(
-                      initialCenter: LatLng(50.8477,
-                          4.3572)), // Remplacez par la position utilisateur si disponible
+                  builder: (context) =>
+                      MapScreen(initialCenter: LatLng(50.8477, 4.3572)),
                 ),
               );
             },

@@ -12,8 +12,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 1.0.3+1 # Change with light and dark mode with new map theme and disable rotation interaction option and remove of the blue circle layer
-
+version: 1.0.3+2 # feat: Improve map marker interaction with event image display and navigation
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
 
