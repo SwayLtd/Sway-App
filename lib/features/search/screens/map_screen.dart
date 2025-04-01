@@ -135,8 +135,14 @@ class _MapScreenState extends State<MapScreen> {
         : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
     return Scaffold(
+      extendBodyBehindAppBar: true, // To place the card behind the AppBar
       appBar: AppBar(
-        title: const Text('Event Map'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -221,17 +227,16 @@ class _MapScreenState extends State<MapScreen> {
                                 color: Colors.red),
                             iconSize: 40,
                             onPressed: () => _onMarkerTapped(
-                                event,
-                                Venue(
-                                  id: meta['venue_id'],
-                                  name: meta['venue_name'],
-                                  imageUrl: '',
-                                  description: '',
-                                  location: '',
-                                  isVerified: false,
-                                  latitude: lat,
-                                  longitude: lon,
-                                )),
+                              event,
+                              Venue(
+                                id: meta['venue_id'],
+                                name: meta['venue_name'],
+                                imageUrl: '',
+                                description: '',
+                                location: '',
+                                isVerified: false,
+                              ),
+                            ),
                           ),
                         );
                       })
@@ -243,9 +248,9 @@ class _MapScreenState extends State<MapScreen> {
           );
         },
       ),
-      floatingActionButton:
+      /* floatingActionButton:
           _isLoading ? const CircularProgressIndicator() : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, */
     );
   }
 }
