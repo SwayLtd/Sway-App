@@ -1,5 +1,3 @@
-// lib/features/event/models/event_model.dart
-
 import 'dart:convert';
 
 class Event {
@@ -22,7 +20,7 @@ class Event {
     required this.title,
     required this.type,
     required this.eventDateTime,
-    this.eventEndDateTime, // Nullable
+    this.eventEndDateTime,
     this.venue,
     required this.description,
     required this.imageUrl,
@@ -35,7 +33,6 @@ class Event {
 
   factory Event.fromJson(Map<String, dynamic> json) {
     Map<String, dynamic>? decodedMetadata;
-
     if (json['metadata'] is String && (json['metadata'] as String).isNotEmpty) {
       try {
         decodedMetadata = jsonDecode(json['metadata']) as Map<String, dynamic>;
@@ -44,6 +41,20 @@ class Event {
       }
     } else if (json['metadata'] is Map<String, dynamic>) {
       decodedMetadata = json['metadata'] as Map<String, dynamic>;
+    } else {
+      decodedMetadata = {};
+    }
+
+    // Si le RPC renvoie directement les infos du venue, on les ajoute au metadata.
+    if (json.containsKey('venue_id')) {
+      decodedMetadata?['venue_id'] = json['venue_id'];
+      decodedMetadata?['venue_name'] = json['venue_name'];
+      decodedMetadata?['venue_latitude'] = json['venue_latitude'] != null
+          ? (json['venue_latitude'] as num).toDouble()
+          : null;
+      decodedMetadata?['venue_longitude'] = json['venue_longitude'] != null
+          ? (json['venue_longitude'] as num).toDouble()
+          : null;
     }
 
     return Event(
@@ -51,7 +62,6 @@ class Event {
       title: json['title'] as String? ?? '',
       type: json['type'] as String? ?? '',
       eventDateTime: DateTime.parse(json['date_time'] as String),
-      // Si end_date_time est nul, on retourne null
       eventEndDateTime: json['end_date_time'] != null
           ? DateTime.parse(json['end_date_time'] as String)
           : null,
@@ -68,7 +78,7 @@ class Event {
           (json['artists'] as List<dynamic>?)?.map((e) => e as int).toList() ??
               [],
       interestedUsersCount: json['interested_users_count'] as int?,
-      metadata: decodedMetadata ?? {},
+      metadata: decodedMetadata,
     );
   }
 
@@ -78,7 +88,6 @@ class Event {
       'title': title,
       'type': type,
       'date_time': eventDateTime.toIso8601String(),
-      // Convertir eventEndDateTime seulement s'il n'est pas null
       'end_date_time': eventEndDateTime?.toIso8601String(),
       'description': description,
       'image_url': imageUrl,

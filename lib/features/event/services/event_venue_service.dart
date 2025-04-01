@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/services/database_service.dart';
 import 'package:sway/core/utils/connectivity_helper.dart';
@@ -103,6 +104,22 @@ class EventVenueService {
     } else {
       return await _loadEventsByVenueFromCache(venueId, isar: isar);
     }
+  }
+
+  /// Récupère les événements autour du point [center] dans le rayon [radius] (en mètres)
+  Future<List<Event>> getEventsAround(LatLng center, double radius) async {
+    final response = await _supabase.rpc('get_events_around', params: {
+      'longitude': center.longitude,
+      'latitude': center.latitude,
+      'rayon_en_metres': radius,
+    });
+    if (response == null || (response as List).isEmpty) {
+      print("No events found from RPC.");
+      return [];
+    }
+    return (response)
+        .map<Event>((json) => Event.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   /// Adds a venue to an event.

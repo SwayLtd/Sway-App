@@ -1,6 +1,7 @@
 // lib/features/search/search.dart
 
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
@@ -15,6 +16,7 @@ import 'package:sway/features/genre/services/genre_service.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
+import 'package:sway/features/search/screens/map_screen.dart';
 import 'package:sway/features/search/utils/levenshtein_similarity.dart';
 import 'package:sway/features/user/models/user_model.dart';
 import 'package:sway/features/user/services/user_service.dart';
@@ -574,8 +576,18 @@ class _SearchScreenState extends State<SearchScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.map),
-            onPressed: _showMapFeatureMessage,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MapScreen(
+                      initialCenter: LatLng(50.8477,
+                          4.3572)), // Remplacez par la position utilisateur si disponible
+                ),
+              );
+            },
           ),
+
           // Bouton de filtre temporairement désactivé
           IconButton(
             icon: const Icon(Icons.filter_list),
