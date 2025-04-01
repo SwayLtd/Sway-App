@@ -131,7 +131,7 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Carte des événements'),
+        title: const Text('Event Map'),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
