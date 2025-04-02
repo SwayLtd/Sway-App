@@ -1,5 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sway/features/artist/artist.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
@@ -22,6 +24,7 @@ import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/promoter.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
 import 'package:sway/features/promoter/widgets/promoter_item_shimmer.dart';
+import 'package:sway/features/search/screens/map_screen.dart';
 import 'package:sway/features/user/services/user_service.dart';
 import 'package:sway/features/user/widgets/snackbar_login.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
@@ -81,6 +84,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
   // Indicateur pour savoir si au moins une section a renvoyé des données
   bool _hasContent = false;
 
+  final ScrollController _scrollController = ScrollController();
+  bool _showMapButton = false;
+
   @override
   void initState() {
     super.initState();
@@ -94,6 +100,25 @@ class _ExploreScreenState extends State<ExploreScreen> {
         NotificationService().showPermissionRequestDialog(context);
       }
     });
+
+    // Détection du scroll pour afficher le bouton Map dès qu'on scrolle vers le bas
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 100 && !_showMapButton) {
+        setState(() {
+          _showMapButton = true;
+        });
+      } else if (_scrollController.offset <= 100 && _showMapButton) {
+        setState(() {
+          _showMapButton = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   /// Charge les recommandations et l'utilisateur courant.
@@ -418,6 +443,58 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
+  // Méthode pour obtenir la localisation actuelle et ouvrir MapScreen
+  Future<void> _openMapScreen() async {
+    Position? currentPosition;
+    try {
+      // Vérifier que les services de localisation sont activés
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                "Les services de localisation sont désactivés. Merci de les activer."),
+          ),
+        );
+      } else {
+        // Vérifier la permission
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          permission = await Geolocator.requestPermission();
+        }
+        // Si la permission est accordée, récupérer la position
+        if (permission == LocationPermission.always ||
+            permission == LocationPermission.whileInUse) {
+          currentPosition = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.best,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("La permission de localisation est refusée."),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Erreur lors de la récupération de la localisation : $e");
+    }
+
+    // Définir le centre avec la position actuelle si disponible, sinon une valeur par défaut
+    LatLng center = currentPosition != null
+        ? LatLng(currentPosition.latitude, currentPosition.longitude)
+        : const LatLng(50.8477, 4.3572);
+
+    // Naviguer vers MapScreen avec le centre déterminé
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MapScreen(initialCenter: center),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Si le chargement global est terminé et qu'aucune section n'a fourni de données (_hasContent == false),
@@ -468,309 +545,358 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _refreshRecommendations,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // Section avec les FutureBuilders pour chaque type de contenu
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Column(
-                  children: [
-                    // Random greeting tile
-                    RandomGreetingTile(username: _currentUser?.username),
-                    // Event info tile (pour utilisateur connecté)
-                    if (_isLoggedIn)
-                      EventInfoTile(refreshKey: _eventInfoRefreshKey),
-                    // Section Top Events
-                    FutureBuilder<List<Event>>(
-                      future: _topEventsFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return _buildLoadingSection('Top Events');
-                        } else if (snapshot.hasError) {
-                          return _buildLoadingSection('Top Events');
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return const SizedBox.shrink();
-                        } else {
-                          // Dès qu'une section a des données, on signale que du contenu est disponible.
-                          if (!_hasContent) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: _refreshRecommendations,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // Section principale
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Column(
+                      children: [
+                        RandomGreetingTile(username: _currentUser?.username),
+                        if (_isLoggedIn)
+                          EventInfoTile(refreshKey: _eventInfoRefreshKey),
+                        // Section Top Events
+                        FutureBuilder<List<Event>>(
+                          future: _topEventsFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return _buildLoadingSection('Top Events');
+                            } else if (snapshot.hasError) {
+                              return _buildLoadingSection('Top Events');
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            } else {
                               if (!_hasContent) {
-                                setState(() {
-                                  _hasContent = true;
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (!_hasContent) {
+                                    setState(() {
+                                      _hasContent = true;
+                                    });
+                                  }
                                 });
                               }
-                            });
-                          }
-                          _allTopEvents = snapshot.data!;
-                          final displayCount = 5;
-                          final hasMore = _allTopEvents.length > displayCount;
-                          final displayEvents = hasMore
-                              ? _allTopEvents.sublist(0, displayCount)
-                              : _allTopEvents;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildSectionTitle('Top Events', hasMore),
-                              const SizedBox(height: 16.0),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                    children: _buildEventCards(
-                                        context, displayEvents)),
-                              ),
-                              const SizedBox(height: 24.0),
-                            ],
-                          );
-                        }
-                      },
-                    ),
-                    // Section Suggested Events
-                    FutureBuilder<List<Event>>(
-                      future: _suggestedEventsFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return _buildLoadingSection('Suggested Events');
-                        } else if (snapshot.hasError) {
-                          return _buildLoadingSection('Suggested Events');
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return const SizedBox.shrink();
-                        } else {
-                          if (!_hasContent) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _allTopEvents = snapshot.data!;
+                              final displayCount = 5;
+                              final hasMore =
+                                  _allTopEvents.length > displayCount;
+                              final displayEvents = hasMore
+                                  ? _allTopEvents.sublist(0, displayCount)
+                                  : _allTopEvents;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildSectionTitle('Top Events', hasMore),
+                                  const SizedBox(height: 16.0),
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                        children: _buildEventCards(
+                                            context, displayEvents)),
+                                  ),
+                                  const SizedBox(height: 24.0),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                        // Section Suggested Events
+                        FutureBuilder<List<Event>>(
+                          future: _suggestedEventsFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return _buildLoadingSection('Suggested Events');
+                            } else if (snapshot.hasError) {
+                              return _buildLoadingSection('Suggested Events');
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            } else {
                               if (!_hasContent) {
-                                setState(() {
-                                  _hasContent = true;
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (!_hasContent) {
+                                    setState(() {
+                                      _hasContent = true;
+                                    });
+                                  }
                                 });
                               }
-                            });
-                          }
-                          _allSuggestedEvents = snapshot.data!;
-                          final displayCount = 5;
-                          final hasMore =
-                              _allSuggestedEvents.length > displayCount;
-                          final displayEvents = hasMore
-                              ? _allSuggestedEvents.sublist(0, displayCount)
-                              : _allSuggestedEvents;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildSectionTitle('Suggested Events', hasMore),
-                              const SizedBox(height: 16.0),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                    children: _buildEventCards(
-                                        context, displayEvents)),
-                              ),
-                              const SizedBox(height: 24.0),
-                            ],
-                          );
-                        }
-                      },
-                    ),
-                    // Section Suggested Artists
-                    FutureBuilder<List<Artist>>(
-                      future: _suggestedArtistsFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return _buildLoadingSection('Suggested Artists');
-                        } else if (snapshot.hasError) {
-                          return _buildLoadingSection('Suggested Artists');
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return const SizedBox.shrink();
-                        } else {
-                          if (!_hasContent) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _allSuggestedEvents = snapshot.data!;
+                              final displayCount = 5;
+                              final hasMore =
+                                  _allSuggestedEvents.length > displayCount;
+                              final displayEvents = hasMore
+                                  ? _allSuggestedEvents.sublist(0, displayCount)
+                                  : _allSuggestedEvents;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildSectionTitle(
+                                      'Suggested Events', hasMore),
+                                  const SizedBox(height: 16.0),
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                        children: _buildEventCards(
+                                            context, displayEvents)),
+                                  ),
+                                  const SizedBox(height: 24.0),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                        // Section Suggested Artists
+                        FutureBuilder<List<Artist>>(
+                          future: _suggestedArtistsFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return _buildLoadingSection('Suggested Artists');
+                            } else if (snapshot.hasError) {
+                              return _buildLoadingSection('Suggested Artists');
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            } else {
                               if (!_hasContent) {
-                                setState(() {
-                                  _hasContent = true;
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (!_hasContent) {
+                                    setState(() {
+                                      _hasContent = true;
+                                    });
+                                  }
                                 });
                               }
-                            });
-                          }
-                          _allSuggestedArtists = snapshot.data!;
-                          final displayCount = 3;
-                          final hasMore =
-                              _allSuggestedArtists.length > displayCount;
-                          final displayArtists = hasMore
-                              ? _allSuggestedArtists.sublist(0, displayCount)
-                              : _allSuggestedArtists;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildSectionTitle('Suggested Artists', hasMore),
-                              const SizedBox(height: 16.0),
-                              ..._buildArtistCards(context, displayArtists),
-                              const SizedBox(height: 24.0),
-                            ],
-                          );
-                        }
-                      },
-                    ),
-                    // Section Suggested Promoters
-                    FutureBuilder<List<Promoter>>(
-                      future: _suggestedPromotersFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return _buildLoadingSection('Suggested Promoters');
-                        } else if (snapshot.hasError) {
-                          return _buildLoadingSection('Suggested Promoters');
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return const SizedBox.shrink();
-                        } else {
-                          if (!_hasContent) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _allSuggestedArtists = snapshot.data!;
+                              final displayCount = 3;
+                              final hasMore =
+                                  _allSuggestedArtists.length > displayCount;
+                              final displayArtists = hasMore
+                                  ? _allSuggestedArtists.sublist(
+                                      0, displayCount)
+                                  : _allSuggestedArtists;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildSectionTitle(
+                                      'Suggested Artists', hasMore),
+                                  const SizedBox(height: 16.0),
+                                  ..._buildArtistCards(context, displayArtists),
+                                  const SizedBox(height: 24.0),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                        // Section Suggested Promoters
+                        FutureBuilder<List<Promoter>>(
+                          future: _suggestedPromotersFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return _buildLoadingSection(
+                                  'Suggested Promoters');
+                            } else if (snapshot.hasError) {
+                              return _buildLoadingSection(
+                                  'Suggested Promoters');
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            } else {
                               if (!_hasContent) {
-                                setState(() {
-                                  _hasContent = true;
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (!_hasContent) {
+                                    setState(() {
+                                      _hasContent = true;
+                                    });
+                                  }
                                 });
                               }
-                            });
-                          }
-                          _allSuggestedPromoters = snapshot.data!;
-                          final displayCount = 3;
-                          final hasMore =
-                              _allSuggestedPromoters.length > displayCount;
-                          final displayPromoters = hasMore
-                              ? _allSuggestedPromoters.sublist(0, displayCount)
-                              : _allSuggestedPromoters;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildSectionTitle(
-                                  'Suggested Promoters', hasMore),
-                              const SizedBox(height: 16.0),
-                              ..._buildPromoterCards(context, displayPromoters),
-                              const SizedBox(height: 24.0),
-                            ],
-                          );
-                        }
-                      },
-                    ),
-                    // Section Suggested Venues
-                    FutureBuilder<List<Venue>>(
-                      future: _suggestedVenuesFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return _buildLoadingSection('Suggested Venues');
-                        } else if (snapshot.hasError) {
-                          return _buildLoadingSection('Suggested Venues');
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return const SizedBox.shrink();
-                        } else {
-                          if (!_hasContent) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _allSuggestedPromoters = snapshot.data!;
+                              final displayCount = 3;
+                              final hasMore =
+                                  _allSuggestedPromoters.length > displayCount;
+                              final displayPromoters = hasMore
+                                  ? _allSuggestedPromoters.sublist(
+                                      0, displayCount)
+                                  : _allSuggestedPromoters;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildSectionTitle(
+                                      'Suggested Promoters', hasMore),
+                                  const SizedBox(height: 16.0),
+                                  ..._buildPromoterCards(
+                                      context, displayPromoters),
+                                  const SizedBox(height: 24.0),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                        // Section Suggested Venues
+                        FutureBuilder<List<Venue>>(
+                          future: _suggestedVenuesFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return _buildLoadingSection('Suggested Venues');
+                            } else if (snapshot.hasError) {
+                              return _buildLoadingSection('Suggested Venues');
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            } else {
                               if (!_hasContent) {
-                                setState(() {
-                                  _hasContent = true;
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (!_hasContent) {
+                                    setState(() {
+                                      _hasContent = true;
+                                    });
+                                  }
                                 });
                               }
-                            });
-                          }
-                          _allSuggestedVenues = snapshot.data!;
-                          final displayCount = 3;
-                          final hasMore =
-                              _allSuggestedVenues.length > displayCount;
-                          final displayVenues = hasMore
-                              ? _allSuggestedVenues.sublist(0, displayCount)
-                              : _allSuggestedVenues;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildSectionTitle('Suggested Venues', hasMore),
-                              const SizedBox(height: 16.0),
-                              ..._buildVenueCards(context, displayVenues),
-                              const SizedBox(height: 24.0),
-                            ],
-                          );
-                        }
-                      },
-                    ),
-                    // Section Suggested Genres
-                    FutureBuilder<List<Genre>>(
-                      future: _suggestedGenresFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return _buildLoadingSection('Suggested Genres');
-                        } else if (snapshot.hasError) {
-                          return _buildLoadingSection('Suggested Genres');
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return const SizedBox.shrink();
-                        } else {
-                          if (!_hasContent) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _allSuggestedVenues = snapshot.data!;
+                              final displayCount = 3;
+                              final hasMore =
+                                  _allSuggestedVenues.length > displayCount;
+                              final displayVenues = hasMore
+                                  ? _allSuggestedVenues.sublist(0, displayCount)
+                                  : _allSuggestedVenues;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildSectionTitle(
+                                      'Suggested Venues', hasMore),
+                                  const SizedBox(height: 16.0),
+                                  ..._buildVenueCards(context, displayVenues),
+                                  const SizedBox(height: 24.0),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                        // Section Suggested Genres
+                        FutureBuilder<List<Genre>>(
+                          future: _suggestedGenresFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return _buildLoadingSection('Suggested Genres');
+                            } else if (snapshot.hasError) {
+                              return _buildLoadingSection('Suggested Genres');
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            } else {
                               if (!_hasContent) {
-                                setState(() {
-                                  _hasContent = true;
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (!_hasContent) {
+                                    setState(() {
+                                      _hasContent = true;
+                                    });
+                                  }
                                 });
                               }
-                            });
-                          }
-                          _allSuggestedGenres = snapshot.data!;
-                          final displayCount = 6;
-                          final hasMore =
-                              _allSuggestedGenres.length > displayCount;
-                          final displayGenres = hasMore
-                              ? _allSuggestedGenres.sublist(0, displayCount)
-                              : _allSuggestedGenres;
-                          return Column(
+                              _allSuggestedGenres = snapshot.data!;
+                              final displayCount = 6;
+                              final hasMore =
+                                  _allSuggestedGenres.length > displayCount;
+                              final displayGenres = hasMore
+                                  ? _allSuggestedGenres.sublist(0, displayCount)
+                                  : _allSuggestedGenres;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildSectionTitle(
+                                      'Suggested Genres', hasMore),
+                                  const SizedBox(height: 16.0),
+                                  _buildGenreChips(context, displayGenres),
+                                  const SizedBox(height: 24.0),
+                                ],
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Affichage global des loadingSection en fallback uniquement
+                // si le chargement global est terminé (_allLoaded == true)
+                // et qu'aucune section n'a fourni de données (_hasContent == false)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: showFallback
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionTitle('Suggested Genres', hasMore),
-                              const SizedBox(height: 16.0),
-                              _buildGenreChips(context, displayGenres),
-                              const SizedBox(height: 24.0),
+                              _buildLoadingSection('Top Events'),
+                              _buildLoadingSection('Suggested Events'),
+                              _buildLoadingSection('Suggested Artists'),
+                              _buildLoadingSection('Suggested Promoters'),
+                              _buildLoadingSection('Suggested Venues'),
+                              _buildLoadingSection('Suggested Genres'),
                             ],
-                          );
-                        }
-                      },
+                          ),
+                        )
+                      : Container(),
+                ),
+              ],
+            ),
+          ),
+          // Bouton "Map" positionné par-dessus
+          if (_showMapButton)
+            Positioned(
+              bottom: 16,
+              left: (MediaQuery.of(context).size.width - 100) /
+                  2, // Centre horizontalement le bouton
+              child: SizedBox(
+                width: 100, // Largeur réduite
+                height: 40, // Hauteur plus petite
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20), // Bords arrondis
                     ),
-                  ],
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8), // Ajustement du padding interne
+                  ),
+                  onPressed: _openMapScreen,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.map, size: 18),
+                      SizedBox(width: 4),
+                      Text(
+                        "Map",
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            // Affichage global des loadingSection en fallback uniquement
-            // si le chargement global est terminé (_allLoaded == true)
-            // et qu'aucune section n'a fourni de données (_hasContent == false)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: showFallback
-                  ? Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildLoadingSection('Top Events'),
-                            _buildLoadingSection('Suggested Events'),
-                            _buildLoadingSection('Suggested Artists'),
-                            _buildLoadingSection('Suggested Promoters'),
-                            _buildLoadingSection('Suggested Venues'),
-                            _buildLoadingSection('Suggested Genres'),
-                          ],
-                        ),
-                      ),
-                    )
-                  : Container(),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
