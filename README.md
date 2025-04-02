@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Implement location permission handling and update map center based on current location
 - Add date filtering for events and current location layer to map screen
 - Improve map marker interaction with event image display and navigation
 - Change with light and dark mode with new map theme and disable rotation interaction option and remove of the blue circle layer

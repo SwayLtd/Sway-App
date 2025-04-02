@@ -217,7 +217,10 @@ class _MapScreenState extends State<MapScreen> {
                     initialDate: DateTime.now(),
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
+                    locale: const Locale('en',
+                        'GB'), // Week starts on Monday in Great-Britain locale
                   );
+
                   if (selectedDate != null) {
                     setState(() {
                       _selectedDate = selectedDate;
@@ -265,6 +268,7 @@ class _MapScreenState extends State<MapScreen> {
               TileLayer(
                 urlTemplate: tileUrl,
                 subdomains: const ['a', 'b', 'c', 'd'],
+                retinaMode: true,
               ),
               // Uncomment this if you want to show a circle around the center point
               /* CircleLayer(
@@ -299,11 +303,13 @@ class _MapScreenState extends State<MapScreen> {
                   markerSize: const Size.square(20),
                   accuracyCircleColor:
                       Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                  headingSectorColor:
-                      Theme.of(context).primaryColor.withValues(alpha: 0.8),
-                  headingSectorRadius: 120,
+                  // Hide the heading sector by setting its radius to 0 and its color to transparent
+                  headingSectorRadius: 0,
+                  headingSectorColor: Colors.transparent,
+                  // Alternatively, if supported:
+                  // markerDirection: MarkerDirection.none,
                 ),
-                moveAnimationDuration: Duration.zero, // désactive l'animation
+                moveAnimationDuration: Duration.zero, // disable animation
               ),
 
               MarkerClusterLayerWidget(
@@ -344,9 +350,9 @@ class _MapScreenState extends State<MapScreen> {
                         );
                         if (distance > _radius) return null;
                         return Marker(
-                          width: 90, // Format 16:9 : 90x50 pour l'image
+                          width: 90, // 16:9 format: 90x50 for the image
                           height:
-                              90, // Taille totale pour contenir l'image et le label
+                              90, // Total size to contain image (and optionally label)
                           point: LatLng(lat, lon),
                           child: GestureDetector(
                             onTap: () => _onMarkerTapped(
@@ -381,25 +387,7 @@ class _MapScreenState extends State<MapScreen> {
                                     ),
                                   ),
                                 ),
-                                if (_zoom >= 16) // Seuil fixé à 16
-                                  Container(
-                                    width: 90,
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 2),
-                                    color:
-                                        Colors.transparent, // Fond transparent
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        meta['venue_name'] ?? '',
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                // The venue name container has been removed.
                               ],
                             ),
                           ),

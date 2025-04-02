@@ -12,7 +12,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 1.0.3+3 # Add date filtering for events and current location layer to map screen
+version: 1.0.3+4 # Implement location permission handling and update map center based on current location
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
 

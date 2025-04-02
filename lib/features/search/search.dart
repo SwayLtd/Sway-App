@@ -1,6 +1,7 @@
 // lib/features/search/search.dart
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sway/core/utils/date_utils.dart';
 import 'package:sway/features/artist/artist.dart';
@@ -576,16 +577,62 @@ class _SearchScreenState extends State<SearchScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.map),
-            onPressed: () {
+            onPressed: () async {
+              Position? currentPosition;
+              try {
+                // Check if location services are enabled
+                bool serviceEnabled =
+                    await Geolocator.isLocationServiceEnabled();
+                if (!serviceEnabled) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          "Location services are disabled. Please enable them."),
+                    ),
+                  );
+                } else {
+                  // Check the current permission
+                  LocationPermission permission =
+                      await Geolocator.checkPermission();
+                  // If permission is denied or deniedForever, request permission again
+                  if (permission == LocationPermission.denied ||
+                      permission == LocationPermission.deniedForever) {
+                    permission = await Geolocator.requestPermission();
+                  }
+                  // If permission is granted, get the current position
+                  if (permission == LocationPermission.always ||
+                      permission == LocationPermission.whileInUse) {
+                    currentPosition = await Geolocator.getCurrentPosition(
+                      locationSettings: const LocationSettings(
+                        accuracy: LocationAccuracy.best,
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Location permission is denied."),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                debugPrint("Error getting current location: $e");
+              }
+
+              // Use currentPosition if available, otherwise fallback to default coordinates
+              LatLng center = currentPosition != null
+                  ? LatLng(currentPosition.latitude, currentPosition.longitude)
+                  : const LatLng(50.8477, 4.3572);
+
+              // Navigate to MapScreen with the determined center
               Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
-                  builder: (context) =>
-                      MapScreen(initialCenter: LatLng(50.8477, 4.3572)),
+                  builder: (context) => MapScreen(initialCenter: center),
                 ),
               );
             },
           ),
-
           // Bouton de filtre temporairement désactivé
           IconButton(
             icon: const Icon(Icons.filter_list),
