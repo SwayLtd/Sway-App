@@ -1,669 +1,709 @@
-// lib/features/search/search.dart
-
+// search_screen.dart
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:sway/core/utils/date_utils.dart';
-import 'package:sway/features/artist/artist.dart';
-import 'package:sway/features/artist/models/artist_model.dart';
-import 'package:sway/features/artist/services/artist_service.dart';
-import 'package:sway/features/event/event.dart';
-import 'package:sway/features/event/models/event_model.dart';
-import 'package:sway/features/event/services/event_genre_service.dart';
-import 'package:sway/features/event/services/event_service.dart';
-import 'package:sway/features/genre/genre.dart';
-import 'package:sway/features/genre/models/genre_model.dart';
-import 'package:sway/features/genre/services/genre_service.dart';
-import 'package:sway/features/promoter/models/promoter_model.dart';
-import 'package:sway/features/promoter/promoter.dart';
-import 'package:sway/features/promoter/services/promoter_service.dart';
-import 'package:sway/features/search/screens/map_screen.dart';
-import 'package:sway/features/search/utils/levenshtein_similarity.dart';
-import 'package:sway/features/user/models/user_model.dart';
-import 'package:sway/features/user/services/user_service.dart';
-import 'package:sway/features/user/user.dart';
-import 'package:sway/features/venue/models/venue_model.dart';
-import 'package:sway/features/venue/services/venue_service.dart';
-import 'package:sway/features/venue/venue.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart'; // for date formatting
 
-enum SearchCategory { events, artists, genres, promoters, venues, users }
+// --- Global Supabase instance ---
+final supabaseClient = Supabase.instance.client;
 
+// --- Enum for search entity types ---
+enum EntityType { all, event, artist, venue, promoter, genre, user }
+
+// --- Class to hold the search filters state ---
+class SearchFilters {
+  EntityType entityType;
+  DateTime? date;
+  List<int> genreIds;
+  bool nearMe;
+  String? city;
+  bool onlyFollowed;
+  bool friendsInterested;
+
+  SearchFilters({
+    this.entityType = EntityType.all,
+    this.date,
+    this.genreIds = const [],
+    this.nearMe = false,
+    this.city,
+    this.onlyFollowed = false,
+    this.friendsInterested = false,
+  });
+}
+
+// --- Main search screen widget ---
 class SearchScreen extends StatefulWidget {
+  const SearchScreen({Key? key}) : super(key: key);
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  // Controller for the search text field
   final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
-  final EventService _eventService = EventService();
-  final EventGenreService _eventGenreService = EventGenreService();
-  final ArtistService _artistService = ArtistService();
-  final VenueService _venueService = VenueService();
-  final PromoterService _promoterService = PromoterService();
-  final GenreService _genreService = GenreService();
-  final UserService _userService = UserService();
+  // Current search filters
+  SearchFilters _filters = SearchFilters();
+  // List of search results returned by the RPC
+  List<dynamic> _results = [];
 
-  // Stockage des résultats de recherche par entité
-  Map<String, List<dynamic>> _searchResults = {};
-  Map<String, dynamic> _filters = {
-    'city': null,
-    'date': null,
-    'venueType': null,
-    'genres': [],
-    'near_me': false,
-  };
-
-  // Catégorie de recherche sélectionnée (si null, tous les résultats sont affichés)
-  SearchCategory? _selectedCategory;
-
-  @override
-  void initState() {
-    super.initState();
-    _searchController.addListener(_onSearchChanged);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _searchFocusNode.requestFocus();
-    });
-  }
+  // Simulated user position for Brussels instead of Paris
+  final double currentUserLat = 50.8503; // Brussels latitude
+  final double currentUserLon = 4.3517; // Brussels longitude
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
-    _searchFocusNode.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged() {
-    if (_searchController.text.isEmpty) {
-      if (!mounted) return;
-      setState(() {
-        _searchResults = {};
-      });
-    } else {
-      _performSearch(_searchController.text);
-    }
-  }
-
-  List<Event> sortAndFilterEvents(List<Event> events, String query) {
-    final now = DateTime.now();
-
-    // Séparer événements à venir et passés
-    final upcomingEvents = events
-        .where((e) =>
-            e.eventDateTime.isAfter(now) ||
-            e.eventDateTime.isAtSameMomentAs(now))
-        .toList();
-
-    final pastEvents =
-        events.where((e) => e.eventDateTime.isBefore(now)).toList();
-
-    // Filtrer les événements passés qui correspondent bien à la recherche
-    final matchingPastEvents = pastEvents.where((event) {
-      double matchScore = similarity(event.title, query);
-      return matchScore >= 0.8; // Seuil ajustable en fonction de vos besoins
-    }).toList();
-
-    // Tri des événements à venir (les plus proches en premier)
-    upcomingEvents.sort((a, b) => a.eventDateTime.compareTo(b.eventDateTime));
-    // Tri des événements passés par ordre décroissant (les plus récents d'abord)
-    matchingPastEvents
-        .sort((a, b) => b.eventDateTime.compareTo(a.eventDateTime));
-
-    // Combiner les résultats : afficher d'abord les événements à venir puis les événements passés correspondants
-    return [...upcomingEvents, ...matchingPastEvents];
-  }
-
-  List<Event> sortUpcomingEvents(List<Event> events) {
-    final now = DateTime.now();
-    // Keep only future events (including events starting exactly now)
-    final futureEvents = events
-        .where((e) =>
-            e.eventDateTime.isAfter(now) ||
-            e.eventDateTime.isAtSameMomentAs(now))
-        .toList();
-    // Sort events in ascending order: soonest event first.
-    futureEvents.sort((a, b) => a.eventDateTime.compareTo(b.eventDateTime));
-    return futureEvents;
-  }
-
-// Example integration in _performSearch:
+  // Call RPC to perform search with the current filters
   Future<void> _performSearch(String query) async {
-    final events = await _eventService.searchEvents(query, _filters);
-    // Utilisation de la nouvelle fonction de tri et filtrage
-    // final events = sortAndFilterEvents(eventsRaw, query);
-    // final events = sortUpcomingEvents(eventsRaw);
-    final artists = await _artistService.searchArtists(query);
-    final venues = await _venueService.searchVenues(query);
-    final promoters = await _promoterService.searchPromoters(query);
-    final genres = await _genreService.searchGenres(query);
-    final users = await _userService.searchUsers(query);
+    final params = <String, dynamic>{};
 
-    if (!mounted) return;
-    setState(() {
-      _searchResults = {
-        'Events': events.take(10).toList(),
-        'Artists': artists.take(10).toList(),
-        'Promoters': promoters.take(10).toList(),
-        'Venues': venues.take(10).toList(),
-        'Genres': genres.take(10).toList(),
-        'Users': users.take(10).toList(),
-      };
+    if (_filters.entityType != EntityType.all) {
+      params['p_entity_type'] = _entityTypeParam(_filters.entityType);
+    }
+    if (_filters.date != null) {
+      params['p_date'] = _filters.date!.toIso8601String();
+    }
+    if (_filters.genreIds.isNotEmpty) {
+      params['p_genre_ids'] = _filters.genreIds;
+    }
+    if (_filters.nearMe) {
+      params['p_lat'] = currentUserLat;
+      params['p_lon'] = currentUserLon;
+      params['p_radius_km'] = 50; // Example: 50km radius for "near me"
+    }
+    if (_filters.city != null) {
+      params['p_city'] = _filters.city;
+    }
+    if (_filters.onlyFollowed) {
+      params['p_only_followed'] = true;
+    }
+    if (_filters.friendsInterested) {
+      params['p_friends_interested'] = true;
+    }
+    if (query.isNotEmpty) {
+      params['p_query'] = query;
+    }
+    // The current user's internal ID (an integer) is retrieved via UserService
+    params['p_user_id'] =
+        123; // Replace with the actual user ID from UserService
 
-      _searchResults.removeWhere((key, value) => value.isEmpty);
-
-      _searchResults = Map.fromEntries(
-        _searchResults.entries.toList()
-          ..sort((a, b) => b.value.length.compareTo(a.value.length)),
-      );
-    });
+    try {
+      final response =
+          await supabaseClient.rpc('search_entities', params: params);
+      setState(() {
+        _results = response as List<dynamic>;
+      });
+    } catch (error) {
+      debugPrint("Error during search: $error");
+    }
   }
 
-  // Ligne horizontale des tuiles de catégories
-  Widget _buildCategoryChips() {
-    return SizedBox(
-      height: 50,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        children: SearchCategory.values.map((category) {
-          String label;
-          switch (category) {
-            case SearchCategory.events:
-              label = 'Events';
-              break;
-            case SearchCategory.artists:
-              label = 'Artists';
-              break;
-            case SearchCategory.genres:
-              label = 'Genres';
-              break;
-            case SearchCategory.promoters:
-              label = 'Promoters';
-              break;
-            case SearchCategory.venues:
-              label = 'Venues';
-              break;
-            case SearchCategory.users:
-              label = 'Users';
-              break;
-          }
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: ChoiceChip(
-              label: Text(label),
-              selected: _selectedCategory == category,
-              onSelected: (selected) {
-                setState(() {
-                  // Si on clique sur le même chip, on désélectionne pour afficher tous
-                  _selectedCategory =
-                      (selected && _selectedCategory != category)
-                          ? category
-                          : null;
-                  _performSearch(_searchController.text);
-                });
-              },
-            ),
+  // Returns an icon based on the entity type (to be adapted)
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'event':
+        return Icons.event;
+      case 'artist':
+        return Icons.music_note;
+      case 'venue':
+        return Icons.location_on;
+      case 'promoter':
+        return Icons.campaign;
+      case 'genre':
+        return Icons.category;
+      case 'user':
+        return Icons.person;
+      default:
+        return Icons.search;
+    }
+  }
+
+  // Returns the RPC parameter value corresponding to an EntityType
+  String _entityTypeParam(EntityType type) {
+    switch (type) {
+      case EntityType.event:
+        return 'events';
+      case EntityType.artist:
+        return 'artists';
+      case EntityType.venue:
+        return 'venues';
+      case EntityType.promoter:
+        return 'promoters';
+      case EntityType.genre:
+        return 'genres';
+      case EntityType.user:
+        return 'users';
+      case EntityType.all:
+        return '';
+    }
+  }
+
+  // Returns the display label for an EntityType
+  String _entityTypeLabel(EntityType type) {
+    switch (type) {
+      case EntityType.event:
+        return 'Events';
+      case EntityType.artist:
+        return 'Artists';
+      case EntityType.venue:
+        return 'Venues';
+      case EntityType.promoter:
+        return 'Promoters';
+      case EntityType.genre:
+        return 'Genres';
+      case EntityType.user:
+        return 'Users';
+      case EntityType.all:
+        return 'All';
+    }
+  }
+
+  // Format a date as dd/MM/yyyy
+  String _formatDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  // Example function to get a genre name from its ID (adapt as needed)
+  String _genreNameFromId(int id) {
+    final genreMap = {
+      1: "Rock",
+      2: "Pop",
+      3: "Jazz",
+      4: "Electro",
+      5: "Hip-Hop",
+    };
+    return genreMap[id] ?? "Genre $id";
+  }
+
+  // Example function returning all available genres
+  List<Map<String, dynamic>> _getAllGenres() {
+    return [
+      {'id': 1, 'name': 'Rock'},
+      {'id': 2, 'name': 'Pop'},
+      {'id': 3, 'name': 'Jazz'},
+      {'id': 4, 'name': 'Electro'},
+      {'id': 5, 'name': 'Hip-Hop'},
+    ];
+  }
+
+  // Build chips to display active filters
+  Widget _buildActiveFilterChips() {
+    List<Widget> chips = [];
+    if (_filters.entityType != EntityType.all) {
+      chips.add(Chip(
+        label: Text(_entityTypeLabel(_filters.entityType)),
+        onDeleted: () {
+          setState(() {
+            _filters.entityType = EntityType.all;
+          });
+          _performSearch(_searchController.text);
+        },
+      ));
+    }
+    if (_filters.date != null) {
+      chips.add(Chip(
+        label: Text("Date: ${_formatDate(_filters.date!)}"),
+        onDeleted: () {
+          setState(() {
+            _filters.date = null;
+          });
+          _performSearch(_searchController.text);
+        },
+      ));
+    }
+    for (int genreId in _filters.genreIds) {
+      chips.add(Chip(
+        label: Text(_genreNameFromId(genreId)),
+        onDeleted: () {
+          setState(() {
+            _filters.genreIds.remove(genreId);
+          });
+          _performSearch(_searchController.text);
+        },
+      ));
+    }
+    if (_filters.city != null) {
+      chips.add(Chip(
+        label: Text(_filters.city!),
+        onDeleted: () {
+          setState(() {
+            _filters.city = null;
+          });
+          _performSearch(_searchController.text);
+        },
+      ));
+    }
+    if (_filters.nearMe) {
+      chips.add(Chip(
+        label: Text("Near Me"),
+        onDeleted: () {
+          setState(() {
+            _filters.nearMe = false;
+          });
+          _performSearch(_searchController.text);
+        },
+      ));
+    }
+    if (_filters.onlyFollowed) {
+      chips.add(Chip(
+        label: Text("Followed"),
+        onDeleted: () {
+          setState(() {
+            _filters.onlyFollowed = false;
+          });
+          _performSearch(_searchController.text);
+        },
+      ));
+    }
+    if (_filters.friendsInterested) {
+      chips.add(Chip(
+        label: Text("Friends Interested"),
+        onDeleted: () {
+          setState(() {
+            _filters.friendsInterested = false;
+          });
+          _performSearch(_searchController.text);
+        },
+      ));
+    }
+    return chips.isEmpty
+        ? SizedBox.shrink()
+        : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: chips),
           );
-        }).toList(),
-      ),
-    );
   }
 
-  Widget _buildSelectedFilters() {
-    final List<Widget> filterWidgets = [];
-
-    if (_filters['near_me'] == true) {
-      filterWidgets.add(
-        Chip(
-          label: const Text('Near Me'),
-          onDeleted: () {
-            if (!mounted) return;
-            setState(() {
-              _filters['near_me'] = false;
-              _performSearch(_searchController.text);
-            });
+  // Build the list of search results
+  Widget _buildResultsList() {
+    if (_results.isEmpty) {
+      return Center(child: Text("No results"));
+    }
+    return ListView.builder(
+      itemCount: _results.length,
+      itemBuilder: (context, index) {
+        final item = _results[index];
+        String type = item['type'];
+        String name = item['name'];
+        String? description = item['description'];
+        return ListTile(
+          leading: Icon(_iconForType(type)),
+          title: Text(name),
+          subtitle: description != null && description.isNotEmpty
+              ? Text(description)
+              : null,
+          onTap: () {
+            // Implement navigation to the entity details screen
           },
-        ),
-      );
-    }
-    if (_filters['cities'] != null && (_filters['cities'] as List).isNotEmpty) {
-      filterWidgets.addAll(
-        (_filters['cities'] as List<String>)
-            .map(
-              (city) => Chip(
-                label: Text('City: $city'),
-                onDeleted: () {
-                  if (!mounted) return;
-                  setState(() {
-                    (_filters['cities'] as List).remove(city);
-                    _performSearch(_searchController.text);
-                  });
-                },
-              ),
-            )
-            .toList(),
-      );
-    }
-    if (_filters['date'] != null) {
-      filterWidgets.add(
-        Chip(
-          label: Text(
-            'Date: ${_filters['date'].toString().split(' ')[0]}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          onDeleted: () {
-            if (!mounted) return;
-            setState(() {
-              _filters['date'] = null;
-              _performSearch(_searchController.text);
-            });
-          },
-        ),
-      );
-    }
-    if (_filters['venueTypes'] != null &&
-        (_filters['venueTypes'] as List).isNotEmpty) {
-      filterWidgets.addAll(
-        (_filters['venueTypes'] as List<String>)
-            .map(
-              (type) => Chip(
-                label: Text(
-                  'Venue Type: $type',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                onDeleted: () {
-                  if (!mounted) return;
-                  setState(() {
-                    (_filters['venueTypes'] as List).remove(type);
-                    _performSearch(_searchController.text);
-                  });
-                },
-              ),
-            )
-            .toList(),
-      );
-    }
-    if (_filters['genres'] != null && (_filters['genres'] as List).isNotEmpty) {
-      filterWidgets.addAll(
-        (_filters['genres'] as List)
-            .map(
-              (genreId) => FutureBuilder<Genre?>(
-                future: _genreService.getGenreById(genreId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Chip(label: Text('Loading'));
-                  } else if (snapshot.hasError || !snapshot.hasData) {
-                    return const Chip(label: Text('Error'));
-                  } else {
-                    final genre = snapshot.data!;
-                    return Chip(
-                      label: Text('Genre: ${genre.name}'),
-                      onDeleted: () {
-                        if (!mounted) return;
-                        setState(() {
-                          (_filters['genres'] as List).remove(genreId);
-                          _performSearch(_searchController.text);
-                        });
-                      },
-                    );
-                  }
-                },
-              ),
-            )
-            .toList(),
-      );
-    }
-
-    if (filterWidgets.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Wrap(
-          spacing: 8.0,
-          children: filterWidgets,
-        ),
-      ),
+        );
+      },
     );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-
-  Widget _buildListTile(dynamic result) {
-    if (result is User) {
-      return ListTile(
-        title: Text(
-          result.username,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => UserScreen(userId: result.id),
-            ),
-          );
-        },
-      );
-    } else if (result is Genre) {
-      return ListTile(
-        title: Text(
-          result.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => GenreScreen(genreId: result.id),
-            ),
-          );
-        },
-      );
-    } else if (result is Artist) {
-      return ListTile(
-        title: Text(
-          result.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ArtistScreen(artistId: result.id!),
-            ),
-          );
-        },
-      );
-    } else if (result is Venue) {
-      return ListTile(
-        title: Text(
-          result.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Row(
-          children: [
-            const Icon(Icons.location_on, size: 16, color: Colors.grey),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                result.location,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => VenueScreen(venueId: result.id!),
-            ),
-          );
-        },
-      );
-    } else if (result is Promoter) {
-      return ListTile(
-        title: Text(
-          result.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PromoterScreen(promoterId: result.id!),
-            ),
-          );
-        },
-      );
-    } else if (result is Event) {
-      return ListTile(
-        title: Text(
-          result.title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.date_range, size: 16, color: Colors.grey),
-                const SizedBox(width: 4),
-                // Formater la date de l'événement en utilisant date_utils.dart
-                Text(
-                  formatEventDate(result.eventDateTime),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  formatEventTime(result.eventDateTime),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            FutureBuilder<List<Genre>>(
-              future: _getEventGenres(result.id!),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Row(
-                    children: [
-                      Icon(Icons.music_note, size: 16, color: Colors.grey),
-                      SizedBox(width: 4),
-                      Text('Loading genres'),
-                    ],
-                  );
-                } else if (snapshot.hasError) {
-                  return const Row(
-                    children: [
-                      Icon(Icons.error, size: 16, color: Colors.grey),
-                      SizedBox(width: 4),
-                      Text('Error loading genres'),
-                    ],
-                  );
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Row(
-                    children: [
-                      Icon(Icons.music_note, size: 16, color: Colors.grey),
-                      SizedBox(width: 4),
-                      Text('No genres available'),
-                    ],
-                  );
-                } else {
-                  return Row(
-                    children: [
-                      const Icon(Icons.music_note,
-                          size: 16, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          snapshot.data!.map((genre) => genre.name).join(', '),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EventScreen(event: result),
-            ),
-          );
-        },
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
-
-  Future<List<Genre>> _getEventGenres(int eventId) async {
-    final genreIds = await _eventGenreService.getGenresByEventId(eventId);
-    final genres =
-        await Future.wait(genreIds.map((id) => _genreService.getGenreById(id)));
-    return genres.whereType<Genre>().toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         title: TextField(
           controller: _searchController,
-          focusNode: _searchFocusNode,
-          autofocus: true,
           decoration: InputDecoration(
-            hintText:
-                'Search events, artists, venues, promoters, genres, users',
+            hintText: 'Search (events, artists, venues, etc.)',
+            border: InputBorder.none,
+            prefixIcon: Icon(Icons.search),
             suffixIcon: IconButton(
-              icon: const Icon(Icons.clear),
+              icon: Icon(Icons.clear),
               onPressed: () {
                 _searchController.clear();
-                if (!mounted) return;
                 setState(() {
-                  _searchResults = {};
+                  _results = [];
                 });
               },
             ),
           ),
+          onSubmitted: (query) => _performSearch(query),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.map_outlined),
+            icon: Icon(Icons.filter_list),
+            tooltip: "Advanced Filters",
             onPressed: () async {
-              Position? currentPosition;
-              try {
-                // Check if location services are enabled
-                bool serviceEnabled =
-                    await Geolocator.isLocationServiceEnabled();
-                if (!serviceEnabled) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          "Location services are disabled. Please enable them."),
-                    ),
-                  );
-                } else {
-                  // Check the current permission
-                  LocationPermission permission =
-                      await Geolocator.checkPermission();
-                  // If permission is denied or deniedForever, request permission again
-                  if (permission == LocationPermission.denied ||
-                      permission == LocationPermission.deniedForever) {
-                    permission = await Geolocator.requestPermission();
-                  }
-                  // If permission is granted, get the current position
-                  if (permission == LocationPermission.always ||
-                      permission == LocationPermission.whileInUse) {
-                    currentPosition = await Geolocator.getCurrentPosition(
-                      locationSettings: const LocationSettings(
-                        accuracy: LocationAccuracy.best,
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Location permission is denied."),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-                }
-              } catch (e) {
-                debugPrint("Error getting current location: $e");
+              final newFilters = await showModalBottomSheet<SearchFilters>(
+                context: context,
+                isScrollControlled: true,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (context) =>
+                    FilterModalSheet(initialFilters: _filters),
+              );
+              if (newFilters != null) {
+                setState(() {
+                  _filters = newFilters;
+                });
+                _performSearch(_searchController.text);
               }
-
-              // Use currentPosition if available, otherwise fallback to default coordinates
-              LatLng center = currentPosition != null
-                  ? LatLng(currentPosition.latitude, currentPosition.longitude)
-                  : const LatLng(50.8477, 4.3572);
-
-              // Navigate to MapScreen with the determined center
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (context) => MapScreen(initialCenter: center),
-                ),
-              );
             },
-          ),
-          // Bouton de filtre temporairement désactivé
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  behavior: SnackBarBehavior.floating,
-                  content: Text('Feature in development'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
+          )
         ],
       ),
       body: Column(
         children: [
-          const SizedBox(height: 16),
-          // Tuiles de sélection de catégorie
-          _buildCategoryChips(),
-          const SizedBox(height: 8),
-          _buildSelectedFilters(),
-          Expanded(
-            child: ListView(
-              children: _searchResults.entries.expand<Widget>((entry) {
-                // Si une catégorie est sélectionnée, ne garder que la section correspondante.
-                if (_selectedCategory != null) {
-                  String selectedKey =
-                      _selectedCategory.toString().split('.').last;
-                  if (entry.key.toLowerCase() != selectedKey.toLowerCase()) {
-                    return [];
-                  }
-                }
-                return [
-                  _buildSectionTitle(entry.key),
-                  ...entry.value
-                      .map<Widget>((result) => _buildListTile(result)),
-                ];
+          SizedBox(height: 8),
+          _buildActiveFilterChips(),
+          Expanded(child: _buildResultsList()),
+        ],
+      ),
+    );
+  }
+}
+
+// --- Bottom Sheet for advanced filters ---
+class FilterModalSheet extends StatefulWidget {
+  final SearchFilters initialFilters;
+  const FilterModalSheet({Key? key, required this.initialFilters})
+      : super(key: key);
+  @override
+  _FilterModalSheetState createState() => _FilterModalSheetState();
+}
+
+class _FilterModalSheetState extends State<FilterModalSheet> {
+  late EntityType _selectedEntity;
+  DateTime? _selectedDate;
+  late List<int> _selectedGenreIds;
+  bool _nearMe = false;
+  String? _selectedCity;
+  bool _onlyFollowed = false;
+  bool _friendsInterested = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedEntity = widget.initialFilters.entityType;
+    _selectedDate = widget.initialFilters.date;
+    _selectedGenreIds = List<int>.from(widget.initialFilters.genreIds);
+    _nearMe = widget.initialFilters.nearMe;
+    _selectedCity = widget.initialFilters.city;
+    _onlyFollowed = widget.initialFilters.onlyFollowed;
+    _friendsInterested = widget.initialFilters.friendsInterested;
+  }
+
+  // Example static list of available genres
+  List<Map<String, dynamic>> _getAllGenres() {
+    return [
+      {'id': 1, 'name': 'Rock'},
+      {'id': 2, 'name': 'Pop'},
+      {'id': 3, 'name': 'Jazz'},
+      {'id': 4, 'name': 'Electro'},
+      {'id': 5, 'name': 'Hip-Hop'},
+    ];
+  }
+
+  // Build FilterChips for genre selection
+  List<Widget> _buildGenreChips() {
+    return _getAllGenres().map((genre) {
+      return FilterChip(
+        label: Text(genre['name']),
+        selected: _selectedGenreIds.contains(genre['id']),
+        onSelected: (selected) {
+          setState(() {
+            if (selected) {
+              _selectedGenreIds.add(genre['id']);
+            } else {
+              _selectedGenreIds.remove(genre['id']);
+            }
+          });
+        },
+      );
+    }).toList();
+  }
+
+  // Format a date for display
+  String _formatDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  // Save the current filters preset (example implementation)
+  void _saveFiltersPreset() {
+    // Implement saving (e.g., using SharedPreferences)
+    debugPrint(
+        "Filters saved: $_selectedEntity, date: $_selectedDate, genres: $_selectedGenreIds");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // List of available entity choices for filtering
+    final entityChoices = {
+      EntityType.all: 'All',
+      EntityType.event: 'Events',
+      EntityType.artist: 'Artists',
+      EntityType.venue: 'Venues',
+      EntityType.promoter: 'Promoters',
+      EntityType.genre: 'Genres',
+      EntityType.user: 'Users',
+    };
+
+    return Padding(
+      padding: MediaQuery.of(context).viewInsets.add(EdgeInsets.all(16)),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Modal header row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Search Filters',
+                    style: Theme.of(context).textTheme.titleLarge),
+                IconButton(
+                  icon: Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context, null),
+                )
+              ],
+            ),
+            SizedBox(height: 8),
+            // Entity type selection using ChoiceChips
+            Wrap(
+              spacing: 8.0,
+              children: entityChoices.entries.map((entry) {
+                return ChoiceChip(
+                  label: Text(entry.value),
+                  selected: _selectedEntity == entry.key,
+                  onSelected: (selected) {
+                    if (selected) {
+                      setState(() {
+                        _selectedEntity = entry.key;
+                      });
+                    }
+                  },
+                );
               }).toList(),
             ),
-          ),
-        ],
+            Divider(),
+            // Dynamic filters based on the selected entity
+            if (_selectedEntity == EntityType.event ||
+                _selectedEntity == EntityType.all) ...[
+              ListTile(
+                title: Text(_selectedDate != null
+                    ? "Date: ${_formatDate(_selectedDate!)}"
+                    : "Select a date"),
+                trailing: Icon(Icons.calendar_today),
+                onTap: () async {
+                  DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate ?? DateTime.now(),
+                    firstDate: DateTime.now().subtract(Duration(days: 365)),
+                    lastDate: DateTime.now().add(Duration(days: 365 * 2)),
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      _selectedDate = picked;
+                    });
+                  }
+                },
+              ),
+              SwitchListTile(
+                title: Text("Near Me"),
+                value: _nearMe,
+                onChanged: (val) {
+                  setState(() {
+                    _nearMe = val;
+                    if (val) _selectedCity = null;
+                  });
+                },
+              ),
+              DropdownButton<String>(
+                hint: Text("Major City"),
+                value: _selectedCity,
+                items: <String>[
+                  'Brussels',
+                  'Paris',
+                  'London',
+                  'Berlin',
+                  'Madrid'
+                ]
+                    .map((city) =>
+                        DropdownMenuItem(value: city, child: Text(city)))
+                    .toList(),
+                onChanged: (val) {
+                  setState(() {
+                    _selectedCity = val;
+                    if (val != null) _nearMe = false;
+                  });
+                },
+              ),
+              SizedBox(height: 8),
+              Text("Genres:", style: TextStyle(fontWeight: FontWeight.bold)),
+              Wrap(
+                spacing: 6.0,
+                children: _buildGenreChips(),
+              ),
+              CheckboxListTile(
+                title: Text("Only followed events"),
+                value: _onlyFollowed,
+                onChanged: (val) {
+                  setState(() {
+                    _onlyFollowed = val ?? false;
+                  });
+                },
+              ),
+              CheckboxListTile(
+                title: Text("Friends interested"),
+                value: _friendsInterested,
+                onChanged: (val) {
+                  setState(() {
+                    _friendsInterested = val ?? false;
+                  });
+                },
+              ),
+            ],
+            if (_selectedEntity == EntityType.artist) ...[
+              SizedBox(height: 8),
+              Text("Artist Genres:",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Wrap(
+                spacing: 6.0,
+                children: _buildGenreChips(),
+              ),
+              CheckboxListTile(
+                title: Text("Only followed artists"),
+                value: _onlyFollowed,
+                onChanged: (val) {
+                  setState(() {
+                    _onlyFollowed = val ?? false;
+                  });
+                },
+              ),
+            ],
+            if (_selectedEntity == EntityType.venue) ...[
+              SizedBox(height: 8),
+              Text("Venue event genres:",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Wrap(
+                spacing: 6.0,
+                children: _buildGenreChips(),
+              ),
+              SwitchListTile(
+                title: Text("Near Me"),
+                value: _nearMe,
+                onChanged: (val) {
+                  setState(() {
+                    _nearMe = val;
+                    if (val) _selectedCity = null;
+                  });
+                },
+              ),
+              DropdownButton<String>(
+                hint: Text("Major City"),
+                value: _selectedCity,
+                items: <String>['Brussels', 'Paris', 'London', 'Berlin']
+                    .map((city) =>
+                        DropdownMenuItem(value: city, child: Text(city)))
+                    .toList(),
+                onChanged: (val) {
+                  setState(() {
+                    _selectedCity = val;
+                    if (val != null) _nearMe = false;
+                  });
+                },
+              ),
+              CheckboxListTile(
+                title: Text("Only followed venues"),
+                value: _onlyFollowed,
+                onChanged: (val) {
+                  setState(() {
+                    _onlyFollowed = val ?? false;
+                  });
+                },
+              ),
+            ],
+            if (_selectedEntity == EntityType.promoter) ...[
+              SizedBox(height: 8),
+              Text("Preferred genres:",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Wrap(
+                spacing: 6.0,
+                children: _buildGenreChips(),
+              ),
+              CheckboxListTile(
+                title: Text("Only followed promoters"),
+                value: _onlyFollowed,
+                onChanged: (val) {
+                  setState(() {
+                    _onlyFollowed = val ?? false;
+                  });
+                },
+              ),
+            ],
+            if (_selectedEntity == EntityType.genre) ...[
+              CheckboxListTile(
+                title: Text("Only followed genres"),
+                value: _onlyFollowed,
+                onChanged: (val) {
+                  setState(() {
+                    _onlyFollowed = val ?? false;
+                  });
+                },
+              ),
+            ],
+            if (_selectedEntity == EntityType.user) ...[
+              CheckboxListTile(
+                title: Text("Only followed users"),
+                value: _onlyFollowed,
+                onChanged: (val) {
+                  setState(() {
+                    _onlyFollowed = val ?? false;
+                  });
+                },
+              ),
+            ],
+            SizedBox(height: 16),
+            // Action buttons
+            Wrap(
+              children: [
+                TextButton(
+                  child: Text("Clear filters"),
+                  onPressed: () {
+                    setState(() {
+                      _selectedEntity = EntityType.all;
+                      _selectedDate = null;
+                      _selectedGenreIds.clear();
+                      _nearMe = false;
+                      _selectedCity = null;
+                      _onlyFollowed = false;
+                      _friendsInterested = false;
+                    });
+                  },
+                ),
+                TextButton(
+                  child: Text("Save my filters"),
+                  onPressed: () {
+                    _saveFiltersPreset();
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text("Filters saved")));
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            ElevatedButton(
+              child: Text("Apply"),
+              onPressed: () {
+                SearchFilters newFilters = SearchFilters(
+                  entityType: _selectedEntity,
+                  date: _selectedDate,
+                  genreIds: _selectedGenreIds,
+                  nearMe: _selectedCity == null ? _nearMe : false,
+                  city: _selectedCity,
+                  onlyFollowed: _onlyFollowed,
+                  friendsInterested: _friendsInterested,
+                );
+                Navigator.pop(context, newFilters);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -86,24 +86,34 @@ tsconfig.json
 deno.lock
 
 # Backend
+/supabase
 /backend
 
 # Supabase
 *.branches
 supabase/.gitignore
 supabase/seed.sql
+backend/.gitignore
+backend/seed.sql
 
 # Supabase secrets and keys
+/supabase/.supabase
+/supabase/functions/service-account.json
 /backend/.supabase
 /backend/functions/service-account.json
 
 # Supabase project files
+
+/supabase/config.toml
 /backend/config.toml
 
 # Import script and files
 /supabase/imports/csv/join_tables/*.csv
 /supabase/imports/csv/*.csv
 /supabase/imports/import_data.py
+/backend/imports/csv/join_tables/*.csv
+/backend/imports/csv/*.csv
+/backend/imports/import_data.py
 
 # Supabase build artifacts
 /build/
