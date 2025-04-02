@@ -4,8 +4,11 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/event/event.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_venue_service.dart';
@@ -30,7 +33,9 @@ class _MapScreenState extends State<MapScreen> {
   Map<int, Venue> _venuesCacheMap = {};
   final Set<int> _loadedEventIds =
       {}; // Pour éviter les doublons (basé sur l'ID de l'event)
-  bool _isLoading = false;
+  DateTime? _selectedDate;
+
+  // bool _isLoading = false;
   LatLng? _lastFetchCenter;
   Timer? _debounceTimer;
   double _mapWidth = 0;
@@ -66,19 +71,40 @@ class _MapScreenState extends State<MapScreen> {
     return visibleRadius;
   }
 
+  // Helper function to compare only date parts
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
   /// Récupère la liste des événements et pour chacun, récupère son Venue via le service.
   Future<void> _fetchEventsAndVenues() async {
     setState(() {
-      _isLoading = true;
+      // _isLoading = true;
+      // Clear the caches so that the list is refreshed
+      _eventsCache.clear();
+      _loadedEventIds.clear();
+      _venuesCacheMap.clear();
     });
+
     _radius = _calculateVisibleRadius();
     _lastFetchCenter = _center;
     try {
       List<Event> newEvents =
           await _eventVenueService.getEventsAround(_center, _radius);
       final DateTime now = DateTime.now();
-      newEvents = newEvents.where((e) => e.eventDateTime.isAfter(now)).toList();
-      // Pour chaque événement, si le venue n'est pas déjà en cache, le récupérer
+
+      if (_selectedDate != null) {
+        // Filter events occurring on the selected date, ignoring the current time
+        newEvents = newEvents
+            .where((e) => _isSameDate(e.eventDateTime, _selectedDate!))
+            .toList();
+      } else {
+        // Only show future events if no date is selected
+        newEvents =
+            newEvents.where((e) => e.eventDateTime.isAfter(now)).toList();
+      }
+
+      // For each event, if not cached, fetch its associated venue
       for (var event in newEvents) {
         if (event.id == null) continue;
         if (!_loadedEventIds.contains(event.id)) {
@@ -91,10 +117,10 @@ class _MapScreenState extends State<MapScreen> {
         }
       }
     } catch (e) {
-      debugPrint("Erreur lors du chargement des événements ou des venues: $e");
+      debugPrint("Error fetching events or venues: $e");
     } finally {
       setState(() {
-        _isLoading = false;
+        // _isLoading = false;
       });
     }
   }
@@ -170,11 +196,52 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Calendar icon with date picker
+            IconButton(
+              icon: Icon(
+                _selectedDate != null ? Icons.event_busy : Icons.event,
+              ),
+              onPressed: () async {
+                // If a date is already selected, reset it; otherwise, show the date picker.
+                if (_selectedDate != null) {
+                  setState(() {
+                    _selectedDate = null;
+                  });
+                  _fetchEventsAndVenues(); // Refresh events without date filter
+                } else {
+                  final selectedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (selectedDate != null) {
+                    setState(() {
+                      _selectedDate = selectedDate;
+                    });
+                    _fetchEventsAndVenues(); // Refresh events with new date filter
+                  }
+                }
+              },
+            ),
+
+            // Display selected date in short format if available
+            if (_selectedDate != null)
+              Text(
+                // Format the date as "dd MMM", e.g., "17 Apr"
+                DateFormat('dd MMM').format(_selectedDate!),
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+          ],
         ),
       ),
+
       body: LayoutBuilder(
         builder: (context, constraints) {
           _mapWidth = constraints.maxWidth;
@@ -212,6 +279,33 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ],
               ), */
+              // Ajout du layer de localisation actuelle
+              CurrentLocationLayer(
+                style: LocationMarkerStyle(
+                  marker: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Theme.of(context).primaryColor,
+                      border: Border.all(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  markerSize: const Size.square(20),
+                  accuracyCircleColor:
+                      Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  headingSectorColor:
+                      Theme.of(context).primaryColor.withValues(alpha: 0.8),
+                  headingSectorRadius: 120,
+                ),
+                moveAnimationDuration: Duration.zero, // désactive l'animation
+              ),
+
               MarkerClusterLayerWidget(
                 options: MarkerClusterLayerOptions(
                   maxClusterRadius: 60,
@@ -279,8 +373,10 @@ class _MapScreenState extends State<MapScreen> {
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.network(
-                                      event.imageUrl,
+                                    child: ImageWithErrorHandler(
+                                      imageUrl: event.imageUrl,
+                                      width: 90,
+                                      height: 50,
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -317,9 +413,17 @@ class _MapScreenState extends State<MapScreen> {
           );
         },
       ),
-      /* floatingActionButton:
-          _isLoading ? const CircularProgressIndicator() : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, */
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.transparent, // Fond transparent
+        elevation: 0, // Sans ombre
+        onPressed: () {
+          // Réinitialiser la position et le zoom de la carte
+          _mapController.move(
+              widget.initialCenter, 12); // Ici, 12 est le zoom initial
+        },
+        child: const Icon(Icons.my_location),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
