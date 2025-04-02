@@ -157,7 +157,7 @@ class _MapScreenState extends State<MapScreen> {
         return Padding(
           padding: EdgeInsets.only(bottom: screenHeight * 0.05),
           child: FractionallySizedBox(
-            heightFactor: 0.30,
+            heightFactor: 0.31,
             child: Center(
               child: Container(
                 width: 320,

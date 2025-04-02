@@ -488,7 +488,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         : const LatLng(50.8477, 4.3572);
 
     // Naviguer vers MapScreen avec le centre déterminé
-    Navigator.of(context).push(
+    Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         builder: (context) => MapScreen(initialCenter: center),
       ),
