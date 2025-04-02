@@ -12,7 +12,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 1.0.3+5 # Add "Map" button on scroll on Explore screen
+version: 1.0.3+6 # Remove google_fonts dependency and add SpaceGrotesk font family locally
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
 
@@ -32,7 +32,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   flutter_sticky_header: ^0.7.0
   go_router: ^14.2.1 # ^6.5.9 was important before, keep it in ming
-  google_fonts: ^6.2.1
+  # google_fonts: ^6.2.1
   http: ^1.2.2
   intl: ^0.19.0
   # lemon_squeezy: ^1.0.3
@@ -169,5 +169,19 @@ flutter:
     - assets/images/404.png
     - assets/data/forbidden_words_en.json
     - assets/data/forbidden_words_fr.json
+
+  fonts:
+    - family: SpaceGrotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk-Light.ttf
+          weight: 300
+        - asset: assets/fonts/SpaceGrotesk-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/SpaceGrotesk-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/SpaceGrotesk-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/SpaceGrotesk-Bold.ttf
+          weight: 700
 
   generate: true

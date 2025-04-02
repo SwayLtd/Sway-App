@@ -2,15 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   AppTheme._();
 
   static ThemeData light = ThemeData(
-    primaryColor: Color.fromRGBO(255, 188, 0, 1),
+    primaryColor: const Color.fromRGBO(255, 188, 0, 1),
     colorScheme: ColorScheme.light(
-      primary: Color.fromRGBO(255, 188, 0, 1),
+      primary: const Color.fromRGBO(255, 188, 0, 1),
       secondary: Colors.amberAccent,
       error: Colors.red,
       onPrimary: Colors.black,
@@ -20,11 +19,11 @@ class AppTheme {
     ),
     primarySwatch: Colors.amber,
     brightness: Brightness.light,
-    fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
+    fontFamily: 'SpaceGrotesk',
     disabledColor: Colors.black54,
-    scaffoldBackgroundColor: Colors.grey[200], // Légèrement grisé pour le fond
-    cardColor:
-        Colors.white.withValues(alpha: 0.5), // Couleur blanche pour les cartes
+    scaffoldBackgroundColor: Colors.grey[200], // Fond légèrement grisé
+    cardColor: Colors.white.withValues(
+        alpha: 0.5), // Couleur blanche semi-transparente pour les cartes
     cardTheme: CardTheme(
       color: Colors.transparent,
       surfaceTintColor: Colors.transparent,
@@ -32,7 +31,7 @@ class AppTheme {
     ),
     canvasColor: Colors.white,
     dropdownMenuTheme: DropdownMenuThemeData(
-      textStyle: TextStyle(
+      textStyle: const TextStyle(
         color: Colors.black,
         fontSize: 16,
         fontWeight: FontWeight.w400,
@@ -42,10 +41,10 @@ class AppTheme {
       thumbColor: WidgetStateProperty.all(Colors.white),
       trackColor: WidgetStateProperty.all(Colors.grey[500]),
     ),
-    // In the light theme
     snackBarTheme: SnackBarThemeData(
-      actionTextColor: Colors.white, // Use your primary color for actions
-      contentTextStyle: TextStyle(color: Colors.white),
+      actionTextColor:
+          Colors.white, // Utilise la couleur primaire pour les actions
+      contentTextStyle: const TextStyle(color: Colors.white),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -53,7 +52,7 @@ class AppTheme {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        side: BorderSide(color: Colors.black, width: 1),
+        side: const BorderSide(color: Colors.black, width: 1),
         minimumSize: const Size(double.infinity, 50),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -63,16 +62,17 @@ class AppTheme {
     chipTheme: ChipThemeData(
       backgroundColor: Colors.grey[200],
       shape: RoundedRectangleBorder(
-        side: BorderSide(
-          color: const Color.fromRGBO(0, 0, 0, 0.25), // Couleur de la bordure
-          width: 2.0, // Épaisseur de la bordure
+        side: const BorderSide(
+          color: Color.fromRGBO(0, 0, 0, 0.25), // Couleur de la bordure
+          width: 2.0,
         ),
         borderRadius: BorderRadius.circular(8.0),
       ),
       brightness: Brightness.light,
     ),
     appBarTheme: AppBarTheme(
-      scrolledUnderElevation: 0.0, // Disable appbar color change on scroll
+      scrolledUnderElevation:
+          0.0, // Désactive le changement de couleur lors du scroll
       systemOverlayStyle: SystemUiOverlayStyle(
         systemNavigationBarColor: Colors.grey[100],
         statusBarIconBrightness: Brightness.dark,
@@ -80,113 +80,122 @@ class AppTheme {
         statusBarColor: Colors.transparent,
       ),
       elevation: 0.0,
-      color: Colors.grey[100], // Légèrement grisé pour harmoniser avec le fond
+      color: Colors
+          .grey[100], // Fond légèrement grisé pour harmoniser avec le reste
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor:
-          Colors.grey[100], // Légèrement grisé pour harmoniser avec le fond
-      selectedItemColor: Color.fromRGBO(255, 188, 0, 1),
+      backgroundColor: Colors.grey[100],
+      selectedItemColor: const Color.fromRGBO(255, 188, 0, 1),
       unselectedItemColor: Colors.black54,
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor:
-          Colors.grey[100], // Légèrement grisé pour harmoniser avec le fond
-      indicatorColor: Color.fromRGBO(
-          255, 188, 0, 1), // Couleur de l'indicateur de sélection
+      backgroundColor: Colors.grey[100],
+      indicatorColor: const Color.fromRGBO(255, 188, 0, 1),
       labelTextStyle: WidgetStateProperty.all(
-        TextStyle(
-          fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
+        const TextStyle(
+          fontFamily: 'SpaceGrotesk',
           fontSize: 12,
           fontWeight: FontWeight.w500,
           letterSpacing: 1.25,
         ),
       ),
       iconTheme: WidgetStateProperty.all(
-        IconThemeData(
-          color: Colors.black, // Couleur des icônes sélectionnées
+        const IconThemeData(
+          color: Colors.black,
         ),
       ),
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: Colors
-          .white, // Arrière-plan opaque pour PopupMenuButton en mode clair
+      color: Colors.white, // Arrière-plan opaque pour PopupMenuButton
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
       ),
       elevation: 4.0,
     ),
     dialogTheme: DialogTheme(
-      backgroundColor:
-          Colors.white, // Couleur de fond des dialogues en mode clair
+      backgroundColor: Colors.white, // Fond des dialogues
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(
-          color: Colors.grey, // Set the color of the border to gray
-          width: 2.0, // Set the width of the border
+        side: const BorderSide(
+          color: Colors.grey, // Bordure grise
+          width: 2.0,
         ),
       ),
       elevation: 4.0,
     ),
     textTheme: TextTheme(
-      displayLarge: GoogleFonts.spaceGrotesk(
+      displayLarge: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 96,
         fontWeight: FontWeight.w300,
         letterSpacing: -1.5,
       ),
-      displayMedium: GoogleFonts.spaceGrotesk(
+      displayMedium: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 60,
         fontWeight: FontWeight.w300,
         letterSpacing: -0.5,
       ),
-      displaySmall: GoogleFonts.spaceGrotesk(
+      displaySmall: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 48,
         fontWeight: FontWeight.w400,
       ),
-      headlineMedium: GoogleFonts.spaceGrotesk(
+      headlineMedium: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 34,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.25,
       ),
-      headlineSmall: GoogleFonts.spaceGrotesk(
+      headlineSmall: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 24,
         fontWeight: FontWeight.w400,
       ),
-      titleLarge: GoogleFonts.spaceGrotesk(
+      titleLarge: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 20,
         fontWeight: FontWeight.bold,
         letterSpacing: 0.15,
       ),
-      titleMedium: GoogleFonts.spaceGrotesk(
+      titleMedium: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 16,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.15,
       ),
-      titleSmall: GoogleFonts.spaceGrotesk(
+      titleSmall: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 14,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.1,
       ),
-      bodyLarge: GoogleFonts.spaceGrotesk(
+      bodyLarge: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 16,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.5,
       ),
-      bodyMedium: GoogleFonts.spaceGrotesk(
+      bodyMedium: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 14,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.25,
       ),
-      labelLarge: GoogleFonts.spaceGrotesk(
+      labelLarge: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 14,
         fontWeight: FontWeight.w500,
         letterSpacing: 1.25,
       ),
-      bodySmall: GoogleFonts.spaceGrotesk(
+      bodySmall: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 12,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.4,
       ),
-      labelSmall: GoogleFonts.spaceGrotesk(
+      labelSmall: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 10,
         fontWeight: FontWeight.w400,
         letterSpacing: 1.5,
@@ -195,65 +204,59 @@ class AppTheme {
       bodyColor: Colors.black,
       displayColor: Colors.black,
     ),
-    bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: Colors.white, // Fond pour le BottomSheet en mode clair
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: Colors.white,
     ),
     timePickerTheme: TimePickerThemeData(
-      backgroundColor:
-          Colors.white, // Fond opaque du timePicker         // Fond du picker
+      backgroundColor: Colors.white,
       hourMinuteColor: Colors.grey[200],
-      hourMinuteTextStyle: TextStyle(
+      hourMinuteTextStyle: const TextStyle(
         fontSize: 48,
         fontWeight: FontWeight.bold,
         color: Colors.black,
       ),
-      dayPeriodTextStyle: TextStyle(
+      dayPeriodTextStyle: const TextStyle(
         fontSize: 48,
         fontWeight: FontWeight.w400,
         color: Colors.black,
       ),
       timeSelectorSeparatorTextStyle: WidgetStateProperty.all(
-        TextStyle(
-          fontSize: 48, // La taille désirée
+        const TextStyle(
+          fontSize: 48,
           fontWeight: FontWeight.bold,
-          color: Colors.black, // Couleur souhaitée
+          color: Colors.black,
         ),
       ),
       dialHandColor: const Color.fromRGBO(255, 188, 0, 1),
       dialBackgroundColor: Colors.grey[200],
-      // Éventuellement d’autres propriétés, selon vos besoins
     ),
   );
 
   static ThemeData dark = ThemeData(
-    primaryColor: Color.fromRGBO(255, 188, 0, 1),
+    primaryColor: const Color.fromRGBO(255, 188, 0, 1),
     colorScheme: ColorScheme.dark(
-      primary: Color.fromRGBO(255, 188, 0, 1),
+      primary: const Color.fromRGBO(255, 188, 0, 1),
       secondary: Colors.amberAccent,
       surface: Colors.black54, // Couleur de surface pour les dialogues
       error: Colors.red,
       onPrimary: Colors.white,
       onSecondary: Colors.white,
-      // Ajoutez une nouvelle couleur pour les éléments de liste des promoteurs
-      surfaceContainerHighest:
-          Colors.grey[200], // Couleur légèrement plus claire
+      surfaceContainerHighest: Colors.grey[200],
     ),
     primarySwatch: Colors.amber,
     brightness: Brightness.dark,
-    fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
+    fontFamily: 'SpaceGrotesk',
     disabledColor: Colors.white70,
-    scaffoldBackgroundColor:
-        Color.fromRGBO(15, 13, 8, 1), // Changer à noir opaque
-    cardColor: Color.fromRGBO(
-        15, 13, 8, 1), // Couleur pour les cartes dans le thème sombre
+    scaffoldBackgroundColor: const Color.fromRGBO(15, 13, 8, 1),
+    cardColor: const Color.fromRGBO(15, 13, 8, 1),
     cardTheme: CardTheme(
-      color: Color.fromRGBO(15, 13, 8, 1),
+      color: const Color.fromRGBO(15, 13, 8, 1),
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
     ),
     canvasColor: Colors.black,
     dropdownMenuTheme: DropdownMenuThemeData(
-      textStyle: TextStyle(
+      textStyle: const TextStyle(
         color: Colors.white,
         fontSize: 16,
         fontWeight: FontWeight.w400,
@@ -263,10 +266,9 @@ class AppTheme {
       thumbColor: WidgetStateProperty.all(Colors.white),
       trackColor: WidgetStateProperty.all(Colors.grey[500]),
     ),
-    // In the dark theme
     snackBarTheme: SnackBarThemeData(
-      actionTextColor: Colors.black, // Dark text for actions
-      contentTextStyle: TextStyle(color: Colors.black),
+      actionTextColor: Colors.black,
+      contentTextStyle: const TextStyle(color: Colors.black),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -274,7 +276,7 @@ class AppTheme {
         elevation: 2,
         backgroundColor: Colors.black54,
         foregroundColor: Colors.white,
-        side: BorderSide(color: Colors.white, width: 1),
+        side: const BorderSide(color: Colors.white, width: 1),
         minimumSize: const Size(double.infinity, 50),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -282,19 +284,18 @@ class AppTheme {
       ),
     ),
     chipTheme: ChipThemeData(
-      backgroundColor: Color.fromRGBO(15, 13, 8, 1),
+      backgroundColor: const Color.fromRGBO(15, 13, 8, 1),
       shape: RoundedRectangleBorder(
-        side: BorderSide(
-          color: const Color.fromRGBO(
-              255, 255, 255, 0.25), // Couleur de la bordure
-          width: 2.0, // Épaisseur de la bordure
+        side: const BorderSide(
+          color: Color.fromRGBO(255, 255, 255, 0.25),
+          width: 2.0,
         ),
         borderRadius: BorderRadius.circular(8.0),
       ),
       brightness: Brightness.light,
     ),
     appBarTheme: AppBarTheme(
-      scrolledUnderElevation: 0.0, // Disable appbar color change on scroll
+      scrolledUnderElevation: 0.0,
       systemOverlayStyle: const SystemUiOverlayStyle(
         systemNavigationBarColor: Color.fromRGBO(15, 13, 8, 1),
         statusBarIconBrightness: Brightness.light,
@@ -302,117 +303,124 @@ class AppTheme {
         statusBarColor: Colors.transparent,
       ),
       elevation: 0.0,
-      color: Color.fromRGBO(15, 13, 8, 1), // Fond de l'AppBar légèrement grisé
-      actionsIconTheme: IconThemeData(
+      color: const Color.fromRGBO(15, 13, 8, 1),
+      actionsIconTheme: const IconThemeData(
         size: 20.0,
       ),
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor:
-          Color.fromRGBO(15, 13, 8, 1), // Fond de la barre de navigation
-      selectedItemColor: Color.fromRGBO(255, 188, 0, 1),
+      backgroundColor: const Color.fromRGBO(15, 13, 8, 1),
+      selectedItemColor: const Color.fromRGBO(255, 188, 0, 1),
       unselectedItemColor: Colors.white70,
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: const Color.fromRGBO(
-          15, 13, 8, 1), // Fond pour la NavigationBar en mode sombre
-      indicatorColor: const Color.fromRGBO(
-          255, 188, 0, 1), // Couleur de l'indicateur de sélection
+      backgroundColor: const Color.fromRGBO(15, 13, 8, 1),
+      indicatorColor: const Color.fromRGBO(255, 188, 0, 1),
       labelTextStyle: WidgetStateProperty.all(
-        TextStyle(
-          fontFamily: GoogleFonts.spaceGrotesk().fontFamily,
+        const TextStyle(
+          fontFamily: 'SpaceGrotesk',
           fontSize: 12,
           fontWeight: FontWeight.w500,
           letterSpacing: 1.25,
         ),
       ),
       iconTheme: WidgetStateProperty.all(
-        IconThemeData(
-          color: Colors
-              .white, // Couleur contrastante pour les icônes sélectionnées en mode sombre
+        const IconThemeData(
+          color: Colors.white,
         ),
       ),
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: Color.fromRGBO(15, 13, 8,
-          1), // Arrière-plan opaque pour PopupMenuButton en mode sombre
+      color: const Color.fromRGBO(15, 13, 8, 1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
       ),
       elevation: 4.0,
     ),
     dialogTheme: DialogTheme(
-      backgroundColor: Color.fromRGBO(
-          15, 13, 8, 1), // Couleur de fond des dialogues en mode sombre
+      backgroundColor: const Color.fromRGBO(15, 13, 8, 1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(
-          color: Colors.grey, // Set the color of the border to gray
-          width: 2.0, // Set the width of the border
+        side: const BorderSide(
+          color: Colors.grey,
+          width: 2.0,
         ),
       ),
       elevation: 4.0,
     ),
     textTheme: TextTheme(
-      displayLarge: GoogleFonts.spaceGrotesk(
+      displayLarge: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 96,
         fontWeight: FontWeight.w300,
         letterSpacing: -1.5,
       ),
-      displayMedium: GoogleFonts.spaceGrotesk(
+      displayMedium: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 60,
         fontWeight: FontWeight.w300,
         letterSpacing: -0.5,
       ),
-      displaySmall: GoogleFonts.spaceGrotesk(
+      displaySmall: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 48,
         fontWeight: FontWeight.w400,
       ),
-      headlineMedium: GoogleFonts.spaceGrotesk(
+      headlineMedium: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 34,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.25,
       ),
-      headlineSmall: GoogleFonts.spaceGrotesk(
+      headlineSmall: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 24,
         fontWeight: FontWeight.w400,
       ),
-      titleLarge: GoogleFonts.spaceGrotesk(
+      titleLarge: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 20,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.15,
       ),
-      titleMedium: GoogleFonts.spaceGrotesk(
+      titleMedium: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 16,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.15,
       ),
-      titleSmall: GoogleFonts.spaceGrotesk(
+      titleSmall: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 14,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.1,
       ),
-      bodyLarge: GoogleFonts.spaceGrotesk(
+      bodyLarge: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 16,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.5,
       ),
-      bodyMedium: GoogleFonts.spaceGrotesk(
+      bodyMedium: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 14,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.25,
       ),
-      labelLarge: GoogleFonts.spaceGrotesk(
+      labelLarge: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 14,
         fontWeight: FontWeight.w500,
         letterSpacing: 1.25,
       ),
-      bodySmall: GoogleFonts.spaceGrotesk(
+      bodySmall: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 12,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.4,
       ),
-      labelSmall: GoogleFonts.spaceGrotesk(
+      labelSmall: const TextStyle(
+        fontFamily: 'SpaceGrotesk',
         fontSize: 10,
         fontWeight: FontWeight.w400,
         letterSpacing: 1.5,
@@ -421,29 +429,27 @@ class AppTheme {
       bodyColor: Colors.white,
       displayColor: Colors.white,
     ),
-    bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: Color.fromRGBO(
-          15, 13, 8, 1), // Fond pour le BottomSheet en mode sombre
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: Color.fromRGBO(15, 13, 8, 1),
     ),
     timePickerTheme: TimePickerThemeData(
       backgroundColor: const Color.fromRGBO(15, 13, 8, 1),
-      hourMinuteTextStyle: TextStyle(
+      hourMinuteTextStyle: const TextStyle(
         fontSize: 48,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      // Couleur de fond de la zone cliquable (non sélectionnée vs sélectionnée)
       hourMinuteColor: const Color.fromRGBO(255, 188, 0, 1),
-      dayPeriodTextStyle: TextStyle(
+      dayPeriodTextStyle: const TextStyle(
         fontSize: 48,
         fontWeight: FontWeight.w400,
         color: Colors.white,
       ),
       timeSelectorSeparatorTextStyle: WidgetStateProperty.all(
-        TextStyle(
-          fontSize: 48, // La taille désirée
+        const TextStyle(
+          fontSize: 48,
           fontWeight: FontWeight.bold,
-          color: Colors.white, // Couleur souhaitée
+          color: Colors.white,
         ),
       ),
       dialHandColor: const Color.fromRGBO(255, 188, 0, 1),
@@ -456,11 +462,11 @@ class AppTheme {
 }
 
 extension ShimmerColors on ThemeData {
-  Color get shimmerBaseColor => this.brightness == Brightness.dark
+  Color get shimmerBaseColor => brightness == Brightness.dark
       ? Colors.grey.shade700
       : Colors.grey.shade300;
 
-  Color get shimmerHighlightColor => this.brightness == Brightness.dark
+  Color get shimmerHighlightColor => brightness == Brightness.dark
       ? Colors.grey.shade500
       : Colors.grey.shade100;
 }

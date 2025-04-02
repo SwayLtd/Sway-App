@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Remove google_fonts dependency and add SpaceGrotesk font family locally
 - Add "Map" button on scroll on Explore screen
 - Implement location permission handling and update map center based on current location
 - Add date filtering for events and current location layer to map screen
