@@ -565,7 +565,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.map),
+            icon: const Icon(Icons.map_outlined),
             onPressed: () async {
               Position? currentPosition;
               try {
