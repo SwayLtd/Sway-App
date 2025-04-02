@@ -159,17 +159,6 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  // Bouton de filtre désactivé : affiche un message en anglais.
-  void _showMapFeatureMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        behavior: SnackBarBehavior.floating,
-        content: Text('Map feature will be integrated later.'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
   // Ligne horizontale des tuiles de catégories
   Widget _buildCategoryChips() {
     return SizedBox(
