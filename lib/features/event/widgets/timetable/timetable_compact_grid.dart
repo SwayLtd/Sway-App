@@ -249,7 +249,7 @@ class _CompactGridViewWidgetState extends State<CompactGridViewWidget> {
       // Exemple : 150 pixels par heure et 100 pixels de décalage initial pour les labels
       currentOffset = 100 + (diffMinutes * 150 / 60);
     } else {
-      print("The current time is not within the range displayed.");
+      debugPrint("The current time is not within the range displayed.");
     }
 
     // 6. Regrouper les assignations par stage

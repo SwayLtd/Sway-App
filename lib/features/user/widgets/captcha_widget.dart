@@ -23,7 +23,7 @@ class _CaptchaWidgetState extends State<CaptchaWidget> {
       },
       onError: (error) {
         // Handle errors if needed
-        print('hCaptcha error: $error');
+        debugPrint('hCaptcha error: $error');
       },
       // Optionally, customize other properties
     );*/

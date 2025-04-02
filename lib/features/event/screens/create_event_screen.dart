@@ -131,7 +131,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       });
       _formKey.currentState?.validate();
     } catch (e) {
-      print('Error loading forbidden words: $e');
+      debugPrint('Error loading forbidden words: $e');
     }
   }
 
@@ -175,7 +175,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         });
       }
     } catch (e) {
-      print('Error fetching permitted promoters: $e');
+      debugPrint('Error fetching permitted promoters: $e');
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -1137,7 +1137,7 @@ class _VenueSelectionBottomSheetState extends State<VenueSelectionBottomSheet> {
     try {
       _venues = await widget.venueService.getVenues();
     } catch (e) {
-      print('Error fetching venues: $e');
+      debugPrint('Error fetching venues: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -1151,7 +1151,7 @@ class _VenueSelectionBottomSheetState extends State<VenueSelectionBottomSheet> {
         _venues = results;
       });
     } catch (e) {
-      print('Error searching venues: $e');
+      debugPrint('Error searching venues: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -1288,7 +1288,7 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
         _genres = genres;
       });
     } catch (e) {
-      print('Error searching genres: $e');
+      debugPrint('Error searching genres: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,

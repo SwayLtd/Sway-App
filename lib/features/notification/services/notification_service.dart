@@ -36,7 +36,7 @@ class NotificationService {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('Handling a background message ${message.messageId}');
+    debugPrint('Handling a background message ${message.messageId}');
   }
 
   /// Sets up local notification channels and foreground presentation options.
@@ -81,7 +81,7 @@ class NotificationService {
 
     if (notification != null && android != null && !kIsWeb) {
       if (notificationType == NotificationChannels.ticket) {
-        print(
+        debugPrint(
             '[NotificationService] Ticket type notification handled by the system. '
             'We rely on onMessageOpenedApp for navigation.');
       } else {
@@ -136,7 +136,7 @@ class NotificationService {
         final actionId = notificationResponse.actionId;
         final notificationId = notificationResponse.id;
         final payload = notificationResponse.payload;
-        print('[NotificationService] onDidReceiveNotificationResponse: '
+        debugPrint('[NotificationService] onDidReceiveNotificationResponse: '
             'actionId=$actionId, payload=$payload');
 
         if (actionId == 'dismiss_action') {
@@ -144,14 +144,16 @@ class NotificationService {
             await notificationsPlugin.cancel(notificationId);
           }
         } else if (actionId == 'settings_action') {
-          print('[NotificationService] User clicked "Notification settings"');
+          debugPrint(
+              '[NotificationService] User clicked "Notification settings"');
           // E.g.: router.push('/notification-preferences');
         } else {
           if (payload != null && payload.startsWith('ticket:')) {
             final ticketIdString = payload.split(':').last;
             final ticketId = int.tryParse(ticketIdString);
             if (ticketId != null) {
-              print('[NotificationService] Opening ticket with ID = $ticketId');
+              debugPrint(
+                  '[NotificationService] Opening ticket with ID = $ticketId');
               router.push('/ticket/$ticketId');
             }
           }
@@ -187,7 +189,7 @@ class NotificationService {
               IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, badge: true, sound: true);
     }
-    print('User granted permission: ${settings.authorizationStatus}');
+    debugPrint('User granted permission: ${settings.authorizationStatus}');
   }
 
   /// Shows a dialog with a button that opens the real system pop-up to request notification permissions.
@@ -340,9 +342,9 @@ class NotificationService {
         },
         onConflict: 'supabase_id',
       );
-      print('FCM token successfully updated.');
+      debugPrint('FCM token successfully updated.');
     } catch (e) {
-      print('Error updating FCM token: $e');
+      debugPrint('Error updating FCM token: $e');
       rethrow;
     }
   }
@@ -356,7 +358,7 @@ class NotificationService {
   }) async {
     final currentUser = await _userService.getCurrentUser();
     if (currentUser == null) {
-      print('Cannot addTicketNotification, user not authenticated');
+      debugPrint('Cannot addTicketNotification, user not authenticated');
       return;
     }
 
@@ -404,9 +406,9 @@ class NotificationService {
         .maybeSingle();
 
     if (response == null) {
-      print('No rows returned after insert.');
+      debugPrint('No rows returned after insert.');
     } else {
-      print('Ticket notification added with custom hours: $hoursBefore');
+      debugPrint('Ticket notification added with custom hours: $hoursBefore');
     }
   }
 
@@ -423,9 +425,9 @@ class NotificationService {
         .select('*');
 
     if ((deleteResponse.isEmpty)) {
-      print('No notification was deleted because none existed.');
+      debugPrint('No notification was deleted because none existed.');
     } else {
-      print('Notification(s) deleted successfully.');
+      debugPrint('Notification(s) deleted successfully.');
     }
   }
 
@@ -478,10 +480,10 @@ class NotificationService {
       if (response == null) {
         throw Exception("Failed to add artist notification");
       } else {
-        print("Artist notification added: $response");
+        debugPrint("Artist notification added: $response");
       }
     } catch (e) {
-      print("Error adding event artist notification: $e");
+      debugPrint("Error adding event artist notification: $e");
       rethrow;
     }
   }

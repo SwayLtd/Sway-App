@@ -1,5 +1,6 @@
 // lib/features/user/services/user_follow_promoter_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/promoter/models/promoter_model.dart';
 import 'package:sway/features/promoter/services/promoter_service.dart';
@@ -28,7 +29,7 @@ class UserFollowPromoterService {
 
       return response.isNotEmpty;
     } catch (e) {
-      print('Error checking follow status for promoter $promoterId: $e');
+      debugPrint('Error checking follow status for promoter $promoterId: $e');
       return false;
     }
   }
@@ -43,7 +44,7 @@ class UserFollowPromoterService {
         'promoter_id': promoterId,
       });
     } catch (e) {
-      print('Error following promoter $promoterId: $e');
+      debugPrint('Error following promoter $promoterId: $e');
     }
   }
 
@@ -58,7 +59,7 @@ class UserFollowPromoterService {
           .eq('user_id', userId)
           .eq('promoter_id', promoterId);
     } catch (e) {
-      print('Error unfollowing promoter $promoterId: $e');
+      debugPrint('Error unfollowing promoter $promoterId: $e');
     }
   }
 
@@ -71,7 +72,7 @@ class UserFollowPromoterService {
 
       return response.length;
     } catch (e) {
-      print('Error getting followers count for promoter $promoterId: $e');
+      debugPrint('Error getting followers count for promoter $promoterId: $e');
       return 0;
     }
   }
@@ -93,7 +94,7 @@ class UserFollowPromoterService {
           .where((promoter) => followedPromoterIds.contains(promoter.id!))
           .toList();
     } catch (e) {
-      print('Error getting followed promoters for user $userId: $e');
+      debugPrint('Error getting followed promoters for user $userId: $e');
       return [];
     }
   }
@@ -110,7 +111,7 @@ class UserFollowPromoterService {
 
       return await _userService.getUsersByIds(followerIds);
     } catch (e) {
-      print('Error getting followers for promoter $promoterId: $e');
+      debugPrint('Error getting followers for promoter $promoterId: $e');
       return [];
     }
   }

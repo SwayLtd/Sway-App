@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 class Event {
   final int? id;
   final String title;
@@ -37,7 +39,7 @@ class Event {
       try {
         decodedMetadata = jsonDecode(json['metadata']) as Map<String, dynamic>;
       } catch (e) {
-        print("Erreur lors du décodage de metadata : $e");
+        debugPrint("Erreur lors du décodage de metadata : $e");
       }
     } else if (json['metadata'] is Map<String, dynamic>) {
       decodedMetadata = json['metadata'] as Map<String, dynamic>;

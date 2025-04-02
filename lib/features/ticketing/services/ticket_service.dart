@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sway/features/ticketing/models/ticket_model.dart';
@@ -81,7 +82,7 @@ class TicketService {
       }
     } catch (e) {
       // Gérer les erreurs de manière appropriée
-      print('Error importing ticket: $e');
+      debugPrint('Error importing ticket: $e');
     }
   }
 
@@ -134,7 +135,7 @@ class TicketService {
         );
         newTickets.add(ticket);
       } else {
-        print('Unsupported file extension: $fileExtension');
+        debugPrint('Unsupported file extension: $fileExtension');
       }
 
       if (newTickets.isNotEmpty) {
@@ -146,7 +147,7 @@ class TicketService {
         await _saveTickets(currentTickets);
       }
     } catch (e) {
-      print('Error importing ticket from path: $e');
+      debugPrint('Error importing ticket from path: $e');
     }
   }
 
@@ -216,7 +217,7 @@ class TicketService {
       // Dispose the original document
       originalPdf.dispose();
     } catch (e) {
-      print('Error splitting PDF: $e');
+      debugPrint('Error splitting PDF: $e');
     }
 
     return tickets;

@@ -1,5 +1,6 @@
 // lib/features/venue/services/venue_genre_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/services/database_service.dart';
@@ -31,7 +32,7 @@ class VenueGenreService {
       if (isarVenue != null) {
         await _updateVenueGenresCache(isarVenue, genreIds, isar);
         final cachedGenreIds = await _loadVenueGenresCache(isarVenue);
-        print(
+        debugPrint(
             "getGenresByVenueId: Cache updated for venueId $venueId, cached genre IDs: $cachedGenreIds");
       }
       return genreIds;
@@ -77,7 +78,7 @@ class VenueGenreService {
     if (isarVenue != null) {
       await _updateVenueGenresCache(isarVenue, genreIds, isar);
       final cachedGenreIds = await _loadVenueGenresCache(isarVenue);
-      print(
+      debugPrint(
           "updateVenueGenres: Cache updated for venueId $venueId, cached genre IDs: $cachedGenreIds");
     }
   }

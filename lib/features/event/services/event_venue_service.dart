@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -38,7 +39,7 @@ class EventVenueService {
         }
         return venue;
       } catch (e) {
-        print("Error in getVenueByEventId (online): $e");
+        debugPrint("Error in getVenueByEventId (online): $e");
         return await _loadVenueFromCachedEvent(eventId, isar: isar);
       }
     } else {
@@ -98,7 +99,7 @@ class EventVenueService {
         }
         return eventsData;
       } catch (e) {
-        print("Error in getEventsByVenueId (online): $e");
+        debugPrint("Error in getEventsByVenueId (online): $e");
         return await _loadEventsByVenueFromCache(venueId, isar: isar);
       }
     } else {
@@ -114,7 +115,7 @@ class EventVenueService {
       'rayon_en_metres': radius,
     });
     if (response == null || (response as List).isEmpty) {
-      print("No events found from RPC.");
+      debugPrint("No events found from RPC.");
       return [];
     }
     return (response)
@@ -145,7 +146,7 @@ class EventVenueService {
         await _storeVenueInIsar(isar, venue);
       }
     } catch (e) {
-      print("Error in addVenueToEvent: $e");
+      debugPrint("Error in addVenueToEvent: $e");
       throw Exception('Failed to add venue to event (RPC error).');
     }
   }
@@ -177,7 +178,7 @@ class EventVenueService {
         await cachedEvent.venue.save();
       }
     } catch (e) {
-      print("Error in removeVenueFromEvent: $e");
+      debugPrint("Error in removeVenueFromEvent: $e");
       throw Exception('Failed to remove venue from event (RPC error).');
     }
   }
@@ -208,7 +209,7 @@ class EventVenueService {
         await _storeVenueInIsar(isar, venue);
       }
     } catch (e) {
-      print("Error in updateEventVenue: $e");
+      debugPrint("Error in updateEventVenue: $e");
       throw Exception('Failed to update event venue (RPC error).');
     }
   }
@@ -270,7 +271,7 @@ class EventVenueService {
       }
       return eventsData;
     } catch (e) {
-      print("Error in _loadEventsByVenueFromCache: $e");
+      debugPrint("Error in _loadEventsByVenueFromCache: $e");
       return [];
     }
   }

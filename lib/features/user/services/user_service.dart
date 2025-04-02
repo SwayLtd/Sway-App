@@ -1,5 +1,6 @@
 // lib/features/user/services/user_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/utils/connectivity_helper.dart';
 import 'package:sway/core/services/database_service.dart';
@@ -53,7 +54,7 @@ class UserService {
         return user;
       } catch (e) {
         // Catching the error so it won't display an error on screen.
-        print("Error fetching data: $e");
+        debugPrint("Error fetching data: $e");
         // Optionally, you could show a SnackBar here:
         // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to refresh data.")));
       }
@@ -153,7 +154,7 @@ class UserService {
         await _storeUserInIsar(isar, user);
         return user;
       } catch (e) {
-        print("Error fetching user by id online: $e");
+        debugPrint("Error fetching user by id online: $e");
         // En cas d'erreur, retourner les données du cache
         return await _loadUserFromIsarById(userId, isar: isar);
       }
@@ -181,7 +182,7 @@ class UserService {
         }
         return fetchedUsers;
       } catch (e) {
-        print("Error in searchUsers (online): $e");
+        debugPrint("Error in searchUsers (online): $e");
         return await _localUserSearch(query, isar);
       }
     } else {
@@ -260,7 +261,7 @@ class UserService {
         }
         return users;
       } catch (e) {
-        print("Error fetching recommended users (online): $e");
+        debugPrint("Error fetching recommended users (online): $e");
         return await _loadAllUsersFromIsar(isar);
       }
     } else {

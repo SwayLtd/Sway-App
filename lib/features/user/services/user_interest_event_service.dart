@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/event/models/event_model.dart';
 import 'package:sway/features/event/services/event_service.dart';
@@ -28,7 +29,7 @@ class UserInterestEventService {
 
       return response.isNotEmpty;
     } catch (e) {
-      print('Error checking interest for event $eventId: $e');
+      debugPrint('Error checking interest for event $eventId: $e');
       return false;
     }
   }
@@ -44,7 +45,7 @@ class UserInterestEventService {
         'status': 'interested',
       }, onConflict: 'user_id,event_id');
     } catch (e) {
-      print('Error adding interest for event $eventId: $e');
+      debugPrint('Error adding interest for event $eventId: $e');
     }
   }
 
@@ -59,7 +60,7 @@ class UserInterestEventService {
         'status': 'going',
       }, onConflict: 'user_id,event_id');
     } catch (e) {
-      print('Error marking event as going for event $eventId: $e');
+      debugPrint('Error marking event as going for event $eventId: $e');
     }
   }
 
@@ -74,7 +75,7 @@ class UserInterestEventService {
         'status': 'not_interested',
       }, onConflict: 'user_id,event_id');
     } catch (e) {
-      print('Error removing interest for event $eventId: $e');
+      debugPrint('Error removing interest for event $eventId: $e');
     }
   }
 
@@ -88,7 +89,7 @@ class UserInterestEventService {
 
       return response.length;
     } catch (e) {
-      print('Error getting interest count for event $eventId: $e');
+      debugPrint('Error getting interest count for event $eventId: $e');
       return 0;
     }
   }
@@ -107,7 +108,7 @@ class UserInterestEventService {
 
       return response.isNotEmpty;
     } catch (e) {
-      print('Error checking if going to event $eventId: $e');
+      debugPrint('Error checking if going to event $eventId: $e');
       return false;
     }
   }
@@ -128,7 +129,7 @@ class UserInterestEventService {
       // Retourne tous les events, sans filtrer par date.
       return allEvents;
     } catch (e) {
-      print('Error getting interested events for user $userId: $e');
+      debugPrint('Error getting interested events for user $userId: $e');
       return [];
     }
   }
@@ -149,7 +150,7 @@ class UserInterestEventService {
       // Retourne tous les events "going", sans filtrer par date.
       return allEvents;
     } catch (e) {
-      print('Error getting going events for user $userId: $e');
+      debugPrint('Error getting going events for user $userId: $e');
       return [];
     }
   }
@@ -167,7 +168,7 @@ class UserInterestEventService {
 
       return await _userService.getUsersByIds(userIds);
     } catch (e) {
-      print('Error getting interested users for event $eventId: $e');
+      debugPrint('Error getting interested users for event $eventId: $e');
       return [];
     }
   }
@@ -185,7 +186,7 @@ class UserInterestEventService {
 
       return await _userService.getUsersByIds(userIds);
     } catch (e) {
-      print('Error getting going users for event $eventId: $e');
+      debugPrint('Error getting going users for event $eventId: $e');
       return [];
     }
   }

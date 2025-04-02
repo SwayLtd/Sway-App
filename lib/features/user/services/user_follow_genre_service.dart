@@ -1,5 +1,6 @@
 // lib/features/user/services/user_follow_genre_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
@@ -28,7 +29,7 @@ class UserFollowGenreService {
 
       return response.isNotEmpty;
     } catch (e) {
-      print('Error checking follow status for genre $genreId: $e');
+      debugPrint('Error checking follow status for genre $genreId: $e');
       return false;
     }
   }
@@ -43,7 +44,7 @@ class UserFollowGenreService {
         'genre_id': genreId,
       });
     } catch (e) {
-      print('Error following genre $genreId: $e');
+      debugPrint('Error following genre $genreId: $e');
     }
   }
 
@@ -58,7 +59,7 @@ class UserFollowGenreService {
           .eq('user_id', userId)
           .eq('genre_id', genreId);
     } catch (e) {
-      print('Error unfollowing genre $genreId: $e');
+      debugPrint('Error unfollowing genre $genreId: $e');
     }
   }
 
@@ -71,7 +72,7 @@ class UserFollowGenreService {
 
       return response.length;
     } catch (e) {
-      print('Error getting followers count for genre $genreId: $e');
+      debugPrint('Error getting followers count for genre $genreId: $e');
       return 0;
     }
   }
@@ -92,7 +93,7 @@ class UserFollowGenreService {
           .where((genre) => followedGenreIds.contains(genre.id))
           .toList();
     } catch (e) {
-      print('Error getting followed genres for user $userId: $e');
+      debugPrint('Error getting followed genres for user $userId: $e');
       return [];
     }
   }
@@ -109,7 +110,7 @@ class UserFollowGenreService {
 
       return await _userService.getUsersByIds(followerIds);
     } catch (e) {
-      print('Error getting followers for genre $genreId: $e');
+      debugPrint('Error getting followers for genre $genreId: $e');
       return [];
     }
   }

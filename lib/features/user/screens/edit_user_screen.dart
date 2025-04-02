@@ -86,7 +86,7 @@ class _EditProfileScreenState extends State<EditUserScreen> {
       // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
       _formKey.currentState?.validate();
     } catch (e) {
-      print('Error loading forbidden words: $e');
+      debugPrint('Error loading forbidden words: $e');
     }
   }
 
@@ -146,7 +146,7 @@ class _EditProfileScreenState extends State<EditUserScreen> {
 
       // Récupérer l'utilisateur mis à jour
       final updatedUser = await _userService.getCurrentUser();
-      print('Updated User: ${updatedUser?.toJson()}');
+      debugPrint('Updated User: ${updatedUser?.toJson()}');
 
       if (updatedUser != null) {
         setState(() {
@@ -177,7 +177,7 @@ class _EditProfileScreenState extends State<EditUserScreen> {
         ),
       );
     } catch (e) {
-      print('Update Profile Error: $e');
+      debugPrint('Update Profile Error: $e');
       if (!mounted) return;
       setState(() {
         _errorMessage = 'An unexpected error occurred.';
@@ -236,7 +236,7 @@ class _EditProfileScreenState extends State<EditUserScreen> {
         ),
       );
     } catch (e) {
-      print('Reset Password Error: $e');
+      debugPrint('Reset Password Error: $e');
       if (!mounted) return;
       setState(() {
         _errorMessage = 'An unexpected error occurred.';
@@ -282,7 +282,7 @@ class _EditProfileScreenState extends State<EditUserScreen> {
         fileData: fileBytes,
       );
 
-      print('Image Uploaded: $publicUrl');
+      debugPrint('Image Uploaded: $publicUrl');
 
       // (Optionnel) Supprimer l'ancien avatar si nécessaire
       // Extraire le nom du fichier de l'URL actuelle
@@ -294,7 +294,7 @@ class _EditProfileScreenState extends State<EditUserScreen> {
           bucketName: "user-images",
           fileName: oldFilePath,
         );
-        print('Old Image Deleted: $oldFilePath');
+        debugPrint('Old Image Deleted: $oldFilePath');
       }
 
       // Mettre à jour l'URL de l'utilisateur dans la table users
@@ -303,11 +303,11 @@ class _EditProfileScreenState extends State<EditUserScreen> {
         profilePictureUrl: publicUrl,
       );
 
-      print('User Picture Updated in Database');
+      debugPrint('User Picture Updated in Database');
 
       // Récupérer le user mis à jour
       final updatedUser = await _userService.getCurrentUser();
-      print('Updated User after avatar upload: ${updatedUser?.toJson()}');
+      debugPrint('Updated User after avatar upload: ${updatedUser?.toJson()}');
 
       if (updatedUser != null && mounted) {
         setState(() {
@@ -321,7 +321,7 @@ class _EditProfileScreenState extends State<EditUserScreen> {
         behavior: SnackBarBehavior.floating,
       ));
     } catch (e) {
-      print('Pick and Upload Avatar Error: $e');
+      debugPrint('Pick and Upload Avatar Error: $e');
       // Gérer l'erreur
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,

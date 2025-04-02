@@ -73,7 +73,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
       await ScreenBrightness.instance.setApplicationScreenBrightness(
           1.0); // Ajustement local à l'application
     } catch (e) {
-      print('Error setting brightness: $e');
+      debugPrint('Error setting brightness: $e');
     }
   }
 
@@ -81,7 +81,7 @@ class _TicketDetailScreenState extends State<TicketDetailScreen> {
     try {
       await ScreenBrightness.instance.resetApplicationScreenBrightness();
     } catch (e) {
-      print('Error resetting brightness: $e');
+      debugPrint('Error resetting brightness: $e');
     }
   }
 

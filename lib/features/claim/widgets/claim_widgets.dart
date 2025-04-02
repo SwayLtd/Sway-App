@@ -48,7 +48,7 @@ class _ClaimPageTileState extends State<ClaimPageTile> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading user status: $e');
+      debugPrint('Error loading user status: $e');
       if (!mounted) return;
       setState(() {
         _isLoggedIn = false;
@@ -65,7 +65,7 @@ class _ClaimPageTileState extends State<ClaimPageTile> {
       builder: (context, snapshot) {
         bool connected = snapshot.data ?? true;
         if (!connected) {
-          print(
+          debugPrint(
               "ClaimPageTile: No internet connection detected – widget hidden.");
           return const SizedBox.shrink();
         }

@@ -108,7 +108,7 @@ class _EditPromoterScreenState extends State<EditPromoterScreen> {
       // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
       _formKey.currentState?.validate();
     } catch (e) {
-      print('Error loading forbidden words: $e');
+      debugPrint('Error loading forbidden words: $e');
     }
   }
 

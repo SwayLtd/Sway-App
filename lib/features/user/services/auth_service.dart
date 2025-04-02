@@ -12,8 +12,8 @@ class AuthService {
     final user = _supabase.auth.currentUser;
 
     /*
-    print('Session: $session');
-    print('User: $user');
+    debugPrint('Session: $session');
+    debugPrint('User: $user');
     */
 
     if (user == null && session == null) {
@@ -105,7 +105,7 @@ class AuthService {
       final data = response;
       return data['email_confirmed_at'] != null;
     } catch (e) {
-      print(
+      debugPrint(
           'Erreur lors de la récupération du statut de confirmation d\'email: $e');
       return false;
     }

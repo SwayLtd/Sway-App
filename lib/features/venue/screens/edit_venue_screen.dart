@@ -119,7 +119,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
       // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
       _formKey.currentState?.validate();
     } catch (e) {
-      print('Error loading forbidden words: $e');
+      debugPrint('Error loading forbidden words: $e');
     }
   }
 
@@ -172,7 +172,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
         _initialArtists = List.from(_selectedArtists);
       });
     } catch (e) {
-      print('Erreur lors du chargement des données associées: $e');
+      debugPrint('Erreur lors du chargement des données associées: $e');
     } finally {
       if (mounted) setState(() => _isUpdating = false);
     }
@@ -310,7 +310,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
       );
       Navigator.pop(context, _currentVenue);
     } catch (e) {
-      print('Update Venue Error: $e');
+      debugPrint('Update Venue Error: $e');
       setState(() {
         _errorMessage = 'An unexpected error occurred.';
       });
@@ -391,7 +391,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
       );
       Navigator.pop(context, null);
     } catch (e) {
-      print('Delete Venue Error: $e');
+      debugPrint('Delete Venue Error: $e');
       setState(() {
         _errorMessage = 'Failed to delete venue.';
       });

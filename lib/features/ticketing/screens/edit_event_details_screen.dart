@@ -79,7 +79,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
   }
 
   Future<void> _saveDetails() async {
-    print('[_saveDetails] Start saving details'); // Log
+    debugPrint('[_saveDetails] Start saving details'); // Log
     final updatedTicket = Ticket(
       id: widget.ticket.id,
       filePath: widget.ticket.filePath,
@@ -92,14 +92,16 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
       groupId: widget.ticket.groupId,
     );
 
-    print('[_saveDetails] Updated ticket: ${updatedTicket.toMap()}'); // Log
+    debugPrint(
+        '[_saveDetails] Updated ticket: ${updatedTicket.toMap()}'); // Log
 
     try {
       await _ticketService.updateTicket(updatedTicket);
-      print('[_saveDetails] Ticket updated in local storage'); // Log
+      debugPrint('[_saveDetails] Ticket updated in local storage'); // Log
 
       if (updatedTicket.groupId != null) {
-        print('[_saveDetails] groupId found, updating related tickets'); // Log
+        debugPrint(
+            '[_saveDetails] groupId found, updating related tickets'); // Log
         List<Ticket> allTickets = await _ticketService.getTickets();
         List<Ticket> relatedTickets = allTickets
             .where((t) =>
@@ -113,7 +115,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
           t.eventLocation = updatedTicket.eventLocation;
           t.ticketType = updatedTicket.ticketType;
 
-          print(
+          debugPrint(
               '[_saveDetails] Updating related ticket with id ${t.id}'); // Log
           await _ticketService.updateTicket(t);
         }
@@ -121,52 +123,53 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
 
       // Vérifier si l'événement n'est pas terminé
       if (_selectedEvent != null && _eventDate != null) {
-        print(
+        debugPrint(
             '[_saveDetails] Event selected. Attempting to set notification.'); // Log
 
         // Si l'événement est déjà passé, on ne programme pas de notif
         final now = DateTime.now();
         if (_eventDate!.isBefore(now)) {
-          print(
+          debugPrint(
               '[_saveDetails] Event ended. No ticket notification scheduled.');
         } else {
           final user = await UserService().getCurrentUser();
           if (user != null && user.supabaseId.isNotEmpty) {
             final supabaseId = user.supabaseId;
-            print('[_saveDetails] User supabaseId: $supabaseId'); // Log
+            debugPrint('[_saveDetails] User supabaseId: $supabaseId'); // Log
 
-            print('[_saveDetails] Calling upsertTicketNotification...'); // Log
+            debugPrint(
+                '[_saveDetails] Calling upsertTicketNotification...'); // Log
             await NotificationService().upsertTicketNotification(
               supabaseId: supabaseId,
               ticket: updatedTicket,
               eventStartTime: _eventDate!,
             );
-            print('[_saveDetails] Notification upserted'); // Log
+            debugPrint('[_saveDetails] Notification upserted'); // Log
           } else {
-            print(
+            debugPrint(
                 '[_saveDetails] No user found or supabaseId is empty, cannot set notification');
           }
         }
       } else {
-        print(
+        debugPrint(
             '[_saveDetails] No event selected, attempting to delete notification'); // Log
         final user = await UserService().getCurrentUser();
         if (user != null && user.supabaseId.isNotEmpty) {
           final supabaseId = user.supabaseId;
-          print('[_saveDetails] User supabaseId: $supabaseId'); // Log
+          debugPrint('[_saveDetails] User supabaseId: $supabaseId'); // Log
 
           await NotificationService().deleteTicketNotification(
             supabaseId: supabaseId,
             ticketId: updatedTicket.id,
           );
-          print('[_saveDetails] Notification deleted'); // Log
+          debugPrint('[_saveDetails] Notification deleted'); // Log
         } else {
-          print(
+          debugPrint(
               '[_saveDetails] No user found or supabaseId is empty, cannot delete notification');
         }
       }
 
-      print('[_saveDetails] Navigation to TicketingScreen'); // Log
+      debugPrint('[_saveDetails] Navigation to TicketingScreen'); // Log
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -174,7 +177,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
         ),
       );
     } catch (e) {
-      print('[_saveDetails] Error saving event details: $e'); // Log error
+      debugPrint('[_saveDetails] Error saving event details: $e'); // Log error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -185,7 +188,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
   }
 
   Future<void> _selectEvent(Event event) async {
-    print(
+    debugPrint(
         '[_selectEvent] Event selected: ${event.id!} - ${event.title}'); // Log
     Venue? venue = await _eventVenueService.getVenueByEventId(event.id!);
     if (!mounted) return;
@@ -199,7 +202,7 @@ class _EditEventDetailsScreenState extends State<EditEventDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('[EditEventDetailsScreen] build called'); // Log
+    debugPrint('[EditEventDetailsScreen] build called'); // Log
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add event details'),

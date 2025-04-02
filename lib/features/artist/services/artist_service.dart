@@ -1,6 +1,6 @@
 // lib/features/artist/services/artist_service.dart
 
-
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:sway/core/utils/connectivity_helper.dart';
@@ -35,7 +35,7 @@ class ArtistService {
         await _storeArtistInIsar(isar, fetchedArtist);
         return fetchedArtist;
       } catch (e) {
-        print("Error in getArtistById (online): $e");
+        debugPrint("Error in getArtistById (online): $e");
         return await _loadArtistFromIsar(artistId, isar: isar);
       }
     } else {
@@ -60,7 +60,7 @@ class ArtistService {
         }
         return fetchedArtists;
       } catch (e) {
-        print("Error in getArtists (online): $e");
+        debugPrint("Error in getArtists (online): $e");
         return await _loadAllArtistsFromIsar(isar);
       }
     } else {
@@ -114,7 +114,7 @@ class ArtistService {
       }
     }
 
-    // print("getArtistsByIds: Requested IDs: $artistIds, retrieved: ${result.keys.toList()}");
+    // debugPrint("getArtistsByIds: Requested IDs: $artistIds, retrieved: ${result.keys.toList()}");
     return result.values.toList();
   }
 
@@ -134,7 +134,7 @@ class ArtistService {
         }
         return fetchedArtists;
       } catch (e) {
-        print("Error in searchArtists (online): $e");
+        debugPrint("Error in searchArtists (online): $e");
         return await _localArtistSearch(query, isar);
       }
     } else {
@@ -254,7 +254,7 @@ class ArtistService {
         }
         return recommendedArtists;
       } catch (e) {
-        print("Error in getRecommendedArtists (online): $e");
+        debugPrint("Error in getRecommendedArtists (online): $e");
         return await _loadAllArtistsFromIsar(isar);
       }
     } else {

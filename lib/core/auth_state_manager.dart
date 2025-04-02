@@ -19,7 +19,7 @@ class AuthStateManager extends ChangeNotifier {
       final session = supabase.auth.currentSession;
       final user = supabase.auth.currentUser;
       if (user == null || session == null || user.email == null) {
-        print('Anonymous user or invalid session, token update ignored.');
+        debugPrint('Anonymous user or invalid session, token update ignored.');
         return;
       }
 
@@ -28,14 +28,14 @@ class AuthStateManager extends ChangeNotifier {
         final cachedUser =
             await UserService().getCachedUserBySupabaseId(user.id);
         if (cachedUser == null) {
-          print('User not present in cache, token update skipped.');
+          debugPrint('User not present in cache, token update skipped.');
           return;
         }
         // Maintenant, on peut mettre à jour le token.
         await NotificationService()
             .updateFcmToken(fcmToken, supabaseId: user.id, email: user.email!);
       } catch (e) {
-        print("Error updating FCM token: $e");
+        debugPrint("Error updating FCM token: $e");
       }
     }
 
@@ -77,7 +77,7 @@ class AuthStateManager extends ChangeNotifier {
     final session = supabase.auth.currentSession;
     final user = supabase.auth.currentUser;
     if (user == null || session == null || user.email == null) {
-      print('Anonymous user or invalid session, token update ignored.');
+      debugPrint('Anonymous user or invalid session, token update ignored.');
       return;
     }
 
@@ -91,9 +91,9 @@ class AuthStateManager extends ChangeNotifier {
         onConflict:
             'supabase_id', // Assurez-vous que 'supabase_id' est une clé unique
       );
-      print('FCM token successfully updated.');
+      debugPrint('FCM token successfully updated.');
     } catch (e) {
-      print('Error updating FCM token: $e');
+      debugPrint('Error updating FCM token: $e');
     }
   }
 }

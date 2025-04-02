@@ -57,7 +57,7 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
         });
       }
     } catch (e) {
-      print('Error loading user status: $e');
+      debugPrint('Error loading user status: $e');
       if (!mounted) return;
       setState(() {
         isAnonymous = false;
@@ -146,7 +146,7 @@ class _FollowingButtonWidgetState extends State<FollowingButtonWidget> {
         isLoading = false;
       });
     } catch (e) {
-      print('Error toggling follow status: $e');
+      debugPrint('Error toggling follow status: $e');
       if (!mounted) return;
       setState(() {
         isLoading = false;

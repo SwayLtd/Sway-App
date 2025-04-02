@@ -215,7 +215,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final String? data = action['data'];
 
     // Log the action for debugging
-    print('Handling notification action: type=$type, data=$data');
+    debugPrint('Handling notification action: type=$type, data=$data');
 
     if (type == 'deeplink' && data != null) {
       Uri? uri;
@@ -226,17 +226,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
       } else {
         // Add the scheme if missing
         final String fixedData = 'app.sway.main://$data';
-        print('Fixed deep link data: $fixedData');
+        debugPrint('Fixed deep link data: $fixedData');
         uri = Uri.tryParse(fixedData);
       }
 
       if (uri == null) {
-        print('Invalid URI: $data');
+        debugPrint('Invalid URI: $data');
         return;
       }
 
       // Log the parsed URI components
-      print(
+      debugPrint(
           'Parsed URI - Scheme: ${uri.scheme}, Host: ${uri.host}, PathSegments: ${uri.pathSegments}');
 
       // Verify that the scheme matches "app.sway.main"
@@ -244,7 +244,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         List<String> segments = uri.pathSegments;
 
         if (segments.isEmpty) {
-          print('No path segments found in URI: $data');
+          debugPrint('No path segments found in URI: $data');
           return;
         }
 
@@ -254,7 +254,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         String id = segments.length >= 2 ? segments[1] : '';
 
         if (id.isNotEmpty) {
-          print('Navigating to $entityType with ID: $id');
+          debugPrint('Navigating to $entityType with ID: $id');
 
           // Navigate based on the entity type
           switch (entityType) {
@@ -281,21 +281,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
               break;
             // Add more cases as needed for different entity types
             default:
-              print('Unhandled entity type: $entityType');
+              debugPrint('Unhandled entity type: $entityType');
               break;
           }
         } else {
-          print('ID is missing in the URI: $data');
+          debugPrint('ID is missing in the URI: $data');
         }
       } else {
-        print('Unexpected URI scheme: ${uri.scheme}');
+        debugPrint('Unexpected URI scheme: ${uri.scheme}');
       }
     } else {
       // Handle other action types if necessary
       if (type != null) {
-        print('Unhandled action type: $type');
+        debugPrint('Unhandled action type: $type');
       } else {
-        print('Action type is null');
+        debugPrint('Action type is null');
       }
     }
   }

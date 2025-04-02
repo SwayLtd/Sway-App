@@ -1,5 +1,6 @@
 // lib/features/event/services/event_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:sway/core/utils/connectivity_helper.dart';
@@ -138,7 +139,7 @@ class EventService {
         }
         return fetchedEvents;
       } catch (e) {
-        print('Error in getEventsByIds (online): $e');
+        debugPrint('Error in getEventsByIds (online): $e');
         return await _loadAllEventsFromIsar(isar);
       }
     } else {
@@ -163,7 +164,7 @@ class EventService {
         }
         return null;
       } catch (e) {
-        print('Error fetching event metadata: $e');
+        debugPrint('Error fetching event metadata: $e');
         return null;
       }
     }

@@ -1,5 +1,6 @@
 // lib/core/services/notification_preferences_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_notification_preferences_model.dart';
 
@@ -41,7 +42,7 @@ class NotificationPreferencesService {
       // Convertir les données récupérées en modèle Dart
       return UserNotificationPreferences.fromMap(response);
     } catch (e) {
-      print('Exception in getPreferences: $e');
+      debugPrint('Exception in getPreferences: $e');
       return null;
     }
   }
@@ -60,14 +61,14 @@ class NotificationPreferencesService {
           .maybeSingle();
 
       if (response == null) {
-        print('No row returned after upsert, check constraints or RLS.');
+        debugPrint('No row returned after upsert, check constraints or RLS.');
         return false;
       }
       // Log pour debug
-      print('Update response: $response');
+      debugPrint('Update response: $response');
       return true;
     } catch (e) {
-      print('Error updatePreferences: $e');
+      debugPrint('Error updatePreferences: $e');
       return false;
     }
   }

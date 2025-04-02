@@ -123,7 +123,8 @@ List<Map<String, dynamic>> standaloneRoutes = [
           } else if (snapshot.hasError) {
             return Scaffold(
               appBar: AppBar(title: const Text('Event')),
-              body: const SizedBox.shrink(), // Center(child: Text('Error: ${snapshot.error}')),,
+              body: const SizedBox
+                  .shrink(), // Center(child: Text('Error: ${snapshot.error}')),,
             );
           } else if (!snapshot.hasData || snapshot.data == null) {
             return Scaffold(
@@ -258,22 +259,22 @@ final GoRouter router = GoRouter(
 
       switch (entityType) {
         case 'artist':
-          print('Artist entity found');
+          debugPrint('Artist entity found');
           break;
         case 'promoter':
-          print('Promoter entity found');
+          debugPrint('Promoter entity found');
           break;
         case 'venue':
-          print('Venue entity found');
+          debugPrint('Venue entity found');
           break;
         case 'genre':
-          print('Genre entity found');
+          debugPrint('Genre entity found');
           break;
         case 'user':
-          print('User entity found');
+          debugPrint('User entity found');
           break;
         case 'event':
-          print('Event entity found');
+          debugPrint('Event entity found');
           break;
         default:
           // No action needed for other paths
@@ -288,8 +289,8 @@ final GoRouter router = GoRouter(
       return '/';
     }
 
-    print('Navigating to: ${state.uri.toString()}');
-    print('Matched location: ${state.matchedLocation}');
+    debugPrint('Navigating to: ${state.uri.toString()}');
+    debugPrint('Matched location: ${state.matchedLocation}');
 
     return null; // No redirect needed
   },

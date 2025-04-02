@@ -1,5 +1,6 @@
 // lib/features/venue/services/venue_promoter_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/utils/connectivity_helper.dart';
 import 'package:sway/core/services/database_service.dart';
@@ -30,7 +31,7 @@ class VenuePromoterService {
 
       final List<int> promoterIds =
           response.map<int>((entry) => entry['promoter_id'] as int).toList();
-      print(
+      debugPrint(
           "VenuePromoterService: Promoter IDs from Supabase for venueId $venueId: $promoterIds");
 
       // Update local cache
@@ -39,7 +40,7 @@ class VenuePromoterService {
       if (isarVenue != null) {
         await _updateVenuePromotersCache(isarVenue, promoterIds, isar);
         final cachedIds = await _loadVenuePromotersCache(isarVenue);
-        print(
+        debugPrint(
             "VenuePromoterService: Cache updated for venueId $venueId, cached promoter IDs: $cachedIds");
       }
       return await _promoterService.getPromotersByIds(promoterIds);
@@ -49,7 +50,7 @@ class VenuePromoterService {
           await isar.isarVenues.filter().remoteIdEqualTo(venueId).findFirst();
       if (isarVenue != null) {
         final cachedIds = await _loadVenuePromotersCache(isarVenue);
-        print(
+        debugPrint(
             "VenuePromoterService (offline): Cached promoter IDs for venueId $venueId: $cachedIds");
         return await _promoterService.getPromotersByIds(cachedIds);
       }
@@ -87,7 +88,7 @@ class VenuePromoterService {
     if (isarVenue != null) {
       await _updateVenuePromotersCache(isarVenue, promoterIds, isar);
       final cachedIds = await _loadVenuePromotersCache(isarVenue);
-      print(
+      debugPrint(
           "VenuePromoterService: Cache updated for venueId $venueId after update, cached promoter IDs: $cachedIds");
     }
   }

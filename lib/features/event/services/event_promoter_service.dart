@@ -50,7 +50,7 @@ class EventPromoterService {
     final online = await isConnected();
     final isar = await _isarFuture;
 
-    // print('Fetching events for promoter ID: $promoterId'); // Log pour vérifier l'ID du promoteur
+    // debugPrint('Fetching events for promoter ID: $promoterId'); // Log pour vérifier l'ID du promoteur
 
     if (online) {
       try {
@@ -60,10 +60,10 @@ class EventPromoterService {
             .select('event_id')
             .eq('promoter_id', promoterId);
 
-        // print('Supabase response for promoter ID $promoterId: $response'); // Log de la réponse
+        // debugPrint('Supabase response for promoter ID $promoterId: $response'); // Log de la réponse
 
         if ((response as List).isEmpty) {
-          // print('No events found for promoter ID $promoterId on Supabase');
+          // debugPrint('No events found for promoter ID $promoterId on Supabase');
           return [];
         }
 
@@ -75,7 +75,7 @@ class EventPromoterService {
             .from('events')
             .select()
             .filter('id', 'in', eventIds);
-        // print('Fetched events from Supabase: ${eventsResponse.length} events'); // Log des événements récupérés
+        // debugPrint('Fetched events from Supabase: ${eventsResponse.length} events'); // Log des événements récupérés
 
         final events = (eventsResponse as List)
             .map<Event>((json) => Event.fromJson(json))
@@ -86,12 +86,12 @@ class EventPromoterService {
 
         return events;
       } catch (e) {
-        // print('Error fetching events from Supabase: $e');
+        // debugPrint('Error fetching events from Supabase: $e');
         return [];
       }
     } else {
       // Si hors ligne, récupérer les événements du cache local
-      // print('Offline mode. Loading events from Isar cache.');
+      // debugPrint('Offline mode. Loading events from Isar cache.');
       return await _loadEventsFromCache(promoterId, isar);
     }
   }

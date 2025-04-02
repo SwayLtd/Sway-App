@@ -61,7 +61,7 @@ class _FollowersCountWidgetState extends State<FollowersCountWidget> {
         isLoading = false;
       });
     } catch (e) {
-      print('Error initializing FollowersCountWidget: $e');
+      debugPrint('Error initializing FollowersCountWidget: $e');
       if (!mounted) return;
       setState(() {
         isLoading = false;

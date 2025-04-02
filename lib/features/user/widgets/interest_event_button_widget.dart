@@ -61,7 +61,7 @@ class _InterestEventButtonWidgetState extends State<InterestEventButtonWidget> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading interest status: $e');
+      debugPrint('Error loading interest status: $e');
       setState(() {
         _isLoading = false;
       });
@@ -82,7 +82,7 @@ class _InterestEventButtonWidgetState extends State<InterestEventButtonWidget> {
       }
       await _loadInterestStatus();
     } catch (e) {
-      print('Error updating interest status: $e');
+      debugPrint('Error updating interest status: $e');
       setState(() {
         _isLoading = false;
       });

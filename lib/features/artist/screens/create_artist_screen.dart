@@ -67,7 +67,7 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
       // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
       _formKey.currentState?.validate();
     } catch (e) {
-      print('Error loading forbidden words: $e');
+      debugPrint('Error loading forbidden words: $e');
     }
   }
 
@@ -108,7 +108,7 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
       fileData: fileBytes,
     );
 
-    print('Image Uploaded: $publicUrl');
+    debugPrint('Image Uploaded: $publicUrl');
 
     return publicUrl;
   }
@@ -138,7 +138,7 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
       if (currentUser == null) {
         throw Exception('User not authenticated.');
       }
-      print('Current User: ${currentUser.toJson()}');
+      debugPrint('Current User: ${currentUser.toJson()}');
 
       final newArtist = Artist(
         name: _nameController.text.trim(),
@@ -151,18 +151,18 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
 
       // Add the artist to the database and get the created object with the assigned ID
       final createdArtist = await _artistService.addArtist(newArtist);
-      print('Created Artist: ${createdArtist?.toJson()}');
+      debugPrint('Created Artist: ${createdArtist?.toJson()}');
 
       // Upload the image and get the URL
       final imageUrl = await _uploadImage(createdArtist!.id!);
-      print('Image Uploaded: $imageUrl');
+      debugPrint('Image Uploaded: $imageUrl');
 
       // Update the artist with the image URL
       final updatedArtist = createdArtist.copyWith(imageUrl: imageUrl);
-      print('Updated Artist Data: ${updatedArtist.toJson()}');
+      debugPrint('Updated Artist Data: ${updatedArtist.toJson()}');
 
       final resultArtist = await _artistService.updateArtist(updatedArtist);
-      print('Result Artist: ${resultArtist.toJson()}');
+      debugPrint('Result Artist: ${resultArtist.toJson()}');
 
       // Show a success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -175,7 +175,7 @@ class _CreateArtistScreenState extends State<CreateArtistScreen> {
       // Navigate to another page or close the screen
       Navigator.pop(context);
     } catch (e) {
-      print('Error creating artist: $e');
+      debugPrint('Error creating artist: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error creating artist: $e'),

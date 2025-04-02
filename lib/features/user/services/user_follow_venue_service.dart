@@ -1,5 +1,6 @@
 // lib/features/user/services/user_follow_venue_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/venue/models/venue_model.dart';
 import 'package:sway/features/venue/services/venue_service.dart';
@@ -28,7 +29,7 @@ class UserFollowVenueService {
 
       return response.isNotEmpty;
     } catch (e) {
-      print('Error checking follow status for venue $venueId: $e');
+      debugPrint('Error checking follow status for venue $venueId: $e');
       return false;
     }
   }
@@ -43,7 +44,7 @@ class UserFollowVenueService {
         'venue_id': venueId,
       });
     } catch (e) {
-      print('Error following venue $venueId: $e');
+      debugPrint('Error following venue $venueId: $e');
     }
   }
 
@@ -58,7 +59,7 @@ class UserFollowVenueService {
           .eq('user_id', userId)
           .eq('venue_id', venueId);
     } catch (e) {
-      print('Error unfollowing venue $venueId: $e');
+      debugPrint('Error unfollowing venue $venueId: $e');
     }
   }
 
@@ -71,7 +72,7 @@ class UserFollowVenueService {
 
       return response.length;
     } catch (e) {
-      print('Error getting followers count for venue $venueId: $e');
+      debugPrint('Error getting followers count for venue $venueId: $e');
       return 0;
     }
   }
@@ -92,7 +93,7 @@ class UserFollowVenueService {
           .where((venue) => followedVenueIds.contains(venue.id!))
           .toList();
     } catch (e) {
-      print('Error getting followed venues for user $userId: $e');
+      debugPrint('Error getting followed venues for user $userId: $e');
       return [];
     }
   }
@@ -109,7 +110,7 @@ class UserFollowVenueService {
 
       return await _userService.getUsersByIds(followerIds);
     } catch (e) {
-      print('Error getting followers for venue $venueId: $e');
+      debugPrint('Error getting followers for venue $venueId: $e');
       return [];
     }
   }

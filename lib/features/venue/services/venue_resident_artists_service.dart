@@ -1,5 +1,6 @@
 // lib/features/venue/services/venue_resident_artists_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/utils/connectivity_helper.dart';
 import 'package:sway/core/services/database_service.dart';
@@ -32,14 +33,14 @@ class VenueResidentArtistsService {
           .select('artist_id')
           .eq('venue_id', venueId);
       if ((response as List).isEmpty) {
-        print(
+        debugPrint(
             "getArtistsByVenueId: No resident artist assignments found for venueId $venueId (online).");
         return [];
       }
       // Extract artist IDs from response.
       final List<int> artistIds =
           response.map<int>((entry) => entry['artist_id'] as int).toList();
-      print(
+      debugPrint(
           "getArtistsByVenueId: Parsed artist IDs for venueId $venueId: $artistIds");
 
       // Update local cache: update the residentArtists link in the venue.
@@ -48,7 +49,7 @@ class VenueResidentArtistsService {
       if (isarVenue != null) {
         await _updateResidentArtistsCache(isarVenue, artistIds, isar);
         await isarVenue.residentArtists.load();
-        print(
+        debugPrint(
             "getArtistsByVenueId: Cache updated for venueId $venueId, resident artists in cache: ${isarVenue.residentArtists.map((a) => a.remoteId).toList()}");
       }
       // Retrieve complete Artist objects via ArtistService.
@@ -73,7 +74,7 @@ class VenueResidentArtistsService {
       if ((response as List).isEmpty) return [];
       final List<int> venueIds =
           response.map<int>((item) => item['venue_id'] as int).toList();
-      print(
+      debugPrint(
           "getVenuesByArtistId: Remote venue IDs for artistId $artistId: $venueIds");
       return await _venueService.getVenuesByIds(venueIds);
     } else {
@@ -109,7 +110,7 @@ class VenueResidentArtistsService {
       if ((response as List).isEmpty) {
         throw Exception('Failed to update venue artists.');
       }
-      print(
+      debugPrint(
           "updateVenueArtists: Remote update successful for venueId $venueId, new artist IDs: $artistIds");
     }
     // Update local cache: update the residentArtists link in the venue.
@@ -120,10 +121,11 @@ class VenueResidentArtistsService {
       await isarVenue.residentArtists.load();
       final cachedIds =
           isarVenue.residentArtists.map((a) => a.remoteId).toList();
-      print(
+      debugPrint(
           "updateVenueArtists: Cache updated for venueId $venueId, cached artist IDs: $cachedIds");
     } else {
-      print("updateVenueArtists: No venue found in cache for venueId $venueId");
+      debugPrint(
+          "updateVenueArtists: No venue found in cache for venueId $venueId");
     }
   }
 
@@ -142,7 +144,7 @@ class VenueResidentArtistsService {
         if (isarArtist != null) {
           venue.residentArtists.add(isarArtist);
         } else {
-          print("Warning: No artist found in cache for remoteId $id");
+          debugPrint("Warning: No artist found in cache for remoteId $id");
         }
       }
       await venue.residentArtists.save();
@@ -158,11 +160,11 @@ class VenueResidentArtistsService {
       await isarVenue.residentArtists.load();
       final cachedArtistIds =
           isarVenue.residentArtists.map((a) => a.remoteId).toList();
-      print(
+      debugPrint(
           "Loaded cached resident artist IDs for venueId $venueId: $cachedArtistIds");
       return await _artistService.getArtistsByIds(cachedArtistIds);
     }
-    print("No cached venue found for venueId $venueId.");
+    debugPrint("No cached venue found for venueId $venueId.");
     return [];
   }
 
@@ -174,7 +176,7 @@ class VenueResidentArtistsService {
           .filter()
           .residentArtists((q) => q.remoteIdEqualTo(artistId))
           .findAll();
-      print(
+      debugPrint(
           "Loaded cached venue IDs for artistId $artistId: ${cachedVenues.map((v) => v.remoteId).toList()}");
       return cachedVenues.map((isarVenue) {
         return Venue.fromJson({
@@ -186,7 +188,7 @@ class VenueResidentArtistsService {
         });
       }).toList();
     } catch (e) {
-      print("Error in _loadVenuesByResidentArtistFromCache: $e");
+      debugPrint("Error in _loadVenuesByResidentArtistFromCache: $e");
       return [];
     }
   }

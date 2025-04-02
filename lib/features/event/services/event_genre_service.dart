@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:sway/core/utils/connectivity_helper.dart';
@@ -68,7 +69,7 @@ class EventGenreService {
             .where((event) => event.eventDateTime.isAfter(now))
             .toList();
       } catch (e) {
-        print('Error in getUpcomingEventsByGenreId (online): $e');
+        debugPrint('Error in getUpcomingEventsByGenreId (online): $e');
         return await _loadUpcomingEventsByGenreFromCache(genreId, isar: isar);
       }
     } else {
@@ -223,7 +224,7 @@ class EventGenreService {
 
       return upcomingEvents;
     } catch (e) {
-      print('Error in _loadUpcomingEventsByGenreFromCache: $e');
+      debugPrint('Error in _loadUpcomingEventsByGenreFromCache: $e');
       return [];
     }
   }

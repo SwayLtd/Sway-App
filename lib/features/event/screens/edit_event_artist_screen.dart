@@ -64,7 +64,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
         });
       }
     } catch (e) {
-      print('Error fetching event: $e');
+      debugPrint('Error fetching event: $e');
     }
   }
 
@@ -133,7 +133,7 @@ class _EditEventArtistsScreenState extends State<EditEventArtistsScreen> {
       _assignments =
           await _eventArtistService.getArtistsByEventId(widget.eventId);
     } catch (e) {
-      print('Error fetching artist assignments: $e');
+      debugPrint('Error fetching artist assignments: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -540,7 +540,7 @@ class _ArtistAssignmentBottomSheetState
       _allArtists = await _artistService.getArtists();
       _applyFilter();
     } catch (e) {
-      print('Error fetching artists: $e');
+      debugPrint('Error fetching artists: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -713,7 +713,7 @@ class _ArtistAssignmentBottomSheetState
       }
       Navigator.of(context).pop(true);
     } catch (e) {
-      print('Error submitting assignment: $e');
+      debugPrint('Error submitting assignment: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text('Error: $e'), behavior: SnackBarBehavior.floating),
@@ -756,7 +756,7 @@ class _ArtistAssignmentBottomSheetState
         );
         Navigator.of(context).pop(true);
       } catch (e) {
-        print('Error deleting assignment: $e');
+        debugPrint('Error deleting assignment: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('Error: $e'), behavior: SnackBarBehavior.floating),

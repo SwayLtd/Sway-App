@@ -103,7 +103,7 @@ class _ArtistScreenState extends State<ArtistScreen> {
       ]);
     } catch (e) {
       // Catching the refresh error so it won't display an error on screen.
-      print("Error refreshing data: $e");
+      debugPrint("Error refreshing data: $e");
       // Optionally, you could show a SnackBar here:
       // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to refresh data.")));
     }

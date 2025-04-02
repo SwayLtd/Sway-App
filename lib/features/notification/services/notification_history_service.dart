@@ -1,5 +1,6 @@
 // lib/features/notification/services/notification_history_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/notification/models/notification_model.dart';
 
@@ -30,7 +31,7 @@ class NotificationHistoryService {
               (item) => NotificationModel.fromMap(item as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Error fetching notifications: $e');
+      debugPrint('Error fetching notifications: $e');
       throw e;
     }
   }
@@ -46,7 +47,7 @@ class NotificationHistoryService {
         throw response.error!;
       }
     } catch (e) {
-      print('Error marking notification as read: $e');
+      debugPrint('Error marking notification as read: $e');
       throw e;
     }
   }

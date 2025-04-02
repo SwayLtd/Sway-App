@@ -175,7 +175,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
       _formKey.currentState?.validate();
     } catch (e) {
-      print('Error loading forbidden words: $e');
+      debugPrint('Error loading forbidden words: $e');
     }
   }
 
@@ -228,7 +228,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
         });
       }
     } catch (e) {
-      print('Error fetching permitted promoters: $e');
+      debugPrint('Error fetching permitted promoters: $e');
     } finally {
       if (mounted) setState(() => _isUpdating = false);
     }
@@ -256,7 +256,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
           await _eventGenreService.getGenresByEventId(widget.event.id!);
       _selectedGenres = genreIds;
     } catch (e) {
-      print('Error loading event associations: $e');
+      debugPrint('Error loading event associations: $e');
     } finally {
       if (mounted) setState(() => _isUpdating = false);
     }
@@ -315,7 +315,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
         });
       }
     } catch (e) {
-      print("Error loading metadata: $e");
+      debugPrint("Error loading metadata: $e");
     }
   }
 
@@ -589,7 +589,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       );
       Navigator.pop(context, updatedEvent);
     } catch (e) {
-      print('Error updating event: $e');
+      debugPrint('Error updating event: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error updating event: $e'),
@@ -666,7 +666,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
       );
       Navigator.pop(context, null);
     } catch (e) {
-      print('Error deleting event: $e');
+      debugPrint('Error deleting event: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error deleting event: $e'),
@@ -1495,7 +1495,7 @@ class _EditEventVenueBottomSheetState extends State<EditEventVenueBottomSheet> {
     try {
       _venues = await widget.venueService.getVenues();
     } catch (e) {
-      print('Error fetching venues: $e');
+      debugPrint('Error fetching venues: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -1509,7 +1509,7 @@ class _EditEventVenueBottomSheetState extends State<EditEventVenueBottomSheet> {
         _venues = results;
       });
     } catch (e) {
-      print('Error searching venues: $e');
+      debugPrint('Error searching venues: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -1662,7 +1662,7 @@ class _EditEventGenreBottomSheetState extends State<EditEventGenreBottomSheet> {
         _genres = genres;
       });
     } catch (e) {
-      print('Error searching genres: $e');
+      debugPrint('Error searching genres: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
@@ -1827,7 +1827,7 @@ class _EditEventArtistBottomSheetState
         _artists = artists;
       });
     } catch (e) {
-      print('Error searching artists: $e');
+      debugPrint('Error searching artists: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,

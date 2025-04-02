@@ -65,7 +65,7 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
       // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
       _formKey.currentState?.validate();
     } catch (e) {
-      print('Error loading forbidden words: $e');
+      debugPrint('Error loading forbidden words: $e');
     }
   }
 
@@ -106,7 +106,7 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
       fileData: fileBytes,
     );
 
-    print('Image Uploaded: $publicUrl');
+    debugPrint('Image Uploaded: $publicUrl');
 
     return publicUrl;
   }
@@ -136,7 +136,7 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
       if (currentUser == null) {
         throw Exception('User not authenticated.');
       }
-      print('Current User: ${currentUser.toJson()}');
+      debugPrint('Current User: ${currentUser.toJson()}');
 
       // Créer un nouveau promoter sans l'image pour obtenir l'ID
       final newPromoter = Promoter(
@@ -147,7 +147,7 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
 
       // Ajouter le promoter à la base de données et récupérer l'objet créé avec l'ID assigné
       final createdPromoter = await _promoterService.addPromoter(newPromoter);
-      print('Created Promoter: ${createdPromoter.toJson()}');
+      debugPrint('Created Promoter: ${createdPromoter.toJson()}');
 
       // Vérifier que le promoter a été créé
       if (createdPromoter.id == null) {
@@ -156,15 +156,15 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
 
       // Uploader l'image et obtenir l'URL
       final imageUrl = await _uploadImage(createdPromoter.id!);
-      print('Image Uploaded: $imageUrl');
+      debugPrint('Image Uploaded: $imageUrl');
 
       // Mettre à jour le promoter avec l'URL de l'image
       final updatedPromoter = createdPromoter.copyWith(imageUrl: imageUrl);
-      print('Updated Promoter Data: ${updatedPromoter.toJson()}');
+      debugPrint('Updated Promoter Data: ${updatedPromoter.toJson()}');
 
       final resultPromoter =
           await _promoterService.updatePromoter(updatedPromoter);
-      print('Result Promoter: ${resultPromoter.toJson()}');
+      debugPrint('Result Promoter: ${resultPromoter.toJson()}');
 
       // Vérifier que le promoter a été mis à jour correctement
       if (resultPromoter.imageUrl.isEmpty) {
@@ -182,7 +182,7 @@ class _CreatePromoterScreenState extends State<CreatePromoterScreen> {
       // Naviguer vers une autre page ou fermer l'écran
       Navigator.pop(context);
     } catch (e) {
-      print('Error creating promoter: $e');
+      debugPrint('Error creating promoter: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error creating promoter: $e'),

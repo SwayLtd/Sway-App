@@ -66,7 +66,7 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
       // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
       _formKey.currentState?.validate();
     } catch (e) {
-      print('Error loading forbidden words: $e');
+      debugPrint('Error loading forbidden words: $e');
     }
   }
 
@@ -107,7 +107,7 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
       fileData: fileBytes,
     );
 
-    print('Image Uploaded: $publicUrl');
+    debugPrint('Image Uploaded: $publicUrl');
 
     return publicUrl;
   }
@@ -137,7 +137,7 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
       if (currentUser == null) {
         throw Exception('User not authenticated.');
       }
-      print('Current User: ${currentUser.toJson()}');
+      debugPrint('Current User: ${currentUser.toJson()}');
 
       // Créer une nouvelle venue sans l'image pour obtenir l'ID
       final newVenue = Venue(
@@ -149,18 +149,18 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
 
       // Ajouter la venue à la base de données et récupérer l'objet créé avec l'ID assigné
       final createdVenue = await _venueService.addVenue(newVenue);
-      print('Created Venue: ${createdVenue.toJson()}');
+      debugPrint('Created Venue: ${createdVenue.toJson()}');
 
       // Uploader l'image et obtenir l'URL
       final imageUrl = await _uploadImage(createdVenue.id!);
-      print('Image Uploaded: $imageUrl');
+      debugPrint('Image Uploaded: $imageUrl');
 
       // Mettre à jour la venue avec l'URL de l'image
       final updatedVenue = createdVenue.copyWith(imageUrl: imageUrl);
-      print('Updated Venue Data: ${updatedVenue.toJson()}');
+      debugPrint('Updated Venue Data: ${updatedVenue.toJson()}');
 
       final resultVenue = await _venueService.updateVenue(updatedVenue);
-      print('Result Venue: ${resultVenue.toJson()}');
+      debugPrint('Result Venue: ${resultVenue.toJson()}');
 
       // Vérifier que la venue a été mise à jour correctement
       if (resultVenue.imageUrl.isEmpty) {
@@ -178,7 +178,7 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
       // Naviguer vers une autre page ou fermer l'écran
       Navigator.pop(context);
     } catch (e) {
-      print('Error creating venue: $e');
+      debugPrint('Error creating venue: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error creating venue: $e'),

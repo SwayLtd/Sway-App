@@ -1,5 +1,6 @@
 // lib/features/user/services/user_follow_user_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/user/models/user_model.dart' as AppUser;
 import 'package:sway/features/user/services/user_service.dart';
@@ -26,7 +27,7 @@ class UserFollowUserService {
 
       return response.isNotEmpty;
     } catch (e) {
-      print('Error checking follow status for user $targetUserId: $e');
+      debugPrint('Error checking follow status for user $targetUserId: $e');
       return false;
     }
   }
@@ -41,7 +42,7 @@ class UserFollowUserService {
         'followed_id': targetUserId,
       });
     } catch (e) {
-      print('Error following user $targetUserId: $e');
+      debugPrint('Error following user $targetUserId: $e');
     }
   }
 
@@ -56,25 +57,24 @@ class UserFollowUserService {
           .eq('follower_id', userId)
           .eq('followed_id', targetUserId);
     } catch (e) {
-      print('Error unfollowing user $targetUserId: $e');
+      debugPrint('Error unfollowing user $targetUserId: $e');
     }
   }
 
   Future<int> getFollowersCount(int targetUserId) async {
-  try {
-    final response = await _supabase
-        .from('user_follow_user')
-        .select('follower_id') // Assurez-vous de ne pas ajouter .single() ici
-        .eq('followed_id', targetUserId);
+    try {
+      final response = await _supabase
+          .from('user_follow_user')
+          .select('follower_id') // Assurez-vous de ne pas ajouter .single() ici
+          .eq('followed_id', targetUserId);
 
-    // On s'assure que response est bien une liste
-    return response.length;
-  } catch (e) {
-    print('Error getting followers count for user $targetUserId: $e');
-    return 0;
+      // On s'assure que response est bien une liste
+      return response.length;
+    } catch (e) {
+      debugPrint('Error getting followers count for user $targetUserId: $e');
+      return 0;
+    }
   }
-}
-
 
   Future<int> getFollowingCount(int userId) async {
     try {
@@ -85,7 +85,7 @@ class UserFollowUserService {
 
       return response.length;
     } catch (e) {
-      print('Error getting following count for user $userId: $e');
+      debugPrint('Error getting following count for user $userId: $e');
       return 0;
     }
   }
@@ -102,7 +102,7 @@ class UserFollowUserService {
 
       return await _userService.getUsersByIds(followerIds);
     } catch (e) {
-      print('Error getting followers for user $targetUserId: $e');
+      debugPrint('Error getting followers for user $targetUserId: $e');
       return [];
     }
   }
@@ -122,9 +122,8 @@ class UserFollowUserService {
 
       return await _userService.getUsersByIds(followingIds);
     } catch (e) {
-      print('Error getting following list for current user: $e');
+      debugPrint('Error getting following list for current user: $e');
       return [];
     }
   }
 }
-

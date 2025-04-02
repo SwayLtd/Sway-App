@@ -46,7 +46,7 @@ class UserPermissionService {
   /// Vérifie si l'utilisateur a au moins le niveau de permission requis.
   Future<bool> hasPermission(
       int userId, int entityId, String entityType, int requiredLevel) async {
-    // print('Required Level: $requiredLevel');
+    // debugPrint('Required Level: $requiredLevel');
 
     final response = await _supabase
         .from('user_permissions')
@@ -57,7 +57,7 @@ class UserPermissionService {
         .gte('permission_level', requiredLevel)
         .maybeSingle();
 
-    // print('Permission Level response: $response');
+    // debugPrint('Permission Level response: $response');
 
     return response != null;
   }
@@ -67,12 +67,12 @@ class UserPermissionService {
       int entityId, String entityType, int requiredLevel) async {
     final currentUser = await _userService.getCurrentUser();
     if (currentUser == null) {
-      // print('Current user is null');
+      // debugPrint('Current user is null');
       return false;
     }
     final hasPerm = await hasPermission(
         currentUser.id, entityId, entityType, requiredLevel);
-    // print('User has permission: $hasPerm for level $requiredLevel on $entityType $entityId');
+    // debugPrint('User has permission: $hasPerm for level $requiredLevel on $entityType $entityId');
     return hasPerm;
   }
 

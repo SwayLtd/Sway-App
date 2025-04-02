@@ -59,7 +59,7 @@ class _EventInfoTileState extends State<EventInfoTile> {
           event.eventDateTime.isAfter(now));
       _todayEvent = todayEvents.isNotEmpty ? todayEvents.first : null;
     } catch (e) {
-      print("Error fetching event info: $e");
+      debugPrint("Error fetching event info: $e");
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

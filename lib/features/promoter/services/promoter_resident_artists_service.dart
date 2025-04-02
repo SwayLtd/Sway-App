@@ -30,7 +30,7 @@ class PromoterResidentArtistsService {
           .select('artist_id')
           .eq('promoter_id', promoterId);
       if ((response as List).isEmpty) {
-        // print("getArtistsByPromoterId: No assignments found for promoterId $promoterId (online).");
+        // debugPrint("getArtistsByPromoterId: No assignments found for promoterId $promoterId (online).");
         return [];
       }
 
@@ -39,7 +39,7 @@ class PromoterResidentArtistsService {
       for (final entry in response) {
         artistIds.addAll(_parseArtistField(entry['artist_id']));
       }
-      // print("getArtistsByPromoterId: Parsed artist IDs for promoterId $promoterId: $artistIds");
+      // debugPrint("getArtistsByPromoterId: Parsed artist IDs for promoterId $promoterId: $artistIds");
 
       // Update local cache: update the residentArtists link in the cached promoter.
       final isarPromoter = await isar.isarPromoters
@@ -50,13 +50,13 @@ class PromoterResidentArtistsService {
         await _updatePromoterResidentArtistsCache(
             isarPromoter, artistIds.toList(), isar);
         await isarPromoter.residentArtists.load();
-        // print("getArtistsByPromoterId: Cache updated for promoterId $promoterId, resident artists in cache: ${isarPromoter.residentArtists.map((a) => a.remoteId).toList()}");
+        // debugPrint("getArtistsByPromoterId: Cache updated for promoterId $promoterId, resident artists in cache: ${isarPromoter.residentArtists.map((a) => a.remoteId).toList()}");
       }
 
       // Retrieve complete Artist objects via ArtistService.
       final List<Artist> artists =
           await _artistService.getArtistsByIds(artistIds.toList());
-      // print("getArtistsByPromoterId: Artists retrieved via ArtistService: ${artists.map((a) => a.id).toList()}");
+      // debugPrint("getArtistsByPromoterId: Artists retrieved via ArtistService: ${artists.map((a) => a.id).toList()}");
       return artists;
     } else {
       // Offline: load resident artists from local cache.
@@ -69,10 +69,10 @@ class PromoterResidentArtistsService {
         await isarPromoter.residentArtists.load();
         final List<Artist> cachedArtists = await _artistService.getArtistsByIds(
             isarPromoter.residentArtists.map((a) => a.remoteId).toList());
-        // print("getArtistsByPromoterId (offline): Artists loaded from cache for promoterId $promoterId: ${cachedArtists.map((a) => a.id).toList()}");
+        // debugPrint("getArtistsByPromoterId (offline): Artists loaded from cache for promoterId $promoterId: ${cachedArtists.map((a) => a.id).toList()}");
         return cachedArtists;
       }
-      // print("getArtistsByPromoterId (offline): No cached assignments found for promoterId $promoterId.");
+      // debugPrint("getArtistsByPromoterId (offline): No cached assignments found for promoterId $promoterId.");
       return [];
     }
   }
@@ -135,7 +135,7 @@ class PromoterResidentArtistsService {
     if (isarPromoter != null) {
       await _storeArtistInPromoterCache(isarPromoter, artistId, isar);
       await isarPromoter.residentArtists.load();
-      // print("addArtistToPromoter: Cache updated for promoterId $promoterId, resident artists in cache: ${isarPromoter.residentArtists.map((a) => a.remoteId).toList()}");
+      // debugPrint("addArtistToPromoter: Cache updated for promoterId $promoterId, resident artists in cache: ${isarPromoter.residentArtists.map((a) => a.remoteId).toList()}");
     }
   }
 
@@ -166,7 +166,7 @@ class PromoterResidentArtistsService {
         isarPromoter.residentArtists.removeWhere((a) => a.remoteId == artistId);
         await isarPromoter.residentArtists.save();
       });
-      // print("removeArtistFromPromoter: Cache updated for promoterId $promoterId, removed artistId $artistId");
+      // debugPrint("removeArtistFromPromoter: Cache updated for promoterId $promoterId, removed artistId $artistId");
     }
   }
 
@@ -232,7 +232,7 @@ class PromoterResidentArtistsService {
       }
       await isarPromoter.residentArtists.save();
     });
-    // print("updatePromoterResidentArtistsCache: Cache updated for promoterId ${isarPromoter.remoteId}, resident artists in cache: ${isarPromoter.residentArtists.map((a) => a.remoteId).toList()}");
+    // debugPrint("updatePromoterResidentArtistsCache: Cache updated for promoterId ${isarPromoter.remoteId}, resident artists in cache: ${isarPromoter.residentArtists.map((a) => a.remoteId).toList()}");
   }
 
   /// Factorized helper to add an artist link to a cached promoter.

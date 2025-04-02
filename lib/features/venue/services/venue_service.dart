@@ -1,5 +1,6 @@
 // lib/features/venue/services/venue_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:sway/core/utils/connectivity_helper.dart';
@@ -57,7 +58,7 @@ class VenueService {
         }
         return fetchedVenues;
       } catch (e) {
-        print('Error in getVenues (online): $e');
+        debugPrint('Error in getVenues (online): $e');
         return await _loadAllVenuesFromIsar(isar);
       }
     } else {
@@ -84,7 +85,7 @@ class VenueService {
           return await _loadVenueFromIsar(venueId, isar: isar);
         }
       } catch (e) {
-        print('Error in getVenueById (online): $e');
+        debugPrint('Error in getVenueById (online): $e');
         return await _loadVenueFromIsar(venueId, isar: isar);
       }
     } else {

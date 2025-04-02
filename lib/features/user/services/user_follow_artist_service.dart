@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/features/artist/models/artist_model.dart';
 import 'package:sway/features/artist/services/artist_service.dart';
@@ -26,7 +27,7 @@ class UserFollowArtistService {
 
       return response.isNotEmpty;
     } catch (e) {
-      print('Error checking follow status for artist $artistId: $e');
+      debugPrint('Error checking follow status for artist $artistId: $e');
       return false;
     }
   }
@@ -41,7 +42,7 @@ class UserFollowArtistService {
         'artist_id': artistId,
       });
     } catch (e) {
-      print('Error following artist $artistId: $e');
+      debugPrint('Error following artist $artistId: $e');
     }
   }
 
@@ -56,7 +57,7 @@ class UserFollowArtistService {
           .eq('user_id', userId)
           .eq('artist_id', artistId);
     } catch (e) {
-      print('Error unfollowing artist $artistId: $e');
+      debugPrint('Error unfollowing artist $artistId: $e');
     }
   }
 
@@ -69,7 +70,7 @@ class UserFollowArtistService {
 
       return response.length;
     } catch (e) {
-      print('Error getting followers count for artist $artistId: $e');
+      debugPrint('Error getting followers count for artist $artistId: $e');
       return 0;
     }
   }
@@ -86,7 +87,7 @@ class UserFollowArtistService {
 
       return await _userService.getUsersByIds(followerIds);
     } catch (e) {
-      print('Error getting followers for artist $artistId: $e');
+      debugPrint('Error getting followers for artist $artistId: $e');
       return [];
     }
   }
@@ -107,7 +108,7 @@ class UserFollowArtistService {
           .where((artist) => followedArtistIds.contains(artist.id!))
           .toList();
     } catch (e) {
-      print('Error getting followed artists for user $userId: $e');
+      debugPrint('Error getting followed artists for user $userId: $e');
       return [];
     }
   }

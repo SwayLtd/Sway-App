@@ -1,5 +1,6 @@
 // lib/core/services/database_service.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -59,7 +60,7 @@ class DatabaseService {
         // debug: true,
       );
     } catch (e) {
-      print('Error initializing platform state: $e');
+      debugPrint('Error initializing platform state: $e');
     }
   }
 }

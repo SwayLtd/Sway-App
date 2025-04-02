@@ -24,13 +24,13 @@ class PdfService {
           GoRouter.of(navigatorKey.currentContext!).go('/tickets');
         } else {
           // Gérer le cas où le chemin est vide
-          print('Le chemin du PDF est vide.');
+          debugPrint('Le chemin du PDF est vide.');
         }
       }
       // Gérer d'autres méthodes si nécessaire
     } catch (e) {
       // Gérer les erreurs
-      print('Erreur lors du traitement de la méthode: $e');
+      debugPrint('Erreur lors du traitement de la méthode: $e');
       // Vous pouvez également envoyer des messages d'erreur à la plateforme native si nécessaire
     }
   }
@@ -40,7 +40,7 @@ class PdfService {
       await _pdfChannel.invokeMethod('openPdf', path);
     } on PlatformException catch (e) {
       // Gérer les erreurs de la plateforme native
-      print('Erreur lors de l\'invocation de openPdf: ${e.message}');
+      debugPrint('Erreur lors de l\'invocation de openPdf: ${e.message}');
     }
   }
 }

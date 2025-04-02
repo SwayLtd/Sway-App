@@ -57,7 +57,7 @@ class _TimetableWidgetState extends State<TimetableWidget> {
         _isLoggedIn = currentUser != null;
       });
     } catch (e) {
-      print('Error loading user status: $e');
+      debugPrint('Error loading user status: $e');
       if (!mounted) return;
       setState(() {
         _isLoggedIn = false;

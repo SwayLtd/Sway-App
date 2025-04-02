@@ -30,14 +30,14 @@ class EventArtistService {
       final response =
           await _supabase.from('event_artist').select().eq('event_id', eventId);
       if ((response as List).isEmpty) {
-        // print("getArtistsByEventId: No assignments found for eventId $eventId (online).");
+        // debugPrint("getArtistsByEventId: No assignments found for eventId $eventId (online).");
         return [];
       }
 
       // Cast each row to Map<String, dynamic>
       final List<Map<String, dynamic>> assignments =
           response.map<Map<String, dynamic>>((e) => e).toList();
-      // print("getArtistsByEventId: Raw assignments for eventId $eventId: $assignments");
+      // debugPrint("getArtistsByEventId: Raw assignments for eventId $eventId: $assignments");
 
       // Mise à jour du cache local des affectations via la nouvelle collection isarEventArtists.
       await _updateEventArtistAssignmentsCache(eventId, assignments);
@@ -47,13 +47,13 @@ class EventArtistService {
       for (final entry in assignments) {
         allArtistIds.addAll(_parseArtistField(entry['artist_id']));
       }
-      // print("getArtistsByEventId: Parsed artist IDs for eventId $eventId: $allArtistIds");
+      // debugPrint("getArtistsByEventId: Parsed artist IDs for eventId $eventId: $allArtistIds");
 
       // Récupérer les artistes complets via ArtistService et construire une map (id -> Artist)
       final List<Artist> artistList =
           await _artistService.getArtistsByIds(allArtistIds.toList());
       final Map<int, Artist> artistMap = {for (var a in artistList) a.id!: a};
-      // print("getArtistsByEventId: Artists retrieved via ArtistService: ${artistMap.keys.toList()}");
+      // debugPrint("getArtistsByEventId: Artists retrieved via ArtistService: ${artistMap.keys.toList()}");
 
       // Pour chaque affectation, lire le champ artist_id (qui est supposé être une liste d'entiers)
       final List<Map<String, dynamic>> result = assignments.map((entry) {
@@ -99,7 +99,7 @@ class EventArtistService {
         };
       }).toList();
 
-      // print("getArtistsByEventId: Final result for eventId $eventId: ${result.map((r) => (r['artists'] as List).map((a) => (a as Artist).id).toList()).toList()}");
+      // debugPrint("getArtistsByEventId: Final result for eventId $eventId: ${result.map((r) => (r['artists'] as List).map((a) => (a as Artist).id).toList()).toList()}");
       return result;
     } else {
       // Offline: load assignments from the local cache (isarEventArtists collection).
@@ -138,7 +138,7 @@ class EventArtistService {
         // print  "getArtistsByEventId (offline): Final cached result for eventId $eventId: ${result.map((r) => (r['artists'] as List).map((a) => (a as Artist).id).toList()).toList()}");
         return result;
       }
-      // print("getArtistsByEventId (offline): No cached assignments found for eventId $eventId.");
+      // debugPrint("getArtistsByEventId (offline): No cached assignments found for eventId $eventId.");
       return [];
     }
   }
@@ -276,7 +276,7 @@ class EventArtistService {
 
         final List<Event> events =
             await _eventService.getEventsByIds(eventIds.toList());
-        // // print("getEventsByArtistId: Events retrieved for artistId $artistId: ${events.map((e) => e.id).toList()}");
+        // // debugPrint("getEventsByArtistId: Events retrieved for artistId $artistId: ${events.map((e) => e.id).toList()}");
         return response.where((entry) {
           final dynamic artistField = entry['artist_id'];
           final Set<int> parsedIds = _parseArtistField(artistField);
@@ -296,7 +296,7 @@ class EventArtistService {
         }).toList();
       } catch (e) {
         // Catching the error so it won't display an error on screen.
-        // print("Error fetching data: $e");
+        // debugPrint("Error fetching data: $e");
         return [];
         // Optionally, you could show a SnackBar here:
         // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to refresh data.")));
@@ -327,10 +327,10 @@ class EventArtistService {
             'stage': (assignment.stage ?? ''),
           };
         }).toList();
-        // // print("getEventsByArtistId (offline): Final cached result for artistId $artistId: ${result.map((r) => (r['event'] as Event).id).toList()}");
+        // // debugPrint("getEventsByArtistId (offline): Final cached result for artistId $artistId: ${result.map((r) => (r['event'] as Event).id).toList()}");
         return result;
       }
-      // // print("getEventsByArtistId (offline): No cached assignments found for artistId $artistId.");
+      // // debugPrint("getEventsByArtistId (offline): No cached assignments found for artistId $artistId.");
       return [];
     }
   }
@@ -363,7 +363,7 @@ class EventArtistService {
     if ((response as List).isEmpty) {
       throw Exception('Failed to add artist assignment.');
     }
-    // print("addArtistAssignment: Assignment added successfully for eventId $eventId, artists: $artistIds");
+    // debugPrint("addArtistAssignment: Assignment added successfully for eventId $eventId, artists: $artistIds");
     // Update local cache: store the new assignment.
     await _storeAssignmentInCache(response.first);
   }
@@ -400,7 +400,7 @@ class EventArtistService {
     if ((response as List).isEmpty) {
       throw Exception('Failed to update artist assignment.');
     }
-    // print("updateArtistAssignment: Assignment updated for eventId $eventId, artists: $artistIds");
+    // debugPrint("updateArtistAssignment: Assignment updated for eventId $eventId, artists: $artistIds");
     // Update local cache: re-store the updated assignment.
     await _storeAssignmentInCache(response.first);
   }
@@ -421,7 +421,7 @@ class EventArtistService {
         .eq('event_id', eventId)
         .select();
     if ((response as List).isEmpty) {
-      // print("deleteArtistAssignment: Assignment deletion – empty response considered as success.");
+      // debugPrint("deleteArtistAssignment: Assignment deletion – empty response considered as success.");
     }
     // Remove the assignment from the local cache.
     final isar = await _isarFuture;
@@ -431,7 +431,7 @@ class EventArtistService {
           .remoteIdEqualTo(assignmentId)
           .deleteAll();
     });
-    // print("deleteArtistAssignment: Cache updated for eventId $eventId, removed assignment: $assignmentId");
+    // debugPrint("deleteArtistAssignment: Cache updated for eventId $eventId, removed assignment: $assignmentId");
   }
 
   // --------------------------------------------------------------------------
@@ -457,7 +457,7 @@ class EventArtistService {
         ..status = assignment['status'] as String? ?? ''
         ..stage = assignment['stage'] as String?;
       await isar.isarEventArtists.put(newAssignment);
-      // print("Assignment stored in cache: eventId ${newAssignment.eventId}, artistIds ${newAssignment.artistIds}");
+      // debugPrint("Assignment stored in cache: eventId ${newAssignment.eventId}, artistIds ${newAssignment.artistIds}");
     });
   }
 
@@ -485,7 +485,7 @@ class EventArtistService {
         await isar.isarEventArtists.put(newAssignment);
       }
     });
-    // print("Cache updated for eventId $eventId with assignments from online data.");
+    // debugPrint("Cache updated for eventId $eventId with assignments from online data.");
   }
 
   /// Helper function to parse the artist_field into a Set<int> (unique artist IDs).
