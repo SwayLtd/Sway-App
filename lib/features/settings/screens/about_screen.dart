@@ -38,9 +38,8 @@ class _AboutScreenState extends State<AboutScreen> {
     if (await inAppReview.isAvailable()) {
       await inAppReview.requestReview();
     } else {
-      // TODO: Replace '<your_app_id>' with your actual app ID
       final Uri url = Uri.parse(
-          'https://play.google.com/store/apps/details?id=<your_app_id>');
+          'https://play.google.com/store/apps/details?id=app.sway.main&hl=en');
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       }
