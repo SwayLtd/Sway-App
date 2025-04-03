@@ -174,27 +174,6 @@ class _SearchScreenState extends State<SearchScreen> {
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
-  String _genreNameFromId(int id) {
-    final genreMap = {
-      1: "Rock",
-      2: "Pop",
-      3: "Jazz",
-      4: "Electro",
-      5: "Hip-Hop",
-    };
-    return genreMap[id] ?? "Genre $id";
-  }
-
-  List<Map<String, dynamic>> _getAllGenres() {
-    return [
-      {'id': 1, 'name': 'Rock'},
-      {'id': 2, 'name': 'Pop'},
-      {'id': 3, 'name': 'Jazz'},
-      {'id': 4, 'name': 'Electro'},
-      {'id': 5, 'name': 'Hip-Hop'},
-    ];
-  }
-
   Widget _buildActiveFilterChips() {
     List<Widget> chips = [];
     if (_filters.entityType != EntityType.all) {
@@ -289,7 +268,7 @@ class _SearchScreenState extends State<SearchScreen> {
     }
     for (int genreId in _filters.genreIds) {
       chips.add(Chip(
-        label: Text(_genreNameFromId(genreId)),
+        label: Text(genreId.toString()),
         onDeleted: () {
           setState(() {
             _filters.genreIds.remove(genreId);
@@ -402,6 +381,8 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
   EntityType? _selectedEntity;
   DateTime? _selectedDate;
   late List<int> _selectedGenreIds;
+  // Variable pour stocker les genres populaires récupérés via RPC
+  List<Map<String, dynamic>> _popularGenres = [];
   // Remplacement de nearMe par la sélection de ville (via FilterChip)
   Map<String, dynamic>? _selectedCityOption;
   bool _onlyFollowed = false;
@@ -421,7 +402,6 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
     _friendsInterested = widget.initialFilters.friendsInterested;
     _selectedEventType = widget.initialFilters.eventType;
     _selectedVenueType = widget.initialFilters.venueType;
-    // Si un filtre de ville était déjà défini, on le réaffiche
     if (widget.initialFilters.selectedCity != null) {
       _selectedCityOption = {
         'name': widget.initialFilters.selectedCity,
@@ -429,41 +409,34 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
         'lon': widget.initialFilters.cityLon,
       };
     }
+    _loadPopularGenres();
   }
 
-  // Liste statique des genres
-  List<Map<String, dynamic>> _getAllGenres() {
-    return [
-      {'id': 1, 'name': 'Rock'},
-      {'id': 2, 'name': 'Pop'},
-      {'id': 3, 'name': 'Jazz'},
-      {'id': 4, 'name': 'Electro'},
-      {'id': 5, 'name': 'Hip-Hop'},
-    ];
+  Future<void> _loadPopularGenres() async {
+    final response = await supabaseClient.rpc('get_popular_genres');
+    if (response != null) {
+      setState(() {
+        _popularGenres = List<Map<String, dynamic>>.from(response);
+      });
+    }
   }
 
-  // Liste statique des event types
-  List<String> _getEventTypes() {
-    return ['Concert', 'Party', 'Conference'];
-  }
-
-  // Liste statique des venue types
-  List<String> _getVenueTypes() {
-    return ['Club', 'Bar', 'Theatre'];
-  }
-
-  // Build FilterChips pour les genres
+  // Build FilterChips pour les genres populaires
   List<Widget> _buildGenreChips() {
-    return _getAllGenres().map((genre) {
+    if (_popularGenres.isEmpty) {
+      return [CircularProgressIndicator()];
+    }
+    return _popularGenres.map((genre) {
+      int genreId = genre['id'];
       return FilterChip(
         label: Text(genre['name']),
-        selected: _selectedGenreIds.contains(genre['id']),
+        selected: _selectedGenreIds.contains(genreId),
         onSelected: (selected) {
           setState(() {
             if (selected) {
-              _selectedGenreIds.add(genre['id']);
+              _selectedGenreIds.add(genreId);
             } else {
-              _selectedGenreIds.remove(genre['id']);
+              _selectedGenreIds.remove(genreId);
             }
           });
         },
@@ -489,13 +462,11 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
           selected: _selectedEntity == entry.key,
           onSelected: (selected) {
             setState(() {
-              // Si déjà sélectionné, la désélectionne pour revenir en mode global.
               if (_selectedEntity == entry.key) {
                 _selectedEntity = null;
               } else {
                 _selectedEntity = entry.key;
               }
-              // Réinitialiser les filtres spécifiques
               _selectedDate = null;
               _selectedGenreIds.clear();
               _selectedCityOption = null;
@@ -551,7 +522,7 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
       padding: MediaQuery.of(context).viewInsets.add(EdgeInsets.all(16)),
       child: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align titles left
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             // Header
@@ -579,7 +550,6 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
               Wrap(
                 spacing: 6.0,
                 children: [
-                  // Date : chip qui ouvre le date picker
                   FilterChip(
                     label: Text(_selectedDate != null
                         ? _formatDate(_selectedDate!)
@@ -599,12 +569,10 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
                   ),
                 ],
               ),
-              // Groupe de chips pour la ville / Near Me
               Wrap(
                 spacing: 6.0,
                 children: _buildCityChips(),
               ),
-              // Filtres pour Followed et Friends Interested
               Wrap(
                 spacing: 6.0,
                 children: [
@@ -628,7 +596,11 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
                   ),
                 ],
               ),
-              Wrap(spacing: 6.0, children: _buildGenreChips()),
+              // Affichage des genres populaires récupérés via RPC
+              Wrap(
+                spacing: 6.0,
+                children: _buildGenreChips(),
+              ),
             ] else if (_selectedEntity == EntityType.event) ...[
               Text("Event Filters",
                   style: TextStyle(fontWeight: FontWeight.bold)),
@@ -664,7 +636,10 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
                   });
                 },
               ),
-              Wrap(spacing: 6.0, children: _buildGenreChips()),
+              Wrap(
+                spacing: 6.0,
+                children: _buildGenreChips(),
+              ),
               CheckboxListTile(
                 title: Text("Only interested/going"),
                 value: _onlyFollowed,
@@ -699,7 +674,10 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
                   });
                 },
               ),
-              Wrap(spacing: 6.0, children: _buildGenreChips()),
+              Wrap(
+                spacing: 6.0,
+                children: _buildGenreChips(),
+              ),
               CheckboxListTile(
                 title: Text("Only followed venues"),
                 value: _onlyFollowed,
@@ -712,7 +690,10 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
             ] else if (_selectedEntity == EntityType.artist) ...[
               Text("Artist Filters",
                   style: TextStyle(fontWeight: FontWeight.bold)),
-              Wrap(spacing: 6.0, children: _buildGenreChips()),
+              Wrap(
+                spacing: 6.0,
+                children: _buildGenreChips(),
+              ),
               CheckboxListTile(
                 title: Text("Only followed artists"),
                 value: _onlyFollowed,
@@ -725,7 +706,10 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
             ] else if (_selectedEntity == EntityType.promoter) ...[
               Text("Promoter Filters",
                   style: TextStyle(fontWeight: FontWeight.bold)),
-              Wrap(spacing: 6.0, children: _buildGenreChips()),
+              Wrap(
+                spacing: 6.0,
+                children: _buildGenreChips(),
+              ),
               CheckboxListTile(
                 title: Text("Only followed promoters"),
                 value: _onlyFollowed,
@@ -775,7 +759,6 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
             ElevatedButton(
               child: Text("Apply"),
               onPressed: () {
-                // En mode global, si aucun filtre d'entité n'est sélectionné, on reste en mode global.
                 EntityType effectiveEntity = _selectedEntity ?? EntityType.all;
                 if (effectiveEntity == EntityType.all) {
                   if (_selectedDate != null || _selectedEventType != null) {
@@ -813,5 +796,14 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
         ),
       ),
     );
+  }
+
+  // Fonctions statiques pour les types d'événements et de venues (inchangées)
+  List<String> _getEventTypes() {
+    return ['Concert', 'Party', 'Conference'];
+  }
+
+  List<String> _getVenueTypes() {
+    return ['Club', 'Bar', 'Theatre'];
   }
 }

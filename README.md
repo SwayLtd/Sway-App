@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Remove static genre list and implement dynamic popular genre loading from RPC
 - Global filters, specific entities filters and proximity and city events and venues filters
 - Implement new search system with filters
 - Remove google_fonts dependency and add SpaceGrotesk font family locally
