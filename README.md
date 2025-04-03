@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Global filters, specific entities filters and proximity and city events and venues filters
 - Implement new search system with filters
 - Remove google_fonts dependency and add SpaceGrotesk font family locally
 - Add "Map" button on scroll on Explore screen
