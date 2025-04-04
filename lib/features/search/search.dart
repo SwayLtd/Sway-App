@@ -120,7 +120,7 @@ class _SearchScreenState extends State<SearchScreen> {
         _genreMap = {for (var genre in genres) genre.id: genre.name};
       });
     } catch (e) {
-      debugPrint("Erreur lors du chargement des genres: $e");
+      debugPrint("Error loading genres: $e");
     }
   }
 
@@ -370,23 +370,23 @@ class _SearchScreenState extends State<SearchScreen> {
             // Navigation via GoRouter selon le type
             switch (type) {
               case 'artist':
-                context.go('/artist/${item['id']}');
+                context.push('/artist/${item['id']}');
                 break;
               case 'promoter':
-                context.go('/promoter/${item['id']}');
+                context.push('/promoter/${item['id']}');
                 break;
               case 'venue':
-                context.go('/venue/${item['id']}');
+                context.push('/venue/${item['id']}');
                 break;
               case 'genre':
-                context.go('/genre/${item['id']}');
+                context.push('/genre/${item['id']}');
                 break;
               case 'user':
-                context.go('/user/${item['id']}');
+                context.push('/user/${item['id']}');
                 break;
               case 'event':
               default:
-                context.go('/event/${item['id']}');
+                context.push('/event/${item['id']}');
                 break;
             }
           },
@@ -402,7 +402,8 @@ class _SearchScreenState extends State<SearchScreen> {
         title: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: 'Search (events, artists, venues, etc.)',
+            hintText:
+                'Search events, artists, genres, promoters, venues and users',
             border: InputBorder.none,
             // Affiche l'icône de recherche à droite, avec la croix de clear à côté
             suffixIcon: Row(
@@ -651,12 +652,12 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
   List<Widget> _buildCityChips() {
     final List<Map<String, dynamic>> cityOptions = [
       {'name': 'Near Me'},
-      {'name': 'Bruxelles', 'lat': 50.8503, 'lon': 4.3517},
+      {'name': 'Brussles', 'lat': 50.8503, 'lon': 4.3517},
       {'name': 'Paris', 'lat': 48.8566, 'lon': 2.3522},
       {'name': 'Amsterdam', 'lat': 52.3676, 'lon': 4.9041},
       {'name': 'Berlin', 'lat': 52.5200, 'lon': 13.4050},
       {'name': 'Milan', 'lat': 45.4642, 'lon': 9.1900},
-      {'name': 'Barcelone', 'lat': 41.3851, 'lon': 2.1734},
+      {'name': 'Barcelona', 'lat': 41.3851, 'lon': 2.1734},
       {'name': 'Madrid', 'lat': 40.4168, 'lon': -3.7038},
     ];
     return cityOptions.map((city) {
