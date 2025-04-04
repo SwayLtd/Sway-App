@@ -481,7 +481,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         }
       }
     } catch (e) {
-      debugPrint("Erreur lors de la récupération de la localisation : $e");
+      debugPrint("Error retrieving location: $e");
     }
 
     // Définir le centre avec la position actuelle si disponible, sinon une valeur par défaut
@@ -887,7 +887,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: const [
-                      Icon(Icons.map, size: 18),
+                      Icon(Icons.map_outlined, size: 18),
                       SizedBox(width: 4),
                       Text(
                         "Map",
