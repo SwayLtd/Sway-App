@@ -236,9 +236,9 @@ class _MapScreenState extends State<MapScreen> {
               Text(
                 // Format the date as "dd MMM", e.g., "17 Apr"
                 DateFormat('dd MMM').format(_selectedDate!),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
           ],
