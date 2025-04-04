@@ -452,8 +452,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
       if (!serviceEnabled) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-                "Les services de localisation sont désactivés. Merci de les activer."),
+            content:
+                Text("Location services are disabled. Please activate them."),
           ),
         );
       } else {
@@ -467,12 +467,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
         if (permission == LocationPermission.always ||
             permission == LocationPermission.whileInUse) {
           currentPosition = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.best,
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.best,
+            ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("La permission de localisation est refusée."),
+              content: Text("Permission to locate is refused."),
               behavior: SnackBarBehavior.floating,
             ),
           );
