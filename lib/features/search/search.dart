@@ -1,7 +1,12 @@
 // search_screen.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:intl/intl.dart'; // for date formatting
+import 'package:intl/intl.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:sway/features/genre/models/genre_model.dart';
+import 'package:sway/features/genre/services/genre_service.dart';
+import 'package:sway/features/user/services/user_service.dart'; // Pour récupérer l'utilisateur courant
 
 // --- Global Supabase instance ---
 final supabaseClient = Supabase.instance.client;
@@ -10,12 +15,10 @@ final supabaseClient = Supabase.instance.client;
 enum EntityType { all, event, artist, venue, promoter, genre, user }
 
 // --- Class to hold the search filters state ---
-// On ajoute selectedCity, cityLat et cityLon pour gérer le filtre de ville
 class SearchFilters {
   EntityType entityType;
   DateTime? date;
   List<int> genreIds;
-  // On remplace le booléen nearMe par une sélection de ville (incluant "Near Me")
   final String? selectedCity;
   final double? cityLat;
   final double? cityLon;
@@ -49,29 +52,92 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   SearchFilters _filters = SearchFilters();
   List<dynamic> _results = [];
+  bool _isLoading = false; // Pour gérer l'état de chargement
 
-  // Simulated user position for Brussels
-  final double currentUserLat = 50.8503;
-  final double currentUserLon = 4.3517;
+  // Variables pour la géolocalisation de l'utilisateur
+  double? _currentUserLat;
+  double? _currentUserLon;
+
+  // Map pour stocker l'association ID -> nom du genre
+  Map<int, String> _genreMap = {};
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _loadGenres();
+    _fetchCurrentLocation();
+  }
+
+  Future<void> _fetchCurrentLocation() async {
+    Position? currentPosition;
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text("Location services are disabled. Please enable them."),
+          ),
+        );
+      } else {
+        // Check location permission
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          permission = await Geolocator.requestPermission();
+        }
+        // If permission is granted, retrieve the current position
+        if (permission == LocationPermission.always ||
+            permission == LocationPermission.whileInUse) {
+          currentPosition = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.best,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Location permission is denied."),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Error while retrieving location: $e");
+    }
+    setState(() {
+      _currentUserLat = currentPosition?.latitude ?? 50.8503;
+      _currentUserLon = currentPosition?.longitude ?? 4.3517;
+    });
+  }
+
+  Future<void> _loadGenres() async {
+    try {
+      final genres = await GenreService().getGenres();
+      setState(() {
+        _genreMap = {for (var genre in genres) genre.id: genre.name};
+      });
+    } catch (e) {
+      debugPrint("Erreur lors du chargement des genres: $e");
+    }
   }
 
   Future<void> _performSearch(String query) async {
+    setState(() {
+      _isLoading = true;
+    });
     final params = <String, dynamic>{};
 
-    // En mode global, si aucune entité n'est sélectionnée, le RPC renvoie union events/venues.
-    EntityType effectiveEntity = _filters.entityType;
-    if (effectiveEntity == EntityType.all) {
-      if (_filters.date != null || _filters.eventType != null) {
-        effectiveEntity = EntityType.event;
+    // If the entity is not "all", add the p_entity_type parameter
+    if (_filters.entityType != EntityType.all) {
+      params['p_entity_type'] = _entityTypeParam(_filters.entityType);
+      // For a specific entity filter (like venues), ignore area parameters:
+      if (_filters.entityType != EntityType.all) {
+        // Option 1: Clear area parameters to force the specific branch
+        // (Assuming you want venues without filtering by area)
       }
-    }
-    if (effectiveEntity != EntityType.all) {
-      params['p_entity_type'] = _entityTypeParam(effectiveEntity);
     }
     if (_filters.date != null) {
       params['p_date'] = _filters.date!.toIso8601String();
@@ -79,28 +145,24 @@ class _SearchScreenState extends State<SearchScreen> {
     if (_filters.genreIds.isNotEmpty) {
       params['p_genre_ids'] = _filters.genreIds;
     }
-    // Si un filtre de ville est sélectionné, on utilise soit "Near Me" (coordonnées actuelles)
-    // soit les coordonnées de la ville choisie.
-    if (_filters.selectedCity != null) {
+    // Only add area parameters if no specific entity is selected (i.e. global mode)
+    if (_filters.entityType == EntityType.all &&
+        _filters.selectedCity != null) {
       if (_filters.selectedCity == "Near Me") {
-        params['p_lat'] = currentUserLat;
-        params['p_lon'] = currentUserLon;
+        params['p_lat'] = _currentUserLat ?? 50.8503;
+        params['p_lon'] = _currentUserLon ?? 4.3517;
       } else {
         params['p_lat'] = _filters.cityLat;
         params['p_lon'] = _filters.cityLon;
       }
       params['p_radius_km'] = 50;
     }
-    if (_filters.onlyFollowed) {
-      params['p_only_followed'] = true;
-    }
-    if (_filters.friendsInterested) {
-      params['p_friends_interested'] = true;
-    }
     if (query.isNotEmpty) {
       params['p_query'] = query;
     }
-    params['p_user_id'] = 123; // Remplacer par l'ID réel de l'utilisateur
+    // Retrieve the current user ID via UserService.
+    final user = await UserService().getCurrentUser();
+    params['p_user_id'] = user?.id;
 
     try {
       final response =
@@ -111,6 +173,9 @@ class _SearchScreenState extends State<SearchScreen> {
     } catch (error) {
       debugPrint("Error during search: $error");
     }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   IconData _iconForType(String type) {
@@ -124,7 +189,7 @@ class _SearchScreenState extends State<SearchScreen> {
       case 'promoter':
         return Icons.campaign;
       case 'genre':
-        return Icons.category;
+        return Icons.queue_music; // Updated icon for genres
       case 'user':
         return Icons.person;
       default:
@@ -174,6 +239,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
+  // Affiche les chips actives pour les filtres
   Widget _buildActiveFilterChips() {
     List<Widget> chips = [];
     if (_filters.entityType != EntityType.all) {
@@ -181,7 +247,7 @@ class _SearchScreenState extends State<SearchScreen> {
         label: Text(_entityTypeLabel(_filters.entityType)),
         onDeleted: () {
           setState(() {
-            _filters = SearchFilters(); // réinitialise tous les filtres
+            _filters = SearchFilters();
           });
           _performSearch(_searchController.text);
         },
@@ -189,14 +255,12 @@ class _SearchScreenState extends State<SearchScreen> {
     }
     if (_filters.date != null) {
       chips.add(Chip(
-        label: Text("Date: ${_formatDate(_filters.date!)}"),
+        label: Text("${_formatDate(_filters.date!)}"),
         onDeleted: () {
           setState(() {
             _filters = SearchFilters(
               entityType: _filters.entityType,
               genreIds: _filters.genreIds,
-              onlyFollowed: _filters.onlyFollowed,
-              friendsInterested: _filters.friendsInterested,
               eventType: _filters.eventType,
               venueType: _filters.venueType,
             );
@@ -207,57 +271,13 @@ class _SearchScreenState extends State<SearchScreen> {
     }
     if (_filters.selectedCity != null) {
       chips.add(Chip(
-        label: Text("Ville: ${_filters.selectedCity}"),
+        label: Text("${_filters.selectedCity}"),
         onDeleted: () {
           setState(() {
             _filters = SearchFilters(
               entityType: _filters.entityType,
               date: _filters.date,
               genreIds: _filters.genreIds,
-              onlyFollowed: _filters.onlyFollowed,
-              friendsInterested: _filters.friendsInterested,
-              eventType: _filters.eventType,
-              venueType: _filters.venueType,
-            );
-          });
-          _performSearch(_searchController.text);
-        },
-      ));
-    }
-    if (_filters.onlyFollowed) {
-      chips.add(Chip(
-        label: Text("Followed Events"),
-        onDeleted: () {
-          setState(() {
-            _filters = SearchFilters(
-              entityType: _filters.entityType,
-              date: _filters.date,
-              genreIds: _filters.genreIds,
-              selectedCity: _filters.selectedCity,
-              cityLat: _filters.cityLat,
-              cityLon: _filters.cityLon,
-              friendsInterested: _filters.friendsInterested,
-              eventType: _filters.eventType,
-              venueType: _filters.venueType,
-            );
-          });
-          _performSearch(_searchController.text);
-        },
-      ));
-    }
-    if (_filters.friendsInterested) {
-      chips.add(Chip(
-        label: Text("Friends Interested"),
-        onDeleted: () {
-          setState(() {
-            _filters = SearchFilters(
-              entityType: _filters.entityType,
-              date: _filters.date,
-              genreIds: _filters.genreIds,
-              selectedCity: _filters.selectedCity,
-              cityLat: _filters.cityLat,
-              cityLon: _filters.cityLon,
-              onlyFollowed: _filters.onlyFollowed,
               eventType: _filters.eventType,
               venueType: _filters.venueType,
             );
@@ -267,27 +287,63 @@ class _SearchScreenState extends State<SearchScreen> {
       ));
     }
     for (int genreId in _filters.genreIds) {
-      chips.add(Chip(
-        label: Text(genreId.toString()),
-        onDeleted: () {
-          setState(() {
-            _filters.genreIds.remove(genreId);
-          });
-          _performSearch(_searchController.text);
-        },
-      ));
+      chips.add(
+        FutureBuilder<Genre?>(
+          future: GenreService().getGenreById(genreId),
+          builder: (context, snapshot) {
+            String label;
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              label = 'Loading';
+            } else if (snapshot.hasError || snapshot.data == null) {
+              label = 'Error';
+            } else {
+              label = snapshot.data!.name;
+            }
+            return Chip(
+              label: Text(label),
+              onDeleted: () {
+                setState(() {
+                  _filters.genreIds.remove(genreId);
+                });
+                _performSearch(_searchController.text);
+              },
+            );
+          },
+        ),
+      );
     }
     return chips.isEmpty
         ? SizedBox.shrink()
         : SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Row(children: chips),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: MediaQuery.of(context).size.width,
+              ),
+              child: Container(
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Row(
+                  children: chips
+                      .map((chip) => Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 4.0),
+                            child: chip,
+                          ))
+                      .toList(),
+                ),
+              ),
+            ),
           );
   }
 
+  // Liste des résultats cliquables via GoRouter et affichant un indicateur de chargement
   Widget _buildResultsList() {
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
     if (_results.isEmpty) {
-      return Center(child: Text("No results"));
+      return Container(); // Affiche rien si aucun résultat (sans "No results")
     }
     return ListView.builder(
       itemCount: _results.length,
@@ -298,12 +354,41 @@ class _SearchScreenState extends State<SearchScreen> {
         String? description = item['description'];
         return ListTile(
           leading: Icon(_iconForType(type)),
-          title: Text(name),
+          title: Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           subtitle: description != null && description.isNotEmpty
-              ? Text(description)
+              ? Text(
+                  description,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )
               : null,
           onTap: () {
-            // Navigation vers les détails
+            // Navigation via GoRouter selon le type
+            switch (type) {
+              case 'artist':
+                context.go('/artist/${item['id']}');
+                break;
+              case 'promoter':
+                context.go('/promoter/${item['id']}');
+                break;
+              case 'venue':
+                context.go('/venue/${item['id']}');
+                break;
+              case 'genre':
+                context.go('/genre/${item['id']}');
+                break;
+              case 'user':
+                context.go('/user/${item['id']}');
+                break;
+              case 'event':
+              default:
+                context.go('/event/${item['id']}');
+                break;
+            }
           },
         );
       },
@@ -319,15 +404,21 @@ class _SearchScreenState extends State<SearchScreen> {
           decoration: InputDecoration(
             hintText: 'Search (events, artists, venues, etc.)',
             border: InputBorder.none,
-            prefixIcon: Icon(Icons.search),
-            suffixIcon: IconButton(
-              icon: Icon(Icons.clear),
-              onPressed: () {
-                _searchController.clear();
-                setState(() {
-                  _results = [];
-                });
-              },
+            // Affiche l'icône de recherche à droite, avec la croix de clear à côté
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.search),
+                /* IconButton(
+                  icon: Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {
+                      _results = [];
+                    });
+                  },
+                ),*/
+              ],
             ),
           ),
           onSubmitted: (query) => _performSearch(query),
@@ -377,31 +468,21 @@ class FilterModalSheet extends StatefulWidget {
 }
 
 class _FilterModalSheetState extends State<FilterModalSheet> {
-  // Pour la sélection d'entité (null = global mode)
-  EntityType? _selectedEntity;
+  // Utilisation du dropdown pour la sélection d'entité
+  late EntityType _selectedEntity;
   DateTime? _selectedDate;
   late List<int> _selectedGenreIds;
-  // Variable pour stocker les genres populaires récupérés via RPC
   List<Map<String, dynamic>> _popularGenres = [];
-  // Remplacement de nearMe par la sélection de ville (via FilterChip)
   Map<String, dynamic>? _selectedCityOption;
-  bool _onlyFollowed = false;
-  bool _friendsInterested = false;
   String? _selectedEventType;
   String? _selectedVenueType;
 
   @override
   void initState() {
     super.initState();
-    _selectedEntity = widget.initialFilters.entityType == EntityType.all
-        ? null
-        : widget.initialFilters.entityType;
+    _selectedEntity = widget.initialFilters.entityType;
     _selectedDate = widget.initialFilters.date;
     _selectedGenreIds = List<int>.from(widget.initialFilters.genreIds);
-    _onlyFollowed = widget.initialFilters.onlyFollowed;
-    _friendsInterested = widget.initialFilters.friendsInterested;
-    _selectedEventType = widget.initialFilters.eventType;
-    _selectedVenueType = widget.initialFilters.venueType;
     if (widget.initialFilters.selectedCity != null) {
       _selectedCityOption = {
         'name': widget.initialFilters.selectedCity,
@@ -419,6 +500,128 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
         _popularGenres = List<Map<String, dynamic>>.from(response);
       });
     }
+  }
+
+  // Widget de titre de section
+  Widget _buildSectionTitle(String title, {VoidCallback? onMore}) {
+    return Padding(
+      padding:
+          const EdgeInsets.only(left: 8.0, right: 8.0, top: 12.0, bottom: 4.0),
+      child: Row(
+        mainAxisAlignment: onMore != null
+            ? MainAxisAlignment.spaceBetween
+            : MainAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          if (onMore != null)
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: onMore,
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Sélection d'entité via dropdown
+  Widget _buildEntitySelection() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 220),
+            child: Text(
+              "What are you looking for?",
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: DropdownButton<EntityType>(
+              value: _selectedEntity,
+              isExpanded: true,
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedEntity = value;
+                    _selectedDate = null;
+                    _selectedGenreIds.clear();
+                    // If user selects venues, clear the area filters to avoid sending area parameters.
+                    if (value == EntityType.venue) {
+                      _selectedCityOption = null;
+                    }
+                    _selectedEventType = null;
+                    _selectedVenueType = null;
+                  });
+                }
+              },
+              items: EntityType.values.map((entity) {
+                return DropdownMenuItem(
+                  value: entity,
+                  child: Text(_entityTypeLabel(entity)),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _entityTypeLabel(EntityType type) {
+    switch (type) {
+      case EntityType.event:
+        return 'Events';
+      case EntityType.artist:
+        return 'Artists';
+      case EntityType.venue:
+        return 'Venues';
+      case EntityType.promoter:
+        return 'Promoters';
+      case EntityType.genre:
+        return 'Genres';
+      case EntityType.user:
+        return 'Users';
+      case EntityType.all:
+        return 'All';
+    }
+  }
+
+  // Date field sous forme de TextField classique
+  Widget _buildDateField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: TextField(
+        readOnly: true,
+        decoration: InputDecoration(
+          labelText: "DATE",
+          hintText: _selectedDate != null
+              ? _formatDate(_selectedDate!)
+              : "Select Date",
+          suffixIcon: const Icon(Icons.calendar_today),
+          border: const OutlineInputBorder(),
+        ),
+        onTap: () async {
+          DateTime? picked = await showDatePicker(
+            context: context,
+            initialDate: _selectedDate ?? DateTime.now(),
+            firstDate: DateTime.now().subtract(Duration(days: 365)),
+            lastDate: DateTime.now().add(Duration(days: 365 * 2)),
+          );
+          setState(() {
+            _selectedDate = picked;
+          });
+        },
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
   }
 
   // Build FilterChips pour les genres populaires
@@ -444,48 +647,7 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
     }).toList();
   }
 
-  // Build FilterChips pour la sélection d'entité
-  Widget _buildEntityTypeChips() {
-    final Map<EntityType, String> entityChoices = {
-      EntityType.event: 'Events',
-      EntityType.artist: 'Artists',
-      EntityType.venue: 'Venues',
-      EntityType.promoter: 'Promoters',
-      EntityType.genre: 'Genres',
-      EntityType.user: 'Users',
-    };
-    return Wrap(
-      spacing: 8.0,
-      children: entityChoices.entries.map((entry) {
-        return FilterChip(
-          label: Text(entry.value),
-          selected: _selectedEntity == entry.key,
-          onSelected: (selected) {
-            setState(() {
-              if (_selectedEntity == entry.key) {
-                _selectedEntity = null;
-              } else {
-                _selectedEntity = entry.key;
-              }
-              _selectedDate = null;
-              _selectedGenreIds.clear();
-              _selectedCityOption = null;
-              _onlyFollowed = false;
-              _friendsInterested = false;
-              _selectedEventType = null;
-              _selectedVenueType = null;
-            });
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
-  }
-
-  // Build FilterChips pour la sélection de ville / Near Me
+  // Build FilterChips pour la sélection de ville / AREA
   List<Widget> _buildCityChips() {
     final List<Map<String, dynamic>> cityOptions = [
       {'name': 'Near Me'},
@@ -519,235 +681,40 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: MediaQuery.of(context).viewInsets.add(EdgeInsets.all(16)),
+      padding: MediaQuery.of(context).viewInsets.add(const EdgeInsets.all(16)),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
+            // Barre grise en haut
+            Center(
+              child: Container(
+                height: 5,
+                width: 50,
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+            // Header de la modal avec close et icône restore
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Search Filters',
-                    style: Theme.of(context).textTheme.titleLarge),
                 IconButton(
                   icon: Icon(Icons.close),
                   onPressed: () => Navigator.pop(context, null),
-                )
-              ],
-            ),
-            SizedBox(height: 8),
-            Text("Select Entity Type",
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            _buildEntityTypeChips(),
-            Divider(),
-            // Affichage dynamique des filtres selon l'entité sélectionnée
-            if (_selectedEntity == null) ...[
-              // Filtres globaux
-              Text("Global Filters",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              Wrap(
-                spacing: 6.0,
-                children: [
-                  FilterChip(
-                    label: Text(_selectedDate != null
-                        ? _formatDate(_selectedDate!)
-                        : "Select Date"),
-                    selected: _selectedDate != null,
-                    onSelected: (_) async {
-                      DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: _selectedDate ?? DateTime.now(),
-                        firstDate: DateTime.now().subtract(Duration(days: 365)),
-                        lastDate: DateTime.now().add(Duration(days: 365 * 2)),
-                      );
-                      setState(() {
-                        _selectedDate = picked;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              Wrap(
-                spacing: 6.0,
-                children: _buildCityChips(),
-              ),
-              Wrap(
-                spacing: 6.0,
-                children: [
-                  FilterChip(
-                    label: Text("Followed Events"),
-                    selected: _onlyFollowed,
-                    onSelected: (selected) {
-                      setState(() {
-                        _onlyFollowed = selected;
-                      });
-                    },
-                  ),
-                  FilterChip(
-                    label: Text("Friends Interested"),
-                    selected: _friendsInterested,
-                    onSelected: (selected) {
-                      setState(() {
-                        _friendsInterested = selected;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              // Affichage des genres populaires récupérés via RPC
-              Wrap(
-                spacing: 6.0,
-                children: _buildGenreChips(),
-              ),
-            ] else if (_selectedEntity == EntityType.event) ...[
-              Text("Event Filters",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              ListTile(
-                title: Text(_selectedDate != null
-                    ? "Date: ${_formatDate(_selectedDate!)}"
-                    : "Select a date"),
-                trailing: Icon(Icons.calendar_today),
-                onTap: () async {
-                  DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate ?? DateTime.now(),
-                    firstDate: DateTime.now().subtract(Duration(days: 365)),
-                    lastDate: DateTime.now().add(Duration(days: 365 * 2)),
-                  );
-                  if (picked != null) {
-                    setState(() {
-                      _selectedDate = picked;
-                    });
-                  }
-                },
-              ),
-              DropdownButton<String>(
-                hint: Text("Event Type"),
-                value: _selectedEventType,
-                items: _getEventTypes()
-                    .map((type) =>
-                        DropdownMenuItem(value: type, child: Text(type)))
-                    .toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _selectedEventType = val;
-                  });
-                },
-              ),
-              Wrap(
-                spacing: 6.0,
-                children: _buildGenreChips(),
-              ),
-              CheckboxListTile(
-                title: Text("Only interested/going"),
-                value: _onlyFollowed,
-                onChanged: (val) {
-                  setState(() {
-                    _onlyFollowed = val ?? false;
-                  });
-                },
-              ),
-              CheckboxListTile(
-                title: Text("Friends interested"),
-                value: _friendsInterested,
-                onChanged: (val) {
-                  setState(() {
-                    _friendsInterested = val ?? false;
-                  });
-                },
-              ),
-            ] else if (_selectedEntity == EntityType.venue) ...[
-              Text("Venue Filters",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              DropdownButton<String>(
-                hint: Text("Venue Type"),
-                value: _selectedVenueType,
-                items: _getVenueTypes()
-                    .map((type) =>
-                        DropdownMenuItem(value: type, child: Text(type)))
-                    .toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _selectedVenueType = val;
-                  });
-                },
-              ),
-              Wrap(
-                spacing: 6.0,
-                children: _buildGenreChips(),
-              ),
-              CheckboxListTile(
-                title: Text("Only followed venues"),
-                value: _onlyFollowed,
-                onChanged: (val) {
-                  setState(() {
-                    _onlyFollowed = val ?? false;
-                  });
-                },
-              ),
-            ] else if (_selectedEntity == EntityType.artist) ...[
-              Text("Artist Filters",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              Wrap(
-                spacing: 6.0,
-                children: _buildGenreChips(),
-              ),
-              CheckboxListTile(
-                title: Text("Only followed artists"),
-                value: _onlyFollowed,
-                onChanged: (val) {
-                  setState(() {
-                    _onlyFollowed = val ?? false;
-                  });
-                },
-              ),
-            ] else if (_selectedEntity == EntityType.promoter) ...[
-              Text("Promoter Filters",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              Wrap(
-                spacing: 6.0,
-                children: _buildGenreChips(),
-              ),
-              CheckboxListTile(
-                title: Text("Only followed promoters"),
-                value: _onlyFollowed,
-                onChanged: (val) {
-                  setState(() {
-                    _onlyFollowed = val ?? false;
-                  });
-                },
-              ),
-            ] else if (_selectedEntity == EntityType.genre) ...[
-              Text("Genre Filters",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              CheckboxListTile(
-                title: Text("Only followed genres"),
-                value: _onlyFollowed,
-                onChanged: (val) {
-                  setState(() {
-                    _onlyFollowed = val ?? false;
-                  });
-                },
-              ),
-            ] else if (_selectedEntity == EntityType.user) ...[
-              Text("No additional filters for Users",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ],
-            SizedBox(height: 16),
-            Wrap(
-              children: [
-                TextButton(
-                  child: Text("Clear filters"),
+                ),
+                IconButton(
+                  icon: Icon(Icons.restore),
                   onPressed: () {
                     setState(() {
-                      _selectedEntity = null;
+                      _selectedEntity = EntityType.all;
                       _selectedDate = null;
                       _selectedGenreIds.clear();
                       _selectedCityOption = null;
-                      _onlyFollowed = false;
-                      _friendsInterested = false;
                       _selectedEventType = null;
                       _selectedVenueType = null;
                     });
@@ -755,28 +722,51 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            _buildEntitySelection(), // Affiche "What are you looking for?" avec dropdown
+            Divider(),
+            // Affichage des filtres généraux avec titres de section
+            if (_selectedEntity == EntityType.all) ...[
+              _buildSectionTitle("DATE"),
+              _buildDateField(),
+              _buildSectionTitle("AREA"),
+              Wrap(spacing: 6.0, children: _buildCityChips()),
+              _buildSectionTitle("MOOD"),
+              Wrap(spacing: 6.0, children: _buildGenreChips()),
+            ]
+
+            // Affichage des filtres spécifiques pour une entité
+            else ...[
+              if (_selectedEntity == EntityType.event) ...[
+                _buildSectionTitle("DATE"),
+                _buildDateField(),
+                _buildSectionTitle("AREA"),
+                Wrap(spacing: 6.0, children: _buildCityChips()),
+                _buildSectionTitle("MOOD"),
+                Wrap(spacing: 6.0, children: _buildGenreChips()),
+              ] else if (_selectedEntity == EntityType.venue) ...[
+                _buildSectionTitle("AREA"),
+                Wrap(spacing: 6.0, children: _buildCityChips()),
+                _buildSectionTitle("MOOD"),
+                Wrap(spacing: 6.0, children: _buildGenreChips()),
+              ] else if (_selectedEntity == EntityType.artist) ...[
+                _buildSectionTitle("MOOD"),
+                Wrap(spacing: 6.0, children: _buildGenreChips()),
+              ] else if (_selectedEntity == EntityType.promoter) ...[
+                _buildSectionTitle("MOOD"),
+                Wrap(spacing: 6.0, children: _buildGenreChips()),
+              ] else if (_selectedEntity == EntityType.genre) ...[
+                _buildSectionTitle("MOOD"),
+                Wrap(spacing: 6.0, children: _buildGenreChips()),
+              ]
+            ],
+            const SizedBox(height: 16),
             ElevatedButton(
               child: Text("Apply"),
               onPressed: () {
-                EntityType effectiveEntity = _selectedEntity ?? EntityType.all;
-                if (effectiveEntity == EntityType.all) {
-                  if (_selectedDate != null || _selectedEventType != null) {
-                    effectiveEntity = EntityType.event;
-                  }
-                }
                 SearchFilters newFilters = SearchFilters(
-                  entityType: effectiveEntity,
+                  entityType: _selectedEntity,
                   date: _selectedDate,
                   genreIds: _selectedGenreIds,
-                  onlyFollowed: _onlyFollowed,
-                  friendsInterested: _friendsInterested,
-                  eventType: effectiveEntity == EntityType.event
-                      ? _selectedEventType
-                      : null,
-                  venueType: effectiveEntity == EntityType.venue
-                      ? _selectedVenueType
-                      : null,
                   selectedCity: _selectedCityOption != null
                       ? _selectedCityOption!['name']
                       : null,
@@ -788,6 +778,12 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
                           _selectedCityOption!.containsKey('lon')
                       ? _selectedCityOption!['lon']
                       : null,
+                  eventType: _selectedEntity == EntityType.event
+                      ? _selectedEventType
+                      : null,
+                  venueType: _selectedEntity == EntityType.venue
+                      ? _selectedVenueType
+                      : null,
                 );
                 Navigator.pop(context, newFilters);
               },
@@ -796,14 +792,5 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
         ),
       ),
     );
-  }
-
-  // Fonctions statiques pour les types d'événements et de venues (inchangées)
-  List<String> _getEventTypes() {
-    return ['Concert', 'Party', 'Conference'];
-  }
-
-  List<String> _getVenueTypes() {
-    return ['Club', 'Bar', 'Theatre'];
   }
 }
