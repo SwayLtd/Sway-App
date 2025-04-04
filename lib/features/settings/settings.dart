@@ -276,6 +276,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Lance l'URL Patreon.
+  Future<void> _launchPatreon() async {
+    final Uri url = Uri.parse(
+        'https://patreon.com/SwayLtd?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink');
+    if (!await launchUrl(url)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to open URL'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -431,6 +445,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       style: TextStyle(color: Theme.of(context).primaryColor),
                     ),
                   ],
+                ),
+                SizedBox(height: sectionSpacing),
+                // Bouton Patreon "Donate"
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: _launchPatreon,
+                    icon: Builder(
+                      builder: (context) {
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
+                        final imageWidget = Image.network(
+                          'https://gvuwtsdhgqefamzyfyjm.supabase.co/storage/v1/object/public/global//PATREON_SYMBOL_1_BLACK_RGB.png',
+                          height: 24,
+                          width: 24,
+                        );
+                        return isDark
+                            ? ColorFiltered(
+                                colorFilter: const ColorFilter.matrix(
+                                  <double>[
+                                    -1,
+                                    0,
+                                    0,
+                                    0,
+                                    255,
+                                    0,
+                                    -1,
+                                    0,
+                                    0,
+                                    255,
+                                    0,
+                                    0,
+                                    -1,
+                                    0,
+                                    255,
+                                    0,
+                                    0,
+                                    0,
+                                    1,
+                                    0,
+                                  ],
+                                ),
+                                child: imageWidget,
+                              )
+                            : imageWidget;
+                      },
+                    ),
+                    label: const Text('Donate to Help Sway Grow'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      textStyle: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                      minimumSize: const Size(140, 40),
+                    ),
+                  ),
                 ),
                 SizedBox(height: sectionSpacing),
               ],
