@@ -491,7 +491,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             : imageWidget;
                       },
                     ),
-                    label: const Text('Donate to Help Sway Grow'),
+                    label: const Text('Donate to help Sway grow!'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
