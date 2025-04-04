@@ -1,11 +1,13 @@
 // search_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sway/features/genre/models/genre_model.dart';
 import 'package:sway/features/genre/services/genre_service.dart';
+import 'package:sway/features/search/screens/map_screen.dart';
 import 'package:sway/features/user/services/user_service.dart'; // Pour récupérer l'utilisateur courant
 
 // --- Global Supabase instance ---
@@ -395,6 +397,60 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  // Méthode pour obtenir la localisation actuelle et ouvrir MapScreen
+  Future<void> _openMapScreen() async {
+    Position? currentPosition;
+    try {
+      // Vérifier que les services de localisation sont activés
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text("Location services are disabled. Please activate them."),
+          ),
+        );
+      } else {
+        // Vérifier la permission
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          permission = await Geolocator.requestPermission();
+        }
+        // Si la permission est accordée, récupérer la position
+        if (permission == LocationPermission.always ||
+            permission == LocationPermission.whileInUse) {
+          currentPosition = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.best,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Permission to locate is refused."),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Error retrieving location: $e");
+    }
+
+    // Définir le centre avec la position actuelle si disponible, sinon une valeur par défaut
+    LatLng center = currentPosition != null
+        ? LatLng(currentPosition.latitude, currentPosition.longitude)
+        : const LatLng(50.8477, 4.3572);
+
+    // Naviguer vers MapScreen avec le centre déterminé
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (context) => MapScreen(initialCenter: center),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -405,26 +461,33 @@ class _SearchScreenState extends State<SearchScreen> {
             hintText:
                 'Search events, artists, genres, promoters, venues and users',
             border: InputBorder.none,
-            // Affiche l'icône de recherche à droite, avec la croix de clear à côté
+            // Suffix icons: search icon and (optionally) clear button
             suffixIcon: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.search),
-                /* IconButton(
-                  icon: Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() {
-                      _results = [];
-                    });
-                  },
-                ),*/
+                // You can uncomment the following to add a clear button:
+                // IconButton(
+                //   icon: Icon(Icons.clear),
+                //   onPressed: () {
+                //     _searchController.clear();
+                //     setState(() {
+                //       _results = [];
+                //     });
+                //   },
+                // ),
               ],
             ),
           ),
           onSubmitted: (query) => _performSearch(query),
         ),
         actions: [
+          // Map button placed before the filters button:
+          IconButton(
+            icon: Icon(Icons.map_outlined),
+            tooltip: "Map",
+            onPressed: () => _openMapScreen(),
+          ),
           IconButton(
             icon: Icon(Icons.filter_list),
             tooltip: "Advanced Filters",
@@ -652,7 +715,7 @@ class _FilterModalSheetState extends State<FilterModalSheet> {
   List<Widget> _buildCityChips() {
     final List<Map<String, dynamic>> cityOptions = [
       {'name': 'Near Me'},
-      {'name': 'Brussles', 'lat': 50.8503, 'lon': 4.3517},
+      {'name': 'Brussels', 'lat': 50.8503, 'lon': 4.3517},
       {'name': 'Paris', 'lat': 48.8566, 'lon': 2.3522},
       {'name': 'Amsterdam', 'lat': 52.3676, 'lon': 4.9041},
       {'name': 'Berlin', 'lat': 52.5200, 'lon': 13.4050},
