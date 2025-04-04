@@ -80,6 +80,7 @@ class _SearchScreenState extends State<SearchScreen> {
           const SnackBar(
             content:
                 Text("Location services are disabled. Please enable them."),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       } else {
@@ -408,6 +409,7 @@ class _SearchScreenState extends State<SearchScreen> {
           const SnackBar(
             content:
                 Text("Location services are disabled. Please activate them."),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       } else {

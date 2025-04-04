@@ -454,6 +454,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           const SnackBar(
             content:
                 Text("Location services are disabled. Please activate them."),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       } else {
