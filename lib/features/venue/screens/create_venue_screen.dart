@@ -1,8 +1,9 @@
-// lib/features/venue/screens/create_venue_screen.dart
-
 import 'dart:io';
+import 'dart:convert';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:sway/core/constants/dimensions.dart';
 import 'package:sway/core/utils/url_launcher.dart';
@@ -25,28 +26,38 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
   final StorageService _storageService = StorageService();
   final UserService _userService = UserService();
 
+  // Controllers for text fields
   TextEditingController _nameController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
   TextEditingController _locationController = TextEditingController();
 
+  // Variables to store the retrieved latitude and longitude
+  double? _latitude;
+  double? _longitude;
+
+  // FocusNode for the address field to trigger geocoding on focus loss
+  late FocusNode _locationFocusNode;
+
   File? _selectedImage;
   bool _isSubmitting = false;
 
-  // Instance of the global validator used for text fields.
-  // It will be updated with the combined forbiddenWords (French + English).
+  // Global validator for text fields.
   late FieldValidator defaultValidator;
 
   @override
   void initState() {
     super.initState();
-    // Initialize defaultValidator with base parameters and an empty forbiddenWords.
+    _locationFocusNode = FocusNode();
+    _locationFocusNode.addListener(() {
+      if (!_locationFocusNode.hasFocus && _locationController.text.isNotEmpty) {
+        _fetchLocation(_locationController.text.trim());
+      }
+    });
     defaultValidator = FieldValidator(
       isRequired: true,
       maxLength: 500,
       forbiddenWords: [],
     );
-
-    // Load forbidden words for French and English, then update the validator.
     _loadDefaultForbiddenWords();
   }
 
@@ -54,7 +65,6 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
     try {
       final frWords = await loadForbiddenWords('fr');
       final enWords = await loadForbiddenWords('en');
-      // Combine the two lists and remove duplicates.
       final combined = {...frWords, ...enWords}.toList();
       setState(() {
         defaultValidator = FieldValidator(
@@ -63,19 +73,17 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
           forbiddenWords: combined,
         );
       });
-      // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
       _formKey.currentState?.validate();
     } catch (e) {
       debugPrint('Error loading forbidden words: $e');
     }
   }
 
-  /// Sélectionne une image depuis la galerie.
+  /// Selects an image from the gallery.
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile =
         await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
-
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
@@ -83,39 +91,58 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
     }
   }
 
-  /// Uploade l'image sélectionnée et retourne l'URL publique.
+  /// Uploads the selected image and returns the public URL.
   Future<String> _uploadImage(int venueId) async {
     if (_selectedImage == null) {
       throw Exception('No image selected.');
     }
-
-    // Lire les octets du fichier
     final fileBytes = await _selectedImage!.readAsBytes();
-
-    // Construire un nom de fichier unique
     final fileExtension = _selectedImage!.path.split('.').last;
-    final fileName =
-        "${DateTime.now().millisecondsSinceEpoch}.$fileExtension"; // Ex: "1627891234567.jpg"
-
-    // Construire le chemin complet du fichier
-    final filePath = "$venueId/$fileName"; // Exemple: "1/1627891234567.jpg"
-
-    // Uploader dans le bucket "venue-images" (assurez-vous de créer ce bucket dans Supabase)
+    final fileName = "${DateTime.now().millisecondsSinceEpoch}.$fileExtension";
+    final filePath = "$venueId/$fileName";
     final publicUrl = await _storageService.uploadFile(
       bucketName: "venue-images",
-      fileName: filePath, // Utilisez le chemin complet ici
+      fileName: filePath,
       fileData: fileBytes,
     );
-
     debugPrint('Image Uploaded: $publicUrl');
-
     return publicUrl;
   }
 
-  /// Soumet le formulaire et crée une nouvelle venue.
+  /// Calls Nominatim directly to geocode the address.
+  Future<void> _fetchLocation(String address) async {
+    final url =
+        "https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(address)}";
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "User-Agent":
+              "YourAppName/1.0 (your_email@example.com)" // Replace with your app details
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List && data.isNotEmpty) {
+          final firstResult = data[0];
+          setState(() {
+            _latitude = double.tryParse(firstResult['lat'].toString());
+            _longitude = double.tryParse(firstResult['lon'].toString());
+          });
+        } else {
+          debugPrint('No geocoding results found.');
+        }
+      } else {
+        debugPrint('Error during geolocation: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error during geocoding: $e');
+    }
+  }
+
+  /// Submits the form and creates a new venue.
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-
     if (_selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -126,56 +153,49 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
       );
       return;
     }
-
     setState(() {
       _isSubmitting = true;
     });
-
     try {
-      // Obtenir l'utilisateur actuel
       final currentUser = await _userService.getCurrentUser();
       if (currentUser == null) {
         throw Exception('User not authenticated.');
       }
       debugPrint('Current User: ${currentUser.toJson()}');
 
-      // Créer une nouvelle venue sans l'image pour obtenir l'ID
+      // Create a new venue without the image to get the ID.
+      // Uses retrieved latitude and longitude if available.
       final newVenue = Venue(
         name: _nameController.text.trim(),
         imageUrl: '',
         description: _descriptionController.text.trim(),
         location: _locationController.text.trim(),
+        latitude: _latitude,
+        longitude: _longitude,
       );
-
-      // Ajouter la venue à la base de données et récupérer l'objet créé avec l'ID assigné
       final createdVenue = await _venueService.addVenue(newVenue);
       debugPrint('Created Venue: ${createdVenue.toJson()}');
 
-      // Uploader l'image et obtenir l'URL
+      // Upload the image and get the public URL.
       final imageUrl = await _uploadImage(createdVenue.id!);
       debugPrint('Image Uploaded: $imageUrl');
 
-      // Mettre à jour la venue avec l'URL de l'image
+      // Update the venue with the image URL.
       final updatedVenue = createdVenue.copyWith(imageUrl: imageUrl);
       debugPrint('Updated Venue Data: ${updatedVenue.toJson()}');
 
       final resultVenue = await _venueService.updateVenue(updatedVenue);
       debugPrint('Result Venue: ${resultVenue.toJson()}');
 
-      // Vérifier que la venue a été mise à jour correctement
       if (resultVenue.imageUrl.isEmpty) {
         throw Exception('Image URL was not updated.');
       }
-
-      // Afficher un message de succès
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Venue created successfully!'),
           behavior: SnackBarBehavior.floating,
         ),
       );
-
-      // Naviguer vers une autre page ou fermer l'écran
       Navigator.pop(context);
     } catch (e) {
       debugPrint('Error creating venue: $e');
@@ -200,14 +220,13 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
+    _locationFocusNode.dispose();
     super.dispose();
   }
 
-  /// Construit le formulaire de création de venue.
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create Venue'),
@@ -223,10 +242,7 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
                 color: Colors.transparent,
                 border: Border.all(
                   width: 1,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onPrimary
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(context).colorScheme.onPrimary.withAlpha(128),
                 ),
                 borderRadius: BorderRadius.circular(6),
               ),
@@ -238,9 +254,9 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
                     size: 16,
                   ),
                   const SizedBox(width: 4),
-                  Text(
+                  const Text(
                     "How it works?",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                     ),
                   ),
@@ -256,7 +272,7 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
           key: _formKey,
           child: Column(
             children: [
-              // Sélection et aperçu de l'image
+              // Image selection and preview
               GestureDetector(
                 onTap: _isSubmitting ? null : _pickImage,
                 child: Container(
@@ -289,7 +305,7 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
                 ),
               ),
               const SizedBox(height: sectionSpacing),
-              // Champ Nom
+              // Venue Name field
               TextFormField(
                 validator: (value) => defaultValidator.validate(value),
                 controller: _nameController,
@@ -299,21 +315,21 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
                 ),
               ),
               const SizedBox(height: sectionSpacing),
-              // Champ Adresse
-              /*AddressField(
-                controller: _locationController,
-                hintText: 'Address',
-              ),*/
+              // Address field with FocusNode to trigger geocoding on focus loss
               TextFormField(
                 validator: (value) => defaultValidator.validate(value),
                 controller: _locationController,
+                focusNode: _locationFocusNode,
                 decoration: const InputDecoration(
                   labelText: 'Address',
                   border: OutlineInputBorder(),
                 ),
               ),
+              const SizedBox(height: 8),
+              if (_latitude != null && _longitude != null)
+                Text("Latitude: $_latitude, Longitude: $_longitude"),
               const SizedBox(height: sectionSpacing),
-              // Champ Description
+              // Description field
               TextFormField(
                 validator: (value) => defaultValidator.validate(value),
                 controller: _descriptionController,
@@ -324,7 +340,7 @@ class _CreateVenueScreenState extends State<CreateVenueScreen> {
                 maxLines: 4,
               ),
               const SizedBox(height: 30),
-              // Bouton de soumission
+              // Submit button
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
                 child: _isSubmitting

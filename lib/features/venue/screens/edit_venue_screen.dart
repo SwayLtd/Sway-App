@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 // Importations des services, modèles et widgets
@@ -42,6 +44,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
+  late FocusNode _locationFocusNode; // FocusNode pour le champ Location
 
   final VenueService _venueService = VenueService();
   final VenueGenreService _venueGenreService = VenueGenreService();
@@ -77,9 +80,12 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
   bool isReadOnly = false;
   bool _permissionsLoaded = false;
 
-  // Instance of the global validator used for text fields.
-  // It will be updated with the combined forbiddenWords (French + English).
+  // Validator global pour les champs de texte.
   late FieldValidator defaultValidator;
+
+  // Variables pour la géolocalisation
+  double? _latitude;
+  double? _longitude;
 
   @override
   void initState() {
@@ -89,17 +95,21 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
     _descriptionController =
         TextEditingController(text: _currentVenue.description);
     _locationController = TextEditingController(text: _currentVenue.location);
+    // Initialisation du FocusNode pour le champ Location.
+    _locationFocusNode = FocusNode();
+    _locationFocusNode.addListener(() {
+      if (!_locationFocusNode.hasFocus && _locationController.text.isNotEmpty) {
+        _fetchLocation(_locationController.text.trim());
+      }
+    });
     _loadUserPermissions();
     _loadAssociatedData();
 
-    // Initialize defaultValidator with base parameters and an empty forbiddenWords.
     defaultValidator = FieldValidator(
       isRequired: true,
       maxLength: 500,
       forbiddenWords: [],
     );
-
-    // Load forbidden words for French and English, then update the validator.
     _loadDefaultForbiddenWords();
   }
 
@@ -107,7 +117,6 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
     try {
       final frWords = await loadForbiddenWords('fr');
       final enWords = await loadForbiddenWords('en');
-      // Combine the two lists and remove duplicates.
       final combined = {...frWords, ...enWords}.toList();
       setState(() {
         defaultValidator = FieldValidator(
@@ -116,7 +125,6 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
           forbiddenWords: combined,
         );
       });
-      // Optionnel : Revalider le formulaire pour mettre à jour les erreurs si besoin.
       _formKey.currentState?.validate();
     } catch (e) {
       debugPrint('Error loading forbidden words: $e');
@@ -134,7 +142,6 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
       });
       return;
     }
-    // Vérifier les permissions pour une venue
     final admin = await _permissionService.hasPermissionForCurrentUser(
         _currentVenue.id!, 'venue', 3);
     final manager = await _permissionService.hasPermissionForCurrentUser(
@@ -183,6 +190,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
+    _locationFocusNode.dispose();
     super.dispose();
   }
 
@@ -210,6 +218,37 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
       fileData: fileBytes,
     );
     return publicUrl;
+  }
+
+  /// Interroge Nominatim directement pour géocoder l'adresse.
+  Future<void> _fetchLocation(String address) async {
+    final url =
+        "https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(address)}";
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "User-Agent":
+              "YourAppName/1.0 (your_email@example.com)" // Remplacez par vos informations
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List && data.isNotEmpty) {
+          final firstResult = data[0];
+          setState(() {
+            _latitude = double.tryParse(firstResult['lat'].toString());
+            _longitude = double.tryParse(firstResult['lon'].toString());
+          });
+        } else {
+          debugPrint('No geocoding results found.');
+        }
+      } else {
+        debugPrint('Error during geolocation: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error during geocoding: $e');
+    }
   }
 
   Future<void> _updateVenue() async {
@@ -264,11 +303,14 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
           }
         }
       }
+      // Si l'adresse a changé, on inclut la nouvelle localisation et les coordonnées géocodées.
       Venue updatedVenue = _currentVenue.copyWith(
         name: isNameChanged ? newName : null,
         description: isDescriptionChanged ? newDescription : null,
         location: isLocationChanged ? newLocation : null,
         imageUrl: isImageChanged ? updatedImageUrl : null,
+        latitude: isLocationChanged ? _latitude : null,
+        longitude: isLocationChanged ? _longitude : null,
       );
 
       if (isNameChanged ||
@@ -468,7 +510,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Section Image : si l'utilisateur est read-only, l'image n'est pas cliquable et aucun icône d'édition n'est affiché
+                          // Section Image
                           Center(
                             child: GestureDetector(
                               onTap: isReadOnly ? null : _pickImage,
@@ -551,14 +593,19 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                             validator: (value) =>
                                 defaultValidator.validate(value),
                             controller: _locationController,
+                            focusNode: _locationFocusNode,
                             decoration: const InputDecoration(
                               labelText: 'Location',
                               border: OutlineInputBorder(),
                             ),
                             readOnly: isReadOnly,
                           ),
+                          const SizedBox(height: 8),
+                          if (_latitude != null && _longitude != null)
+                            Text(
+                                "Latitude: $_latitude, Longitude: $_longitude"),
                           const SizedBox(height: 20),
-                          // Section Genres (IconButton)
+                          // Section Genres
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -605,7 +652,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                               }).toList(),
                             ),
                           const SizedBox(height: 20),
-                          // Section Promoteurs (IconButton)
+                          // Section Promoteurs
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -653,7 +700,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
                               }).toList(),
                             ),
                           const SizedBox(height: 20),
-                          // Section Artistes Résidents (IconButton)
+                          // Section Artistes Résidents
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -792,19 +839,16 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
   }
 
   void _saveSelections() {
-    Navigator.of(context)
-        .pop(true); // Retourner true pour indiquer la sauvegarde
+    Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Calculer la hauteur
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final double screenHeight = MediaQuery.of(context).size.height;
-    final double sheetHeight = min(screenHeight * 0.5,
-        screenHeight - statusBarHeight - 100); // Ajuster selon besoin
+    final double sheetHeight =
+        min(screenHeight * 0.5, screenHeight - statusBarHeight - 100);
 
-    // Déterminer les genres à afficher en fonction de _showAll
     List<Genre> genresToDisplay =
         _showAll ? _genres : _genres.take(_maxGenresToShow).toList();
 
@@ -813,14 +857,13 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          // En-tête avec les icônes annuler et sauvegarder
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {
-                  Navigator.of(context).pop(false); // Annuler et fermer
+                  Navigator.of(context).pop(false);
                 },
               ),
               IconButton(
@@ -876,7 +919,6 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
                                 },
                               );
                             } else {
-                              // Bouton "Show More"
                               return TextButton(
                                 onPressed: () {
                                   if (!mounted) return;
@@ -941,7 +983,6 @@ class _PromoterSelectionBottomSheetState
         promoters = await widget.promoterService.searchPromoters(_searchQuery);
       }
 
-      // Trier les promoteurs pour afficher les sélectionnés en premier
       promoters.sort((a, b) {
         bool aSelected = widget.selectedPromoters.contains(a.id);
         bool bSelected = widget.selectedPromoters.contains(b.id);
@@ -970,19 +1011,16 @@ class _PromoterSelectionBottomSheetState
   }
 
   void _saveSelections() {
-    Navigator.of(context)
-        .pop(true); // Retourner true pour indiquer la sauvegarde
+    Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Calculer la hauteur
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final double screenHeight = MediaQuery.of(context).size.height;
-    final double sheetHeight = min(screenHeight * 0.5,
-        screenHeight - statusBarHeight - 100); // Ajuster selon besoin
+    final double sheetHeight =
+        min(screenHeight * 0.5, screenHeight - statusBarHeight - 100);
 
-    // Déterminer les promoteurs à afficher en fonction de _showAll
     List<Promoter> promotersToDisplay =
         _showAll ? _promoters : _promoters.take(_maxPromotersToShow).toList();
 
@@ -991,14 +1029,13 @@ class _PromoterSelectionBottomSheetState
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          // En-tête avec les icônes annuler et sauvegarder
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {
-                  Navigator.of(context).pop(false); // Annuler et fermer
+                  Navigator.of(context).pop(false);
                 },
               ),
               IconButton(
@@ -1057,7 +1094,6 @@ class _PromoterSelectionBottomSheetState
                                 },
                               );
                             } else {
-                              // Bouton "Show More"
                               return TextButton(
                                 onPressed: () {
                                   if (!mounted) return;
@@ -1122,7 +1158,6 @@ class _ArtistSelectionBottomSheetState
         artists = await widget.artistService.searchArtists(_searchQuery);
       }
 
-      // Trier les artistes pour afficher les sélectionnés en premier
       artists.sort((a, b) {
         bool aSelected = widget.selectedArtists.contains(a.id);
         bool bSelected = widget.selectedArtists.contains(b.id);
@@ -1151,19 +1186,16 @@ class _ArtistSelectionBottomSheetState
   }
 
   void _saveSelections() {
-    Navigator.of(context)
-        .pop(true); // Retourner true pour indiquer la sauvegarde
+    Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Calculer la hauteur
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final double screenHeight = MediaQuery.of(context).size.height;
-    final double sheetHeight = min(screenHeight * 0.5,
-        screenHeight - statusBarHeight - 100); // Ajuster selon besoin
+    final double sheetHeight =
+        min(screenHeight * 0.5, screenHeight - statusBarHeight - 100);
 
-    // Déterminer les artistes à afficher en fonction de _showAll
     List<Artist> artistsToDisplay =
         _showAll ? _artists : _artists.take(_maxArtistsToShow).toList();
 
@@ -1172,14 +1204,13 @@ class _ArtistSelectionBottomSheetState
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          // En-tête avec les icônes annuler et sauvegarder
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {
-                  Navigator.of(context).pop(false); // Annuler et fermer
+                  Navigator.of(context).pop(false);
                 },
               ),
               IconButton(
@@ -1235,7 +1266,6 @@ class _ArtistSelectionBottomSheetState
                                 },
                               );
                             } else {
-                              // Bouton "Show More"
                               return TextButton(
                                 onPressed: () {
                                   if (!mounted) return;

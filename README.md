@@ -16,6 +16,7 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
+- Add geolocation support for venue creation and editing, including latitude and longitude handling
 - Better filters UI, geolocation and get real user id for search
 - Remove static genre list and implement dynamic popular genre loading from RPC
 - Global filters, specific entities filters and proximity and city events and venues filters

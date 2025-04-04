@@ -136,12 +136,8 @@ class VenueService {
   Future<Venue> addVenue(Venue venue) async {
     final online = await isConnected();
     if (!online) throw Exception("No internet connection to add venue.");
-    final venueData = {
-      'name': venue.name,
-      'image_url': venue.imageUrl,
-      'description': venue.description,
-      'location': venue.location,
-    };
+    // Use the model's toJson() to include location_point if latitude and longitude are provided.
+    final venueData = venue.toJson();
     final response =
         await _supabase.from('venues').insert(venueData).select().single();
     final newVenue = Venue.fromJson(response);
@@ -224,7 +220,7 @@ class VenueService {
           .map<Venue>((json) => Venue.fromJson(json as Map<String, dynamic>))
           .toList();
       if (online) {
-        // Stocker le cache pour chaque venue, en supposant que vous avez une fonction similaire
+        // Cache each venue if desired.
         for (final venue in venues) {
           await _storeVenueInIsar(isar, venue);
         }
