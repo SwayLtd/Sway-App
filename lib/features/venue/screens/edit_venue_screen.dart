@@ -179,7 +179,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
         _initialArtists = List.from(_selectedArtists);
       });
     } catch (e) {
-      debugPrint('Erreur lors du chargement des données associées: $e');
+      debugPrint('Error loading associated data: $e');
     } finally {
       if (mounted) setState(() => _isUpdating = false);
     }
@@ -220,7 +220,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
     return publicUrl;
   }
 
-  /// Interroge Nominatim directement pour géocoder l'adresse.
+  /// Calls Nominatim directly to geocode the address.
   Future<void> _fetchLocation(String address) async {
     final url =
         "https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(address)}";
@@ -240,6 +240,7 @@ class _EditVenueScreenState extends State<EditVenueScreen> {
             _latitude = double.tryParse(firstResult['lat'].toString());
             _longitude = double.tryParse(firstResult['lon'].toString());
           });
+          debugPrint("New coordinates: lat=$_latitude, lon=$_longitude");
         } else {
           debugPrint('No geocoding results found.');
         }
@@ -810,7 +811,6 @@ class _GenreSelectionBottomSheetState extends State<GenreSelectionBottomSheet> {
         genres = await widget.genreService.searchGenres(_searchQuery);
       }
 
-      // Trier les genres pour afficher les sélectionnés en premier
       genres.sort((a, b) {
         bool aSelected = widget.selectedGenres.contains(a.id);
         bool bSelected = widget.selectedGenres.contains(b.id);
