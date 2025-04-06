@@ -304,9 +304,9 @@ class AppTheme {
       ),
       elevation: 0.0,
       color: const Color.fromRGBO(15, 13, 8, 1),
-      actionsIconTheme: const IconThemeData(
+      /*actionsIconTheme: const IconThemeData(
         size: 20.0,
-      ),
+      ),*/
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: const Color.fromRGBO(15, 13, 8, 1),
