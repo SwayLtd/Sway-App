@@ -167,6 +167,7 @@ flutter:
     - assets/images/icon.png
     - assets/images/logotype_transparent.png
     - assets/images/404.png
+    - assets/images/patreon.png
     - assets/data/forbidden_words_en.json
     - assets/data/forbidden_words_fr.json
 

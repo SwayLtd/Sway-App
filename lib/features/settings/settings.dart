@@ -453,42 +453,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPressed: _launchPatreon,
                     icon: Builder(
                       builder: (context) {
-                        final isDark =
-                            Theme.of(context).brightness == Brightness.dark;
-                        final imageWidget = Image.network(
-                          'https://gvuwtsdhgqefamzyfyjm.supabase.co/storage/v1/object/public/global//PATREON_SYMBOL_1_BLACK_RGB.png',
-                          height: 24,
-                          width: 24,
+                        return Image.asset(
+                          'assets/images/patreon.png',
+                          fit: BoxFit.contain,
+                          height: 20,
+                          color:
+                              Theme.of(context).brightness == Brightness.light
+                                  ? Colors.black
+                                  : Colors.white,
                         );
-                        return isDark
-                            ? ColorFiltered(
-                                colorFilter: const ColorFilter.matrix(
-                                  <double>[
-                                    -1,
-                                    0,
-                                    0,
-                                    0,
-                                    255,
-                                    0,
-                                    -1,
-                                    0,
-                                    0,
-                                    255,
-                                    0,
-                                    0,
-                                    -1,
-                                    0,
-                                    255,
-                                    0,
-                                    0,
-                                    0,
-                                    1,
-                                    0,
-                                  ],
-                                ),
-                                child: imageWidget,
-                              )
-                            : imageWidget;
                       },
                     ),
                     label: const Text('Donate to help Sway grow!'),
