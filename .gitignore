@@ -136,3 +136,6 @@ backend/seed.sql
 # Working files
 .github/workflows/ios_build.yml
 supabase/functions/notificationHandler/index_v1.ts
+supabase
+supabase
+supabase
