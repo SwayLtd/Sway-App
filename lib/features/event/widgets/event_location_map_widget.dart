@@ -54,6 +54,11 @@ class EventLocationMapWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tileUrl = isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
     return FutureBuilder<LatLng>(
       future: _getLatLng(),
       builder: (context, snapshot) {
@@ -118,8 +123,9 @@ class EventLocationMapWidget extends StatelessWidget {
                     ),
                     children: [
                       TileLayer(
-                        urlTemplate:
-                            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        urlTemplate: tileUrl,
+                        subdomains: const ['a', 'b', 'c', 'd'],
+                        retinaMode: true,
                       ),
                       MarkerLayer(
                         markers: [
@@ -127,9 +133,9 @@ class EventLocationMapWidget extends StatelessWidget {
                             width: 80.0,
                             height: 80.0,
                             point: latLng,
-                            child: const Icon(
+                            child: Icon(
                               Icons.location_on,
-                              color: Colors.red,
+                              color: Theme.of(context).colorScheme.primary,
                               size: 40.0,
                             ),
                           ),
