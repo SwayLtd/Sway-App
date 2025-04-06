@@ -1,9 +1,11 @@
 // lib/features/settings/settings.dart
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/services/database_service.dart';
 import 'package:sway/core/widgets/image_with_error_handler.dart';
 import 'package:sway/features/artist/screens/create_artist_screen.dart';
 import 'package:sway/features/calendar/screens/calendar_screen.dart';
@@ -40,12 +42,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void initState() {
+    debugSupabaseSessionKeys();
     super.initState();
     _loadUser();
     // Listen for authentication state changes
     Supabase.instance.client.auth.onAuthStateChange.listen((event) {
       _loadUser();
     });
+  }
+
+  Future<void> debugSupabaseSessionKeys() async {
+    final prefs = await SharedPreferences.getInstance();
+    for (final key in prefs.getKeys()) {
+      debugPrint("Key: $key, Value: ${prefs.get(key)}");
+    }
   }
 
   Future<void> _loadUser() async {
@@ -91,7 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Displays the authentication modal.
-  void _showAuthModal() {
+  void _showAuthModal() async {
     AuthModal.showAuthModal(context);
   }
 
@@ -248,26 +258,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: canCreateEvent ? null : Colors.grey,
                   ),
                 ),
-                enabled: canCreateEvent,
-                onTap: canCreateEvent
-                    ? () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const CreateEventScreen()),
-                        );
-                      }
-                    : () {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                                'You must manage a promoter to create an event.'),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
+                // La propriété 'enabled' a été retirée pour permettre à 'onTap' d'être appelée
+                onTap: () {
+                  Navigator.pop(context);
+                  if (canCreateEvent) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CreateEventScreen()),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'You must be linked to a promoter to create an event.'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
               ),
             ],
           ),
@@ -475,6 +484,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 SizedBox(height: sectionSpacing),
+                /*ListTile(
+                  leading: const Icon(Icons.bug_report),
+                  title: const Text('Empty Supabase cache'),
+                  onTap: () async {
+                    await debugSupabaseSessionKeys();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'The keys have been displayed in the console.'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: sectionSpacing),*/
               ],
             ),
           ),

@@ -2,6 +2,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sway/core/services/database_service.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -57,9 +58,10 @@ class AuthService {
   /// Déconnecte l'utilisateur et reconnecte anonymement.
   Future<void> signOut() async {
     await _supabase.auth.signOut();
+    clearSupabaseSession();
 
     // Après la déconnexion, se reconnecter anonymement.
-    await ensureUser();
+    // await ensureUser();
   }
 
   /// Retourne l'utilisateur authentifié actuel.

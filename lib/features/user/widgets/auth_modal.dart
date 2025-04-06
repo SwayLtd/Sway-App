@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 import 'package:sway/core/constants/dimensions.dart';
+import 'package:sway/core/services/database_service.dart';
 import 'package:sway/features/settings/screens/terms_and_conditions_screen.dart';
 import 'package:sway/core/utils/validators.dart';
 
@@ -50,6 +51,8 @@ class AuthModal extends StatelessWidget {
   Widget build(BuildContext context) {
     // Définir une hauteur maximale pour le modal (43% de la hauteur de l'écran)
     final double maxHeight = MediaQuery.of(context).size.height * 0.43;
+
+    clearSupabaseSession(); // Effacer la session Supabase avant d'afficher le modal
 
     return SafeArea(
       child: Container(
@@ -116,15 +119,12 @@ class AuthModal extends StatelessWidget {
                     },
                     // Callback après une inscription réussie
                     onSignUpComplete: (response) {
-                      if (response.session != null) {
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content:
-                                Text('Please confirm your signup by email'),
-                          ),
-                        );
-                      }
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please confirm your signup by email'),
+                        ),
+                      );
                     },
                     // Validateur de mot de passe personnalisé
                     passwordValidator: _passwordValidator,

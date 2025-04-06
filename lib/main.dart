@@ -18,7 +18,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'firebase_options.dart';
-
 Future<void> main() async {
   usePathUrlStrategy(); // Remove # from URL
   await WidgetsFlutterBinding.ensureInitialized();

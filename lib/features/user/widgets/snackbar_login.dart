@@ -1,6 +1,7 @@
 // lib/features/user/widgets/snackbar_login.dart
 
 import 'package:flutter/material.dart';
+import 'package:sway/core/services/database_service.dart';
 import 'package:sway/features/user/widgets/auth_modal.dart';
 
 class SnackbarLogin {
@@ -16,7 +17,7 @@ class SnackbarLogin {
           children: [
             Expanded(child: Text(message)),
             GestureDetector(
-              onTap: () {
+              onTap: () async {
                 AuthModal.showAuthModal(context);
               },
               child: Icon(

@@ -16,19 +16,8 @@ Migrated to [Canny](https://swayapp.canny.io/)
 
 ### Last Updates
 
-- Add geolocation support for venue creation and editing, including latitude and longitude handling
-- Better filters UI, geolocation and get real user id for search
-- Remove static genre list and implement dynamic popular genre loading from RPC
-- Global filters, specific entities filters and proximity and city events and venues filters
-- Implement new search system with filters
-- Remove google_fonts dependency and add SpaceGrotesk font family locally
-- Add "Map" button on scroll on Explore screen
-- Implement location permission handling and update map center based on current location
-- Add date filtering for events and current location layer to map screen
-- Improve map marker interaction with event image display and navigation
-- Change with light and dark mode with new map theme and disable rotation interaction option and remove of the blue circle layer
-- Implement event map navigation
-- Release 1.0.3 - Map and advanced search features
+- Fix user authentication and registration issues
+- Release 1.0.4 - Public release
 
 ### Known Issues
 
