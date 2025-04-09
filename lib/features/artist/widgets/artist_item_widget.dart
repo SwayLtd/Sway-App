@@ -169,7 +169,7 @@ class _ArtistListItemWidgetState extends State<ArtistListItemWidget> {
             title: Text(
               truncatedTitle,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             subtitle: Column(
