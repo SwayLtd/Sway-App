@@ -57,6 +57,9 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@android:color/white" />
 
+        <!-- To fix render issue on Flutter 3.29 - https://github.com/flutter/flutter/issues/163452 -->
+        <meta-data android:name="io.flutter.embedding.android.EnableImpeller" android:value="false" />
+
         <!--
         https://developers.google.com/tag-platform/security/guides/app-consent?platform=android&consentmode=advanced-->
         <meta-data android:name="google_analytics_default_allow_analytics_storage"
