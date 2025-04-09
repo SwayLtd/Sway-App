@@ -12,7 +12,7 @@ description: Sway is a mobile event management application that helps users disc
 
 publish_to: "none"
 
-version: 1.0.4+50 # Public release
+version: 1.0.4+51 # Public release - Small bug fixes and improvements
 environment:
   sdk: ">=3.0.0 <4.0.0" # ">=2.18.5 <4.0.0"
 
@@ -31,7 +31,7 @@ dependencies:
     sdk: flutter
   flutter_secure_storage: ^9.2.2
   flutter_sticky_header: ^0.7.0
-  go_router: ^14.2.1 # ^6.5.9 was important before, keep it in ming
+  go_router: ^14.2.1 # ^6.5.9 was important before, keep it in mind
   # google_fonts: ^6.2.1
   http: ^1.2.2
   intl: ^0.19.0

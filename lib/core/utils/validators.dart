@@ -54,9 +54,9 @@ String? usernameValidator(String? username) {
     return 'Please enter a username.';
   }
   // Regular expression to allow letters, numbers, dots, and underscores.
-  final usernameRegex = RegExp(r'^[a-zA-Z0-9._]+$');
+  final usernameRegex = RegExp(r'^[a-z0-9._]+$');
   if (!usernameRegex.hasMatch(username)) {
-    return 'Username can only contain letters, numbers, dots, and underscores.';
+    return 'Username can only contain lowercase letters, numbers, dots, and underscores.';
   }
   if (username.contains(' ')) {
     return 'Username cannot contain spaces.';
